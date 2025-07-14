@@ -1,27 +1,36 @@
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { Features } from "@/components/Features";
+import { ChatInterface } from "@/components/ChatInterface";
+import { Footer } from "@/components/Footer";
+import { AuthModal } from "@/components/AuthModal";
+
 const Index = () => {
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+
+  const openAuth = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+  };
+
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#ffffff', 
-      color: '#000000',
-      padding: '20px',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>
-        DrBubbles Test
-      </h1>
-      <p style={{ fontSize: '24px' }}>
-        If you can see this, the page is working.
-      </p>
-      <div style={{ 
-        backgroundColor: '#007acc', 
-        color: 'white', 
-        padding: '20px', 
-        borderRadius: '8px',
-        marginTop: '20px'
-      }}>
-        This is a blue box to test colors.
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
+      <main>
+        <Hero onGetStarted={() => openAuth('signup')} />
+        <Features />
+        <ChatInterface />
+      </main>
+      <Footer />
+      
+      <AuthModal 
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        mode={authMode}
+        onToggleMode={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+      />
     </div>
   );
 };

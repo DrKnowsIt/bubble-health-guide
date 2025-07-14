@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, X, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Header = () => {
+interface HeaderProps {
+  onSignIn: () => void;
+  onSignUp: () => void;
+}
+
+export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -45,11 +50,11 @@ export const Header = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="outline" size="sm" className="btn-outline">
+            <Button variant="outline" size="sm" className="btn-outline" onClick={onSignIn}>
               <LogIn className="h-4 w-4 mr-2" />
               Sign In
             </Button>
-            <Button size="sm" className="btn-primary">
+            <Button size="sm" className="btn-primary" onClick={onSignUp}>
               <User className="h-4 w-4 mr-2" />
               Get Started
             </Button>
@@ -94,11 +99,11 @@ export const Header = () => {
               Pricing
             </a>
             <div className="border-t border-border pt-4 space-y-2">
-              <Button variant="outline" size="sm" className="w-full btn-outline">
+              <Button variant="outline" size="sm" className="w-full btn-outline" onClick={onSignIn}>
                 <LogIn className="h-4 w-4 mr-2" />
                 Sign In
               </Button>
-              <Button size="sm" className="w-full btn-primary">
+              <Button size="sm" className="w-full btn-primary" onClick={onSignUp}>
                 <User className="h-4 w-4 mr-2" />
                 Get Started
               </Button>

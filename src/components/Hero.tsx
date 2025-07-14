@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Mic, Shield, Sparkles } from "lucide-react";
 
-export const Hero = () => {
+interface HeroProps {
+  onGetStarted: () => void;
+}
+
+export const Hero = ({ onGetStarted }: HeroProps) => {
   return (
     <section className="relative py-20 sm:py-24 lg:py-32 gradient-hero">
       {/* Background Pattern */}
@@ -43,7 +47,7 @@ export const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="btn-primary text-lg px-8 py-4">
+            <Button size="lg" className="btn-primary text-lg px-8 py-4" onClick={onGetStarted}>
               <MessageCircle className="mr-2 h-5 w-5" />
               Start Chatting Free
             </Button>
