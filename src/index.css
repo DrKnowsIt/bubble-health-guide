@@ -2,41 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* DrBubbles Medical AI - Professional Design System */
 
 @layer base {
   :root {
+    /* Core Medical Palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 210 15% 20%;
 
+    /* Cards & Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 15% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Medical Primary - Trustworthy Blue */
+    --primary: 210 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 210 85% 38%;
+    --primary-light: 210 85% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Medical Secondary - Calming Teal */
+    --secondary: 180 35% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 180 35% 95%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Warm Healthcare Green */
+    --accent: 155 65% 45%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 155 65% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted Tones */
+    --muted: 210 15% 96%;
+    --muted-foreground: 210 15% 55%;
+    --muted-dark: 210 15% 88%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Interface Elements */
+    --border: 210 20% 88%;
+    --input: 210 20% 96%;
+    --ring: 210 85% 45%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Chat Interface */
+    --chat-bg: 210 20% 98%;
+    --chat-user: 210 85% 45%;
+    --chat-ai: 0 0% 100%;
+    --chat-bubble-shadow: 210 20% 85%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Medical Status Colors */
+    --success: 140 65% 45%;
+    --warning: 35 85% 55%;
+    --destructive: 0 75% 55%;
+    --info: 210 85% 55%;
 
-    --radius: 0.5rem;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 85% 45%), hsl(180 35% 45%));
+    --gradient-bubble: linear-gradient(135deg, hsl(210 85% 52%), hsl(210 85% 38%));
+    --gradient-hero: linear-gradient(180deg, hsl(210 85% 98%), hsl(180 35% 98%));
+
+    /* Shadows */
+    --shadow-bubble: 0 4px 20px -2px hsl(210 85% 45% / 0.15);
+    --shadow-card: 0 2px 12px -2px hsl(210 20% 20% / 0.1);
+    --shadow-elevated: 0 8px 32px -4px hsl(210 20% 20% / 0.15);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,41 +86,41 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Medical Theme */
+    --background: 210 25% 8%;
+    --foreground: 210 15% 90%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 20% 12%;
+    --card-foreground: 210 15% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --primary: 210 85% 55%;
+    --primary-foreground: 210 25% 8%;
+    --primary-hover: 210 85% 48%;
+    --primary-light: 210 85% 20%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 180 35% 55%;
+    --secondary-foreground: 210 25% 8%;
+    --secondary-light: 180 35% 15%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --accent: 155 65% 55%;
+    --accent-foreground: 210 25% 8%;
+    --accent-light: 155 65% 15%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 20% 15%;
+    --muted-foreground: 210 15% 65%;
+    --muted-dark: 210 20% 20%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --border: 210 20% 20%;
+    --input: 210 20% 15%;
+    --ring: 210 85% 55%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --chat-bg: 210 20% 10%;
+    --chat-user: 210 85% 55%;
+    --chat-ai: 210 20% 12%;
+    --chat-bubble-shadow: 210 20% 5%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 210 25% 8%;
   }
 }
 
@@ -100,6 +130,118 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Medical UI Classes */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-bubble {
+    background: var(--gradient-bubble);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-bubble {
+    box-shadow: var(--shadow-bubble);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  /* Chat Bubble Animations */
+  .chat-bubble-enter {
+    animation: bubble-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .pulse-gentle {
+    animation: pulse-gentle 2s ease-in-out infinite;
+  }
+}
+
+@layer components {
+  /* Medical Button Variants */
+  .btn-medical {
+    @apply inline-flex items-center justify-center rounded-xl font-medium transition-smooth;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .btn-primary {
+    @apply btn-medical bg-primary text-primary-foreground shadow-bubble;
+    @apply hover:bg-[hsl(var(--primary-hover))] hover:shadow-elevated;
+  }
+
+  .btn-secondary {
+    @apply btn-medical bg-secondary text-secondary-foreground shadow-card;
+    @apply hover:bg-secondary/90;
+  }
+
+  .btn-accent {
+    @apply btn-medical bg-accent text-accent-foreground shadow-card;
+    @apply hover:bg-accent/90;
+  }
+
+  .btn-outline {
+    @apply btn-medical border border-border bg-background text-foreground;
+    @apply hover:bg-muted hover:shadow-card;
+  }
+
+  /* Chat Interface Components */
+  .chat-container {
+    @apply bg-[hsl(var(--chat-bg))] rounded-2xl border border-border;
+    @apply shadow-card transition-smooth;
+  }
+
+  .chat-bubble-user {
+    @apply bg-[hsl(var(--chat-user))] text-white rounded-2xl rounded-br-md;
+    @apply shadow-[0_2px_8px_hsl(var(--chat-bubble-shadow))]`;
+  }
+
+  .chat-bubble-ai {
+    @apply bg-[hsl(var(--chat-ai))] text-foreground rounded-2xl rounded-bl-md;
+    @apply border border-border shadow-card;
+  }
+
+  /* Medical Cards */
+  .medical-card {
+    @apply bg-card text-card-foreground rounded-2xl border border-border;
+    @apply shadow-card transition-smooth hover:shadow-elevated;
+  }
+}
+
+@keyframes bubble-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
