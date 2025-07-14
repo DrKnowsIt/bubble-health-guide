@@ -211,7 +211,7 @@
 
   .chat-bubble-user {
     @apply bg-[hsl(var(--chat-user))] text-white rounded-2xl rounded-br-md;
-    @apply shadow-[0_2px_8px_hsl(var(--chat-bubble-shadow))]`;
+    box-shadow: 0 2px 8px hsl(var(--chat-bubble-shadow));
   }
 
   .chat-bubble-ai {
