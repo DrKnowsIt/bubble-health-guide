@@ -55,7 +55,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold text-foreground">
-            {mode === 'signin' ? 'Welcome Back' : 'Join DrBubbles'}
+            {mode === 'signin' ? 'Welcome Back' : 'Join DrKnowItAll'}
           </DialogTitle>
           <p className="text-muted-foreground">
             {mode === 'signin' 
@@ -206,7 +206,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
         {/* Legal Notice */}
         <div className="mt-6 p-3 rounded-lg bg-warning/10 border border-warning/20">
           <p className="text-xs text-warning text-center">
-            By using DrBubbles, you acknowledge this is for informational purposes only 
+            By using DrKnowItAll, you acknowledge this is for informational purposes only 
             and not a substitute for professional medical advice.
           </p>
         </div>

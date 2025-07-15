@@ -67,7 +67,7 @@ export const SettingsDashboard = ({ user }: SettingsDashboardProps) => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Manage your DrBubbles preferences and account</p>
+        <p className="text-muted-foreground">Manage your DrKnowItAll preferences and account</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -172,7 +172,7 @@ export const SettingsDashboard = ({ user }: SettingsDashboardProps) => {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-sm font-medium">Anonymous Analytics</Label>
-                <p className="text-xs text-muted-foreground">Help improve DrBubbles with usage data</p>
+                <p className="text-xs text-muted-foreground">Help improve DrKnowItAll with usage data</p>
               </div>
               <Switch
                 checked={settings.privacy.analytics}
@@ -218,7 +218,7 @@ export const SettingsDashboard = ({ user }: SettingsDashboardProps) => {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-sm font-medium">Voice Mode</Label>
-                <p className="text-xs text-muted-foreground">Enable voice conversations with DrBubble</p>
+                <p className="text-xs text-muted-foreground">Enable voice conversations with DrKnowItAll</p>
               </div>
               <Switch
                 checked={settings.voice.enabled}

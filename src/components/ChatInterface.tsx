@@ -16,7 +16,7 @@ export const ChatInterface = () => {
     {
       id: '1',
       type: 'ai',
-      content: "Hello! I'm DrBubble, your AI medical companion. I'm here to help you understand health topics and prepare for doctor visits. What would you like to discuss today?",
+      content: "Hello! I'm DrKnowItAll, your AI medical companion. I'm here to help you understand health topics and prepare for doctor visits. What would you like to discuss today?",
       timestamp: new Date()
     }
   ]);
@@ -63,7 +63,7 @@ export const ChatInterface = () => {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Try DrBubble Now
+            Try DrKnowItAll Now
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Experience our AI medical companion in action. Ask questions about symptoms, 
@@ -144,7 +144,7 @@ export const ChatInterface = () => {
             <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <Input
-                  placeholder="Ask DrBubble about your health concerns..."
+                  placeholder="Ask DrKnowItAll about your health concerns..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -184,7 +184,7 @@ export const ChatInterface = () => {
         {/* Disclaimer */}
         <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
           <p className="text-sm text-muted-foreground">
-            This is a demonstration. DrBubble provides general health information only. 
+            This is a demonstration. DrKnowItAll provides general health information only. 
             Always consult healthcare professionals for medical advice.
           </p>
         </div>

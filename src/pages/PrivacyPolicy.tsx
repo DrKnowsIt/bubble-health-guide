@@ -35,7 +35,7 @@ const PrivacyPolicy = () => {
             </CardHeader>
             <CardContent className="prose prose-gray max-w-none">
               <p className="text-muted-foreground leading-relaxed">
-                DrBubbles ("we," "our," or "us") is committed to protecting your privacy and ensuring 
+                DrKnowItAll ("we," "our," or "us") is committed to protecting your privacy and ensuring 
                 the security of your personal health information. This Privacy Policy explains how we 
                 collect, use, disclose, and safeguard your information when you use our AI-powered 
                 medical guidance platform.
@@ -104,7 +104,7 @@ const PrivacyPolicy = () => {
             <CardContent>
               <div className="bg-accent-light p-4 rounded-lg mb-4">
                 <p className="text-accent-foreground font-medium">
-                  🔒 DrBubbles is fully HIPAA compliant and follows all required safeguards 
+                  🔒 DrKnowItAll is fully HIPAA compliant and follows all required safeguards 
                   for protecting your health information.
                 </p>
               </div>
@@ -193,9 +193,9 @@ const PrivacyPolicy = () => {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Email:</strong> privacy@drbubbles.ai</p>
-                <p><strong>Phone:</strong> 1-800-DRBUBBLE</p>
-                <p><strong>Mail:</strong> DrBubbles Privacy Officer<br />123 Health Street<br />Medical City, MC 12345</p>
+                <p><strong>Email:</strong> privacy@drknowitall.ai</p>
+                <p><strong>Phone:</strong> 1-800-DRKNOWITALL</p>
+                <p><strong>Mail:</strong> DrKnowItAll Privacy Officer<br />123 Health Street<br />Medical City, MC 12345</p>
               </div>
             </CardContent>
           </Card>

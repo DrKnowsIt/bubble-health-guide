@@ -21,7 +21,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               <Stethoscope className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-foreground">DrBubbles</span>
+              <span className="text-xl font-bold text-foreground">DrKnowItAll</span>
               <span className="text-xs text-muted-foreground">AI Medical Guidance</span>
             </div>
           </div>

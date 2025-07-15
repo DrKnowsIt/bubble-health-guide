@@ -4,17 +4,17 @@ const features = [
   {
     icon: MessageCircle,
     title: "Intelligent Chat Interface",
-    description: "Engage in natural conversations with DrBubble. Our AI understands medical terminology and provides clear, helpful responses to your health questions."
+    description: "Engage in natural conversations with DrKnowItAll. Our AI understands medical terminology and provides clear, helpful responses to your health questions."
   },
   {
     icon: Mic,
     title: "Voice Mode",
-    description: "Speak naturally with DrBubble using our advanced voice recognition. Perfect for when you're on the go or prefer verbal communication."
+    description: "Speak naturally with DrKnowItAll using our advanced voice recognition. Perfect for when you're on the go or prefer verbal communication."
   },
   {
     icon: FileText,
     title: "Auto Health Records",
-    description: "DrBubble automatically organizes your conversations into a comprehensive health profile, making it easy to track symptoms and concerns over time."
+    description: "DrKnowItAll automatically organizes your conversations into a comprehensive health profile, making it easy to track symptoms and concerns over time."
   },
   {
     icon: Users,
@@ -29,7 +29,7 @@ const features = [
   {
     icon: Zap,
     title: "Instant Responses",
-    description: "Get immediate guidance 24/7. DrBubble is always available to help you understand health topics and prepare for medical appointments."
+    description: "Get immediate guidance 24/7. DrKnowItAll is always available to help you understand health topics and prepare for medical appointments."
   }
 ];
 
@@ -39,7 +39,7 @@ export const Features = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">
-            Why Choose DrBubble?
+            Why Choose DrKnowItAll?
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Our AI-powered platform combines cutting-edge technology with medical expertise 

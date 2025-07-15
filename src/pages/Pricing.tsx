@@ -8,7 +8,7 @@ const Pricing = () => {
       name: "Free Trial",
       price: "$0",
       period: "50 credits",
-      description: "Perfect for exploring DrBubbles",
+      description: "Perfect for exploring DrKnowItAll",
       features: [
         "50 AI conversations",
         "Basic health profile",
@@ -94,7 +94,7 @@ const Pricing = () => {
             Choose Your Health Journey
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Start with our free trial, then upgrade to unlock the full power of DrBubbles 
+            Start with our free trial, then upgrade to unlock the full power of DrKnowItAll 
             for comprehensive health guidance and doctor communication.
           </p>
         </div>
@@ -161,7 +161,7 @@ const Pricing = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose DrBubbles?
+              Why Choose DrKnowItAll?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Every plan includes our core features designed to empower your health journey
@@ -199,10 +199,10 @@ const Pricing = () => {
             <Card className="medical-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-2">
-                  Is DrBubbles a replacement for my doctor?
+                  Is DrKnowItAll a replacement for my doctor?
                 </h3>
                 <p className="text-muted-foreground">
-                  No. DrBubbles is designed to complement your healthcare, not replace it. 
+                  No. DrKnowItAll is designed to complement your healthcare, not replace it.
                   We help you understand health topics and prepare for doctor visits, but you 
                   should always consult healthcare professionals for medical decisions.
                 </p>
