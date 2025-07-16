@@ -1,8 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText } from "lucide-react";
+import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText, ArrowLeft } from "lucide-react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { AuthModal } from "@/components/AuthModal";
+import { Link } from "react-router-dom";
 
 const Pricing = () => {
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+
+  const openAuth = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+  };
   const plans = [
     {
       name: "Starter",
@@ -98,6 +110,15 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
+      
+      {/* Back to Home Link */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-smooth">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Link>
+      </div>
       {/* Header */}
       <div className="py-20 text-center gradient-hero">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -310,11 +331,20 @@ const Pricing = () => {
           <p className="text-lg text-muted-foreground mb-8">
             Start your free trial today and experience the future of personalized health guidance.
           </p>
-          <Button size="lg" className="btn-primary text-lg px-8 py-4">
+          <Button size="lg" className="btn-primary text-lg px-8 py-4" onClick={() => openAuth('signup')}>
             Start Free Trial
           </Button>
         </div>
       </div>
+      
+      <Footer />
+      
+      <AuthModal 
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        mode={authMode}
+        onToggleMode={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+      />
     </div>
   );
 };
