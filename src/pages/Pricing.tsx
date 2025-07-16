@@ -67,22 +67,32 @@ const Pricing = () => {
     {
       icon: Shield,
       title: "HIPAA Compliant",
-      description: "Your health data is protected with enterprise-grade security"
+      description: "Enterprise-grade encryption and security protocols protect your sensitive health information at all times"
     },
     {
       icon: FileText,
-      title: "Doctor Integration",
-      description: "Export professional summaries to share with your healthcare team"
+      title: "Professional Reports",
+      description: "Generate detailed health summaries and conversation exports formatted for healthcare providers"
     },
     {
       icon: MessageCircle,
-      title: "24/7 Access",
-      description: "Get health guidance whenever you need it, day or night"
+      title: "24/7 AI Access",
+      description: "Get instant health guidance whenever you need it, with our advanced chain-of-thought processing"
     },
     {
       icon: Star,
-      title: "AI-Powered",
-      description: "Advanced medical AI trained on the latest health information"
+      title: "Accuracy Validated",
+      description: "Multi-layer validation system with confidence scoring to minimize hallucinations and ensure reliability"
+    },
+    {
+      icon: Zap,
+      title: "Lightning Fast",
+      description: "Optimized AI infrastructure delivers responses in seconds, not minutes"
+    },
+    {
+      icon: Crown,
+      title: "Premium Support",
+      description: "Priority customer support with health-focused assistance from our specialized team"
     }
   ];
 
@@ -169,7 +179,7 @@ const Pricing = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="medical-card text-center">
                 <CardContent className="p-6">
@@ -217,7 +227,34 @@ const Pricing = () => {
                 </h3>
                 <p className="text-muted-foreground">
                   We are HIPAA compliant and use enterprise-grade encryption to protect your data. 
-                  Your information is never shared without your explicit consent.
+                  Your information is never shared without your explicit consent and all data is stored 
+                  in secure, encrypted databases with multi-factor authentication.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="medical-card">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">
+                  What happens when I reach my conversation limit?
+                </h3>
+                <p className="text-muted-foreground">
+                  On the Starter plan, you'll receive a notification when approaching your 25 monthly conversations. 
+                  You can upgrade anytime or wait until the next month. Essential and Professional plans offer 
+                  200 conversations and unlimited conversations respectively.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="medical-card">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">
+                  How accurate is the AI medical guidance?
+                </h3>
+                <p className="text-muted-foreground">
+                  Our proprietary chain-of-thought architecture includes multiple validation layers and 
+                  confidence scoring to minimize hallucinations. Each response includes uncertainty indicators, 
+                  but remember that AI guidance should complement, not replace, professional medical advice.
                 </p>
               </CardContent>
             </Card>
@@ -228,8 +265,35 @@ const Pricing = () => {
                   Can I cancel my subscription anytime?
                 </h3>
                 <p className="text-muted-foreground">
-                  Yes, you can cancel your subscription at any time. You'll continue to have 
-                  access until the end of your current billing period.
+                  Yes, you can cancel your subscription at any time with no cancellation fees. 
+                  You'll continue to have access until the end of your current billing period, 
+                  and you can always reactivate later.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="medical-card">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">
+                  Do you offer family plans or discounts?
+                </h3>
+                <p className="text-muted-foreground">
+                  The Professional plan includes family health tracking for up to 4 members. 
+                  We also offer annual billing discounts (2 months free) and student discounts. 
+                  Contact our support team for enterprise or bulk pricing options.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="medical-card">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-2">
+                  What payment methods do you accept?
+                </h3>
+                <p className="text-muted-foreground">
+                  We accept all major credit cards (Visa, MasterCard, American Express), 
+                  PayPal, and Apple Pay. All payments are processed securely through Stripe 
+                  with bank-level encryption.
                 </p>
               </CardContent>
             </Card>
