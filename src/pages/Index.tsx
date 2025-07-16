@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
+import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
 import { ChatInterface } from "@/components/ChatInterface";
 import { Footer } from "@/components/Footer";
@@ -20,6 +21,7 @@ const Index = () => {
       <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       <main>
         <Hero onGetStarted={() => openAuth('signup')} />
+        <HowItWorks />
         <Features />
         <ChatInterface />
       </main>

@@ -5,57 +5,58 @@ import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText } from "lucide
 const Pricing = () => {
   const plans = [
     {
-      name: "Free Trial",
+      name: "Starter",
       price: "$0",
-      period: "50 credits",
-      description: "Perfect for exploring DrKnowItAll",
+      period: "forever",
+      description: "Perfect for trying DrKnowItAll",
       features: [
-        "50 AI conversations",
+        "25 AI conversations per month",
         "Basic health profile",
-        "Chat export",
+        "Standard response time",
+        "Chat export (text only)",
         "Email support",
         "HIPAA compliant"
       ],
-      buttonText: "Start Free Trial",
+      buttonText: "Start Free",
       buttonVariant: "outline" as const,
       icon: MessageCircle,
       popular: false
     },
     {
-      name: "Basic Plan",
-      price: "$19",
+      name: "Essential",
+      price: "$9",
       period: "per month",
       description: "For regular health guidance",
       features: [
-        "Unlimited AI conversations",
-        "Complete health profile",
+        "200 AI conversations per month",
+        "Advanced chain-of-thought processing",
         "Voice mode access",
-        "Weekly health summaries",
+        "Confidence scoring",
+        "Complete health profile",
         "Doctor-ready exports",
-        "Priority support",
-        "Mobile app access"
+        "Priority support"
       ],
-      buttonText: "Choose Basic",
+      buttonText: "Choose Essential",
       buttonVariant: "default" as const,
       icon: Zap,
       popular: true
     },
     {
-      name: "Advanced Plan",
-      price: "$39",
+      name: "Professional",
+      price: "$29",
       period: "per month",
-      description: "Complete health management",
+      description: "For comprehensive health management",
       features: [
-        "Everything in Basic",
-        "Direct doctor communication",
-        "Advanced AI insights",
-        "Family health tracking",
-        "Medication reminders",
+        "Unlimited AI conversations",
+        "Maximum accuracy processing",
+        "Family health tracking (up to 4 members)",
+        "Advanced medical insights",
         "Lab result analysis",
+        "Medication interaction checking",
         "24/7 priority support",
-        "Telehealth integrations"
+        "Early access to new features"
       ],
-      buttonText: "Choose Advanced",
+      buttonText: "Choose Professional",
       buttonVariant: "default" as const,
       icon: Crown,
       popular: false
