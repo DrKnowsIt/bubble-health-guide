@@ -6,61 +6,61 @@
 
 @layer base {
   :root {
-    /* Dark Theme - Grey, Blue, Orange */
-    --background: 220 13% 9%;
-    --foreground: 220 9% 95%;
+    /* Clean Theme - Crisp Blue, Orange, and Dark Grey */
+    --background: 220 15% 8%;
+    --foreground: 0 0% 98%;
 
     /* Cards & Surfaces */
-    --card: 220 13% 12%;
-    --card-foreground: 220 9% 95%;
+    --card: 220 15% 11%;
+    --card-foreground: 0 0% 98%;
 
-    /* Primary - Blue */
-    --primary: 217 91% 60%;
-    --primary-foreground: 220 13% 9%;
-    --primary-hover: 217 91% 55%;
-    --primary-light: 217 91% 20%;
+    /* Primary - Bright Blue */
+    --primary: 212 100% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 212 100% 70%;
+    --primary-light: 212 100% 85%;
 
-    /* Secondary - Dark Grey */
-    --secondary: 220 13% 18%;
-    --secondary-foreground: 220 9% 95%;
-    --secondary-light: 220 13% 25%;
+    /* Secondary - Clean Grey */
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --secondary-light: 220 15% 22%;
 
-    /* Accent - Orange */
-    --accent: 25 95% 65%;
-    --accent-foreground: 220 13% 9%;
-    --accent-light: 25 95% 25%;
+    /* Accent - Vibrant Orange */
+    --accent: 20 100% 60%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 20 100% 85%;
 
     /* Muted Tones */
-    --muted: 220 13% 15%;
-    --muted-foreground: 220 9% 65%;
-    --muted-dark: 220 13% 20%;
+    --muted: 220 15% 14%;
+    --muted-foreground: 220 10% 70%;
+    --muted-dark: 220 15% 18%;
 
     /* Interface Elements */
-    --border: 220 13% 20%;
-    --input: 220 13% 15%;
-    --ring: 217 91% 60%;
+    --border: 220 15% 24%;
+    --input: 220 15% 13%;
+    --ring: 212 100% 65%;
 
     /* Chat Interface */
-    --chat-bg: 220 13% 10%;
-    --chat-user: 217 91% 60%;
-    --chat-ai: 220 13% 12%;
-    --chat-bubble-shadow: 220 13% 5%;
+    --chat-bg: 220 15% 9%;
+    --chat-user: 212 100% 65%;
+    --chat-ai: 220 15% 13%;
+    --chat-bubble-shadow: 220 15% 5%;
 
     /* Status Colors */
-    --success: 142 71% 45%;
-    --warning: 25 95% 65%;
-    --destructive: 0 84% 60%;
-    --info: 217 91% 60%;
+    --success: 142 75% 50%;
+    --warning: 20 100% 60%;
+    --destructive: 0 85% 65%;
+    --info: 212 100% 65%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(25 95% 65%));
-    --gradient-bubble: linear-gradient(135deg, hsl(217 91% 65%), hsl(217 91% 55%));
-    --gradient-hero: linear-gradient(180deg, hsl(220 13% 12%), hsl(220 13% 9%));
+    /* Solid Backgrounds - No Gradients */
+    --solid-primary: 212 100% 65%;
+    --solid-accent: 20 100% 60%;
+    --solid-hero: 220 15% 10%;
 
     /* Shadows */
-    --shadow-bubble: 0 4px 20px -2px hsl(217 91% 60% / 0.25);
-    --shadow-card: 0 2px 12px -2px hsl(220 13% 5% / 0.3);
-    --shadow-elevated: 0 8px 32px -4px hsl(220 13% 5% / 0.4);
+    --shadow-bubble: 0 4px 16px -2px hsl(212 100% 65% / 0.3);
+    --shadow-card: 0 2px 8px -1px hsl(220 15% 5% / 0.4);
+    --shadow-elevated: 0 8px 24px -4px hsl(220 15% 5% / 0.5);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,18 +69,18 @@
     --radius: 0.75rem;
 
     /* Sidebar */
-    --sidebar-background: 220 13% 11%;
-    --sidebar-foreground: 220 9% 90%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 220 13% 9%;
-    --sidebar-accent: 220 13% 16%;
-    --sidebar-accent-foreground: 220 9% 90%;
-    --sidebar-border: 220 13% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 212 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 18%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 212 100% 65%;
 
     /* Popovers */
-    --popover: 220 13% 12%;
-    --popover-foreground: 220 9% 95%;
+    --popover: 220 15% 13%;
+    --popover-foreground: 0 0% 98%;
   }
 
 }
@@ -94,17 +94,17 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Medical UI Classes */
+  /* Solid Background Classes - No Gradients */
   .gradient-primary {
-    background: var(--gradient-primary);
+    background: hsl(var(--solid-primary));
   }
 
   .gradient-bubble {
-    background: var(--gradient-bubble);
+    background: hsl(var(--solid-primary));
   }
 
   .gradient-hero {
-    background: var(--gradient-hero);
+    background: hsl(var(--solid-hero));
   }
 
   .shadow-bubble {
