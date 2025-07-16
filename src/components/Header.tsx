@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, X, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   onSignIn: () => void;
@@ -16,7 +17,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-bubble">
               <Stethoscope className="h-6 w-6 text-white" />
             </div>
@@ -24,7 +25,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               <span className="text-xl font-bold text-foreground">DrKnowItAll</span>
               <span className="text-xs text-muted-foreground">AI Medical Guidance</span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -40,12 +41,12 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             >
               How It Works
             </a>
-            <a
-              href="#pricing"
+            <Link
+              to="/pricing"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
             >
               Pricing
-            </a>
+            </Link>
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -91,13 +92,13 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             >
               How It Works
             </a>
-            <a
-              href="#pricing"
+            <Link
+              to="/pricing"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
               onClick={() => setIsMenuOpen(false)}
             >
               Pricing
-            </a>
+            </Link>
             <div className="border-t border-border pt-4 space-y-2">
               <Button variant="outline" size="sm" className="w-full btn-outline" onClick={onSignIn}>
                 <LogIn className="h-4 w-4 mr-2" />
