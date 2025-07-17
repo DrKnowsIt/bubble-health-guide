@@ -38,7 +38,7 @@ const Dashboard = () => {
   };
 
   const sidebarItems = [
-    { id: "chat", label: "Chat with DrNorbit", icon: MessageCircle },
+    { id: "chat", label: "Chat with DrKnowItAll", icon: MessageCircle },
     { id: "health", label: "Health Profile", icon: Heart },
     { id: "settings", label: "Settings", icon: Settings },
   ];

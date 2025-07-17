@@ -27,7 +27,7 @@ const Index = () => {
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-3">
                 Chat with{" "}
-                <span className="text-primary">DrNorbit</span>
+                <span className="text-primary">DrKnowItAll</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-4">
                 Get instant medical guidance through AI-powered conversation

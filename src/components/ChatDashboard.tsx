@@ -17,7 +17,7 @@ export const ChatDashboard = () => {
     {
       id: '1',
       type: 'ai',
-      content: "Welcome back! I'm DrNorbit, ready to help with your health questions. What's on your mind today?",
+      content: "Welcome back! I'm DrKnowItAll, ready to help with your health questions. What's on your mind today?",
       timestamp: new Date()
     }
   ]);
@@ -70,14 +70,14 @@ export const ChatDashboard = () => {
 
   const exportConversation = () => {
     const conversationText = messages
-      .map(msg => `${msg.type === 'user' ? 'You' : 'DrNorbit'}: ${msg.content}`)
+      .map(msg => `${msg.type === 'user' ? 'You' : 'DrKnowItAll'}: ${msg.content}`)
       .join('\n\n');
     
     const blob = new Blob([conversationText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `drnorbit-conversation-${new Date().toLocaleDateString()}.txt`;
+    a.download = `drknowitall-conversation-${new Date().toLocaleDateString()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -87,7 +87,7 @@ export const ChatDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Chat with DrNorbit</h1>
+          <h1 className="text-3xl font-bold text-foreground">Chat with DrKnowItAll</h1>
           <p className="text-muted-foreground">Your AI medical companion is here to help</p>
         </div>
         <div className="flex space-x-2">
@@ -175,7 +175,7 @@ export const ChatDashboard = () => {
           <div className="flex space-x-2">
             <div className="flex-1 relative">
               <Textarea
-                placeholder="Ask DrNorbit about your health concerns..."
+                placeholder="Ask DrKnowItAll about your health concerns..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
