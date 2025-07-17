@@ -30,7 +30,7 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <span className="text-lg font-bold text-foreground">DrKnowItAll</span>
+              <span className="text-lg font-bold text-foreground">DrNorbit</span>
               <span className="text-xs text-muted-foreground ml-2">Dashboard</span>
             </div>
           </div>

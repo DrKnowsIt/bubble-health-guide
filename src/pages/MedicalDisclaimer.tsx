@@ -22,7 +22,7 @@ const MedicalDisclaimer = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Medical Disclaimer</h1>
-              <p className="text-muted-foreground">Important information about using DrKnowItAll</p>
+              <p className="text-muted-foreground">Important information about using DrNorbit</p>
             </div>
           </div>
         </div>
@@ -39,13 +39,13 @@ const MedicalDisclaimer = () => {
             <CardContent>
               <div className="bg-destructive/10 p-6 rounded-lg space-y-4">
                 <p className="text-destructive font-bold text-lg">
-                  DrKnowItAll is NOT a substitute for professional medical care, diagnosis, or treatment.
+                  DrNorbit is NOT a substitute for professional medical care, diagnosis, or treatment.
                 </p>
                 <ul className="list-disc list-inside text-destructive space-y-2">
-                  <li>DrKnowItAll cannot diagnose medical conditions</li>
-                  <li>DrKnowItAll cannot prescribe medications or treatments</li>
-                  <li>DrKnowItAll cannot provide emergency medical care</li>
-                  <li>DrKnowItAll responses are for educational purposes only</li>
+                  <li>DrNorbit cannot diagnose medical conditions</li>
+                  <li>DrNorbit cannot prescribe medications or treatments</li>
+                  <li>DrNorbit cannot provide emergency medical care</li>
+                  <li>DrNorbit responses are for educational purposes only</li>
                 </ul>
               </div>
             </CardContent>
@@ -58,7 +58,7 @@ const MedicalDisclaimer = () => {
             <CardContent>
               <div className="bg-warning/10 p-6 rounded-lg space-y-4">
                 <p className="text-warning font-bold">
-                  🚨 If you are experiencing a medical emergency, do NOT use DrKnowItAll.
+                  🚨 If you are experiencing a medical emergency, do NOT use DrNorbit.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -84,12 +84,12 @@ const MedicalDisclaimer = () => {
 
           <Card className="medical-card">
             <CardHeader>
-              <CardTitle>What DrKnowItAll IS</CardTitle>
+              <CardTitle>What DrNorbit IS</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-accent-light p-4 rounded-lg mb-4">
                 <p className="text-accent-foreground font-medium">
-                  DrKnowItAll is an educational health companion designed to help you understand 
+                  DrNorbit is an educational health companion designed to help you understand 
                   health topics and prepare for doctor visits.
                 </p>
               </div>
@@ -105,7 +105,7 @@ const MedicalDisclaimer = () => {
 
           <Card className="medical-card">
             <CardHeader>
-              <CardTitle>What DrKnowItAll is NOT</CardTitle>
+              <CardTitle>What DrNorbit is NOT</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
@@ -178,14 +178,14 @@ const MedicalDisclaimer = () => {
               <CardTitle>Your Responsibility</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">By using DrKnowItAll, you acknowledge that:</p>
+              <p className="text-muted-foreground mb-4">By using DrNorbit, you acknowledge that:</p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>You understand DrKnowItAll is for educational purposes only</li>
-                <li>You will not rely solely on DrKnowItAll for medical decisions</li>
+                <li>You understand DrNorbit is for educational purposes only</li>
+                <li>You will not rely solely on DrNorbit for medical decisions</li>
                 <li>You will consult healthcare professionals for medical advice</li>
                 <li>You will seek immediate medical care for emergencies</li>
                 <li>You understand AI responses are not medical diagnoses</li>
-                <li>You will use DrKnowItAll as a supplementary tool, not a replacement for medical care</li>
+                <li>You will use DrNorbit as a supplementary tool, not a replacement for medical care</li>
               </ul>
             </CardContent>
           </Card>
@@ -196,11 +196,11 @@ const MedicalDisclaimer = () => {
             </CardHeader>
             <CardContent>
               <div className="bg-primary-light p-6 rounded-lg">
-                <h3 className="font-semibold text-foreground mb-3">Best Practice for Using DrKnowItAll:</h3>
+                <h3 className="font-semibold text-foreground mb-3">Best Practice for Using DrNorbit:</h3>
                 <ol className="list-decimal list-inside text-muted-foreground space-y-2">
-                  <li>Use DrKnowItAll to learn about health topics and organize your concerns</li>
+                  <li>Use DrNorbit to learn about health topics and organize your concerns</li>
                   <li>Prepare questions and summaries for your healthcare provider</li>
-                  <li>Share DrKnowItAll-generated summaries with your doctor for their review</li>
+                  <li>Share DrNorbit-generated summaries with your doctor for their review</li>
                   <li>Follow your healthcare provider's advice over any AI suggestions</li>
                   <li>Maintain regular checkups and professional medical relationships</li>
                 </ol>
@@ -214,21 +214,21 @@ const MedicalDisclaimer = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                If you have questions about this disclaimer or DrKnowItAll's capabilities:
+                If you have questions about this disclaimer or DrNorbit's capabilities:
               </p>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Email Support</p>
-                    <p className="text-sm text-muted-foreground">support@drknowitall.ai</p>
+                    <p className="text-sm text-muted-foreground">support@drnorbit.ai</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Phone Support</p>
-                    <p className="text-sm text-muted-foreground">1-800-DRKNOWITALL</p>
+                    <p className="text-sm text-muted-foreground">1-800-DRNORBIT</p>
                   </div>
                 </div>
               </div>
