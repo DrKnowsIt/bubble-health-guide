@@ -46,31 +46,40 @@ export type Database = {
       }
       health_records: {
         Row: {
+          category: string | null
           created_at: string
           data: Json | null
           file_url: string | null
           id: string
+          metadata: Json | null
           record_type: string
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           data?: Json | null
           file_url?: string | null
           id?: string
+          metadata?: Json | null
           record_type: string
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           data?: Json | null
           file_url?: string | null
           id?: string
+          metadata?: Json | null
           record_type?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string

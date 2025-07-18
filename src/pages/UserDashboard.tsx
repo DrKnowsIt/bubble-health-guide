@@ -19,6 +19,7 @@ import {
 import { ChatInterface } from '@/components/ChatInterface';
 import { UserSettings } from '@/components/UserSettings';
 import { HealthRecords } from '@/components/HealthRecords';
+import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 
 export default function UserDashboard() {
@@ -53,7 +54,7 @@ export default function UserDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               AI Chat
@@ -61,6 +62,10 @@ export default function UserDashboard() {
             <TabsTrigger value="health" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Health Records
+            </TabsTrigger>
+            <TabsTrigger value="forms" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Health Forms
             </TabsTrigger>
             <TabsTrigger value="ai-settings" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
@@ -95,6 +100,10 @@ export default function UserDashboard() {
 
           <TabsContent value="health" className="space-y-6">
             <HealthRecords />
+          </TabsContent>
+
+          <TabsContent value="forms" className="space-y-6">
+            <HealthForms onFormSubmit={() => setActiveTab('health')} />
           </TabsContent>
 
           <TabsContent value="ai-settings" className="space-y-6">
@@ -148,7 +157,19 @@ export default function UserDashboard() {
                   Common tasks to help you get the most out of DrKnowItAll
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex-col items-start"
+                  onClick={() => setActiveTab('forms')}
+                >
+                  <Calendar className="h-5 w-5 mb-2" />
+                  <span className="font-medium">Complete Health Forms</span>
+                  <span className="text-sm text-muted-foreground text-left">
+                    Fill out structured forms for comprehensive health data
+                  </span>
+                </Button>
+
                 <Button 
                   variant="outline" 
                   className="h-auto p-4 flex-col items-start"
@@ -194,6 +215,18 @@ export default function UserDashboard() {
                   <span className="font-medium">Account Settings</span>
                   <span className="text-sm text-muted-foreground text-left">
                     Update your profile and preferences
+                  </span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex-col items-start"
+                  onClick={() => setActiveTab('health')}
+                >
+                  <Upload className="h-5 w-5 mb-2" />
+                  <span className="font-medium">Upload DNA File</span>
+                  <span className="text-sm text-muted-foreground text-left">
+                    Upload genetic data for personalized insights
                   </span>
                 </Button>
               </CardContent>
