@@ -1,23 +1,22 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppRoutes from "./components/AppRoutes";
-import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
+import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { navItems } from "./nav-items";
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <TooltipProvider>
+    <Sonner />
+    <Routes>
+      {navItems.map(({ to, page, protected: isProtected }) => (
+        <Route 
+          key={to} 
+          path={to} 
+          element={isProtected ? <ProtectedRoute>{page}</ProtectedRoute> : page} 
+        />
+      ))}
+    </Routes>
+  </TooltipProvider>
 );
 
 export default App;

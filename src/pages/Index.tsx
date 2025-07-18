@@ -1,19 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
 import { ChatInterface } from "@/components/ChatInterface";
 import { Footer } from "@/components/Footer";
-import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const openAuth = (mode: 'signin' | 'signup') => {
-    setAuthMode(mode);
-    setIsAuthOpen(true);
+    navigate('/auth', { state: { mode } });
   };
 
   return (
@@ -51,13 +57,6 @@ const Index = () => {
         <Features />
       </main>
       <Footer />
-      
-      <AuthModal 
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        mode={authMode}
-        onToggleMode={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
-      />
     </div>
   );
 };
