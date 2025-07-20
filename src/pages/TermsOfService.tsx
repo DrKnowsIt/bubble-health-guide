@@ -35,7 +35,7 @@ const TermsOfService = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing and using DrKnowItAll ("Service"), you accept and agree to be bound by the 
+                By accessing and using DrKnowsIt ("Service"), you accept and agree to be bound by the 
                 terms and provision of this agreement. If you do not agree to abide by the above, 
                 please do not use this service.
               </p>
@@ -48,7 +48,7 @@ const TermsOfService = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                DrKnowItAll is an AI-powered health guidance platform designed to help users:
+                DrKnowsIt is an AI-powered health guidance platform designed to help users:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
                 <li>Understand health symptoms and conditions through conversational AI</li>
@@ -67,14 +67,14 @@ const TermsOfService = () => {
             <CardContent>
               <div className="bg-warning/10 p-4 rounded-lg mb-4">
                 <p className="text-warning font-medium">
-                  ⚠️ IMPORTANT: DrKnowItAll is NOT a substitute for professional medical advice, 
+                  ⚠️ IMPORTANT: DrKnowsIt is NOT a substitute for professional medical advice, 
                   diagnosis, or treatment.
                 </p>
               </div>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
                 <li>Always seek the advice of your physician or qualified healthcare provider</li>
-                <li>Never disregard professional medical advice because of information from DrKnowItAll</li>
-                <li>DrKnowItAll cannot diagnose conditions or prescribe medications</li>
+                <li>Never disregard professional medical advice because of information from DrKnowsIt</li>
+                <li>DrKnowsIt cannot diagnose conditions or prescribe medications</li>
                 <li>In case of medical emergency, contact emergency services immediately</li>
                 <li>The AI responses are for informational and educational purposes only</li>
               </ul>
@@ -155,7 +155,7 @@ const TermsOfService = () => {
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>DrKnowItAll and all related content are owned by our company and licensors</li>
+                <li>DrKnowsIt and all related content are owned by our company and licensors</li>
                 <li>You retain ownership of your personal health data and conversations</li>
                 <li>You grant us limited rights to process your data to provide the service</li>
                 <li>You may not copy, modify, or distribute our proprietary AI technology</li>
@@ -171,7 +171,7 @@ const TermsOfService = () => {
             <CardContent>
               <div className="bg-muted/50 p-4 rounded-lg mb-4">
                 <p className="text-sm text-muted-foreground font-medium">
-                  To the maximum extent permitted by law, DrKnowItAll shall not be liable for any damages 
+                  To the maximum extent permitted by law, DrKnowsIt shall not be liable for any damages 
                   arising from your use of the service.
                 </p>
               </div>
@@ -255,9 +255,9 @@ const TermsOfService = () => {
                 If you have any questions about these Terms of Service, please contact us:
               </p>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Email:</strong> legal@drknowitall.ai</p>
-                <p><strong>Phone:</strong> 1-800-DRKNOWITALL</p>
-                <p><strong>Mail:</strong> DrKnowItAll Legal Department<br />123 Health Street<br />Medical City, MC 12345</p>
+                <p><strong>Email:</strong> legal@drknowit.com</p>
+                <p><strong>Phone:</strong> 919-616-6125</p>
+                <p><strong>Mail:</strong> DrKnowsIt Legal Department<br />123 Health Street<br />Medical City, MC 12345</p>
               </div>
             </CardContent>
           </Card>

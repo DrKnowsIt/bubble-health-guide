@@ -34,7 +34,7 @@ const Dashboard = () => {
     email: "john@example.com",
     subscription: "Basic Plan",
     creditsRemaining: 85,
-    joinDate: "March 2024"
+    joinDate: "March 2025"
   };
 
   const sidebarItems = [

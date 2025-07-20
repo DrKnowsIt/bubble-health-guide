@@ -83,11 +83,11 @@ export const Footer = () => {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Mail className="h-4 w-4" />
-                  <span>support@drknowsit.ai</span>
+                  <span>support@drknowit.com</span>
                 </li>
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Phone className="h-4 w-4" />
-                  <span>1-800-DRKNOWSIT</span>
+                  <span>919-616-6125</span>
                 </li>
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Shield className="h-4 w-4" />
@@ -102,7 +102,7 @@ export const Footer = () => {
         <div className="border-t border-border py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © 2024 DrKnowsIt. All rights reserved.
+              © 2025 DrKnowsIt. All rights reserved.
             </div>
             
             {/* Important Medical Disclaimer */}

@@ -221,14 +221,14 @@ const MedicalDisclaimer = () => {
                   <Mail className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Email Support</p>
-                    <p className="text-sm text-muted-foreground">support@drknowitall.ai</p>
+                    <p className="text-sm text-muted-foreground">support@drknowit.com</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Phone Support</p>
-                    <p className="text-sm text-muted-foreground">1-800-DRKNOWITALL</p>
+                    <p className="text-sm text-muted-foreground">919-616-6125</p>
                   </div>
                 </div>
               </div>

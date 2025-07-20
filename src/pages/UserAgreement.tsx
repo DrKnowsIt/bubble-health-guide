@@ -40,7 +40,7 @@ const UserAgreement = () => {
             <CardContent>
               <div className="bg-destructive/10 p-4 rounded-lg mb-4">
                 <p className="text-destructive font-bold mb-2">
-                  BY USING DRKNOWITALL, YOU AGREE TO ALL TERMS AND ASSUME ALL RISKS
+                  BY USING DRKNOWSIT, YOU AGREE TO ALL TERMS AND ASSUME ALL RISKS
                 </p>
                 <p className="text-destructive text-sm">
                   This agreement contains important legal provisions that limit our liability and 
@@ -59,7 +59,7 @@ const UserAgreement = () => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">DrKnowItAll is an educational AI platform that:</h4>
+                  <h4 className="font-semibold mb-2">DrKnowsIt is an educational AI platform that:</h4>
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
                     <li>Provides general health information through AI conversations</li>
                     <li>Helps organize health concerns for doctor visits</li>
@@ -69,7 +69,7 @@ const UserAgreement = () => {
                 </div>
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
                   <p className="text-amber-800 font-semibold text-sm">
-                    DrKnowItAll is NOT a medical device, healthcare provider, or medical professional.
+                    DrKnowsIt is NOT a medical device, healthcare provider, or medical professional.
                     It does not provide medical advice, diagnosis, or treatment.
                   </p>
                 </div>
@@ -87,7 +87,7 @@ const UserAgreement = () => {
                 <div>
                   <h4 className="font-semibold mb-2">You agree to:</h4>
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                    <li>Use DrKnowItAll for educational and informational purposes only</li>
+                    <li>Use DrKnowsIt for educational and informational purposes only</li>
                     <li>Consult qualified healthcare professionals for all medical decisions</li>
                     <li>Never rely solely on AI responses for health-related choices</li>
                     <li>Provide accurate information to receive relevant responses</li>
@@ -101,7 +101,7 @@ const UserAgreement = () => {
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
                     <li>AI responses may contain errors, omissions, or inaccuracies</li>
                     <li>You assume full responsibility for any actions taken based on AI responses</li>
-                    <li>DrKnowItAll cannot replace professional medical judgment</li>
+                    <li>DrKnowsIt cannot replace professional medical judgment</li>
                     <li>Emergency medical situations require immediate professional intervention</li>
                   </ul>
                 </div>
@@ -122,7 +122,7 @@ const UserAgreement = () => {
                 <div className="bg-red-50 border-2 border-red-200 p-4 rounded-lg">
                   <h4 className="font-bold text-red-800 mb-2">MAXIMUM LIABILITY LIMITATION</h4>
                   <p className="text-red-700 text-sm">
-                    TO THE FULLEST EXTENT PERMITTED BY LAW, DRKNOWITALL AND ITS CREATORS, 
+                    TO THE FULLEST EXTENT PERMITTED BY LAW, DRKNOWSIT AND ITS CREATORS, 
                     OPERATORS, EMPLOYEES, AND AFFILIATES SHALL NOT BE LIABLE FOR ANY DAMAGES 
                     OF ANY KIND ARISING FROM YOUR USE OF THIS SERVICE.
                   </p>
@@ -163,7 +163,7 @@ const UserAgreement = () => {
               <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
                 <p className="text-yellow-800 font-semibold mb-2">User Protection Clause:</p>
                 <p className="text-yellow-700 text-sm">
-                  You agree to indemnify, defend, and hold harmless DrKnowItAll from any and all 
+                  You agree to indemnify, defend, and hold harmless DrKnowsIt from any and all 
                   claims, damages, losses, costs, and expenses (including attorney fees) arising 
                   from your use of the service or violation of these terms.
                 </p>
@@ -238,7 +238,7 @@ const UserAgreement = () => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">You may NOT use DrKnowItAll to:</h4>
+                  <h4 className="font-semibold mb-2">You may NOT use DrKnowsIt to:</h4>
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
                     <li>Seek medical diagnosis, treatment recommendations, or prescriptions</li>
                     <li>Handle medical emergencies (use emergency services instead)</li>
@@ -337,9 +337,9 @@ const UserAgreement = () => {
                 If you have any questions about this User Agreement, please contact us:
               </p>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Legal Department:</strong> legal@drknowitall.ai</p>
-                <p><strong>Phone:</strong> 1-800-DRKNOWITALL</p>
-                <p><strong>Mail:</strong> DrKnowItAll Legal Department<br />123 Health Street<br />Medical City, MC 12345</p>
+                <p><strong>Legal Department:</strong> legal@drknowit.com</p>
+                <p><strong>Phone:</strong> 919-616-6125</p>
+                <p><strong>Mail:</strong> DrKnowsIt Legal Department<br />123 Health Street<br />Medical City, MC 12345</p>
               </div>
             </CardContent>
           </Card>
@@ -353,14 +353,14 @@ const UserAgreement = () => {
                     FINAL ACKNOWLEDGMENT
                   </p>
                   <p className="text-primary text-sm">
-                    By using DrKnowItAll, you acknowledge that you have read, understood, 
-                    and agree to be bound by this entire User Agreement. You understand 
+                    By using DrKnowsIt, you acknowledge that you have read, understood, 
+                    and agree to be bound by this entire User Agreement. You understand
                     the risks and limitations, and you accept full responsibility for your 
                     health decisions.
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  This agreement constitutes the entire understanding between you and DrKnowItAll 
+                  This agreement constitutes the entire understanding between you and DrKnowsIt 
                   regarding your use of the service and supersedes all prior agreements.
                 </p>
               </div>
