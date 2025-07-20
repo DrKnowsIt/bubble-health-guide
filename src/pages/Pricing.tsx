@@ -20,15 +20,15 @@ const Pricing = () => {
       name: "Free",
       price: "$0",
       period: "forever",
-      description: "Basic AI health chat with limited medical guidance",
+      description: "Basic AI health questions with no data tracking",
       features: [
-        "10,000 tokens/month (~30 conversations)",
-        "General health questions & wellness tips",
-        "Basic symptom discussions",
+        "Answer basic health questions",
+        "General wellness information",
         "Health education content",
-        "Standard response time",
-        "Community support",
-        "HIPAA compliant"
+        "No conversation history",
+        "No health forms or tracking",
+        "No personal data storage",
+        "Standard response time"
       ],
       buttonText: "Start Free",
       buttonVariant: "outline" as const,
@@ -36,97 +36,49 @@ const Pricing = () => {
       popular: false
     },
     {
-      name: "Basic",
-      price: "$25",
+      name: "Paid",
+      price: "$30",
       period: "per month",
-      description: "Essential AI health guidance with moderate token usage",
+      description: "Full AI health guidance with complete tracking and history",
       features: [
-        "50,000 tokens/month (~150 conversations)",
-        "Basic health queries & symptom checking",
-        "Standard processing speed",
-        "Health profile management",
-        "Text-based interactions",
-        "Email support",
-        "HIPAA compliant"
-      ],
-      buttonText: "Choose Basic",
-      buttonVariant: "outline" as const,
-      icon: MessageCircle,
-      popular: false
-    },
-    {
-      name: "Professional",
-      price: "$50",
-      period: "per month",
-      description: "Advanced AI analysis with enhanced token allocation",
-      features: [
-        "150,000 tokens/month (~450 conversations)",
+        "Unlimited health questions",
         "Complex medical reasoning & analysis",
+        "Health profile management",
+        "Conversation history tracking",
+        "Health forms and records",
+        "Symptom tracking over time",
         "Lab result interpretation",
         "Drug interaction checking",
-        "Family health tracking (up to 4 members)",
         "Priority processing speed",
-        "Doctor-ready exports",
-        "Priority support"
+        "Email support"
       ],
-      buttonText: "Choose Professional",
+      buttonText: "Choose Paid",
       buttonVariant: "default" as const,
       icon: Zap,
       popular: true
-    },
-    {
-      name: "Premium",
-      price: "$75",
-      period: "per month",
-      description: "Maximum AI capability with unlimited complex processing",
-      features: [
-        "300,000 tokens/month (~900 conversations)",
-        "Advanced chain-of-thought reasoning",
-        "Multi-modal analysis (text, images, files)",
-        "Comprehensive medical insights",
-        "Research paper analysis",
-        "Personalized treatment planning",
-        "24/7 priority support",
-        "Early access to new features",
-        "Custom AI model fine-tuning"
-      ],
-      buttonText: "Choose Premium",
-      buttonVariant: "default" as const,
-      icon: Crown,
-      popular: false
     }
   ];
 
   const features = [
     {
       icon: Shield,
-      title: "HIPAA Compliant",
-      description: "Enterprise-grade encryption and security protocols protect your sensitive health information at all times"
-    },
-    {
-      icon: FileText,
-      title: "Professional Reports",
-      description: "Generate detailed health summaries and conversation exports formatted for healthcare providers"
+      title: "Secure & Private",
+      description: "Your data is encrypted and secure. Free plan doesn't store personal data, paid plan keeps your information private"
     },
     {
       icon: MessageCircle,
       title: "24/7 AI Access",
-      description: "Get instant health guidance whenever you need it, with our advanced chain-of-thought processing"
+      description: "Get instant health guidance whenever you need it, with our advanced AI processing"
     },
     {
       icon: Star,
-      title: "Accuracy Validated",
-      description: "Multi-layer validation system with confidence scoring to minimize hallucinations and ensure reliability"
+      title: "Reliable Responses",
+      description: "AI responses are designed to be helpful and informative for general health education"
     },
     {
       icon: Zap,
       title: "Lightning Fast",
       description: "Optimized AI infrastructure delivers responses in seconds, not minutes"
-    },
-    {
-      icon: Crown,
-      title: "Premium Support",
-      description: "Priority customer support with health-focused assistance from our specialized team"
     }
   ];
 
@@ -148,15 +100,15 @@ const Pricing = () => {
             Choose Your Health Journey
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Start with our free trial, then upgrade to unlock the full power of DrKnowItAll 
-            for comprehensive health guidance and doctor communication.
+            Start with our free plan for basic health questions, or upgrade to the paid plan 
+            for comprehensive health tracking and advanced AI guidance.
           </p>
         </div>
       </div>
 
       {/* Pricing Cards */}
       <div className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map((plan, index) => (
             <Card 
               key={plan.name} 
@@ -269,9 +221,9 @@ const Pricing = () => {
                   How secure is my health information?
                 </h3>
                 <p className="text-muted-foreground">
-                  We are HIPAA compliant and use enterprise-grade encryption to protect your data. 
-                  Your information is never shared without your explicit consent and all data is stored 
-                  in secure, encrypted databases with multi-factor authentication.
+                  Your data security is important to us. The free plan doesn't store any personal health data. 
+                  The paid plan uses encryption to protect your information, which is stored securely and never 
+                  shared without your consent.
                 </p>
               </CardContent>
             </Card>
@@ -279,12 +231,11 @@ const Pricing = () => {
             <Card className="medical-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-2">
-                  What happens when I reach my conversation limit?
+                  What's the difference between Free and Paid plans?
                 </h3>
                 <p className="text-muted-foreground">
-                  On the Starter plan, you'll receive a notification when approaching your 25 monthly conversations. 
-                  You can upgrade anytime or wait until the next month. Essential and Professional plans offer 
-                  200 conversations and unlimited conversations respectively.
+                  The Free plan answers basic health questions but doesn't save any data or conversation history. 
+                  The Paid plan includes health tracking, conversation history, health forms, and more advanced AI analysis.
                 </p>
               </CardContent>
             </Card>
@@ -292,12 +243,12 @@ const Pricing = () => {
             <Card className="medical-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-2">
-                  How accurate is the AI medical guidance?
+                  How accurate is the AI health guidance?
                 </h3>
                 <p className="text-muted-foreground">
-                  Our proprietary chain-of-thought architecture includes multiple validation layers and 
-                  confidence scoring to minimize hallucinations. Each response includes uncertainty indicators, 
-                  but remember that AI guidance should complement, not replace, professional medical advice.
+                  Our AI is designed to provide helpful health education and information. However, it's important 
+                  to remember that AI guidance should complement, not replace, professional medical advice. Always 
+                  consult healthcare professionals for medical decisions.
                 </p>
               </CardContent>
             </Card>
@@ -308,22 +259,9 @@ const Pricing = () => {
                   Can I cancel my subscription anytime?
                 </h3>
                 <p className="text-muted-foreground">
-                  Yes, you can cancel your subscription at any time with no cancellation fees. 
+                  Yes, you can cancel your paid subscription at any time with no cancellation fees. 
                   You'll continue to have access until the end of your current billing period, 
                   and you can always reactivate later.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="medical-card">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-2">
-                  Do you offer family plans or discounts?
-                </h3>
-                <p className="text-muted-foreground">
-                  The Professional plan includes family health tracking for up to 4 members. 
-                  We also offer annual billing discounts (2 months free) and student discounts. 
-                  Contact our support team for enterprise or bulk pricing options.
                 </p>
               </CardContent>
             </Card>
