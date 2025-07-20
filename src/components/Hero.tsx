@@ -25,7 +25,7 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
           <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Meet{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              DrKnowItAll
+              DrKnowsIt
             </span>
             <br />
             Your AI Medical Companion
@@ -33,14 +33,14 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
 
           {/* Subtitle */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            Get instant medical guidance through intelligent conversation. Chat or speak with DrKnowItAll 
+            Get instant medical guidance through intelligent conversation. Chat or speak with DrKnowsIt 
             to understand your symptoms, prepare for doctor visits, and take control of your health journey.
           </p>
 
           {/* Legal Disclaimer */}
           <div className="mx-auto mt-6 max-w-3xl rounded-xl bg-warning/10 border border-warning/20 p-4">
             <p className="text-sm font-medium text-warning">
-              ⚠️ Important: DrKnowItAll is not a replacement for professional medical care.
+              ⚠️ Important: DrKnowsIt is not a replacement for professional medical care.
               Always consult with qualified healthcare providers for medical decisions.
             </p>
           </div>

@@ -205,7 +205,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
           <div className="flex space-x-2">
             <div className="flex-1 relative">
               <Input
-                placeholder="Ask DrKnowItAll about your health concerns..."
+                placeholder="Ask DrKnowsIt about your health concerns..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -245,7 +245,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
       {/* Disclaimer */}
       <div className="mt-4 rounded-lg bg-muted/50 p-3 text-center">
         <p className="text-xs text-muted-foreground">
-          This is a demonstration. DrKnowItAll provides general health information only. 
+          This is a demonstration. DrKnowsIt provides general health information only. 
           Always consult healthcare professionals for medical advice.
         </p>
       </div>

@@ -46,7 +46,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
               </h3>
               <div className="space-y-2 text-sm">
                 <p className="font-semibold text-destructive">
-                  DrKnowItAll is NOT a doctor, medical professional, or healthcare provider.
+                  DrKnowsIt is NOT a doctor, medical professional, or healthcare provider.
                 </p>
                 <p className="text-destructive">
                   This AI system provides general health information for educational purposes only 
@@ -57,7 +57,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
 
             {/* What DrKnowItAll IS NOT */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-bold text-red-800 mb-3">DrKnowItAll CANNOT and WILL NOT:</h4>
+              <h4 className="font-bold text-red-800 mb-3">DrKnowsIt CANNOT and WILL NOT:</h4>
               <ul className="list-disc list-inside text-red-700 space-y-1 text-sm">
                 <li>Diagnose medical conditions or diseases</li>
                 <li>Prescribe medications or treatments</li>
@@ -97,11 +97,11 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
               </h4>
               <div className="text-blue-700 text-sm space-y-2">
                 <p>
-                  <strong>YOU ASSUME ALL RISK:</strong> By using DrKnowItAll, you accept full 
+                  <strong>YOU ASSUME ALL RISK:</strong> By using DrKnowsIt, you accept full 
                   responsibility for any health decisions or actions you take.
                 </p>
                 <p>
-                  <strong>NO LIABILITY:</strong> DrKnowItAll, its creators, and operators are not 
+                  <strong>NO LIABILITY:</strong> DrKnowsIt, its creators, and operators are not 
                   liable for any health outcomes, medical decisions, or consequences.
                 </p>
                 <p>
@@ -135,7 +135,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
                     className="mt-1"
                   />
                   <span className="text-sm text-muted-foreground">
-                    I understand that DrKnowItAll is <strong>NOT a medical professional</strong> and 
+                    I understand that DrKnowsIt is <strong>NOT a medical professional</strong> and 
                     cannot provide medical diagnosis, treatment, or prescriptions.
                   </span>
                 </label>
@@ -182,7 +182,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
             <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
               <p className="text-yellow-800 font-semibold text-sm text-center">
                 By proceeding, you confirm that you understand these limitations and will use 
-                DrKnowItAll responsibly as an educational tool only.
+                DrKnowsIt responsibly as an educational tool only.
               </p>
             </div>
           </div>

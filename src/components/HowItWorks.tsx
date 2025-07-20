@@ -33,7 +33,7 @@ export const HowItWorks = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">
-            How DrKnowItAll Works
+            How DrKnowsIt Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Our unique architecture processes health information through multiple validation layers, 

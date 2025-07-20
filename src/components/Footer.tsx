@@ -13,7 +13,7 @@ export const Footer = () => {
                   <Stethoscope className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground">DrKnowItAll</div>
+                  <div className="text-lg font-bold text-foreground">DrKnowsIt</div>
                   <div className="text-xs text-muted-foreground">AI Medical Guidance</div>
                 </div>
               </div>
@@ -39,7 +39,7 @@ export const Footer = () => {
                 </li>
                 <li>
                   <a href="#chat" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Try DrKnowItAll
+                    Try DrKnowsIt
                   </a>
                 </li>
                 <li>
@@ -83,11 +83,11 @@ export const Footer = () => {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Mail className="h-4 w-4" />
-                  <span>support@drknowitall.ai</span>
+                  <span>support@drknowsit.ai</span>
                 </li>
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Phone className="h-4 w-4" />
-                  <span>1-800-DRKNOWITALL</span>
+                  <span>1-800-DRKNOWSIT</span>
                 </li>
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Shield className="h-4 w-4" />
@@ -102,7 +102,7 @@ export const Footer = () => {
         <div className="border-t border-border py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © 2024 DrKnowItAll. All rights reserved.
+              © 2024 DrKnowsIt. All rights reserved.
             </div>
             
             {/* Important Medical Disclaimer */}
