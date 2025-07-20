@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Mail, Phone, Calendar, Chrome, LogOut, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, LogOut, Eye, EyeOff } from 'lucide-react';
 
 interface Profile {
   first_name: string;
@@ -18,7 +18,7 @@ interface Profile {
 }
 
 export const UserSettings = () => {
-  const { user, signOut, signInWithGoogle } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -349,21 +349,6 @@ export const UserSettings = () => {
             </>
           )}
 
-          <div className="space-y-2">
-            <h4 className="font-medium">Connected Accounts</h4>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <Chrome className="h-4 w-4" />
-                <span className="text-sm">Google Account</span>
-                {isGoogleUser && <span className="text-xs text-muted-foreground">(Primary)</span>}
-              </div>
-              {!isGoogleUser && (
-                <Button variant="outline" size="sm" onClick={signInWithGoogle}>
-                  Connect
-                </Button>
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
 

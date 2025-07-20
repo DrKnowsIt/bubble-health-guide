@@ -39,39 +39,80 @@ interface FormField {
 
 const healthForms: HealthForm[] = [
   {
+    id: 'personal_demographics',
+    title: 'Personal Background & Demographics',
+    icon: Users,
+    category: 'personal',
+    fields: [
+      { name: 'age', label: 'Age', type: 'number', required: true, placeholder: '30' },
+      { name: 'birth_sex', label: 'Birth Sex', type: 'select', options: ['Male', 'Female', 'Intersex'], required: true },
+      { name: 'current_gender', label: 'Current Gender Identity', type: 'select', options: ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] },
+      { name: 'race_ethnicity', label: 'Race/Ethnicity', type: 'textarea', placeholder: 'Describe your racial/ethnic background (e.g., African American, Hispanic/Latino, Asian, European, Native American, Mixed, etc.)', required: true },
+      { name: 'height', label: 'Height (inches)', type: 'number', required: true, placeholder: '70' },
+      { name: 'current_weight', label: 'Current Weight (lbs)', type: 'number', required: true, placeholder: '150' },
+      { name: 'weight_history', label: 'Weight History', type: 'textarea', placeholder: 'Past weights with dates (e.g., "180 lbs in 2022, 165 lbs in 2023"). Include any significant weight changes.' },
+      { name: 'occupation', label: 'Occupation', type: 'text', placeholder: 'Your current job/occupation' },
+      { name: 'stress_level', label: 'Current Stress Level', type: 'select', options: ['Very Low', 'Low', 'Moderate', 'High', 'Very High'], required: true },
+      { name: 'sleep_hours', label: 'Average Hours of Sleep', type: 'number', placeholder: '7.5' },
+      { name: 'sleep_quality', label: 'Sleep Quality', type: 'select', options: ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'], required: true }
+    ]
+  },
+  {
     id: 'family_history',
     title: 'Family Medical History',
     icon: Users,
     category: 'medical',
     fields: [
-      { name: 'father_conditions', label: 'Father\'s Medical Conditions', type: 'textarea', placeholder: 'List any known conditions, age of onset, etc.' },
-      { name: 'mother_conditions', label: 'Mother\'s Medical Conditions', type: 'textarea', placeholder: 'List any known conditions, age of onset, etc.' },
-      { name: 'siblings_conditions', label: 'Siblings\' Medical Conditions', type: 'textarea', placeholder: 'List any known conditions among siblings' },
-      { name: 'grandparents_conditions', label: 'Grandparents\' Medical Conditions', type: 'textarea', placeholder: 'Any notable family history from grandparents' },
-      { name: 'family_cancer_history', label: 'Family Cancer History', type: 'select', options: ['None', 'Breast', 'Lung', 'Colon', 'Prostate', 'Other'], required: true },
-      { name: 'family_heart_disease', label: 'Family Heart Disease History', type: 'select', options: ['None', 'Heart Attack', 'Stroke', 'High Blood Pressure', 'High Cholesterol'], required: true },
-      { name: 'family_diabetes', label: 'Family Diabetes History', type: 'select', options: ['None', 'Type 1', 'Type 2', 'Gestational'], required: true },
-      { name: 'genetic_disorders', label: 'Known Genetic Disorders', type: 'textarea', placeholder: 'Any inherited genetic conditions' }
+      { name: 'father_conditions', label: 'Father\'s Medical Conditions', type: 'textarea', placeholder: 'List any known conditions, age of onset, current age/age at death' },
+      { name: 'mother_conditions', label: 'Mother\'s Medical Conditions', type: 'textarea', placeholder: 'List any known conditions, age of onset, current age/age at death' },
+      { name: 'siblings_conditions', label: 'Siblings\' Medical Conditions', type: 'textarea', placeholder: 'List any known conditions among siblings with their ages' },
+      { name: 'grandparents_conditions', label: 'Grandparents\' Medical Conditions', type: 'textarea', placeholder: 'Any notable family history from grandparents, ages at death/major conditions' },
+      { name: 'family_cancer_history', label: 'Family Cancer History', type: 'select', options: ['None', 'Breast', 'Lung', 'Colon', 'Prostate', 'Brain', 'Skin', 'Blood', 'Multiple types', 'Other'] },
+      { name: 'family_heart_disease', label: 'Family Heart Disease History', type: 'select', options: ['None', 'Heart Attack', 'Stroke', 'High Blood Pressure', 'High Cholesterol', 'Heart Failure', 'Multiple conditions'] },
+      { name: 'family_diabetes', label: 'Family Diabetes History', type: 'select', options: ['None', 'Type 1', 'Type 2', 'Gestational', 'Multiple types'] },
+      { name: 'family_mental_health', label: 'Family Mental Health History', type: 'textarea', placeholder: 'Depression, anxiety, bipolar, schizophrenia, addiction, etc.' },
+      { name: 'genetic_disorders', label: 'Known Genetic Disorders', type: 'textarea', placeholder: 'Any inherited genetic conditions or syndromes in the family' },
+      { name: 'family_longevity', label: 'Family Longevity Patterns', type: 'textarea', placeholder: 'Ages at death for grandparents/great-grandparents, any patterns of early/late death' }
     ]
   },
   {
-    id: 'blood_panel',
-    title: 'Blood Panel Results',
+    id: 'blood_panel_current',
+    title: 'Current Blood Panel Results',
     icon: Activity,
     category: 'lab_results',
     fields: [
-      { name: 'test_date', label: 'Test Date', type: 'date', required: true },
+      { name: 'test_date', label: 'Most Recent Test Date', type: 'date', required: true },
       { name: 'cholesterol_total', label: 'Total Cholesterol (mg/dL)', type: 'number', placeholder: '200' },
       { name: 'cholesterol_ldl', label: 'LDL Cholesterol (mg/dL)', type: 'number', placeholder: '100' },
       { name: 'cholesterol_hdl', label: 'HDL Cholesterol (mg/dL)', type: 'number', placeholder: '40' },
       { name: 'triglycerides', label: 'Triglycerides (mg/dL)', type: 'number', placeholder: '150' },
       { name: 'glucose_fasting', label: 'Fasting Glucose (mg/dL)', type: 'number', placeholder: '100' },
+      { name: 'glucose_random', label: 'Random Glucose (mg/dL)', type: 'number', placeholder: '140' },
       { name: 'hemoglobin_a1c', label: 'Hemoglobin A1C (%)', type: 'number', placeholder: '5.7' },
       { name: 'vitamin_d', label: 'Vitamin D (ng/mL)', type: 'number', placeholder: '30' },
       { name: 'vitamin_b12', label: 'Vitamin B12 (pg/mL)', type: 'number', placeholder: '300' },
+      { name: 'folate', label: 'Folate (ng/mL)', type: 'number', placeholder: '5' },
       { name: 'thyroid_tsh', label: 'TSH (mIU/L)', type: 'number', placeholder: '2.5' },
+      { name: 'thyroid_t3', label: 'T3 (pg/mL)', type: 'number', placeholder: '3.0' },
+      { name: 'thyroid_t4', label: 'T4 (ng/dL)', type: 'number', placeholder: '7.5' },
       { name: 'iron_levels', label: 'Iron Levels (µg/dL)', type: 'number', placeholder: '100' },
-      { name: 'additional_markers', label: 'Additional Blood Markers', type: 'textarea', placeholder: 'Any other blood test results' }
+      { name: 'ferritin', label: 'Ferritin (ng/mL)', type: 'number', placeholder: '50' },
+      { name: 'crp', label: 'C-Reactive Protein (mg/L)', type: 'number', placeholder: '1.0' },
+      { name: 'white_blood_cells', label: 'White Blood Cell Count', type: 'number', placeholder: '7000' },
+      { name: 'red_blood_cells', label: 'Red Blood Cell Count', type: 'number', placeholder: '4.5' },
+      { name: 'platelets', label: 'Platelet Count', type: 'number', placeholder: '250000' },
+      { name: 'additional_markers', label: 'Additional Blood Markers', type: 'textarea', placeholder: 'Any other blood test results, hormone levels, etc.' }
+    ]
+  },
+  {
+    id: 'blood_panel_historical',
+    title: 'Historical Blood Panel Results',
+    icon: Activity,
+    category: 'lab_results',
+    fields: [
+      { name: 'historical_results', label: 'Past Blood Test Results', type: 'textarea', placeholder: 'Enter previous blood test results with dates. Format: "Date: [value] [unit]". Include cholesterol, glucose, A1C, vitamins, thyroid, etc. Show trends over time.' },
+      { name: 'medication_changes', label: 'Medication Changes Related to Lab Results', type: 'textarea', placeholder: 'Any medications started/stopped based on blood work, with dates' },
+      { name: 'lab_trends_noticed', label: 'Trends You\'ve Noticed', type: 'textarea', placeholder: 'Any patterns you\'ve observed in your lab results over time' }
     ]
   },
   {
@@ -80,33 +121,74 @@ const healthForms: HealthForm[] = [
     icon: Heart,
     category: 'medical',
     fields: [
-      { name: 'chronic_conditions', label: 'Chronic Conditions', type: 'textarea', placeholder: 'List any ongoing medical conditions' },
-      { name: 'current_medications', label: 'Current Medications', type: 'textarea', placeholder: 'List all current medications and dosages', required: true },
-      { name: 'allergies', label: 'Allergies', type: 'textarea', placeholder: 'Food, drug, or environmental allergies' },
-      { name: 'surgeries', label: 'Past Surgeries', type: 'textarea', placeholder: 'List surgeries with dates' },
-      { name: 'hospitalizations', label: 'Past Hospitalizations', type: 'textarea', placeholder: 'Reasons and dates for hospital stays' },
-      { name: 'mental_health', label: 'Mental Health History', type: 'textarea', placeholder: 'Any mental health conditions or treatments' },
-      { name: 'smoking_status', label: 'Smoking Status', type: 'select', options: ['Never smoked', 'Former smoker', 'Current smoker'], required: true },
-      { name: 'alcohol_consumption', label: 'Alcohol Consumption', type: 'select', options: ['None', 'Occasional (1-2 drinks/week)', 'Moderate (3-7 drinks/week)', 'Heavy (8+ drinks/week)'], required: true },
-      { name: 'exercise_frequency', label: 'Exercise Frequency', type: 'select', options: ['Sedentary', 'Light (1-2 times/week)', 'Moderate (3-4 times/week)', 'Active (5+ times/week)'], required: true }
+      { name: 'chronic_conditions', label: 'Current Chronic Conditions', type: 'textarea', placeholder: 'List any ongoing medical conditions with diagnosis dates' },
+      { name: 'current_medications', label: 'Current Medications', type: 'textarea', placeholder: 'List all current medications, dosages, and how long you\'ve been taking them' },
+      { name: 'past_medications', label: 'Past Medications', type: 'textarea', placeholder: 'Medications you\'ve discontinued, why you stopped, and any side effects experienced' },
+      { name: 'allergies', label: 'Allergies & Intolerances', type: 'textarea', placeholder: 'Food, drug, environmental allergies. Include severity of reactions.' },
+      { name: 'surgeries', label: 'Past Surgeries', type: 'textarea', placeholder: 'List all surgeries with dates, complications, recovery notes' },
+      { name: 'hospitalizations', label: 'Past Hospitalizations', type: 'textarea', placeholder: 'Reasons, dates, length of stay for all hospital admissions' },
+      { name: 'injuries', label: 'Significant Injuries', type: 'textarea', placeholder: 'Broken bones, concussions, major injuries with dates and ongoing effects' },
+      { name: 'mental_health', label: 'Mental Health History', type: 'textarea', placeholder: 'Depression, anxiety, therapy, psychiatric medications, family mental health impact' },
+      { name: 'reproductive_health', label: 'Reproductive Health', type: 'textarea', placeholder: 'Menstrual history, pregnancies, fertility issues, hormone treatments' },
+      { name: 'smoking_status', label: 'Smoking Status', type: 'select', options: ['Never smoked', 'Former smoker (quit <1 year ago)', 'Former smoker (quit 1-5 years ago)', 'Former smoker (quit >5 years ago)', 'Current smoker'], required: true },
+      { name: 'smoking_details', label: 'Smoking Details', type: 'textarea', placeholder: 'If you smoke/smoked: How much? For how long? When did you start/quit?' },
+      { name: 'alcohol_consumption', label: 'Alcohol Consumption', type: 'select', options: ['None', 'Very occasional (few times per year)', 'Occasional (1-2 drinks/week)', 'Moderate (3-7 drinks/week)', 'Heavy (8-14 drinks/week)', 'Very heavy (15+ drinks/week)'], required: true },
+      { name: 'alcohol_details', label: 'Alcohol Details', type: 'textarea', placeholder: 'Type of alcohol preferred, any past drinking problems, family history of alcoholism' },
+      { name: 'substance_use', label: 'Other Substance Use', type: 'textarea', placeholder: 'Marijuana, prescription drug misuse, recreational drugs - current or past use' },
+      { name: 'immunizations', label: 'Immunization History', type: 'textarea', placeholder: 'Recent vaccines, any missed childhood vaccines, flu shot frequency' }
     ]
   },
   {
-    id: 'diet_nutrition',
-    title: 'Diet & Nutrition',
+    id: 'vital_signs_current',
+    title: 'Current Vital Signs & Measurements',
+    icon: Heart,
+    category: 'vitals',
+    fields: [
+      { name: 'blood_pressure_systolic', label: 'Systolic Blood Pressure', type: 'number', placeholder: '120' },
+      { name: 'blood_pressure_diastolic', label: 'Diastolic Blood Pressure', type: 'number', placeholder: '80' },
+      { name: 'resting_heart_rate', label: 'Resting Heart Rate (BPM)', type: 'number', placeholder: '70' },
+      { name: 'body_temperature', label: 'Normal Body Temperature (°F)', type: 'number', placeholder: '98.6' },
+      { name: 'respiratory_rate', label: 'Respiratory Rate (breaths/min)', type: 'number', placeholder: '16' },
+      { name: 'oxygen_saturation', label: 'Oxygen Saturation (%)', type: 'number', placeholder: '98' },
+      { name: 'bp_measurement_time', label: 'When do you typically measure BP?', type: 'text', placeholder: 'Morning, evening, after exercise, etc.' },
+      { name: 'bp_variations', label: 'Blood Pressure Variations', type: 'textarea', placeholder: 'Any patterns in your BP readings? White coat syndrome? Stress-related changes?' }
+    ]
+  },
+  {
+    id: 'vital_signs_historical',
+    title: 'Historical Vital Signs & Health Metrics',
+    icon: Activity,
+    category: 'vitals',
+    fields: [
+      { name: 'bp_history', label: 'Blood Pressure History', type: 'textarea', placeholder: 'Past BP readings with dates. Include any hypertension diagnosis, medications started/stopped.' },
+      { name: 'heart_rate_patterns', label: 'Heart Rate Patterns Over Time', type: 'textarea', placeholder: 'Resting HR changes, exercise HR recovery, any arrhythmias noticed' },
+      { name: 'weight_detailed_history', label: 'Detailed Weight History', type: 'textarea', placeholder: 'Weight at different life stages: childhood, teens, 20s, 30s, etc. Major fluctuations and causes.' },
+      { name: 'health_metric_trends', label: 'Health Metric Trends You\'ve Noticed', type: 'textarea', placeholder: 'Any patterns in your vital signs, energy levels, or health markers over months/years' }
+    ]
+  },
+  {
+    id: 'diet_nutrition_detailed',
+    title: 'Detailed Diet & Nutrition Analysis',
     icon: Utensils,
     category: 'lifestyle',
     fields: [
-      { name: 'diet_type', label: 'Primary Diet Type', type: 'select', options: ['Standard American', 'Mediterranean', 'Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Other'], required: true },
-      { name: 'daily_calories', label: 'Estimated Daily Calories', type: 'number', placeholder: '2000' },
-      { name: 'meals_per_day', label: 'Meals Per Day', type: 'select', options: ['1', '2', '3', '4', '5+'], required: true },
-      { name: 'water_intake', label: 'Daily Water Intake (glasses)', type: 'number', placeholder: '8' },
-      { name: 'caffeine_intake', label: 'Daily Caffeine Intake', type: 'select', options: ['None', '1 cup coffee', '2-3 cups coffee', '4+ cups coffee', 'Energy drinks'], required: true },
-      { name: 'food_allergies', label: 'Food Allergies/Intolerances', type: 'textarea', placeholder: 'List any food allergies or intolerances' },
-      { name: 'supplements', label: 'Daily Supplements', type: 'textarea', placeholder: 'List all vitamins and supplements' },
-      { name: 'eating_schedule', label: 'Typical Eating Schedule', type: 'textarea', placeholder: 'Describe when you typically eat meals' },
-      { name: 'favorite_foods', label: 'Most Common Foods', type: 'textarea', placeholder: 'Foods you eat most frequently' },
-      { name: 'dietary_restrictions', label: 'Dietary Restrictions', type: 'textarea', placeholder: 'Any religious, cultural, or personal dietary restrictions' }
+      { name: 'diet_type', label: 'Primary Diet Type', type: 'select', options: ['Standard American', 'Mediterranean', 'Vegetarian', 'Vegan', 'Keto', 'Low-carb', 'Paleo', 'Intermittent Fasting', 'DASH', 'Gluten-free', 'Other'], required: true },
+      { name: 'eating_schedule_detailed', label: 'Detailed Eating Schedule', type: 'select', options: ['Consistent daily schedule', 'Varies by day', 'Irregular/unpredictable', 'Shift work schedule'], required: true },
+      { name: 'breakfast_time', label: 'Typical Breakfast Time', type: 'text', placeholder: 'e.g., 7:00 AM or "Don\'t eat breakfast"' },
+      { name: 'breakfast_foods', label: 'Common Breakfast Foods', type: 'textarea', placeholder: 'What do you typically eat for breakfast? Include portion sizes if known.' },
+      { name: 'lunch_time', label: 'Typical Lunch Time', type: 'text', placeholder: 'e.g., 12:30 PM or "Varies"' },
+      { name: 'lunch_foods', label: 'Common Lunch Foods', type: 'textarea', placeholder: 'What do you typically eat for lunch? Include where you eat (home, work, restaurant).' },
+      { name: 'dinner_time', label: 'Typical Dinner Time', type: 'text', placeholder: 'e.g., 6:30 PM or "Varies"' },
+      { name: 'dinner_foods', label: 'Common Dinner Foods', type: 'textarea', placeholder: 'What do you typically eat for dinner? Include who cooks and typical portions.' },
+      { name: 'snack_habits', label: 'Snacking Habits', type: 'textarea', placeholder: 'When do you snack? What do you snack on? How often?' },
+      { name: 'water_intake_detailed', label: 'Water & Fluid Intake', type: 'textarea', placeholder: 'How much water, coffee, tea, soda, juice do you drink daily? When during the day?' },
+      { name: 'caffeine_timing', label: 'Caffeine Timing & Sources', type: 'textarea', placeholder: 'When do you consume caffeine? Coffee, tea, energy drinks, soda? How does it affect you?' },
+      { name: 'alcohol_timing', label: 'Alcohol Consumption Patterns', type: 'textarea', placeholder: 'When do you drink alcohol? Weekends only? With meals? Social drinking patterns?' },
+      { name: 'food_cravings', label: 'Food Cravings & Triggers', type: 'textarea', placeholder: 'What foods do you crave? When? Stress eating patterns?' },
+      { name: 'supplements_detailed', label: 'Supplements & Timing', type: 'textarea', placeholder: 'List all supplements, dosages, and when you take them (morning, evening, with food, etc.)' },
+      { name: 'digestive_issues', label: 'Digestive Issues', type: 'textarea', placeholder: 'Any bloating, gas, stomach pain, bowel irregularities? Related to specific foods?' },
+      { name: 'energy_food_relationship', label: 'Food & Energy Patterns', type: 'textarea', placeholder: 'How do different foods affect your energy? Post-meal fatigue? Best/worst foods for energy?' },
+      { name: 'social_eating', label: 'Social Eating Patterns', type: 'textarea', placeholder: 'How often do you eat out? Family meals? Work lunches? Social food situations?' }
     ]
   },
   {
@@ -133,13 +215,34 @@ const healthForms: HealthForm[] = [
     icon: Dna,
     category: 'genetics',
     fields: [
-      { name: 'dna_test_company', label: 'DNA Test Company', type: 'select', options: ['23andMe', 'AncestryDNA', 'MyHeritage', 'FamilyTreeDNA', 'Other', 'None'] },
-      { name: 'dna_file', label: 'Raw DNA Data File', type: 'file', placeholder: 'Upload your raw DNA data file' },
-      { name: 'ethnicity', label: 'Ethnicity/Ancestry', type: 'textarea', placeholder: 'Your ethnic background and ancestry' },
-      { name: 'known_mutations', label: 'Known Genetic Mutations', type: 'textarea', placeholder: 'Any known genetic variants or mutations' },
-      { name: 'pharmacogenomics', label: 'Drug Response Genetics', type: 'textarea', placeholder: 'Any known drug sensitivities or responses' },
-      { name: 'carrier_status', label: 'Carrier Status', type: 'textarea', placeholder: 'Carrier status for genetic conditions' },
-      { name: 'health_predispositions', label: 'Genetic Health Predispositions', type: 'textarea', placeholder: 'Any genetic predispositions to health conditions' }
+      { name: 'dna_test_company', label: 'DNA Test Company', type: 'select', options: ['23andMe', 'AncestryDNA', 'MyHeritage', 'FamilyTreeDNA', 'Color Genomics', 'Invitae', 'Other', 'None'] },
+      { name: 'dna_file', label: 'Raw DNA Data File', type: 'file', placeholder: 'Upload your raw DNA data file (.txt, .csv, or other format)' },
+      { name: 'genetic_counseling', label: 'Genetic Counseling History', type: 'textarea', placeholder: 'Any genetic counseling sessions, results, or recommendations' },
+      { name: 'known_mutations', label: 'Known Genetic Variants', type: 'textarea', placeholder: 'BRCA1/2, APOE, MTHFR, CYP variants, or any other known genetic mutations' },
+      { name: 'pharmacogenomics', label: 'Drug Response Genetics', type: 'textarea', placeholder: 'How you respond to medications - slow/fast metabolizer status, drug sensitivities' },
+      { name: 'carrier_status', label: 'Carrier Status', type: 'textarea', placeholder: 'Carrier status for cystic fibrosis, sickle cell, Tay-Sachs, or other genetic conditions' },
+      { name: 'health_predispositions', label: 'Genetic Health Predispositions', type: 'textarea', placeholder: 'Genetic risks for heart disease, diabetes, Alzheimer\'s, cancer, or other conditions' },
+      { name: 'ancestry_health_patterns', label: 'Ancestry-Related Health Patterns', type: 'textarea', placeholder: 'Health conditions common in your ethnic background that might be relevant' }
+    ]
+  },
+  {
+    id: 'patient_observations',
+    title: 'Your Personal Health Observations',
+    icon: Heart,
+    category: 'personal',
+    fields: [
+      { name: 'symptom_patterns', label: 'Symptoms You\'ve Noticed', type: 'textarea', placeholder: 'Any recurring symptoms, when they occur, what might trigger them' },
+      { name: 'energy_patterns', label: 'Energy Level Patterns', type: 'textarea', placeholder: 'When do you feel most/least energetic? Daily/seasonal patterns?' },
+      { name: 'mood_health_connection', label: 'Mood & Health Connections', type: 'textarea', placeholder: 'How does your physical health affect your mood and vice versa?' },
+      { name: 'stress_physical_impact', label: 'How Stress Affects Your Body', type: 'textarea', placeholder: 'Physical symptoms you get when stressed (headaches, stomach issues, muscle tension, etc.)' },
+      { name: 'sleep_quality_factors', label: 'What Affects Your Sleep', type: 'textarea', placeholder: 'Foods, activities, stress, medications, or other factors that help or hurt your sleep' },
+      { name: 'exercise_effects', label: 'How Exercise Affects You', type: 'textarea', placeholder: 'Energy levels, mood, sleep, pain, or other effects you notice from different types of exercise' },
+      { name: 'weather_health_impact', label: 'Weather & Environmental Effects', type: 'textarea', placeholder: 'How weather, seasons, air quality, or environment affects your health and mood' },
+      { name: 'menstrual_health_patterns', label: 'Menstrual/Hormonal Patterns (if applicable)', type: 'textarea', placeholder: 'PMS symptoms, cycle irregularities, hormone-related health changes' },
+      { name: 'your_health_theories', label: 'Your Theories About Your Health', type: 'textarea', placeholder: 'What do YOU think might be causing any symptoms or health issues? Your gut feelings about your health.' },
+      { name: 'self_care_strategies', label: 'What Helps You Feel Better', type: 'textarea', placeholder: 'Self-care strategies, home remedies, lifestyle changes that you\'ve found helpful' },
+      { name: 'concerning_changes', label: 'Recent Changes That Concern You', type: 'textarea', placeholder: 'Any new symptoms, changes in how you feel, or health concerns you have' },
+      { name: 'family_observations', label: 'Family/Friends\' Observations', type: 'textarea', placeholder: 'Things family or friends have noticed about your health that you might miss' }
     ]
   }
 ];
@@ -354,9 +457,11 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Health Information Forms</CardTitle>
+          <CardTitle>Optional Health Information Forms</CardTitle>
           <CardDescription>
-            Complete these forms to provide DrKnowItAll with comprehensive health data for better analysis and insights.
+            These forms are completely optional but help DrKnowItAll provide more personalized and insightful health analysis. 
+            Each form captures important details that doctors often overlook, including your personal observations and historical patterns.
+            Fill out only what you're comfortable sharing - even partial information is valuable.
           </CardDescription>
         </CardHeader>
         <CardContent>
