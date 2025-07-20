@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
-import { ChatInterface } from "@/components/ChatInterface";
+import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
+import { useConversations } from "@/hooks/useConversations";
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const {
+    conversations,
+    currentConversation,
+    startNewConversation,
+    selectConversation
+  } = useConversations();
 
   useEffect(() => {
     if (user) {
@@ -26,35 +33,46 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       <main>
-        {/* Chat-First Layout */}
-        <section className="relative py-12 bg-background">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {/* Brief Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-3">
+        {/* Chat-First Layout with Sidebar */}
+        <section className="relative bg-background">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+            {/* Compact Header */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-foreground mb-2">
                 Chat with{" "}
                 <span className="text-primary">DrKnowItAll</span>
               </h1>
-              <p className="text-lg text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-3">
                 Get instant medical guidance through AI-powered conversation
               </p>
               
               {/* Legal Disclaimer */}
-              <div className="mx-auto max-w-2xl rounded-lg bg-warning/10 border border-warning/20 p-3 mb-6">
-                <p className="text-sm font-medium text-warning">
+              <div className="mx-auto max-w-xl rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
+                <p className="text-xs font-medium text-warning">
                   ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
                 </p>
               </div>
             </div>
 
-            {/* Chat Interface - Primary Focus */}
-            <ChatInterface />
+            {/* Chat Interface with Sidebar - Primary Focus */}
+            <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{ height: '70vh' }}>
+              <ConversationSidebar
+                conversations={conversations}
+                currentConversation={currentConversation}
+                onSelectConversation={selectConversation}
+                onStartNewConversation={startNewConversation}
+                isAuthenticated={!!user}
+              />
+              <ChatInterfaceWithHistory />
+            </div>
           </div>
         </section>
 
         {/* Condensed Info Sections */}
-        <HowItWorks />
-        <Features />
+        <div className="mt-12">
+          <HowItWorks />
+          <Features />
+        </div>
       </main>
       <Footer />
     </div>
