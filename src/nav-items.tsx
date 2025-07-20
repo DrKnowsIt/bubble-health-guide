@@ -5,6 +5,7 @@ import UserDashboard from "./pages/UserDashboard.jsx";
 import MedicalDisclaimer from "./pages/MedicalDisclaimer.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
+import UserAgreement from "./pages/UserAgreement.jsx";
 import Pricing from "./pages/Pricing.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
@@ -52,6 +53,13 @@ export const navItems = [
     to: "/terms",
     icon: <FileText className="h-4 w-4" />,
     page: <TermsOfService />,
+    protected: false,
+  },
+  {
+    title: "User Agreement",
+    to: "/user-agreement", 
+    icon: <FileText className="h-4 w-4" />,
+    page: <UserAgreement />,
     protected: false,
   },
   {

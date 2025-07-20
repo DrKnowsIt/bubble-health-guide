@@ -97,23 +97,69 @@ const PrivacyPolicy = () => {
             </CardContent>
           </Card>
 
+           <Card className="medical-card">
+            <CardHeader>
+              <CardTitle>Data Research and Pattern Analysis</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
+                <p className="text-blue-800 font-medium">
+                  🔬 We collect anonymized health data to discover medical patterns that traditional 
+                  research and individual doctors may not be able to identify.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Our Research Mission:</h4>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>Analyze anonymized health conversations to identify emerging health trends</li>
+                    <li>Discover correlations between symptoms, conditions, and treatments</li>
+                    <li>Identify patterns that could lead to earlier disease detection</li>
+                    <li>Improve AI accuracy through large-scale health data analysis</li>
+                    <li>Contribute to medical research by finding previously unknown connections</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Privacy Protection in Research:</h4>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>All personal identifiers (names, addresses, phone numbers) are completely removed</li>
+                    <li>Data is aggregated and analyzed in ways that cannot identify individuals</li>
+                    <li>Geographic information is generalized to broad regions only</li>
+                    <li>Age and demographic data is grouped into ranges, not specific values</li>
+                    <li>Multiple layers of anonymization ensure your privacy is protected</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Potential Benefits:</h4>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>Earlier detection of disease outbreaks or health trends</li>
+                    <li>Better understanding of how different conditions interact</li>
+                    <li>Improved treatment recommendations based on population-wide data</li>
+                    <li>Advancement of personalized medicine through pattern recognition</li>
+                    <li>Contribution to global health research and medical breakthroughs</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="medical-card">
             <CardHeader>
-              <CardTitle>HIPAA Compliance</CardTitle>
+              <CardTitle>Enterprise Security and Compliance</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-accent-light p-4 rounded-lg mb-4">
                 <p className="text-accent-foreground font-medium">
-                  🔒 DrKnowItAll is fully HIPAA compliant and follows all required safeguards 
-                  for protecting your health information.
+                  🔒 DrKnowItAll employs enterprise-grade security measures to protect your health information.
                 </p>
               </div>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>All health data is encrypted in transit and at rest</li>
+                <li>All health data is encrypted in transit and at rest using industry standards</li>
                 <li>Access to your information is strictly limited to authorized personnel</li>
-                <li>We maintain detailed audit logs of all data access</li>
+                <li>We maintain detailed audit logs of all data access and modifications</li>
                 <li>Business associate agreements are in place with all third-party vendors</li>
                 <li>Regular security assessments and compliance audits are conducted</li>
+                <li>Multi-layer security architecture protects against data breaches</li>
               </ul>
             </CardContent>
           </Card>

@@ -195,7 +195,7 @@ const TermsOfService = () => {
                 information about how we collect, use, and protect your data.
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>We are HIPAA compliant and follow strict data protection standards</li>
+                <li>We follow enterprise-grade security and data protection standards</li>
                 <li>Your health data is encrypted and securely stored</li>
                 <li>You have rights to access, correct, and delete your data</li>
                 <li>We do not sell your personal information to third parties</li>

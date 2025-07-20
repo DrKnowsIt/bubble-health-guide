@@ -24,7 +24,7 @@ const features = [
   {
     icon: Shield,
     title: "Privacy & Security",
-    description: "Your health information is protected with enterprise-grade security. We're HIPAA compliant and never share your data without permission."
+    description: "Your health information is protected with enterprise-grade security and encryption. We maintain strict data protection standards and never share your personal information without permission."
   },
   {
     icon: Zap,
@@ -77,8 +77,8 @@ export const Features = () => {
             </div>
             <div className="h-12 w-px bg-border"></div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-secondary">HIPAA</div>
-              <div className="text-sm text-muted-foreground">Compliant</div>
+              <div className="text-2xl font-bold text-secondary">Secure</div>
+              <div className="text-sm text-muted-foreground">& Private</div>
             </div>
             <div className="h-12 w-px bg-border"></div>
             <div className="text-center">

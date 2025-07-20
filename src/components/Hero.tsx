@@ -61,7 +61,7 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
             <div className="flex items-center">
               <Shield className="mr-2 h-4 w-4 text-accent" />
-              HIPAA Compliant
+              Enterprise Security
             </div>
             <div className="flex items-center">
               <MessageCircle className="mr-2 h-4 w-4 text-accent" />

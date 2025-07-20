@@ -162,11 +162,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
             <div className="rounded-lg bg-accent-light p-4 space-y-2">
               <div className="flex items-center space-x-2 text-sm text-accent-foreground">
                 <CheckCircle className="h-4 w-4" />
-                <span>HIPAA compliant and secure</span>
+                <span>Enterprise-grade security and encryption</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-accent-foreground">
                 <CheckCircle className="h-4 w-4" />
-                <span>Your health data is private and encrypted</span>
+                <span>Your health data is private and protected</span>
               </div>
             </div>
           )}

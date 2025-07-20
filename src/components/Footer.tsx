@@ -91,7 +91,7 @@ export const Footer = () => {
                 </li>
                 <li className="flex items-center space-x-2 text-muted-foreground">
                   <Shield className="h-4 w-4" />
-                  <span>HIPAA Compliant</span>
+                  <span>Enterprise Security</span>
                 </li>
               </ul>
             </div>
