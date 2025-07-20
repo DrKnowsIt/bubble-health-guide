@@ -17,6 +17,25 @@ const Pricing = () => {
   };
   const plans = [
     {
+      name: "Free",
+      price: "$0",
+      period: "forever",
+      description: "Basic AI health chat with limited medical guidance",
+      features: [
+        "10,000 tokens/month (~30 conversations)",
+        "General health questions & wellness tips",
+        "Basic symptom discussions",
+        "Health education content",
+        "Standard response time",
+        "Community support",
+        "HIPAA compliant"
+      ],
+      buttonText: "Start Free",
+      buttonVariant: "outline" as const,
+      icon: MessageCircle,
+      popular: false
+    },
+    {
       name: "Basic",
       price: "$25",
       period: "per month",
