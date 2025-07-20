@@ -65,7 +65,7 @@ export const useConversations = () => {
     }
   };
 
-  const createConversation = async (title: string) => {
+  const createConversation = async (title: string, patientId?: string | null) => {
     if (!user) return null;
 
     try {
@@ -73,7 +73,8 @@ export const useConversations = () => {
         .from('conversations')
         .insert({
           user_id: user.id,
-          title
+          title,
+          patient_id: patientId
         })
         .select()
         .single();
@@ -116,7 +117,7 @@ export const useConversations = () => {
     setMessages([{
       id: '1',
       type: 'ai',
-      content: "Hello! I'm DrKnowItAll, your AI medical companion. I'm here to help you understand health topics and prepare for doctor visits. What would you like to discuss today?",
+      content: "Hello! I'm DrKnowsIt, your AI medical companion. I'm here to help you understand health topics and prepare for doctor visits. What would you like to discuss today?",
       timestamp: new Date()
     }]);
   };

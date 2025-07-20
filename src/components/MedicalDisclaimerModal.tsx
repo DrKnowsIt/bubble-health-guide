@@ -49,8 +49,12 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
                   DrKnowsIt is NOT a doctor, medical professional, or healthcare provider.
                 </p>
                 <p className="text-destructive">
-                  This AI system provides general health information for educational purposes only 
-                  and cannot replace professional medical advice, diagnosis, or treatment.
+                  This AI system can provide INACCURATE, INCOMPLETE, or HARMFUL information. 
+                  Do NOT accept AI responses as definitive medical advice.
+                </p>
+                <p className="text-destructive">
+                  The purpose of this tool is to help you gather ideas and possible health concerns 
+                  to discuss with your actual healthcare provider - NOT to replace professional medical consultation.
                 </p>
               </div>
             </div>
@@ -107,6 +111,10 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
                 <p>
                   <strong>AI LIMITATIONS:</strong> AI responses may contain errors, omissions, or 
                   inaccuracies. Always verify with healthcare professionals.
+                </p>
+                <p>
+                  <strong>NO WARRANTY:</strong> This service is provided "AS IS" without any warranty.
+                  The AI may be wrong, and you should never act on its advice without consulting qualified medical professionals.
                 </p>
               </div>
             </div>

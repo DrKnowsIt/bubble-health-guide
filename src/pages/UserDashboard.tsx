@@ -16,7 +16,7 @@ import {
   Upload,
   Plus
 } from 'lucide-react';
-import { ChatInterface } from '@/components/ChatInterface';
+import { ChatInterfaceWithPatients } from '@/components/ChatInterfaceWithPatients';
 import { UserSettings } from '@/components/UserSettings';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
@@ -35,7 +35,7 @@ export default function UserDashboard() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <Heart className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold">DrKnowItAll</h1>
+                <h1 className="text-xl font-semibold">DrKnowsIt</h1>
               </div>
               <Badge variant="secondary">Dashboard</Badge>
             </div>
@@ -89,11 +89,11 @@ export default function UserDashboard() {
                   AI Health Assistant
                 </CardTitle>
                 <CardDescription>
-                  Chat with DrKnowItAll for personalized health guidance and medical insights.
+                  Chat with DrKnowsIt for personalized health guidance and medical insights.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ChatInterface />
+                <ChatInterfaceWithPatients />
               </CardContent>
             </Card>
           </TabsContent>
@@ -154,7 +154,7 @@ export default function UserDashboard() {
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
                 <CardDescription>
-                  Common tasks to help you get the most out of DrKnowItAll
+                  Common tasks to help you get the most out of DrKnowsIt
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -190,7 +190,7 @@ export default function UserDashboard() {
                   <Plus className="h-5 w-5 mb-2" />
                   <span className="font-medium">Start New Conversation</span>
                   <span className="text-sm text-muted-foreground text-left">
-                    Ask DrKnowItAll about your health concerns
+                    Ask DrKnowsIt about your health concerns
                   </span>
                 </Button>
 

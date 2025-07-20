@@ -48,6 +48,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          patient_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -55,6 +56,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          patient_id?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -62,6 +64,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          patient_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -76,6 +79,7 @@ export type Database = {
           file_url: string | null
           id: string
           metadata: Json | null
+          patient_id: string | null
           record_type: string
           tags: string[] | null
           title: string
@@ -89,6 +93,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           metadata?: Json | null
+          patient_id?: string | null
           record_type: string
           tags?: string[] | null
           title: string
@@ -102,6 +107,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           metadata?: Json | null
+          patient_id?: string | null
           record_type?: string
           tags?: string[] | null
           title?: string
@@ -141,6 +147,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      patients: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          relationship: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          relationship?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          relationship?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
