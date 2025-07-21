@@ -54,7 +54,7 @@ export const HealthRecords = () => {
     title: '',
     data: '',
     file: null as File | null,
-    patient_id: ''
+    patient_id: 'none'
   });
 
   // Update patient_id when selectedPatient changes
@@ -63,7 +63,7 @@ export const HealthRecords = () => {
     console.log('HealthRecords: patients list:', patients);
     setFormData(prev => ({
       ...prev,
-      patient_id: selectedPatient?.id || ''
+      patient_id: selectedPatient?.id || 'none'
     }));
   }, [selectedPatient, patients]);
 
@@ -146,7 +146,7 @@ export const HealthRecords = () => {
         .from('health_records')
         .insert({
           user_id: user?.id,
-          patient_id: formData.patient_id || null,
+          patient_id: formData.patient_id === 'none' ? null : formData.patient_id || null,
           record_type: formData.record_type,
           title: formData.title,
           data: parsedData,
@@ -165,7 +165,7 @@ export const HealthRecords = () => {
         title: '',
         data: '',
         file: null,
-        patient_id: selectedPatient?.id || ''
+        patient_id: 'none'
       });
       setShowCreateForm(false);
       loadRecords();
@@ -247,7 +247,7 @@ export const HealthRecords = () => {
                         <SelectValue placeholder="Select a patient" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border-border z-50">
-                        <SelectItem value="">
+                        <SelectItem value="none">
                           <span className="text-muted-foreground">No specific patient (general record)</span>
                         </SelectItem>
                         {patients.map((patient) => (

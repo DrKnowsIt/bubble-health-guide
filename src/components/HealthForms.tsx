@@ -322,7 +322,7 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
         .from('health_records')
         .insert({
           user_id: user?.id,
-          patient_id: selectedPatient?.id || null,
+          patient_id: selectedPatient?.id === 'none' ? null : selectedPatient?.id || null,
           record_type: selectedForm.id,
           title: selectedForm.title,
           category: selectedForm.category,
@@ -331,7 +331,7 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
           metadata: {
             form_version: '1.0',
             completed_at: new Date().toISOString(),
-            patient_name: selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
+            patient_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
           }
         });
 
@@ -443,7 +443,7 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
             <div className="space-y-2">
               <Label htmlFor="patient_selection">Assign to Patient</Label>
               <Select
-                value={selectedPatient?.id || ''}
+                value={selectedPatient?.id || 'none'}
                 onValueChange={(value) => {
                   // This would typically update the selected patient in the parent component
                   // For now, we'll show which patient is selected
@@ -453,7 +453,7 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
                   <SelectValue placeholder="Select a patient" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border-border z-50">
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     <span className="text-muted-foreground">No specific patient (general form)</span>
                   </SelectItem>
                   {patients.map((patient) => (
