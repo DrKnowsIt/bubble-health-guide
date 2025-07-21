@@ -1,0 +1,106 @@
+import { Check, ChevronDown, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  relationship: string;
+  is_primary: boolean;
+  date_of_birth?: string;
+}
+
+interface PatientDropdownProps {
+  patients: Patient[];
+  selectedPatient: Patient | null;
+  onPatientSelect: (patient: Patient | null) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const PatientDropdown = ({
+  patients,
+  selectedPatient,
+  onPatientSelect,
+  open,
+  onOpenChange,
+}: PatientDropdownProps) => {
+  const getPatientDisplayName = (patient: Patient) => {
+    const name = `${patient.first_name} ${patient.last_name}`;
+    if (patient.is_primary) {
+      return `${name} (Primary)`;
+    }
+    return `${name} (${patient.relationship})`;
+  };
+
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {selectedPatient ? (
+              <span className="truncate">
+                {getPatientDisplayName(selectedPatient)}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Select patient...</span>
+            )}
+          </div>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search patients..." />
+          <CommandEmpty>No patients found.</CommandEmpty>
+          <CommandGroup>
+            {patients.map((patient) => (
+              <CommandItem
+                key={patient.id}
+                value={`${patient.first_name} ${patient.last_name}`}
+                onSelect={() => {
+                  onPatientSelect(patient.id === selectedPatient?.id ? null : patient);
+                  onOpenChange(false);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    {getPatientDisplayName(patient)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    DOB: {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'Not provided'}
+                  </span>
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};

@@ -3,14 +3,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Mic, MicOff, Bot, User, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Send, Mic, MicOff, Bot, User, Loader2, MessageCircle, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePatients } from '@/hooks/usePatients';
+import { usePatients, Patient } from '@/hooks/usePatients';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { PatientSelector } from './PatientSelector';
 import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
+import { ConversationHistory } from './ConversationHistory';
+import { PatientDropdown } from './PatientDropdown';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,159 +22,84 @@ interface ChatInterfaceWithPatientsProps {
   isMobile?: boolean;
 }
 
-export const ChatInterfaceWithPatients = ({ 
-  onSendMessage, 
-  isMobile = false 
-}: ChatInterfaceWithPatientsProps) => {
+export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: ChatInterfaceWithPatientsProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient, loading: patientsLoading } = usePatients();
+  const { patients, selectedPatient, setSelectedPatient, loading: patientsLoading } = usePatients();
   const { 
-    currentConversation, 
     messages, 
-    setMessages, 
-    createConversation, 
-    saveMessage,
-    selectConversation
+    loading: messagesLoading, 
+    setMessages,
+    currentConversation,
+    selectConversation,
+    createConversation,
+    saveMessage 
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activeTab, setActiveTab] = useState('chat');
+  const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Voice recording functionality
-  const { isRecording, isProcessing, toggleRecording } = useVoiceRecording({
-    onTranscription: (text: string) => {
-      setInputValue(text);
-    }
+  const {
+    isRecording,
+    isProcessing,
+    toggleRecording
+  } = useVoiceRecording({
+    onTranscription: (text) => setInputValue(text)
   });
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
-
-  const generateConversationTitle = (message: string): string => {
-    const words = message.trim().split(' ').slice(0, 6);
-    return words.join(' ') + (message.split(' ').length > 6 ? '...' : '');
-  };
-
-  const sendMessageToGrok = async (message: string, conversationHistory: Message[], patientId?: string) => {
-    try {
-      const response = await supabase.functions.invoke('grok-chat', {
-        body: {
-          message,
-          conversation_history: conversationHistory.map(msg => ({
-            type: msg.type,
-            content: msg.content
-          })),
-          patient_id: patientId,
-          user_id: user?.id
-        }
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error('Error calling Grok API:', error);
-      throw error;
-    }
-  };
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !selectedPatient) return;
 
-    // Check authentication
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to chat with the AI.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // For mobile, ensure a patient is selected
-    if (isMobile && !selectedPatient) {
-      toast({
-        title: "Select a patient",
-        description: "Please select a patient to start chatting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const messageText = inputValue.trim();
-    setInputValue('');
-    setIsTyping(true);
-
-    // Create user message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}-${Math.random()}`,
       type: 'user',
-      content: messageText,
+      content: inputValue.trim(),
       timestamp: new Date()
     };
 
-    // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue.trim();
+    setInputValue('');
+    setIsTyping(true);
 
     try {
-      // Create conversation if needed
-      let conversationId = currentConversation;
-      if (!conversationId) {
-        const title = generateConversationTitle(messageText);
-        conversationId = await createConversation(title, selectedPatient?.id);
-        if (!conversationId) {
-          throw new Error('Failed to create conversation');
+      // Call AI service here
+      const { data, error } = await supabase.functions.invoke('grok-chat', {
+        body: { 
+          message: currentInput,
+          patientId: selectedPatient.id,
+          conversationId: currentConversation 
         }
-      }
+      });
 
-      // Save user message
-      await saveMessage(conversationId, 'user', messageText);
-
-      // Get AI response
-      const grokResponse = await sendMessageToGrok(
-        messageText, 
-        messages,
-        selectedPatient?.id
-      );
+      if (error) throw error;
 
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
-        content: grokResponse.response,
+        content: data.response || 'I apologize, but I am unable to process your request at the moment.',
         timestamp: new Date()
       };
 
-      // Add AI message to UI
       setMessages(prev => [...prev, aiMessage]);
-
-      // Save AI message
-      await saveMessage(conversationId, 'ai', grokResponse.response);
-
-      // If diagnoses were updated, refresh patient data
-      if (grokResponse.updated_diagnoses && selectedPatient) {
-        // The diagnoses are already updated in the database by the edge function
-        toast({
-          title: "Diagnoses updated",
-          description: "AI has updated probable diagnoses based on your conversation.",
-        });
-      }
-
-      onSendMessage?.(messageText);
-
+      onSendMessage?.(currentInput);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
-      
-      // Remove the user message from UI on error
-      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
     } finally {
       setIsTyping(false);
     }
@@ -184,21 +112,60 @@ export const ChatInterfaceWithPatients = ({
     }
   };
 
+  const handleConversationSelect = async (conversationId: string) => {
+    try {
+      await selectConversation(conversationId);
+      setActiveTab('chat');
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversation. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNewConversation = async () => {
+    if (!selectedPatient) return;
+    
+    try {
+      await createConversation(`Chat with ${selectedPatient.first_name}`, selectedPatient.id);
+      setActiveTab('chat');
+    } catch (error) {
+      console.error('Error creating new conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new conversation. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handlePatientSelect = (patient: Patient | null) => {
+    setSelectedPatient(patient);
+    if (patient) {
+      // Create or switch to conversation for this patient
+      handleNewConversation();
+    }
+  };
+
   if (patientsLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading patients...</span>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (!patients.length) {
+  if (patients.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <PatientSelector />
+      <div className="text-center p-8">
+        <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">No Patients Found</h3>
+        <p className="text-muted-foreground mb-4">
+          You need to add patients before you can start chatting.
+        </p>
       </div>
     );
   }
@@ -207,12 +174,16 @@ export const ChatInterfaceWithPatients = ({
   if (isMobile) {
     return (
       <div className="h-full flex flex-col">
-        {/* Tier Status - Mobile */}
         <div className="p-4 border-b">
-          <TierStatus />
+          <PatientDropdown
+            patients={patients}
+            selectedPatient={selectedPatient}
+            onPatientSelect={handlePatientSelect}
+            open={patientDropdownOpen}
+            onOpenChange={setPatientDropdownOpen}
+          />
         </div>
-        
-        {/* Probable Diagnoses - Mobile */}
+
         {selectedPatient && (
           <div className="p-4 border-b">
             <ProbableDiagnoses 
@@ -223,91 +194,125 @@ export const ChatInterfaceWithPatients = ({
           </div>
         )}
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`flex max-w-[85%] space-x-2 ${
-                  message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                }`}
-              >
-                <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
-                    message.type === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-secondary text-secondary-foreground"
-                  }`}
-                >
-                  {message.type === 'user' ? (
-                    <User className="h-4 w-4" />
-                  ) : (
-                    <Bot className="h-4 w-4" />
-                  )}
-                </div>
-                <div
-                  className={`px-3 py-2 rounded-lg ${
-                    message.type === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted"
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Mobile Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              History
+            </TabsTrigger>
+          </TabsList>
 
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex space-x-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div className="bg-muted px-3 py-2 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          <TabsContent value="chat" className="flex-1 flex flex-col mt-4">
+            <Card className="flex-1 flex flex-col mx-4">
+              <CardContent className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[400px]">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`flex max-w-[80%] space-x-3 ${
+                        message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                      }`}
+                    >
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
+                          message.type === 'user' 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {message.type === 'user' ? (
+                          <User className="h-5 w-5" />
+                        ) : (
+                          <Bot className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div
+                        className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden ${
+                          message.type === 'user'
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {message.content}
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex space-x-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <Bot className="h-5 w-5" />
+                      </div>
+                      <div className="bg-muted px-4 py-3 rounded-2xl">
+                        <div className="flex space-x-1">
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </CardContent>
+
+              <div className="border-t p-4">
+                <div className="flex space-x-2">
+                  <div className="flex-1 relative">
+                    <Textarea
+                      placeholder="Describe your symptoms..."
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="min-h-[50px] max-h-[120px] resize-none pr-12"
+                      disabled={!selectedPatient}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute bottom-2 right-2 h-8 w-8 p-0"
+                      onClick={toggleRecording}
+                      disabled={!selectedPatient || isProcessing}
+                    >
+                      {isRecording ? (
+                        <MicOff className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={!inputValue.trim() || isTyping || !selectedPatient}
+                    className="h-[50px] px-6"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            </Card>
+          </TabsContent>
 
-        {/* Input Area */}
-        <div className="p-4 border-t">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Ask about symptoms..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
+          <TabsContent value="history" className="flex-1 mt-4 mx-4">
+            <ConversationHistory
+              selectedPatientId={selectedPatient?.id}
+              onConversationSelect={handleConversationSelect}
+              onNewConversation={handleNewConversation}
+              activeConversationId={currentConversation}
             />
-            <Button 
-              size="icon"
-              variant="ghost"
-              onClick={toggleRecording}
-              disabled={isProcessing}
-              className={isRecording ? "text-destructive" : ""}
-            >
-              {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            </Button>
-            <Button 
-              size="icon"
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isTyping}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
@@ -321,104 +326,145 @@ export const ChatInterfaceWithPatients = ({
       </div>
       
       <div className="flex-[2] flex space-x-4">
+        {/* Left Sidebar - History and Patient Selection */}
+        <div className="w-80 space-y-4">
+          {/* Patient Selection */}
+          <Card>
+            <CardContent className="p-4">
+              <PatientDropdown
+                patients={patients}
+                selectedPatient={selectedPatient}
+                onPatientSelect={handlePatientSelect}
+                open={patientDropdownOpen}
+                onOpenChange={setPatientDropdownOpen}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Conversation History */}
+          <div className="flex-1">
+            <ConversationHistory
+              selectedPatientId={selectedPatient?.id}
+              onConversationSelect={handleConversationSelect}
+              onNewConversation={handleNewConversation}
+              activeConversationId={currentConversation}
+            />
+          </div>
+        </div>
+
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           <Card className="flex-1 flex flex-col min-h-[600px]">
-          <CardContent className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[500px]">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`flex max-w-[80%] space-x-3 ${
-                    message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                  }`}
-                >
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
-                      message.type === 'user' 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-secondary text-secondary-foreground"
-                    }`}
-                  >
-                    {message.type === 'user' ? (
-                      <User className="h-5 w-5" />
-                    ) : (
-                      <Bot className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div
-                    className={`px-4 py-3 rounded-2xl ${
-                      message.type === 'user' 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <CardContent className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[500px]">
+              {!selectedPatient ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Select a Patient</h3>
+                    <p className="text-muted-foreground">
+                      Choose a patient from the dropdown to start chatting.
                     </p>
                   </div>
                 </div>
-              </div>
-            ))}
-
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="flex space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-                    <Bot className="h-5 w-5" />
-                  </div>
-                  <div className="bg-muted px-4 py-3 rounded-2xl">
-                    <div className="flex space-x-1">
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`flex max-w-[80%] space-x-3 ${
+                          message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                        }`}
+                      >
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
+                            message.type === 'user' 
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {message.type === 'user' ? (
+                            <User className="h-5 w-5" />
+                          ) : (
+                            <Bot className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div
+                          className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden ${
+                            message.type === 'user'
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words">
+                            {message.content}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </CardContent>
+                  ))}
 
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
-              <div className="flex-1 relative">
-                <Textarea
-                  placeholder="Describe your symptoms..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="min-h-[50px] resize-none pr-12"
-                  rows={2}
-                />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={toggleRecording}
-                  disabled={isProcessing}
-                  className={`absolute right-2 bottom-2 h-8 w-8 p-0 ${
-                    isRecording && "text-destructive"
-                  }`}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="flex space-x-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                          <Bot className="h-5 w-5" />
+                        </div>
+                        <div className="bg-muted px-4 py-3 rounded-2xl">
+                          <div className="flex space-x-1">
+                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
+            </CardContent>
+
+            <div className="border-t p-4">
+              <div className="flex space-x-2">
+                <div className="flex-1 relative">
+                  <Textarea
+                    placeholder="Describe your symptoms..."
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="min-h-[50px] max-h-[120px] resize-none pr-12"
+                    disabled={!selectedPatient}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute bottom-2 right-2 h-8 w-8 p-0"
+                    onClick={toggleRecording}
+                    disabled={!selectedPatient || isProcessing}
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-4 w-4 text-red-500" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <Button 
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isTyping || !selectedPatient}
+                  className="h-[50px] px-6"
                 >
-                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
-              <Button 
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isTyping}
-                className="h-[50px] px-6"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
 
-        {/* Sidebar - Probable Diagnoses */}
+        {/* Right Sidebar - Probable Diagnoses */}
         <div className="w-80">
           {selectedPatient && (
             <ProbableDiagnoses 
