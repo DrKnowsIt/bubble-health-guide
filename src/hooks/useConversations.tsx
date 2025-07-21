@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { toast } from '@/hooks/use-toast';
 
 export interface Message {
   id: string;
@@ -127,6 +128,47 @@ export const useConversations = () => {
     fetchMessages(conversationId);
   };
 
+  const deleteConversation = async (conversationId: string) => {
+    if (!user) return;
+
+    try {
+      // Delete messages first (due to foreign key constraint)
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      // Then delete the conversation
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      // If we deleted the current conversation, start a new one
+      if (currentConversation === conversationId) {
+        startNewConversation();
+      }
+
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchConversations();
@@ -146,6 +188,7 @@ export const useConversations = () => {
     saveMessage,
     startNewConversation,
     selectConversation,
-    fetchConversations
+    fetchConversations,
+    deleteConversation
   };
 };

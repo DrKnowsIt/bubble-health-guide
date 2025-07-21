@@ -16,7 +16,8 @@ const Index = () => {
     conversations,
     currentConversation,
     startNewConversation,
-    selectConversation
+    selectConversation,
+    deleteConversation
   } = useConversations();
 
   useEffect(() => {
@@ -61,6 +62,7 @@ const Index = () => {
                 currentConversation={currentConversation}
                 onSelectConversation={selectConversation}
                 onStartNewConversation={startNewConversation}
+                onDeleteConversation={deleteConversation}
                 isAuthenticated={!!user}
               />
               <ChatInterfaceWithHistory />

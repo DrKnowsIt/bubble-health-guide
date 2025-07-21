@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, MicOff, Bot, User } from "lucide-react";
+import { Send, Mic, MicOff, Bot, User, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,8 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
     messages,
     setMessages,
     createConversation,
-    saveMessage
+    saveMessage,
+    startNewConversation
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
@@ -87,6 +88,22 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
 
   return (
       <div className="flex-1 flex flex-col">
+      {/* Chat Header with New Conversation Button */}
+      <div className="border-b border-border p-4 flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
+        {user && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={startNewConversation}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Conversation
+          </Button>
+        )}
+      </div>
+
       {/* Chat Container */}
       <div className="flex-1 flex flex-col shadow-elevated">
         {/* Messages Area */}

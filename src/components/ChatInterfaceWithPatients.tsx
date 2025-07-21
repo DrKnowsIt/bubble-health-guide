@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, MicOff, Bot, User } from "lucide-react";
+import { Send, Mic, MicOff, Bot, User, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PatientSelector } from "./PatientSelector";
 
@@ -22,7 +22,8 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
     messages, 
     setMessages, 
     createConversation, 
-    saveMessage 
+    saveMessage,
+    startNewConversation
   } = useConversations();
   const { toast } = useToast();
 
@@ -148,6 +149,22 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
             }
           }}
         />
+      </div>
+
+      {/* Chat Header with New Conversation Button */}
+      <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
+        {user && selectedPatient && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={startNewConversation}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Conversation
+          </Button>
+        )}
       </div>
 
       {/* Chat Container */}

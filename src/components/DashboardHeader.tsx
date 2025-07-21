@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, LogOut, Bell, Settings, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardHeaderProps {
   user: {
@@ -11,6 +12,12 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderProps) => {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full h-16 border-b border-border bg-background/95 backdrop-blur">
       <div className="flex h-full items-center justify-between px-6">
@@ -55,7 +62,12 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
             <Settings className="h-5 w-5" />
           </Button>
           
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-destructive hover:text-destructive"
+            onClick={handleLogout}
+          >
             <LogOut className="h-5 w-5" />
           </Button>
         </div>

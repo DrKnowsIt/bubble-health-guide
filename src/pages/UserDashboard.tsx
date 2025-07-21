@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useHealthStats } from '@/hooks/useHealthStats';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,6 +26,21 @@ import { AISettings } from '@/components/AISettings';
 export default function UserDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('chat');
+  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
+
+  const formatLastActivity = (timestamp: string | null) => {
+    if (!timestamp) return "No activity";
+    
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return "Just now";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,7 +138,7 @@ export default function UserDashboard() {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">12</div>
+                  <div className="text-2xl font-bold">{loading ? "..." : totalRecords}</div>
                   <p className="text-xs text-muted-foreground">Total records uploaded</p>
                 </CardContent>
               </Card>
@@ -133,7 +149,7 @@ export default function UserDashboard() {
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">47</div>
+                  <div className="text-2xl font-bold">{loading ? "..." : totalConversations}</div>
                   <p className="text-xs text-muted-foreground">Total conversations</p>
                 </CardContent>
               </Card>
@@ -144,7 +160,7 @@ export default function UserDashboard() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">2h</div>
+                  <div className="text-2xl font-bold">{loading ? "..." : formatLastActivity(lastActivityTime)}</div>
                   <p className="text-xs text-muted-foreground">Ago</p>
                 </CardContent>
               </Card>

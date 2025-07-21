@@ -10,15 +10,17 @@ interface ConversationSidebarProps {
   currentConversation: string | null;
   onSelectConversation: (id: string) => void;
   onStartNewConversation: () => void;
+  onDeleteConversation: (id: string) => void;
   isAuthenticated: boolean;
 }
 
-export const ConversationSidebar = ({
-  conversations,
-  currentConversation,
-  onSelectConversation,
+export const ConversationSidebar = ({ 
+  conversations, 
+  currentConversation, 
+  onSelectConversation, 
   onStartNewConversation,
-  isAuthenticated
+  onDeleteConversation,
+  isAuthenticated 
 }: ConversationSidebarProps) => {
   if (!isAuthenticated) {
     return (
@@ -77,10 +79,10 @@ export const ConversationSidebar = ({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                    className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-destructive hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // TODO: Implement delete conversation
+                      onDeleteConversation(conversation.id);
                     }}
                   >
                     <Trash2 className="h-3 w-3" />
