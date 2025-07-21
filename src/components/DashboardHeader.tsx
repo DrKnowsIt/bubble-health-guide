@@ -45,7 +45,7 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
         </div>
 
         {/* Center Navigation Menu */}
-        <nav className="hidden sm:flex items-center space-x-6">
+        <nav className="flex items-center space-x-6">
           <Link to="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
             Features
           </Link>
