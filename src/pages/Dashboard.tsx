@@ -50,11 +50,11 @@ const Dashboard = () => {
         onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
       
-      <div className="flex h-[calc(100vh-4rem)]">
+      <div className="flex h-[calc(100vh-5rem)]">
         {/* Sidebar */}
         <div className={`
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 fixed md:static inset-y-16 left-0 z-40 w-64 
+          md:translate-x-0 fixed md:static inset-y-20 left-0 z-40 w-64 
           bg-card border-r border-border transition-transform duration-300 ease-out
         `}>
           <div className="p-6">
