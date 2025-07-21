@@ -116,9 +116,9 @@ export const useConversations = () => {
   const startNewConversation = () => {
     setCurrentConversation(null);
     setMessages([{
-      id: '1',
+      id: 'welcome',
       type: 'ai',
-      content: "Hello! I'm DrKnowsIt, your AI medical companion. I'm here to help you understand health topics and prepare for doctor visits. What would you like to discuss today?",
+      content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
       timestamp: new Date()
     }]);
   };
@@ -152,7 +152,13 @@ export const useConversations = () => {
       
       // If we deleted the current conversation, start a new one
       if (currentConversation === conversationId) {
-        startNewConversation();
+        setCurrentConversation(null);
+        setMessages([{
+          id: 'welcome',
+          type: 'ai',
+          content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
+          timestamp: new Date()
+        }]);
       }
 
       toast({
@@ -173,7 +179,13 @@ export const useConversations = () => {
     if (user) {
       fetchConversations();
       if (!currentConversation) {
-        startNewConversation();
+        setCurrentConversation(null);
+        setMessages([{
+          id: 'welcome',
+          type: 'ai',
+          content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
+          timestamp: new Date()
+        }]);
       }
     }
   }, [user]);
