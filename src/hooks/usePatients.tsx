@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export interface Diagnosis {
+  diagnosis: string;
+  confidence: number;
+  reasoning: string;
+  updated_at: string;
+}
+
 export interface Patient {
   id: string;
   user_id: string;
@@ -11,6 +18,7 @@ export interface Patient {
   gender?: string;
   relationship: string;
   is_primary: boolean;
+  probable_diagnoses?: Diagnosis[];
   created_at: string;
   updated_at: string;
 }
@@ -48,12 +56,20 @@ export const usePatients = () => {
 
       if (error) throw error;
 
-      setPatients(data || []);
+      // Transform data to match Patient interface
+      const transformedData = (data || []).map(patient => ({
+        ...patient,
+        probable_diagnoses: Array.isArray(patient.probable_diagnoses) 
+          ? patient.probable_diagnoses as unknown as Diagnosis[]
+          : []
+      }));
+
+      setPatients(transformedData);
       
       // Auto-select primary patient or first patient
-      if (data && data.length > 0 && !selectedPatient) {
-        const primaryPatient = data.find(p => p.is_primary);
-        setSelectedPatient(primaryPatient || data[0]);
+      if (transformedData.length > 0 && !selectedPatient) {
+        const primaryPatient = transformedData.find(p => p.is_primary);
+        setSelectedPatient(primaryPatient || transformedData[0]);
       }
     } catch (error) {
       console.error('Error fetching patients:', error);
@@ -78,11 +94,19 @@ export const usePatients = () => {
 
       if (error) throw error;
 
-      setPatients(prev => [...prev, data]);
+      // Transform data to match Patient interface
+      const transformedPatient = {
+        ...data,
+        probable_diagnoses: Array.isArray(data.probable_diagnoses) 
+          ? data.probable_diagnoses as unknown as Diagnosis[]
+          : []
+      };
+
+      setPatients(prev => [...prev, transformedPatient]);
       
       // If this is the first patient or is_primary, select it
       if (patients.length === 0 || patientData.is_primary) {
-        setSelectedPatient(data);
+        setSelectedPatient(transformedPatient);
       }
 
       return data;
@@ -107,12 +131,20 @@ export const usePatients = () => {
 
       if (error) throw error;
 
+      // Transform data to match Patient interface
+      const transformedPatient = {
+        ...data,
+        probable_diagnoses: Array.isArray(data.probable_diagnoses) 
+          ? data.probable_diagnoses as unknown as Diagnosis[]
+          : []
+      };
+
       setPatients(prev => 
-        prev.map(p => p.id === patientId ? data : p)
+        prev.map(p => p.id === patientId ? transformedPatient : p)
       );
 
       if (selectedPatient?.id === patientId) {
-        setSelectedPatient(data);
+        setSelectedPatient(transformedPatient);
       }
 
       return data;

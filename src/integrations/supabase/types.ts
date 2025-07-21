@@ -154,6 +154,7 @@ export type Database = {
           id: string
           is_primary: boolean | null
           last_name: string
+          probable_diagnoses: Json | null
           relationship: string
           updated_at: string
           user_id: string
@@ -166,6 +167,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_name: string
+          probable_diagnoses?: Json | null
           relationship?: string
           updated_at?: string
           user_id: string
@@ -178,6 +180,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_name?: string
+          probable_diagnoses?: Json | null
           relationship?: string
           updated_at?: string
           user_id?: string
