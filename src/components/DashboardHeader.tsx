@@ -51,19 +51,26 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
           </Button>
           
           
-          <Button 
-            variant="ghost" 
-            className="flex items-center space-x-2 px-3 py-2 h-auto"
-            onClick={handleLogout}
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-              <User className="h-4 w-4 text-primary" />
-            </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-foreground">{user.name}</p>
+          <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-muted">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground">{user.name}</p>
               <p className="text-xs text-muted-foreground">{user.subscription}</p>
             </div>
-            <LogOut className="h-4 w-4 text-destructive ml-2" />
+          </div>
+
+          <Button variant="ghost" size="sm">
+            <Settings className="h-5 w-5" />
+          </Button>
+          
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={handleLogout}
+            className="text-white"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
           </Button>
         </div>
       </div>
