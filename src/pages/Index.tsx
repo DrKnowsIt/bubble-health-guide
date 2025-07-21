@@ -48,9 +48,12 @@ const Index = () => {
                 <h1 className="text-lg font-bold text-foreground mb-2">
                   Tired of expensive doctor visits?
                 </h1>
-                <p className="text-sm text-muted-foreground mb-3">
+                <p className="text-sm text-muted-foreground mb-2">
                   Get instant health guidance with{" "}
                   <span className="text-primary font-semibold">DrKnowsIt</span>
+                </p>
+                <p className="text-xs text-muted-foreground/70 mb-3">
+                  Powered by Grok
                 </p>
                 
                 {/* Compact Disclaimer */}
@@ -108,6 +111,9 @@ const Index = () => {
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     AI-powered health guidance available 24/7
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">
+                    Powered by Grok
                   </p>
                 </div>
                 
