@@ -13,20 +13,27 @@ interface Message {
 }
 
 export const ChatDashboard = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'ai',
-      content: "Welcome back! I'm DrKnowItAll, ready to help with your health questions. What's on your mind today?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [chatStarted, setChatStarted] = useState(false);
+
+  // Suggested conversation starters
+  const suggestions = [
+    "Hello! any interesting plans for the weekend?",
+    "Hello! what's your favorite thing about this season?", 
+    "Hello! how's your day going so far?",
+    "Hello! do you have any fun travel plans this year?"
+  ];
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
+
+    // Start the chat if it hasn't been started
+    if (!chatStarted) {
+      setChatStarted(true);
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -61,6 +68,10 @@ export const ChatDashboard = () => {
     }, 1500);
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputValue(suggestion);
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -82,8 +93,69 @@ export const ChatDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Compact starter view
+  if (!chatStarted) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center space-y-8 px-4">
+        <div className="w-full max-w-2xl text-center space-y-8">
+          {/* Title */}
+          <h1 className="text-4xl font-light text-foreground mb-12">
+            What can I help with?
+          </h1>
+
+          {/* Search Input */}
+          <div className="relative w-full">
+            <div className="flex items-center bg-muted/50 border border-border rounded-full p-4 space-x-3">
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Tools
+              </Button>
+              <Input
+                placeholder="Hello"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="flex-1 border-0 bg-transparent focus:ring-0 text-base"
+              />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setIsVoiceMode(!isVoiceMode)}
+                className={isVoiceMode ? "text-primary" : "text-muted-foreground"}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim()}
+                size="sm"
+                className="rounded-full h-8 w-8 p-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Suggestions */}
+          <div className="space-y-3 pt-4">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="block w-full text-left p-3 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-lg transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full chat view
   return (
-    <div className="h-full flex flex-col space-y-4">
+    <div className="h-full flex flex-col space-y-4 animate-fade-in">
       {/* Header - Compact */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
