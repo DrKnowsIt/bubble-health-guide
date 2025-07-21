@@ -83,20 +83,21 @@ export const ChatDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="h-full flex flex-col space-y-4">
+      {/* Header - Compact */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Chat with DrKnowItAll</h1>
-          <p className="text-muted-foreground">Your AI medical companion is here to help</p>
+          <h1 className="text-2xl font-bold text-foreground">Chat with DrKnowItAll</h1>
+          <p className="text-sm text-muted-foreground">Your AI medical companion is here to help</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={exportConversation}>
+          <Button variant="outline" size="sm" onClick={exportConversation}>
             <Download className="h-4 w-4 mr-2" />
             Export Chat
           </Button>
           <Button 
             variant={isVoiceMode ? "default" : "outline"}
+            size="sm"
             onClick={() => setIsVoiceMode(!isVoiceMode)}
           >
             {isVoiceMode ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
@@ -105,8 +106,8 @@ export const ChatDashboard = () => {
         </div>
       </div>
 
-      {/* Chat Container */}
-      <Card className="chat-container h-[600px] flex flex-col">
+      {/* Chat Container - Takes up remaining space */}
+      <Card className="chat-container flex-1 flex flex-col min-h-0">
         {/* Messages Area */}
         <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (

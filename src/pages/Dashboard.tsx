@@ -122,8 +122,8 @@ const Dashboard = () => {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 p-6 flex flex-col min-h-0">
             {activeTab === "chat" && <ChatDashboard />}
             {activeTab === "health" && <HealthProfile user={user} />}
             {activeTab === "settings" && <SettingsDashboard user={user} />}
