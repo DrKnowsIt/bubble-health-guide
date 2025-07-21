@@ -40,8 +40,37 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
-    // Check if patient is selected
-    if (!selectedPatient) {
+    // For mobile, create a simple message without patient/conversation management
+    if (isMobile && !user) {
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: inputValue,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue('');
+      setIsTyping(true);
+
+      // Simple AI response for non-authenticated users
+      setTimeout(() => {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'ai',
+          content: `Thank you for your question. I can provide general health information, but for personalized advice and to save our conversation, please sign in. Always consult with healthcare professionals for medical decisions.`,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        setIsTyping(false);
+      }, 1500);
+
+      return;
+    }
+
+    // For authenticated users or desktop, use full functionality
+    if (!selectedPatient && !isMobile) {
       toast({
         title: "No Patient Selected",
         description: "Please select a patient before starting a conversation.",
@@ -132,27 +161,30 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   }
 
   if (isMobile) {
+    // Mobile: Super simple chat interface - no patient management, no conversation history
     return (
       <div className="flex flex-col h-full">
-        {/* Mobile Patient Selection */}
-        <div className="shrink-0 bg-card border-b border-border p-3">
-          <PatientSelector 
-            onPatientSelected={(patient) => {
-              if (patient?.id !== selectedPatient?.id) {
-                setMessages([{
-                  id: '1',
-                  type: 'ai',
-                  content: `Hello! I'm DrKnowsIt, and I'm here to help with questions about ${patient?.first_name}'s health. What would you like to discuss today?`,
-                  timestamp: new Date()
-                }]);
-              }
-            }}
-          />
+        {/* Simple mobile header */}
+        <div className="shrink-0 bg-card border-b border-border p-4 text-center">
+          <h2 className="font-semibold text-lg">Chat with DrKnowsIt</h2>
+          <p className="text-sm text-muted-foreground">Your AI Health Assistant</p>
         </div>
 
-        {/* Mobile Messages */}
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto bg-background">
-          <div className="p-3 space-y-3">
+          <div className="p-4 space-y-4">
+            {/* Welcome message */}
+            <div className="flex justify-start">
+              <div className="flex space-x-2 max-w-[85%]">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1 shrink-0">
+                  <Bot className="h-3 w-3" />
+                </div>
+                <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
+                  <p className="text-sm">Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?</p>
+                </div>
+              </div>
+            </div>
+            {/* User messages */}
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -167,7 +199,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                     message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                   )}
                 >
-                  {/* Avatar */}
                   <div
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1",
@@ -182,8 +213,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                       <Bot className="h-3 w-3" />
                     )}
                   </div>
-
-                  {/* Message Bubble */}
                   <div
                     className={cn(
                       "px-3 py-2 text-sm rounded-2xl",
@@ -198,7 +227,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
               </div>
             ))}
 
-            {/* Typing Indicator */}
+            {/* Typing indicator */}
             {isTyping && (
               <div className="flex justify-start">
                 <div className="flex space-x-2">
@@ -218,61 +247,31 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           </div>
         </div>
 
-        {/* Mobile Input */}
-        <div className="shrink-0 bg-card border-t border-border p-3">
-          {/* New conversation button */}
-          {user && selectedPatient && (
-            <div className="mb-3 flex justify-center">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={startNewConversation}
-                className="text-xs px-3 py-1"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                New Chat
-              </Button>
-            </div>
-          )}
-          
+        {/* Simple mobile input */}
+        <div className="shrink-0 bg-card border-t border-border p-4">
           <div className="flex space-x-2">
-            <div className="flex-1 relative">
+            <div className="flex-1">
               <Input
-                placeholder={`Ask about ${selectedPatient?.first_name || 'health'}...`}
+                placeholder="Ask me about your health..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pr-10 text-base"
-                disabled={!selectedPatient}
+                className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
               />
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsVoiceMode(!isVoiceMode)}
-                className={cn(
-                  "absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0",
-                  isVoiceMode && "text-primary"
-                )}
-                disabled={!selectedPatient}
-              >
-                {isVoiceMode ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
-              </Button>
             </div>
             <Button 
               onClick={handleSendMessage}
-              disabled={!inputValue.trim() || !selectedPatient}
+              disabled={!inputValue.trim()}
               size="sm"
-              className="px-3"
+              className="px-4"
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
-
-          {!selectedPatient && (
-            <div className="mt-2 text-center text-xs text-muted-foreground">
-              Please select a patient to start chatting
-            </div>
-          )}
+          
+          <div className="mt-2 text-center text-xs text-muted-foreground">
+            Sign in for personalized health tracking and conversation history
+          </div>
         </div>
       </div>
     );
