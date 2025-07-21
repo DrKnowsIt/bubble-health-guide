@@ -5,15 +5,60 @@ import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText, ArrowLeft } f
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
 const Pricing = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const { user } = useAuth();
+  const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
 
   const openAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
     setIsAuthOpen(true);
+  };
+
+  const handlePlanAction = async (planName: string) => {
+    if (planName === "Free") {
+      if (!user) {
+        openAuth('signup');
+      } else {
+        // Redirect to dashboard for free tier
+        window.location.href = '/dashboard';
+      }
+    } else if (planName === "Pro") {
+      if (!user) {
+        openAuth('signup');
+        return;
+      }
+      
+      if (subscribed && subscription_tier === 'pro') {
+        // Already subscribed - open customer portal
+        try {
+          await openCustomerPortal();
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to open customer portal. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Start subscription
+        try {
+          await createCheckoutSession();
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to start checkout process. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
   };
   const plans = [
     {
@@ -36,7 +81,7 @@ const Pricing = () => {
       popular: false
     },
     {
-      name: "Paid",
+      name: "Pro",
       price: "$30",
       period: "per month",
       description: "Full AI health guidance with complete tracking and history",
@@ -52,7 +97,7 @@ const Pricing = () => {
         "Priority processing speed",
         "Email support"
       ],
-      buttonText: "Choose Paid",
+      buttonText: "Choose Pro",
       buttonVariant: "default" as const,
       icon: Zap,
       popular: true
@@ -153,8 +198,11 @@ const Pricing = () => {
                 <Button 
                   variant={plan.buttonVariant}
                   className={`w-full ${plan.buttonVariant === 'default' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => handlePlanAction(plan.name)}
                 >
-                  {plan.buttonText}
+                  {user && plan.name === "Pro" && subscribed && subscription_tier === 'pro' 
+                    ? "Manage Subscription" 
+                    : plan.buttonText}
                 </Button>
               </CardContent>
             </Card>
@@ -231,11 +279,11 @@ const Pricing = () => {
             <Card className="medical-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-2">
-                  What's the difference between Free and Paid plans?
+                  What's the difference between Free and Pro plans?
                 </h3>
                 <p className="text-muted-foreground">
                   The Free plan answers basic health questions but doesn't save any data or conversation history. 
-                  The Paid plan includes health tracking, conversation history, health forms, and more advanced AI analysis.
+                  The Pro plan includes health tracking, conversation history, health forms, and more advanced AI analysis.
                 </p>
               </CardContent>
             </Card>

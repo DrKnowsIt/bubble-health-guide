@@ -9,6 +9,7 @@ import { usePatients } from '@/hooks/usePatients';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { PatientSelector } from './PatientSelector';
 import { ProbableDiagnoses } from './ProbableDiagnoses';
+import { TierStatus } from './TierStatus';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -199,6 +200,11 @@ export const ChatInterfaceWithPatients = ({
   if (isMobile) {
     return (
       <div className="h-full flex flex-col">
+        {/* Tier Status - Mobile */}
+        <div className="p-4 border-b">
+          <TierStatus />
+        </div>
+        
         {/* Probable Diagnoses - Mobile */}
         {selectedPatient && (
           <div className="p-4 border-b">
@@ -299,10 +305,16 @@ export const ChatInterfaceWithPatients = ({
 
   // Desktop layout
   return (
-    <div className="h-full flex space-x-4">
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        <Card className="flex-1 flex flex-col">
+    <div className="h-full flex flex-col space-y-4">
+      {/* Tier Status - Desktop */}
+      <div className="flex justify-between items-center">
+        <TierStatus />
+      </div>
+      
+      <div className="flex-1 flex space-x-4">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <Card className="flex-1 flex flex-col">
           <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((message) => (
               <div
@@ -396,14 +408,15 @@ export const ChatInterfaceWithPatients = ({
         </Card>
       </div>
 
-      {/* Sidebar - Probable Diagnoses */}
-      <div className="w-80">
-        {selectedPatient && (
-          <ProbableDiagnoses 
-            diagnoses={selectedPatient.probable_diagnoses || []}
-            patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
-          />
-        )}
+        {/* Sidebar - Probable Diagnoses */}
+        <div className="w-80">
+          {selectedPatient && (
+            <ProbableDiagnoses 
+              diagnoses={selectedPatient.probable_diagnoses || []}
+              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
