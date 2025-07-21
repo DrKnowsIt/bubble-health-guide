@@ -37,7 +37,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-6">
+        <ScrollArea className="flex-1 px-6 max-h-[60vh]">
           <div className="space-y-6 pb-6">
             {/* Main Warning */}
             <div className="bg-destructive/10 border-2 border-destructive/50 rounded-lg p-4">
