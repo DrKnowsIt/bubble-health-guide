@@ -66,30 +66,23 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with History Tab */}
-      <div className="shrink-0 bg-card border-b border-border">
-        <div className="flex items-center justify-between p-3">
-          <div>
-            <h2 className="font-semibold text-lg">DrKnowsIt AI</h2>
-            <p className="text-xs text-muted-foreground">General health guidance</p>
-          </div>
-          {user && onShowHistory && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onShowHistory}
-              className="flex items-center gap-1 text-xs"
-            >
-              <History className="h-3 w-3" />
-              History
-            </Button>
-          )}
-        </div>
-      </div>
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto bg-background">
         <div className="p-4 space-y-4">
+          {/* History button for logged in users - floating */}
+          {user && onShowHistory && (
+            <div className="flex justify-end mb-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onShowHistory}
+                className="flex items-center gap-1 text-xs"
+              >
+                <History className="h-3 w-3" />
+                History
+              </Button>
+            </div>
+          )}
           {messages.map((message) => (
             <div
               key={message.id}
