@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { DashboardNavMenu } from "@/components/DashboardNavMenu";
 
 interface DashboardHeaderProps {
   user: {
@@ -41,6 +42,11 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
               <span className="text-xs text-muted-foreground ml-2">Dashboard</span>
             </div>
           </div>
+        </div>
+
+        {/* Center Navigation Menu */}
+        <div className="hidden md:flex">
+          <DashboardNavMenu />
         </div>
 
         {/* Right Side */}

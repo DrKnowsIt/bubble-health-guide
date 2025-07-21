@@ -82,7 +82,7 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      price: "$30",
+      price: "$2",
       period: "per month",
       description: "Full AI health guidance with complete tracking and history",
       features: [

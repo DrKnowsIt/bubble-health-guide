@@ -67,7 +67,7 @@ serve(async (req) => {
               name: "DrKnowsIt Pro Subscription",
               description: "Full AI health guidance with complete tracking and history"
             },
-            unit_amount: 3000, // $30.00 in cents
+            unit_amount: 200, // $2.00 in cents
             recurring: { interval: "month" },
           },
           quantity: 1,
