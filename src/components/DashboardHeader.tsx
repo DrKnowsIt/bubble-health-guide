@@ -45,7 +45,7 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
         </div>
 
         {/* Center Navigation Menu */}
-        <div className="hidden md:flex">
+        <div className="hidden sm:flex">
           <DashboardNavMenu />
         </div>
 
