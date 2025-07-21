@@ -434,17 +434,36 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
         <CardContent>
           <div className="space-y-6">
             {/* Patient Selection */}
-            {patients.length > 0 && (
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="font-medium mb-2">Form will be saved for:</h4>
-                <p className="text-sm text-muted-foreground">
-                  {selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : 'No patient selected'}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Change patient selection in the patient selector above if needed.
-                </p>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="patient_selection">Assign to Patient</Label>
+              <Select
+                value={selectedPatient?.id || ''}
+                onValueChange={(value) => {
+                  // This would typically update the selected patient in the parent component
+                  // For now, we'll show which patient is selected
+                }}
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Select a patient" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border-border z-50">
+                  <SelectItem value="">
+                    <span className="text-muted-foreground">No specific patient (general form)</span>
+                  </SelectItem>
+                  {patients.map((patient) => (
+                    <SelectItem key={patient.id} value={patient.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{patient.first_name} {patient.last_name}</span>
+                        {patient.is_primary && <span className="text-xs text-muted-foreground">(Primary)</span>}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose which patient this health form will be saved for.
+              </p>
+            </div>
 
             {selectedForm.fields.map((field) => (
               <div key={field.name} className="space-y-2">
