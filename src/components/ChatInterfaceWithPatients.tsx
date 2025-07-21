@@ -301,10 +301,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         />
       </div>
 
-      {/* Chat Container */}
-      <div className="flex-1 flex flex-col bg-card rounded-lg border">
+      {/* Chat Container - Full height without card wrapper */}
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Chat Header */}
-        <div className="shrink-0 p-4 border-b flex justify-between items-center">
+        <div className="shrink-0 p-4 border-b bg-background flex justify-between items-center">
           <h3 className="font-medium">Chat with DrKnowsIt</h3>
           {user && selectedPatient && (
             <Button 
@@ -319,8 +319,8 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           )}
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Messages Area - Uses full available space */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -386,7 +386,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         </div>
 
         {/* Input Area */}
-        <div className="shrink-0 border-t p-4">
+        <div className="shrink-0 border-t bg-background p-4">
           <div className="flex space-x-2">
             <Input
               placeholder={`Ask DrKnowsIt about ${selectedPatient?.first_name || 'your'} health concerns...`}
