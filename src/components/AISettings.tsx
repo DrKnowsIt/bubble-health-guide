@@ -11,7 +11,6 @@ import { Brain, HardDrive, Settings, Trash2 } from 'lucide-react';
 
 interface AISettingsData {
   memory_enabled: boolean;
-  conversation_history_limit: number;
   personalization_level: 'low' | 'medium' | 'high';
 }
 
@@ -21,7 +20,6 @@ export const AISettings = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<AISettingsData>({
     memory_enabled: true,
-    conversation_history_limit: 50,
     personalization_level: 'medium'
   });
 
@@ -46,7 +44,6 @@ export const AISettings = () => {
       if (data) {
         setSettings({
           memory_enabled: data.memory_enabled,
-          conversation_history_limit: data.conversation_history_limit,
           personalization_level: data.personalization_level as 'low' | 'medium' | 'high'
         });
       }
@@ -68,7 +65,6 @@ export const AISettings = () => {
         .upsert({
           user_id: user?.id,
           memory_enabled: settings.memory_enabled,
-          conversation_history_limit: settings.conversation_history_limit,
           personalization_level: settings.personalization_level
         });
 
@@ -133,7 +129,6 @@ export const AISettings = () => {
   const resetToDefaults = () => {
     setSettings({
       memory_enabled: true,
-      conversation_history_limit: 50,
       personalization_level: 'medium'
     });
   };

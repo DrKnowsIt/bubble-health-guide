@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       ai_settings: {
         Row: {
-          conversation_history_limit: number | null
           created_at: string
           id: string
           memory_enabled: boolean | null
@@ -25,7 +24,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          conversation_history_limit?: number | null
           created_at?: string
           id?: string
           memory_enabled?: boolean | null
@@ -34,7 +32,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          conversation_history_limit?: number | null
           created_at?: string
           id?: string
           memory_enabled?: boolean | null
