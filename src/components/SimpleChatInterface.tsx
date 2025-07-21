@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User, History } from "lucide-react";
@@ -19,6 +19,7 @@ interface SimpleChatInterfaceProps {
 
 export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps) => {
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -29,6 +30,15 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -171,6 +181,9 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
                 </div>
               </div>
             )}
+            
+            {/* Invisible element to scroll to */}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </div>
