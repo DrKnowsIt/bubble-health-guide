@@ -66,7 +66,7 @@ Key guidelines:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-beta',
+        model: 'grok-4-0709',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -101,7 +101,7 @@ Key guidelines:
     return new Response(
       JSON.stringify({ 
         response: aiResponse,
-        model: 'grok-beta',
+        model: 'grok-4-0709',
         usage: data.usage 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
