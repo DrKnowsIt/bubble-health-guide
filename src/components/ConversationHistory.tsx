@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Calendar, Plus } from 'lucide-react';
+import { MessageCircle, Calendar, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -57,6 +57,22 @@ export const ConversationHistory = ({
       console.error('Error loading conversations:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteConversation = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
     }
   };
 
@@ -128,22 +144,31 @@ export const ConversationHistory = ({
           ) : (
             <div className="space-y-2">
               {conversations.map((conversation) => (
-                <Button
-                  key={conversation.id}
-                  variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-                  onClick={() => onConversationSelect(conversation.id)}
-                  className="w-full justify-start h-auto p-3 text-left"
-                >
-                  <div className="flex flex-col items-start space-y-1 w-full">
-                    <span className="font-medium text-sm truncate w-full">
-                      {conversation.title}
-                    </span>
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDate(conversation.updated_at)}</span>
+                <div key={conversation.id} className="relative group">
+                  <Button
+                    variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
+                    onClick={() => onConversationSelect(conversation.id)}
+                    className="w-full justify-start h-auto p-3 text-left pr-12"
+                  >
+                    <div className="flex flex-col items-start space-y-1 w-full">
+                      <span className="font-medium text-sm truncate w-full">
+                        {conversation.title}
+                      </span>
+                      <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(conversation.updated_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                </Button>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => deleteConversation(conversation.id, e)}
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
               ))}
             </div>
           )}
