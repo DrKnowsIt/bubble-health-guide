@@ -319,7 +319,7 @@ export const ChatInterfaceWithPatients = ({
         <TierStatus />
       </div>
       
-      <div className="flex-1 flex space-x-4">
+      <div className="flex-[2] flex space-x-4">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           <Card className="flex-1 flex flex-col">
