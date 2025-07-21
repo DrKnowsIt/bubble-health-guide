@@ -137,7 +137,7 @@ export default function UserDashboard() {
             </div>
           )}
 
-          {/* Tab Content */}
+           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
@@ -145,12 +145,12 @@ export default function UserDashboard() {
                   <ChatInterfaceWithPatients isMobile={true} />
                 </div>
               ) : (
-                <div className="h-full flex flex-col">
-                  <div className="mb-4">
+                <div className="h-full flex flex-col min-h-[calc(100vh-200px)]">
+                  <div className="mb-4 flex-shrink-0">
                     <h2 className="text-lg font-semibold">AI Health Assistant</h2>
                     <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-h-0">
                     <ChatInterfaceWithPatients />
                   </div>
                 </div>
