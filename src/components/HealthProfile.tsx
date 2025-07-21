@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HealthRecords } from "@/components/HealthRecords";
+import { HealthForms } from "@/components/HealthForms";
 import { 
   Heart, 
   Edit, 
@@ -17,7 +20,9 @@ import {
   FileText,
   Download,
   Plus,
-  X
+  X,
+  ClipboardList,
+  Activity
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -114,7 +119,7 @@ IMPORTANT: This summary is for informational purposes only. Please share with yo
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Health Profile</h1>
-          <p className="text-muted-foreground">Manage your personal health information</p>
+          <p className="text-muted-foreground">Manage your personal health information and records</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={exportHealthSummary}>
@@ -130,6 +135,24 @@ IMPORTANT: This summary is for informational purposes only. Please share with yo
           </Button>
         </div>
       </div>
+
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="records" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Health Records
+          </TabsTrigger>
+          <TabsTrigger value="forms" className="flex items-center gap-2">
+            <ClipboardList className="h-4 w-4" />
+            Health Forms
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="mt-6">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Information */}
@@ -395,6 +418,16 @@ IMPORTANT: This summary is for informational purposes only. Please share with yo
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        <TabsContent value="records" className="mt-6">
+          <HealthRecords />
+        </TabsContent>
+
+        <TabsContent value="forms" className="mt-6">
+          <HealthForms />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
