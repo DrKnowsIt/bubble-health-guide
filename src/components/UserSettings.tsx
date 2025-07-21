@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePatients } from '@/hooks/usePatients';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Mail, LogOut, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, LogOut, Eye, EyeOff, Users, Trash2, Edit, Plus } from 'lucide-react';
 
 interface Profile {
   first_name: string;
@@ -19,6 +21,7 @@ interface Profile {
 
 export const UserSettings = () => {
   const { user, signOut } = useAuth();
+  const { patients, deletePatient, refreshPatients } = usePatients();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -166,6 +169,24 @@ export const UserSettings = () => {
     await signOut();
   };
 
+  const handleDeletePatient = async (patientId: string, patientName: string) => {
+    if (confirm(`Are you sure you want to delete ${patientName}? This will also delete all their health records and conversation history. This action cannot be undone.`)) {
+      try {
+        await deletePatient(patientId);
+        toast({
+          title: "Patient Deleted",
+          description: `${patientName} has been successfully deleted.`,
+        });
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete patient. Please try again.",
+        });
+      }
+    }
+  };
+
   const isGoogleUser = user?.app_metadata?.provider === 'google';
 
   return (
@@ -243,6 +264,70 @@ export const UserSettings = () => {
               {loading ? 'Updating...' : 'Update Profile'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Patient Management
+          </CardTitle>
+          <CardDescription>
+            Manage the patients in your account. Deleting a patient will also remove all their health records and conversation history.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {patients.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">No patients added yet.</p>
+              <p className="text-sm text-muted-foreground">Add patients from the AI Chat section to get started.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {patients.map((patient) => (
+                <div key={patient.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <User className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {patient.first_name} {patient.last_name}
+                        </span>
+                        {patient.is_primary && (
+                          <Badge variant="secondary" className="text-xs">Primary</Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {patient.relationship === 'self' ? 'Yourself' : patient.relationship}
+                        {patient.date_of_birth && (
+                          <span> • Born {new Date(patient.date_of_birth).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePatient(patient.id, `${patient.first_name} ${patient.last_name}`)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground mb-3">
+                  To add new patients, go to the AI Chat section and use the patient selector.
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
