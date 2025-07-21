@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Stethoscope, Menu, LogOut, Bell, Settings, User } from "lucide-react";
+import { Stethoscope, Menu, LogOut, Bell, Settings, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
   user: {
@@ -50,26 +57,45 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full"></span>
           </Button>
           
-          <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-lg bg-muted">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.subscription}</p>
-            </div>
-          </div>
-
-          <Button variant="ghost" size="sm">
-            <Settings className="h-5 w-5" />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-destructive hover:text-destructive"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          {/* User Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-2 px-3 py-2 h-auto">
+                <div className="flex items-center space-x-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-foreground">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.subscription}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem disabled>
+                <User className="mr-2 h-4 w-4" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{user.name}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
