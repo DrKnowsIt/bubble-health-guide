@@ -247,10 +247,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         </div>
 
         {/* Input Area */}
-        <div className={cn(
-          "border-t border-border",
-          isMobile ? "p-3" : "p-4"
-        )}>
+        <div className="border-t border-border p-3 shrink-0">
           {/* Mobile: New conversation button */}
           {isMobile && user && selectedPatient && (
             <div className="mb-3 flex justify-center">
@@ -261,7 +258,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                New Conversation
+                New Chat
               </Button>
             </div>
           )}
@@ -273,10 +270,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className={cn(
-                  "pr-12 bg-background border-border focus:ring-2 focus:ring-primary",
-                  isMobile && "text-base" // Prevent zoom on iOS
-                )}
+                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary text-base"
                 disabled={!selectedPatient}
               />
               <Button
