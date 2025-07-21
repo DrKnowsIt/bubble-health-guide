@@ -118,7 +118,7 @@ export const useConversations = () => {
     setMessages([{
       id: 'welcome',
       type: 'ai',
-      content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
+      content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
       timestamp: new Date()
     }]);
   };
@@ -156,7 +156,7 @@ export const useConversations = () => {
         setMessages([{
           id: 'welcome',
           type: 'ai',
-          content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
+          content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
           timestamp: new Date()
         }]);
       }
@@ -183,7 +183,7 @@ export const useConversations = () => {
         setMessages([{
           id: 'welcome',
           type: 'ai',
-          content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
+          content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
           timestamp: new Date()
         }]);
       }

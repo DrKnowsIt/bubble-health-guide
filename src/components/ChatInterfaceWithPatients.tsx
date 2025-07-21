@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Mic, MicOff, Bot, User, Plus } from "lucide-react";
@@ -17,6 +17,7 @@ interface ChatInterfaceWithPatientsProps {
 
 export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: ChatInterfaceWithPatientsProps) => {
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { patients, selectedPatient, loading: patientsLoading } = usePatients();
   const { 
     currentConversation, 
@@ -31,6 +32,15 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   const [inputValue, setInputValue] = useState('');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const generateConversationTitle = (message: string): string => {
     const words = message.split(' ').slice(0, 6);
@@ -170,80 +180,85 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           <p className="text-sm text-muted-foreground">Your AI Health Assistant</p>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto bg-background">
-          <div className="p-4 space-y-4">
-            {/* Welcome message */}
-            <div className="flex justify-start">
-              <div className="flex space-x-2 max-w-[85%]">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1 shrink-0">
-                  <Bot className="h-3 w-3" />
-                </div>
-                <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
-                  <p className="text-sm">Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?</p>
+        {/* Messages Container with proper constraints */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full overflow-y-auto overscroll-contain">
+            <div className="p-4 space-y-4">
+              {/* Welcome message */}
+              <div className="flex justify-start">
+                <div className="flex space-x-3 max-w-[85%]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white mt-1 shrink-0">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                    <p className="text-sm">Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            {/* User messages */}
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex",
-                  message.type === 'user' ? "justify-end" : "justify-start"
-                )}
-              >
+              {/* User messages */}
+              {messages.map((message) => (
                 <div
+                  key={message.id}
                   className={cn(
-                    "flex max-w-[85%] space-x-2",
-                    message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                    "flex",
+                    message.type === 'user' ? "justify-end" : "justify-start"
                   )}
                 >
                   <div
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1",
-                      message.type === 'user' 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-primary text-white"
+                      "flex max-w-[85%] space-x-3",
+                      message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                     )}
                   >
-                    {message.type === 'user' ? (
-                      <User className="h-3 w-3" />
-                    ) : (
-                      <Bot className="h-3 w-3" />
-                    )}
-                  </div>
-                  <div
-                    className={cn(
-                      "px-3 py-2 text-sm rounded-2xl",
-                      message.type === 'user' 
-                        ? "bg-primary text-primary-foreground rounded-br-md" 
-                        : "bg-card border border-border rounded-bl-md"
-                    )}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Typing indicator */}
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="flex space-x-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1">
-                    <Bot className="h-3 w-3" />
-                  </div>
-                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
-                    <div className="flex space-x-1">
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 mt-1",
+                        message.type === 'user' 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-primary text-white"
+                      )}
+                    >
+                      {message.type === 'user' ? (
+                        <User className="h-4 w-4" />
+                      ) : (
+                        <Bot className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div
+                      className={cn(
+                        "px-4 py-3 text-sm rounded-2xl break-words",
+                        message.type === 'user' 
+                          ? "bg-primary text-primary-foreground rounded-br-md" 
+                          : "bg-card border border-border rounded-bl-md"
+                      )}
+                    >
+                      {message.content}
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ))}
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex space-x-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white mt-1">
+                      <Bot className="h-4 w-4" />
+                    </div>
+                    <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                      <div className="flex space-x-1">
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Invisible element to scroll to */}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         </div>
 

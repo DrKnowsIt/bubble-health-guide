@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, MicOff, Bot, User, Plus } from "lucide-react";
+import { Send, Bot, User, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
-
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
@@ -13,6 +13,7 @@ interface ChatInterfaceWithHistoryProps {
 
 export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     currentConversation,
     messages,
@@ -23,8 +24,16 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const generateConversationTitle = (message: string) => {
     // Generate a title from the first user message (truncate if too long)
@@ -55,16 +64,30 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
       await saveMessage(conversationId, 'user', inputValue);
     }
 
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
-    onSendMessage?.(inputValue);
+    onSendMessage?.(currentInput);
 
-    // Simulate AI response
-    setTimeout(async () => {
+    try {
+      // Prepare conversation history for context (exclude welcome message if present)
+      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      
+      const { data, error } = await supabase.functions.invoke('grok-chat', {
+        body: {
+          message: currentInput,
+          conversation_history: conversationHistory
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: "Thank you for your question. While I can provide general health information, I always recommend consulting with a healthcare professional for personalized medical advice. Could you tell me more about your specific concern?",
+        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
         timestamp: new Date()
       };
       
@@ -74,9 +97,25 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
+    } catch (error) {
+      console.error('Error calling Grok AI:', error);
       
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: 'I apologize, but I encountered an error while processing your request. Please try again or check your connection.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // Save error message if authenticated
+      if (user && conversationId) {
+        await saveMessage(conversationId, 'ai', errorMessage.content);
+      }
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -87,9 +126,9 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
   };
 
   return (
-      <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col max-h-full overflow-hidden">
       {/* Chat Header with New Conversation Button */}
-      <div className="border-b border-border p-4 flex justify-between items-center">
+      <div className="shrink-0 border-b border-border p-4 flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
         {user && (
           <Button 
@@ -104,122 +143,100 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
         )}
       </div>
 
-      {/* Chat Container */}
-      <div className="flex-1 flex flex-col shadow-elevated">
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex",
-                message.type === 'user' ? "justify-end" : "justify-start"
-              )}
-            >
+      {/* Messages Container with proper constraints */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-y-auto overscroll-contain">
+          <div className="p-6 space-y-4">
+            {messages.map((message) => (
               <div
+                key={message.id}
                 className={cn(
-                  "flex max-w-[80%] space-x-3",
-                  message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                  "flex",
+                  message.type === 'user' ? "justify-end" : "justify-start"
                 )}
               >
-                {/* Avatar */}
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0",
-                    message.type === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "gradient-bubble text-white"
+                    "flex max-w-[85%] space-x-3",
+                    message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                   )}
                 >
-                  {message.type === 'user' ? (
-                    <User className="h-4 w-4" />
-                  ) : (
-                    <Bot className="h-4 w-4" />
-                  )}
-                </div>
+                  {/* Avatar */}
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 mt-1",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-primary text-white"
+                    )}
+                  >
+                    {message.type === 'user' ? (
+                      <User className="h-4 w-4" />
+                    ) : (
+                      <Bot className="h-4 w-4" />
+                    )}
+                  </div>
 
-                {/* Message Bubble */}
-                <div
-                  className={cn(
-                    "px-4 py-3 text-sm",
-                    message.type === 'user' 
-                      ? "chat-bubble-user" 
-                      : "chat-bubble-ai chat-bubble-enter"
-                  )}
-                >
-                  {message.content}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full gradient-bubble text-white">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div className="chat-bubble-ai px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  {/* Message Bubble */}
+                  <div
+                    className={cn(
+                      "px-4 py-3 text-sm rounded-2xl break-words",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground rounded-br-md" 
+                        : "bg-card border border-border rounded-bl-md"
+                    )}
+                  >
+                    {message.content}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            ))}
 
-        {/* Input Area */}
-        <div className="border-t border-border p-4">
-          <div className="flex space-x-2">
-            <div className="flex-1 relative">
-              <Input
-                placeholder="Ask DrKnowsIt about your health concerns..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary"
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsVoiceMode(!isVoiceMode)}
-                className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0",
-                  isVoiceMode && "text-primary"
-                )}
-              >
-                {isVoiceMode ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-              </Button>
-            </div>
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
-              className="btn-primary"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="flex space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white mt-1">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                    <div className="flex space-x-1">
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Invisible element to scroll to */}
+            <div ref={messagesEndRef} />
           </div>
-          
-          {/* Voice Mode Indicator */}
-          {isVoiceMode && (
-            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-primary">
-              <div className="h-2 w-2 bg-primary rounded-full pulse-gentle"></div>
-              <span>Voice mode active - speak your question</span>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Disclaimer */}
-      <div className="mt-4 rounded-lg bg-muted/50 p-3 text-center">
-        <p className="text-xs text-muted-foreground">
-          This is a demonstration. DrKnowsIt provides general health information only. 
-          Always consult healthcare professionals for medical advice.
-        </p>
+      {/* Input Area - Fixed at bottom */}
+      <div className="shrink-0 border-t border-border p-4">
+        <div className="flex space-x-2">
+          <div className="flex-1">
+            <Input
+              placeholder="Ask DrKnowsIt about symptoms, medications, health tips..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <Button 
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim()}
+            size="sm"
+            className="px-3"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
