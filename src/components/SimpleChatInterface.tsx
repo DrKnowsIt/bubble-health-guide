@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Bot, User, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -40,21 +41,47 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Prepare conversation history for context
+      const conversationHistory = messages.slice(1); // Exclude welcome message
+      
+      const { data, error } = await supabase.functions.invoke('grok-chat', {
+        body: {
+          message: currentInput,
+          conversation_history: conversationHistory
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: `Thank you for your question about "${inputValue}". I can provide general health information to help you understand various topics. However, please remember that I'm an AI assistant and cannot replace professional medical advice. For personalized medical guidance, symptoms diagnosis, or treatment decisions, please consult with a qualified healthcare professional. Is there anything specific you'd like to know more about?`,
+        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error calling Grok AI:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: 'I apologize, but I encountered an error while processing your request. Please try again or check your connection.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
