@@ -82,6 +82,13 @@ export const useConversations = () => {
 
       if (error) throw error;
       
+      // Add default intro message to the new conversation
+      await saveMessage(
+        data.id, 
+        'ai', 
+        "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
+      );
+      
       await fetchConversations();
       return data.id;
     } catch (error) {
