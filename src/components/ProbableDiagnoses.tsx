@@ -64,7 +64,7 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName }: ProbableDiagn
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-left">
-              AI analysis for {patientName} (sorted by confidence)
+              AI analysis for {patientName}
             </p>
           </CardHeader>
         </CollapsibleTrigger>
@@ -72,36 +72,11 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName }: ProbableDiagn
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-4">
             {diagnoses.map((diagnosis, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div key={index} className="border rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-foreground">
                     {diagnosis.diagnosis}
                   </h4>
-                  <div className="flex items-center space-x-2">
-                    <Badge 
-                      variant="secondary" 
-                      className={getConfidenceColor(diagnosis.confidence)}
-                    >
-                      {getConfidenceLevel(diagnosis.confidence)}
-                    </Badge>
-                    <span className="text-sm font-medium">
-                      {Math.round(diagnosis.confidence * 100)}%
-                    </span>
-                  </div>
-                </div>
-
-                <Progress 
-                  value={diagnosis.confidence * 100} 
-                  className="h-2"
-                />
-
-                <p className="text-sm text-muted-foreground">
-                  {diagnosis.reasoning}
-                </p>
-
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Updated {new Date(diagnosis.updated_at).toLocaleDateString()}
                 </div>
               </div>
             ))}
