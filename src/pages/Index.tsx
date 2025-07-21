@@ -10,11 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
+import { SimpleChatInterface } from "@/components/SimpleChatInterface";
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [showHistory, setShowHistory] = useState(false);
   const {
     conversations,
     currentConversation,
@@ -58,9 +60,27 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Mobile Chat */}
+              {/* Mobile Chat - Simple interface */}
               <div className="flex-1">
-                <ChatInterfaceWithPatients isMobile={true} />
+                {showHistory && user ? (
+                  <div className="h-full flex">
+                    <ConversationSidebar
+                      conversations={conversations}
+                      currentConversation={currentConversation}
+                      onSelectConversation={selectConversation}
+                      onStartNewConversation={startNewConversation}
+                      onDeleteConversation={deleteConversation}
+                      isAuthenticated={!!user}
+                    />
+                    <div className="flex-1">
+                      <ChatInterfaceWithHistory />
+                    </div>
+                  </div>
+                ) : (
+                  <SimpleChatInterface 
+                    onShowHistory={user ? () => setShowHistory(true) : undefined}
+                  />
+                )}
               </div>
             </div>
           </section>
