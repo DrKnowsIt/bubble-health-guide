@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MedicalDisclaimerModalProps {
   isOpen: boolean;
@@ -19,10 +20,27 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
 
   const allAcknowledged = hasReadTerms && acknowledgeNotMedical && acknowledgeEmergency && acknowledgePersonalResponsibility;
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     if (allAcknowledged) {
       localStorage.setItem('medical_disclaimer_accepted', 'true');
       localStorage.setItem('medical_disclaimer_date', new Date().toISOString());
+      
+      // Update database to track disclaimer acceptance
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from('profiles')
+            .update({
+              medical_disclaimer_accepted: true,
+              medical_disclaimer_accepted_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+        }
+      } catch (error) {
+        console.error('Failed to update disclaimer acceptance in database:', error);
+      }
+      
       onAccept();
     }
   };
