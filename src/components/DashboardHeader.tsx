@@ -20,7 +20,7 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-16 border-b border-border bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-50 w-full h-20 border-b border-border bg-background/95 backdrop-blur">
       <div className="flex h-full items-center justify-between px-6">
         {/* Left Side */}
         <div className="flex items-center space-x-4">
