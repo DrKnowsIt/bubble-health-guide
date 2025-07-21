@@ -8,10 +8,13 @@ import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const {
     conversations,
     currentConversation,
@@ -34,47 +37,78 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       <main>
-        {/* Chat-First Layout with Sidebar */}
-        <section className="relative bg-background">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-            {/* Compact Header */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                Chat with{" "}
-                <span className="text-primary">DrKnowsIt</span>
-              </h1>
-              <p className="text-sm text-muted-foreground mb-3">
-                Get instant medical guidance through AI-powered conversation
-              </p>
-              
-              {/* Legal Disclaimer */}
-              <div className="mx-auto max-w-xl rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
-                <p className="text-xs font-medium text-warning">
-                  ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
+        {isMobile ? (
+          // Mobile: Clean, simple chat interface
+          <section className="h-[calc(100vh-64px)]">
+            <div className="h-full flex flex-col">
+              {/* Mobile Header */}
+              <div className="shrink-0 text-center p-4 bg-card border-b border-border">
+                <h1 className="text-xl font-bold text-foreground mb-1">
+                  Chat with <span className="text-primary">DrKnowsIt</span>
+                </h1>
+                <p className="text-sm text-muted-foreground mb-2">
+                  AI-powered health guidance
                 </p>
+                
+                {/* Compact Disclaimer */}
+                <div className="rounded-md bg-warning/10 border border-warning/20 p-2">
+                  <p className="text-xs text-warning font-medium">
+                    ⚠️ General information only. Consult healthcare professionals for medical decisions.
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile Chat */}
+              <div className="flex-1">
+                <ChatInterfaceWithPatients isMobile={true} />
               </div>
             </div>
+          </section>
+        ) : (
+          // Desktop: Full layout with sidebar
+          <section className="relative bg-background">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+              {/* Desktop Header */}
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  Chat with{" "}
+                  <span className="text-primary">DrKnowsIt</span>
+                </h1>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get instant medical guidance through AI-powered conversation
+                </p>
+                
+                {/* Legal Disclaimer */}
+                <div className="mx-auto max-w-xl rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
+                  <p className="text-xs font-medium text-warning">
+                    ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
+                  </p>
+                </div>
+              </div>
 
-            {/* Chat Interface with Sidebar - Primary Focus */}
-            <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{ height: '70vh' }}>
-              <ConversationSidebar
-                conversations={conversations}
-                currentConversation={currentConversation}
-                onSelectConversation={selectConversation}
-                onStartNewConversation={startNewConversation}
-                onDeleteConversation={deleteConversation}
-                isAuthenticated={!!user}
-              />
-              <ChatInterfaceWithHistory />
+              {/* Desktop Chat Interface with Sidebar */}
+              <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{ height: '70vh' }}>
+                <ConversationSidebar
+                  conversations={conversations}
+                  currentConversation={currentConversation}
+                  onSelectConversation={selectConversation}
+                  onStartNewConversation={startNewConversation}
+                  onDeleteConversation={deleteConversation}
+                  isAuthenticated={!!user}
+                />
+                <ChatInterfaceWithHistory />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* Condensed Info Sections */}
-        <div className="mt-12">
-          <HowItWorks />
-          <Features />
-        </div>
+        {/* Info Sections - Hidden on mobile to keep it simple */}
+        {!isMobile && (
+          <div className="mt-12">
+            <HowItWorks />
+            <Features />
+          </div>
+        )}
       </main>
       <Footer />
     </div>
