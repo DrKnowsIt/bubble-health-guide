@@ -322,7 +322,7 @@ export const ChatInterfaceWithPatients = ({
       <div className="flex-[2] flex space-x-4">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
-          <Card className="flex-1 flex flex-col">
+          <Card className="flex-1 flex flex-col min-h-[600px]">
           <CardContent className="flex-1 overflow-y-auto p-3 space-y-4">
             {messages.map((message) => (
               <div
