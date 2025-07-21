@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, HardDrive, Settings, Trash2 } from 'lucide-react';
+import { usePatients } from '@/hooks/usePatients';
+import { Brain, HardDrive, Settings, Trash2, User, Users } from 'lucide-react';
 
 interface AISettingsData {
   memory_enabled: boolean;
@@ -17,7 +18,11 @@ interface AISettingsData {
 export const AISettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { patients, loading: patientsLoading } = usePatients();
   const [loading, setLoading] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [patientKnowledge, setPatientKnowledge] = useState<string>('');
+  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
   const [settings, setSettings] = useState<AISettingsData>({
     memory_enabled: true,
     personalization_level: 'medium'
@@ -28,6 +33,12 @@ export const AISettings = () => {
       loadSettings();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (selectedPatientId) {
+      loadPatientKnowledge();
+    }
+  }, [selectedPatientId]);
 
   const loadSettings = async () => {
     try {
@@ -124,6 +135,91 @@ export const AISettings = () => {
         description: "Failed to clear conversation history.",
       });
     }
+  };
+
+  const loadPatientKnowledge = async () => {
+    if (!selectedPatientId || !user) return;
+    
+    setKnowledgeLoading(true);
+    try {
+      // Get conversations for this patient
+      const { data: conversations, error: convError } = await supabase
+        .from('conversations')
+        .select('id, title')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedPatientId)
+        .order('created_at', { ascending: false });
+
+      if (convError) throw convError;
+
+      // Get messages from these conversations to analyze what AI knows
+      if (conversations && conversations.length > 0) {
+        const conversationIds = conversations.map(c => c.id);
+        const { data: messages, error: msgError } = await supabase
+          .from('messages')
+          .select('content, type')
+          .in('conversation_id', conversationIds)
+          .eq('type', 'assistant')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (msgError) throw msgError;
+
+        // Analyze AI responses to extract learned information
+        const knowledge = analyzePatientKnowledge(messages || [], conversations);
+        setPatientKnowledge(knowledge);
+      } else {
+        setPatientKnowledge('No conversations found for this patient yet.');
+      }
+    } catch (error: any) {
+      console.error('Error loading patient knowledge:', error);
+      setPatientKnowledge('Error loading patient knowledge.');
+    } finally {
+      setKnowledgeLoading(false);
+    }
+  };
+
+  const analyzePatientKnowledge = (messages: any[], conversations: any[]) => {
+    if (messages.length === 0) {
+      return 'No AI knowledge available for this patient yet.';
+    }
+
+    const conversationCount = conversations.length;
+    const messageCount = messages.length;
+    
+    // Extract common health-related patterns from AI responses
+    const healthKeywords = ['symptoms', 'medication', 'condition', 'treatment', 'diagnosis', 'pain', 'therapy'];
+    const mentionedTopics = new Set<string>();
+    
+    messages.forEach(msg => {
+      const content = msg.content.toLowerCase();
+      healthKeywords.forEach(keyword => {
+        if (content.includes(keyword)) {
+          mentionedTopics.add(keyword);
+        }
+      });
+    });
+
+    let knowledge = `**Conversation Summary:**\n`;
+    knowledge += `• ${conversationCount} conversation(s) with ${messageCount} AI responses\n`;
+    
+    if (mentionedTopics.size > 0) {
+      knowledge += `\n**Topics Discussed:**\n`;
+      Array.from(mentionedTopics).forEach(topic => {
+        knowledge += `• ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n`;
+      });
+    }
+    
+    knowledge += `\n**Recent Conversation Topics:**\n`;
+    conversations.slice(0, 5).forEach((conv, index) => {
+      knowledge += `• ${conv.title || `Conversation ${index + 1}`}\n`;
+    });
+
+    if (conversations.length === 0) {
+      knowledge = 'No conversations have been started for this patient yet. Once you begin chatting with DrKnowsIt about this patient, the AI will start learning and remembering information about their health profile, symptoms, medications, and preferences.';
+    }
+
+    return knowledge;
   };
 
   const resetToDefaults = () => {
@@ -244,6 +340,76 @@ export const AISettings = () => {
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Patient Knowledge
+          </CardTitle>
+          <CardDescription>
+            View what DrKnowsIt has learned about each patient from your conversations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <Label>Select Patient</Label>
+            <Select
+              value={selectedPatientId}
+              onValueChange={setSelectedPatientId}
+              disabled={patientsLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a patient to view AI knowledge" />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.id}>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {patient.first_name} {patient.last_name}
+                      {patient.is_primary && (
+                        <span className="text-xs text-muted-foreground">(Primary)</span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedPatientId && (
+            <div className="space-y-3">
+              <Label>AI Knowledge Summary</Label>
+              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px]">
+                {knowledgeLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="text-sm text-muted-foreground">Loading patient knowledge...</div>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm max-w-none">
+                    <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
+                      {patientKnowledge || 'No knowledge available for this patient yet.'}
+                    </pre>
+                  </div>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                This shows what DrKnowsIt has learned about the selected patient based on your conversations. 
+                The AI uses this information to provide more personalized and relevant health guidance.
+              </div>
+            </div>
+          )}
+
+          {patients.length === 0 && !patientsLoading && (
+            <div className="text-center py-8 text-muted-foreground">
+              <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <div className="text-sm">No patients added yet.</div>
+              <div className="text-xs">Add patients to start tracking AI knowledge.</div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
