@@ -346,7 +346,12 @@ export const HealthRecords = () => {
                 <p className="text-muted-foreground mb-4">
                   Start by adding your first health record to build your medical profile.
                 </p>
-                <Button onClick={() => setShowCreateForm(true)}>
+                <Button onClick={() => {
+                  console.log('Add Your First Record clicked');
+                  console.log('Current patients:', patients);
+                  console.log('Selected patient:', selectedPatient);
+                  setShowCreateForm(true);
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Record
                 </Button>
