@@ -29,7 +29,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[95vh] p-0 flex flex-col">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center text-xl font-bold text-destructive">
             <AlertTriangle className="mr-3 h-6 w-6" />
