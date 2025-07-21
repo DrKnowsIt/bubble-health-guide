@@ -145,20 +145,15 @@ export default function UserDashboard() {
                   <ChatInterfaceWithPatients isMobile={true} />
                 </div>
               ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      AI Health Assistant
-                    </CardTitle>
-                    <CardDescription>
-                      Chat with DrKnowsIt for personalized health guidance and medical insights.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                <div className="h-full flex flex-col">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold">AI Health Assistant</h2>
+                    <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
+                  </div>
+                  <div className="flex-1">
                     <ChatInterfaceWithPatients />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
