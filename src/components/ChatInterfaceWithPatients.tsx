@@ -12,9 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ChatInterfaceWithPatientsProps {
   onSendMessage?: (message: string) => void;
+  isMobile?: boolean;
 }
 
-export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPatientsProps) => {
+export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: ChatInterfaceWithPatientsProps) => {
   const { user } = useAuth();
   const { patients, selectedPatient, loading: patientsLoading } = usePatients();
   const { 
@@ -133,9 +134,12 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      {/* Patient Selection */}
-      <div className="mb-6 p-4 bg-card rounded-lg border">
+    <div className={cn("mx-auto", isMobile ? "h-full flex flex-col" : "max-w-4xl")}>
+      {/* Patient Selection - Compact for mobile */}
+      <div className={cn(
+        "p-4 bg-card rounded-lg border",
+        isMobile ? "mb-2 mx-2 mt-2" : "mb-6"
+      )}>
         <PatientSelector 
           onPatientSelected={(patient) => {
             // When patient changes, reset the current conversation
@@ -151,24 +155,31 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
         />
       </div>
 
-      {/* Chat Header with New Conversation Button */}
-      <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
-        {user && selectedPatient && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={startNewConversation}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Conversation
-          </Button>
-        )}
-      </div>
+      {/* Chat Header with New Conversation Button - Hidden on mobile */}
+      {!isMobile && (
+        <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
+          {user && selectedPatient && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={startNewConversation}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Conversation
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Chat Container */}
-      <div className="chat-container h-[500px] flex flex-col shadow-elevated">
+      <div className={cn(
+        "chat-container flex flex-col shadow-elevated",
+        isMobile 
+          ? "flex-1 mx-2 mb-2 h-[calc(100%-120px)]" 
+          : "h-[500px]"
+      )}>
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
@@ -236,7 +247,25 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-border p-4">
+        <div className={cn(
+          "border-t border-border",
+          isMobile ? "p-3" : "p-4"
+        )}>
+          {/* Mobile: New conversation button */}
+          {isMobile && user && selectedPatient && (
+            <div className="mb-3 flex justify-center">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={startNewConversation}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Conversation
+              </Button>
+            </div>
+          )}
+          
           <div className="flex space-x-2">
             <div className="flex-1 relative">
               <Input
@@ -244,7 +273,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary"
+                className={cn(
+                  "pr-12 bg-background border-border focus:ring-2 focus:ring-primary",
+                  isMobile && "text-base" // Prevent zoom on iOS
+                )}
                 disabled={!selectedPatient}
               />
               <Button
@@ -285,13 +317,15 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
         </div>
       </div>
 
-      {/* Disclaimer */}
-      <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          DrKnowsIt provides general health information only and may be inaccurate. 
-          Always consult healthcare professionals for medical advice. Do not accept AI responses as definitive.
-        </p>
-      </div>
+      {/* Disclaimer - Compact for mobile */}
+      {!isMobile && (
+        <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            DrKnowsIt provides general health information only and may be inaccurate. 
+            Always consult healthcare professionals for medical advice. Do not accept AI responses as definitive.
+          </p>
+        </div>
+      )}
 
     </div>
   );
