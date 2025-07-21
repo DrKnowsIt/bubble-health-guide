@@ -56,6 +56,19 @@ export default function UserDashboard() {
               <Heart className="h-5 w-5 text-primary" />
               <h1 className="font-semibold text-lg">DrKnowsIt</h1>
             </div>
+            
+            {/* Center Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
+              <a href="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                Features
+              </a>
+              <a href="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                How It Works
+              </a>
+              <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                Pricing
+              </a>
+            </nav>
             <div className="flex items-center gap-2">
               {!isMobile && (
                 <span className="text-sm text-muted-foreground">
