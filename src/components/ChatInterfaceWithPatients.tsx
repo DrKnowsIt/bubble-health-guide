@@ -171,166 +171,24 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   }
 
   if (isMobile) {
-    // Mobile: Super simple chat interface - no patient management, no conversation history
+    // Mobile: Clean chat interface
     return (
-      <div className="flex flex-col h-full">
-        {/* Simple mobile header */}
-        <div className="shrink-0 bg-card border-b border-border p-4 text-center">
-          <h2 className="font-semibold text-lg">Chat with DrKnowsIt</h2>
-          <p className="text-sm text-muted-foreground">Your AI Health Assistant</p>
-        </div>
-
-        {/* Messages Container with proper constraints */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="h-full overflow-y-auto overscroll-contain">
-            <div className="p-4 space-y-4">
-              {/* Welcome message */}
-              <div className="flex justify-start">
-                <div className="flex space-x-3 max-w-[85%]">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white mt-1 shrink-0">
-                    <Bot className="h-4 w-4" />
-                  </div>
-                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
-                    <p className="text-sm">Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?</p>
-                  </div>
-                </div>
+      <div className="flex flex-col h-full bg-background">
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Welcome message */}
+          <div className="flex justify-start">
+            <div className="flex space-x-3 max-w-[80%]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shrink-0">
+                <Bot className="h-4 w-4" />
               </div>
-              {/* User messages */}
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex",
-                    message.type === 'user' ? "justify-end" : "justify-start"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex max-w-[85%] space-x-3",
-                      message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 mt-1",
-                        message.type === 'user' 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-primary text-white"
-                      )}
-                    >
-                      {message.type === 'user' ? (
-                        <User className="h-4 w-4" />
-                      ) : (
-                        <Bot className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        "px-4 py-3 text-sm rounded-2xl break-words",
-                        message.type === 'user' 
-                          ? "bg-primary text-primary-foreground rounded-br-md" 
-                          : "bg-card border border-border rounded-bl-md"
-                      )}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Typing indicator */}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex space-x-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white mt-1">
-                      <Bot className="h-4 w-4" />
-                    </div>
-                    <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
-                      <div className="flex space-x-1">
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Invisible element to scroll to */}
-              <div ref={messagesEndRef} />
+              <div className="bg-muted/50 border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                <p className="text-sm">Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Simple mobile input */}
-        <div className="shrink-0 bg-card border-t border-border p-4">
-          <div className="flex space-x-2">
-            <div className="flex-1">
-              <Input
-                placeholder="Ask me about your health..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
-              size="sm"
-              className="px-4"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="mt-2 text-center text-xs text-muted-foreground">
-            Sign in for personalized health tracking and conversation history
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Desktop Layout
-  return (
-    <div className="max-w-4xl mx-auto">
-      {/* Patient Selection */}
-      <div className="mb-6 p-4 bg-card rounded-lg border">
-        <PatientSelector 
-          onPatientSelected={(patient) => {
-            if (patient?.id !== selectedPatient?.id) {
-              setMessages([{
-                id: '1',
-                type: 'ai',
-                content: `Hello! I'm DrKnowsIt, and I'm here to help with questions about ${patient?.first_name}'s health. I can provide general health information and help you prepare questions for ${patient?.first_name}'s doctor. What would you like to discuss today?`,
-                timestamp: new Date()
-              }]);
-            }
-          }}
-        />
-      </div>
-
-      {/* Chat Header */}
-      <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
-        {user && selectedPatient && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={startNewConversation}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Conversation
-          </Button>
-        )}
-      </div>
-
-      {/* Chat Container */}
-      <div className="h-[500px] flex flex-col bg-card rounded-lg border shadow-elevated">
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Chat messages */}
           {messages.map((message) => (
             <div
               key={message.id}
@@ -345,10 +203,9 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                   message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                 )}
               >
-                {/* Avatar */}
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0",
+                    "flex h-8 w-8 items-center justify-center rounded-full shrink-0",
                     message.type === 'user' 
                       ? "bg-primary text-primary-foreground" 
                       : "bg-primary text-white"
@@ -360,14 +217,144 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                     <Bot className="h-4 w-4" />
                   )}
                 </div>
-
-                {/* Message Bubble */}
                 <div
                   className={cn(
-                    "px-4 py-3 text-sm rounded-2xl",
+                    "px-4 py-3 text-sm rounded-2xl break-words",
                     message.type === 'user' 
                       ? "bg-primary text-primary-foreground rounded-br-md" 
-                      : "bg-muted border border-border rounded-bl-md"
+                      : "bg-muted/50 border border-border rounded-bl-md"
+                  )}
+                >
+                  {message.content}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="flex space-x-3 max-w-[80%]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shrink-0">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <div className="bg-muted/50 border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                  <div className="flex space-x-1">
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input area */}
+        <div className="shrink-0 border-t bg-background p-4">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Ask me about your health..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim()}
+              size="sm"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {!user && (
+            <div className="mt-2 text-center text-xs text-muted-foreground">
+              Sign in for personalized health tracking and conversation history
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Layout
+  return (
+    <div className="h-full flex flex-col">
+      {/* Patient Selection - Compact */}
+      <div className="shrink-0 mb-4">
+        <PatientSelector 
+          onPatientSelected={(patient) => {
+            if (patient?.id !== selectedPatient?.id) {
+              setMessages([{
+                id: '1',
+                type: 'ai',
+                content: `Hello! I'm DrKnowsIt, and I'm here to help with questions about ${patient?.first_name}'s health. I can provide general health information and help you prepare questions for ${patient?.first_name}'s doctor. What would you like to discuss today?`,
+                timestamp: new Date()
+              }]);
+            }
+          }}
+        />
+      </div>
+
+      {/* Chat Container */}
+      <div className="flex-1 flex flex-col bg-card rounded-lg border">
+        {/* Chat Header */}
+        <div className="shrink-0 p-4 border-b flex justify-between items-center">
+          <h3 className="font-medium">Chat with DrKnowsIt</h3>
+          {user && selectedPatient && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={startNewConversation}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Conversation
+            </Button>
+          )}
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex",
+                message.type === 'user' ? "justify-end" : "justify-start"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex max-w-[75%] space-x-3",
+                  message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full shrink-0",
+                    message.type === 'user' 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-primary text-white"
+                  )}
+                >
+                  {message.type === 'user' ? (
+                    <User className="h-4 w-4" />
+                  ) : (
+                    <Bot className="h-4 w-4" />
+                  )}
+                </div>
+                <div
+                  className={cn(
+                    "px-4 py-3 text-sm rounded-2xl break-words",
+                    message.type === 'user' 
+                      ? "bg-primary text-primary-foreground rounded-br-md" 
+                      : "bg-muted/50 border border-border rounded-bl-md"
                   )}
                 >
                   {message.content}
@@ -380,10 +367,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shrink-0">
                   <Bot className="h-4 w-4" />
                 </div>
-                <div className="bg-muted border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-muted/50 border border-border rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex space-x-1">
                     <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
                     <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -393,64 +380,36 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
               </div>
             </div>
           )}
+          
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-border p-4">
+        <div className="shrink-0 border-t p-4">
           <div className="flex space-x-2">
-            <div className="flex-1 relative">
-              <Input
-                placeholder={`Ask DrKnowsIt about ${selectedPatient?.first_name || 'your'} health concerns...`}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary"
-                disabled={!selectedPatient}
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsVoiceMode(!isVoiceMode)}
-                className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0",
-                  isVoiceMode && "text-primary"
-                )}
-                disabled={!selectedPatient}
-              >
-                {isVoiceMode ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-              </Button>
-            </div>
+            <Input
+              placeholder={`Ask DrKnowsIt about ${selectedPatient?.first_name || 'your'} health concerns...`}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1"
+              disabled={!selectedPatient}
+            />
             <Button 
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || !selectedPatient}
-              className="btn-primary"
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
           
-          {/* Voice Mode Indicator */}
-          {isVoiceMode && selectedPatient && (
-            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-primary">
-              <div className="h-2 w-2 bg-primary rounded-full pulse-gentle"></div>
-              <span>Voice mode active</span>
-            </div>
-          )}
-
           {!selectedPatient && (
             <div className="mt-2 text-center text-sm text-muted-foreground">
               Please select a patient to start chatting
             </div>
           )}
         </div>
-      </div>
-
-      {/* Desktop disclaimer */}
-      <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          DrKnowsIt provides general health information only and may be inaccurate. 
-          Always consult healthcare professionals for medical advice.
-        </p>
       </div>
     </div>
   );

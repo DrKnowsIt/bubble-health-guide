@@ -139,51 +139,34 @@ export default function UserDashboard() {
 
           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 py-6")}>
-            <TabsContent value="chat" className="h-full m-0 data-[state=active]:flex">
-              {isMobile ? (
-                <div className="flex flex-col h-full">
-                  <ChatInterfaceWithPatients isMobile={true} />
-                </div>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      AI Health Assistant
-                    </CardTitle>
-                    <CardDescription>
-                      Chat with DrKnowsIt for personalized health guidance and medical insights.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ChatInterfaceWithPatients />
-                  </CardContent>
-                </Card>
-              )}
+            <TabsContent value="chat" className="h-full m-0 flex flex-col">
+              <ChatInterfaceWithPatients isMobile={isMobile} />
             </TabsContent>
 
             <TabsContent value="health" className="h-full m-0">
-              <div className={cn(isMobile ? "p-4 h-full overflow-auto pb-20" : "")}>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
                 <HealthRecords />
               </div>
             </TabsContent>
 
             {!isMobile && (
-              <TabsContent value="forms" className="space-y-6">
-                <HealthForms onFormSubmit={() => setActiveTab('health')} />
+              <TabsContent value="forms" className="h-full m-0">
+                <div className="h-full overflow-auto p-4">
+                  <HealthForms onFormSubmit={() => setActiveTab('health')} />
+                </div>
               </TabsContent>
             )}
 
             {!isMobile && (
               <TabsContent value="ai-settings" className="h-full m-0">
-                <div className="h-full overflow-auto space-y-6">
+                <div className="h-full overflow-auto p-4">
                   <AISettings />
                 </div>
               </TabsContent>
             )}
 
             <TabsContent value="settings" className="h-full m-0">
-              <div className={cn(isMobile ? "p-4 h-full overflow-auto pb-20" : "")}>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
                 {/* Mobile: Show additional navigation options */}
                 {isMobile && (
                   <div className="space-y-4 mb-6">
@@ -217,129 +200,131 @@ export default function UserDashboard() {
             </TabsContent>
 
             <TabsContent value="overview" className="h-full m-0">
-              <div className={cn(isMobile ? "p-4 h-full overflow-auto pb-20" : "space-y-6")}>
-                <div className={cn("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Health Records</CardTitle>
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{loading ? "..." : totalRecords}</div>
-                      <p className="text-xs text-muted-foreground">Total records uploaded</p>
-                    </CardContent>
-                  </Card>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
+                <div className="space-y-6">
+                  <div className={cn("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Health Records</CardTitle>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{loading ? "..." : totalRecords}</div>
+                        <p className="text-xs text-muted-foreground">Total records uploaded</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">AI Conversations</CardTitle>
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{loading ? "..." : totalConversations}</div>
+                        <p className="text-xs text-muted-foreground">Total conversations</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Last Activity</CardTitle>
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{loading ? "..." : formatLastActivity(lastActivityTime)}</div>
+                        <p className="text-xs text-muted-foreground">Ago</p>
+                      </CardContent>
+                    </Card>
+                  </div>
 
                   <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">AI Conversations</CardTitle>
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <CardHeader>
+                      <CardTitle>Quick Actions</CardTitle>
+                      <CardDescription>
+                        Common tasks to help you get the most out of DrKnowsIt
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{loading ? "..." : totalConversations}</div>
-                      <p className="text-xs text-muted-foreground">Total conversations</p>
-                    </CardContent>
-                  </Card>
+                    <CardContent className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-3")}>
+                      {!isMobile && (
+                        <Button 
+                          variant="outline" 
+                          className="h-auto p-4 flex-col items-start"
+                          onClick={() => setActiveTab('forms')}
+                        >
+                          <Calendar className="h-5 w-5 mb-2" />
+                          <span className="font-medium">Complete Health Forms</span>
+                          <span className="text-sm text-muted-foreground text-left">
+                            Fill out structured forms for comprehensive health data
+                          </span>
+                        </Button>
+                      )}
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Last Activity</CardTitle>
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{loading ? "..." : formatLastActivity(lastActivityTime)}</div>
-                      <p className="text-xs text-muted-foreground">Ago</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                    <CardDescription>
-                      Common tasks to help you get the most out of DrKnowsIt
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-3")}>
-                    {!isMobile && (
                       <Button 
                         variant="outline" 
                         className="h-auto p-4 flex-col items-start"
-                        onClick={() => setActiveTab('forms')}
+                        onClick={() => setActiveTab('health')}
                       >
-                        <Calendar className="h-5 w-5 mb-2" />
-                        <span className="font-medium">Complete Health Forms</span>
+                        <Upload className="h-5 w-5 mb-2" />
+                        <span className="font-medium">Upload Health Records</span>
                         <span className="text-sm text-muted-foreground text-left">
-                          Fill out structured forms for comprehensive health data
+                          Add medical history, lab results, or other health documents
                         </span>
                       </Button>
-                    )}
 
-                    <Button 
-                      variant="outline" 
-                      className="h-auto p-4 flex-col items-start"
-                      onClick={() => setActiveTab('health')}
-                    >
-                      <Upload className="h-5 w-5 mb-2" />
-                      <span className="font-medium">Upload Health Records</span>
-                      <span className="text-sm text-muted-foreground text-left">
-                        Add medical history, lab results, or other health documents
-                      </span>
-                    </Button>
+                      <Button 
+                        variant="outline" 
+                        className="h-auto p-4 flex-col items-start"
+                        onClick={() => setActiveTab('chat')}
+                      >
+                        <Plus className="h-5 w-5 mb-2" />
+                        <span className="font-medium">Start New Conversation</span>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Ask DrKnowsIt about your health concerns
+                        </span>
+                      </Button>
 
-                    <Button 
-                      variant="outline" 
-                      className="h-auto p-4 flex-col items-start"
-                      onClick={() => setActiveTab('chat')}
-                    >
-                      <Plus className="h-5 w-5 mb-2" />
-                      <span className="font-medium">Start New Conversation</span>
-                      <span className="text-sm text-muted-foreground text-left">
-                        Ask DrKnowsIt about your health concerns
-                      </span>
-                    </Button>
+                      {!isMobile && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            className="h-auto p-4 flex-col items-start"
+                            onClick={() => setActiveTab('ai-settings')}
+                          >
+                            <Brain className="h-5 w-5 mb-2" />
+                            <span className="font-medium">Customize AI</span>
+                            <span className="text-sm text-muted-foreground text-left">
+                              Adjust memory and personalization settings
+                            </span>
+                          </Button>
 
-                    {!isMobile && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="h-auto p-4 flex-col items-start"
-                          onClick={() => setActiveTab('ai-settings')}
-                        >
-                          <Brain className="h-5 w-5 mb-2" />
-                          <span className="font-medium">Customize AI</span>
-                          <span className="text-sm text-muted-foreground text-left">
-                            Adjust memory and personalization settings
-                          </span>
-                        </Button>
+                          <Button 
+                            variant="outline" 
+                            className="h-auto p-4 flex-col items-start"
+                            onClick={() => setActiveTab('settings')}
+                          >
+                            <Settings className="h-5 w-5 mb-2" />
+                            <span className="font-medium">Account Settings</span>
+                            <span className="text-sm text-muted-foreground text-left">
+                              Update your profile and preferences
+                            </span>
+                          </Button>
 
-                        <Button 
-                          variant="outline" 
-                          className="h-auto p-4 flex-col items-start"
-                          onClick={() => setActiveTab('settings')}
-                        >
-                          <Settings className="h-5 w-5 mb-2" />
-                          <span className="font-medium">Account Settings</span>
-                          <span className="text-sm text-muted-foreground text-left">
-                            Update your profile and preferences
-                          </span>
-                        </Button>
-
-                        <Button 
-                          variant="outline" 
-                          className="h-auto p-4 flex-col items-start"
-                          onClick={() => setActiveTab('health')}
-                        >
-                          <Upload className="h-5 w-5 mb-2" />
-                          <span className="font-medium">Upload DNA File</span>
-                          <span className="text-sm text-muted-foreground text-left">
-                            Upload genetic data for personalized insights
-                          </span>
-                        </Button>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
+                          <Button 
+                            variant="outline" 
+                            className="h-auto p-4 flex-col items-start"
+                            onClick={() => setActiveTab('health')}
+                          >
+                            <Upload className="h-5 w-5 mb-2" />
+                            <span className="font-medium">Upload DNA File</span>
+                            <span className="text-sm text-muted-foreground text-left">
+                              Upload genetic data for personalized insights
+                            </span>
+                          </Button>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
           </div>

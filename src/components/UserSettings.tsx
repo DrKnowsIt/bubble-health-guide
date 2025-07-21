@@ -274,7 +274,7 @@ export const UserSettings = () => {
             Patient Management
           </CardTitle>
           <CardDescription>
-            Manage the patients in your account. Deleting a patient will also remove all their health records and conversation history.
+            Manage patients in your account. <strong>Note:</strong> Deleting a patient will permanently remove all their health records and conversation history.
           </CardDescription>
         </CardHeader>
         <CardContent>
