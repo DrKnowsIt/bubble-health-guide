@@ -49,7 +49,8 @@
     /* Status Colors */
     --success: 142 75% 50%;
     --warning: 20 100% 60%;
-    --destructive: 0 85% 65%;
+    --destructive: 0 60% 55%;
+    --destructive-soft: 0 40% 50%;
     --info: 212 100% 65%;
 
     /* Solid Backgrounds - No Gradients */

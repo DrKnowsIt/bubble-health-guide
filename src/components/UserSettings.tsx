@@ -439,7 +439,7 @@ export const UserSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
+          <CardTitle className="flex items-center gap-2 text-[hsl(var(--destructive-soft))]">
             <LogOut className="h-5 w-5" />
             Account Actions
           </CardTitle>
@@ -447,7 +447,7 @@ export const UserSettings = () => {
             Manage your account session and data.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <Button variant="destructive" onClick={handleSignOut}>
             Sign Out
           </Button>
