@@ -15,7 +15,8 @@ import {
   Activity,
   Calendar,
   Upload,
-  Plus
+  Plus,
+  LogOut
 } from 'lucide-react';
 import { ChatInterfaceWithPatients } from '@/components/ChatInterfaceWithPatients';
 import { UserSettings } from '@/components/UserSettings';
@@ -24,7 +25,7 @@ import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 
 export default function UserDashboard() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('chat');
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
 
@@ -55,13 +56,22 @@ export default function UserDashboard() {
               </div>
               <Badge variant="secondary">Dashboard</Badge>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
                 Welcome, {user?.user_metadata?.first_name || user?.email}
               </span>
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <User className="h-4 w-4 text-primary" />
               </div>
+              <Button 
+                onClick={() => signOut()}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-destructive border-destructive hover:bg-destructive hover:text-white"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
