@@ -55,7 +55,9 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
 
   const handleDisclaimerDecline = () => {
     setShowDisclaimer(false);
-    // Could redirect to home page or show alternative content
+    setDisclaimerAccepted(false);
+    // Redirect away from the chat since user declined
+    window.location.href = '/';
   };
 
   const generateConversationTitle = (message: string) => {

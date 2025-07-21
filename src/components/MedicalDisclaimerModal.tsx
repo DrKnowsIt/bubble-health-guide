@@ -46,8 +46,8 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[95vh] p-0 flex flex-col">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onDecline(); }}>
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[95vh] p-0 flex flex-col" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center text-xl font-bold text-destructive">
             <AlertTriangle className="mr-3 h-6 w-6" />
@@ -55,7 +55,7 @@ export const MedicalDisclaimerModal = ({ isOpen, onAccept, onDecline }: MedicalD
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-6 max-h-[60vh]">
+        <ScrollArea className="flex-1 px-6 max-h-[60vh] overflow-y-auto">
           <div className="space-y-6 pb-6">
             {/* Main Warning */}
             <div className="bg-destructive/10 border-2 border-destructive/50 rounded-lg p-4">

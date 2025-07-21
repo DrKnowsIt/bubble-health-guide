@@ -51,7 +51,9 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
 
   const handleDisclaimerDecline = () => {
     setShowDisclaimer(false);
-    // Optionally redirect or show alternative content
+    setDisclaimerAccepted(false);
+    // Redirect away from the chat since user declined
+    window.location.href = '/';
   };
 
   const generateConversationTitle = (message: string): string => {
