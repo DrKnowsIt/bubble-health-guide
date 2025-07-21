@@ -166,7 +166,44 @@ export const UserSettings = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    if (confirm('Are you sure you want to delete your account? This action will permanently delete all your data including patients, health records, and conversation history. This cannot be undone.')) {
+      try {
+        setLoading(true);
+        
+        const { error } = await supabase.functions.invoke('delete-account');
+        
+        if (error) {
+          throw error;
+        }
+        
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been permanently deleted.",
+        });
+        
+        // Sign out after successful deletion
+        await signOut();
+      } catch (error: any) {
+        console.error('Error deleting account:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete account. Please contact support.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const handleDeletePatient = async (patientId: string, patientName: string) => {
@@ -447,37 +484,30 @@ export const UserSettings = () => {
             Manage your account session and data.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <Button variant="destructive" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={async () => {
-              if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                try {
-                  // Delete user data and account
-                  const { error } = await supabase.auth.admin.deleteUser(user?.id!);
-                  if (error) throw error;
-                  
-                  toast({
-                    title: "Account Deleted",
-                    description: "Your account has been permanently deleted.",
-                  });
-                  
-                  await signOut();
-                } catch (error: any) {
-                  toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Failed to delete account. Please contact support.",
-                  });
-                }
-              }
-            }}
-          >
-            Delete Account
-          </Button>
+        <CardContent className="space-y-8">
+          <div>
+            <Button variant="destructive" onClick={handleSignOut} disabled={loading}>
+              Sign Out
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Sign out of your current session.
+            </p>
+          </div>
+          
+          <Separator />
+          
+          <div>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAccount}
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : 'Delete Account'}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
