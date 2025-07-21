@@ -218,6 +218,7 @@ export const ChatInterfaceWithPatients = ({
             <ProbableDiagnoses 
               diagnoses={selectedPatient.probable_diagnoses || []}
               patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
+              patientId={selectedPatient.id}
             />
           </div>
         )}
@@ -423,6 +424,7 @@ export const ChatInterfaceWithPatients = ({
             <ProbableDiagnoses 
               diagnoses={selectedPatient.probable_diagnoses || []}
               patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
+              patientId={selectedPatient.id}
             />
           )}
         </div>

@@ -68,6 +68,36 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnosis_feedback: {
+        Row: {
+          created_at: string
+          diagnosis_text: string
+          feedback_type: string
+          id: string
+          patient_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_text: string
+          feedback_type: string
+          id?: string
+          patient_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_text?: string
+          feedback_type?: string
+          id?: string
+          patient_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_records: {
         Row: {
           category: string | null
