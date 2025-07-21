@@ -130,7 +130,15 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
     if (!selectedPatient) return;
     
     try {
-      await createConversation(`Chat with ${selectedPatient.first_name}`, selectedPatient.id);
+      const newConversationId = await createConversation(
+        `Chat with ${selectedPatient.first_name}`, 
+        selectedPatient.id
+      );
+      
+      if (newConversationId) {
+        await selectConversation(newConversationId);
+      }
+      
       setActiveTab('chat');
     } catch (error) {
       console.error('Error creating new conversation:', error);
