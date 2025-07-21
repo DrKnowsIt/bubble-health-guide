@@ -139,18 +139,37 @@ export default function UserDashboard() {
 
           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 pb-6")}>
-            <TabsContent value="chat" className="h-full mt-0">
-              <ChatInterfaceWithPatients isMobile={isMobile} />
+            <TabsContent value="chat" className="h-full mt-0 pt-4">
+              {isMobile ? (
+                <div className="flex flex-col h-full">
+                  <ChatInterfaceWithPatients isMobile={true} />
+                </div>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      AI Health Assistant
+                    </CardTitle>
+                    <CardDescription>
+                      Chat with DrKnowsIt for personalized health guidance and medical insights.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChatInterfaceWithPatients />
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
-            <TabsContent value="health" className="h-full mt-0">
+            <TabsContent value="health" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                 <HealthRecords />
               </div>
             </TabsContent>
 
             {!isMobile && (
-              <TabsContent value="forms" className="h-full mt-0">
+              <TabsContent value="forms" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
                   <HealthForms onFormSubmit={() => setActiveTab('health')} />
                 </div>
@@ -158,14 +177,14 @@ export default function UserDashboard() {
             )}
 
             {!isMobile && (
-              <TabsContent value="ai-settings" className="h-full mt-0">
+              <TabsContent value="ai-settings" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
                   <AISettings />
                 </div>
               </TabsContent>
             )}
 
-            <TabsContent value="settings" className="h-full mt-0">
+            <TabsContent value="settings" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                 {/* Mobile: Show additional navigation options */}
                 {isMobile && (
@@ -199,7 +218,7 @@ export default function UserDashboard() {
               </div>
             </TabsContent>
 
-            <TabsContent value="overview" className="h-full mt-0">
+            <TabsContent value="overview" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                 <div className="space-y-6">
                   <div className={cn("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
