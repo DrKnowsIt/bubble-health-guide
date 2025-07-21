@@ -113,12 +113,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   // Show loading state
   if (patientsLoading) {
     return (
-      <div className="mx-auto max-w-4xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading patients...</p>
-          </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading patients...</p>
         </div>
       </div>
     );
@@ -127,22 +125,166 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
   // Show patient selector if no patients
   if (patients.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl">
-        <PatientSelector className="mb-6" />
+      <div className="p-4">
+        <PatientSelector />
       </div>
     );
   }
 
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full">
+        {/* Mobile Patient Selection */}
+        <div className="shrink-0 bg-card border-b border-border p-3">
+          <PatientSelector 
+            onPatientSelected={(patient) => {
+              if (patient?.id !== selectedPatient?.id) {
+                setMessages([{
+                  id: '1',
+                  type: 'ai',
+                  content: `Hello! I'm DrKnowsIt, and I'm here to help with questions about ${patient?.first_name}'s health. What would you like to discuss today?`,
+                  timestamp: new Date()
+                }]);
+              }
+            }}
+          />
+        </div>
+
+        {/* Mobile Messages */}
+        <div className="flex-1 overflow-y-auto bg-background">
+          <div className="p-3 space-y-3">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex",
+                  message.type === 'user' ? "justify-end" : "justify-start"
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex max-w-[85%] space-x-2",
+                    message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                  )}
+                >
+                  {/* Avatar */}
+                  <div
+                    className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-primary text-white"
+                    )}
+                  >
+                    {message.type === 'user' ? (
+                      <User className="h-3 w-3" />
+                    ) : (
+                      <Bot className="h-3 w-3" />
+                    )}
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div
+                    className={cn(
+                      "px-3 py-2 text-sm rounded-2xl",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground rounded-br-md" 
+                        : "bg-card border border-border rounded-bl-md"
+                    )}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="flex space-x-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1">
+                    <Bot className="h-3 w-3" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
+                    <div className="flex space-x-1">
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Input */}
+        <div className="shrink-0 bg-card border-t border-border p-3">
+          {/* New conversation button */}
+          {user && selectedPatient && (
+            <div className="mb-3 flex justify-center">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={startNewConversation}
+                className="text-xs px-3 py-1"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New Chat
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex space-x-2">
+            <div className="flex-1 relative">
+              <Input
+                placeholder={`Ask about ${selectedPatient?.first_name || 'health'}...`}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pr-10 text-base"
+                disabled={!selectedPatient}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsVoiceMode(!isVoiceMode)}
+                className={cn(
+                  "absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0",
+                  isVoiceMode && "text-primary"
+                )}
+                disabled={!selectedPatient}
+              >
+                {isVoiceMode ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+              </Button>
+            </div>
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || !selectedPatient}
+              size="sm"
+              className="px-3"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {!selectedPatient && (
+            <div className="mt-2 text-center text-xs text-muted-foreground">
+              Please select a patient to start chatting
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
-    <div className={cn("mx-auto", isMobile ? "h-full flex flex-col" : "max-w-4xl")}>
-      {/* Patient Selection - Compact for mobile */}
-      <div className={cn(
-        "p-4 bg-card rounded-lg border",
-        isMobile ? "mb-2 mx-2 mt-2" : "mb-6"
-      )}>
+    <div className="max-w-4xl mx-auto">
+      {/* Patient Selection */}
+      <div className="mb-6 p-4 bg-card rounded-lg border">
         <PatientSelector 
           onPatientSelected={(patient) => {
-            // When patient changes, reset the current conversation
             if (patient?.id !== selectedPatient?.id) {
               setMessages([{
                 id: '1',
@@ -155,31 +297,24 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         />
       </div>
 
-      {/* Chat Header with New Conversation Button - Hidden on mobile */}
-      {!isMobile && (
-        <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
-          {user && selectedPatient && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={startNewConversation}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              New Conversation
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Chat Header */}
+      <div className="mb-4 p-4 bg-card rounded-lg border flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
+        {user && selectedPatient && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={startNewConversation}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Conversation
+          </Button>
+        )}
+      </div>
 
       {/* Chat Container */}
-      <div className={cn(
-        "chat-container flex flex-col shadow-elevated",
-        isMobile 
-          ? "flex-1 mx-2 mb-2 h-[calc(100%-120px)]" 
-          : "h-[500px]"
-      )}>
+      <div className="h-[500px] flex flex-col bg-card rounded-lg border shadow-elevated">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
@@ -202,7 +337,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                     "flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0",
                     message.type === 'user' 
                       ? "bg-primary text-primary-foreground" 
-                      : "gradient-bubble text-white"
+                      : "bg-primary text-white"
                   )}
                 >
                   {message.type === 'user' ? (
@@ -215,10 +350,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                 {/* Message Bubble */}
                 <div
                   className={cn(
-                    "px-4 py-3 text-sm",
+                    "px-4 py-3 text-sm rounded-2xl",
                     message.type === 'user' 
-                      ? "chat-bubble-user" 
-                      : "chat-bubble-ai chat-bubble-enter"
+                      ? "bg-primary text-primary-foreground rounded-br-md" 
+                      : "bg-muted border border-border rounded-bl-md"
                   )}
                 >
                   {message.content}
@@ -231,10 +366,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full gradient-bubble text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                   <Bot className="h-4 w-4" />
                 </div>
-                <div className="chat-bubble-ai px-4 py-3">
+                <div className="bg-muted border border-border rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex space-x-1">
                     <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
                     <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -247,22 +382,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-border p-3 shrink-0">
-          {/* Mobile: New conversation button */}
-          {isMobile && user && selectedPatient && (
-            <div className="mb-3 flex justify-center">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={startNewConversation}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                New Chat
-              </Button>
-            </div>
-          )}
-          
+        <div className="border-t border-border p-4">
           <div className="flex space-x-2">
             <div className="flex-1 relative">
               <Input
@@ -270,7 +390,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary text-base"
+                className="pr-12 bg-background border-border focus:ring-2 focus:ring-primary"
                 disabled={!selectedPatient}
               />
               <Button
@@ -299,7 +419,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
           {isVoiceMode && selectedPatient && (
             <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-primary">
               <div className="h-2 w-2 bg-primary rounded-full pulse-gentle"></div>
-              <span>Voice mode active - speak your question</span>
+              <span>Voice mode active</span>
             </div>
           )}
 
@@ -311,16 +431,13 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
         </div>
       </div>
 
-      {/* Disclaimer - Compact for mobile */}
-      {!isMobile && (
-        <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            DrKnowsIt provides general health information only and may be inaccurate. 
-            Always consult healthcare professionals for medical advice. Do not accept AI responses as definitive.
-          </p>
-        </div>
-      )}
-
+      {/* Desktop disclaimer */}
+      <div className="mt-6 rounded-lg bg-muted/50 p-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          DrKnowsIt provides general health information only and may be inaccurate. 
+          Always consult healthcare professionals for medical advice.
+        </p>
+      </div>
     </div>
   );
 };
