@@ -54,8 +54,18 @@ export const HealthRecords = () => {
     title: '',
     data: '',
     file: null as File | null,
-    patient_id: selectedPatient?.id || ''
+    patient_id: ''
   });
+
+  // Update patient_id when selectedPatient changes
+  useEffect(() => {
+    console.log('HealthRecords: selectedPatient changed:', selectedPatient);
+    console.log('HealthRecords: patients list:', patients);
+    setFormData(prev => ({
+      ...prev,
+      patient_id: selectedPatient?.id || ''
+    }));
+  }, [selectedPatient, patients]);
 
   useEffect(() => {
     if (user) {
@@ -110,6 +120,7 @@ export const HealthRecords = () => {
 
   const createRecord = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Creating record with patient_id:', formData.patient_id);
     setLoading(true);
 
     try {

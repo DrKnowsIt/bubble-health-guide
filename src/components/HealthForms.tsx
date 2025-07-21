@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -259,6 +259,12 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
   const [selectedForm, setSelectedForm] = useState<HealthForm | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('HealthForms: selectedPatient changed:', selectedPatient);
+    console.log('HealthForms: patients list:', patients);
+  }, [selectedPatient, patients]);
 
   const handleInputChange = (name: string, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }));
