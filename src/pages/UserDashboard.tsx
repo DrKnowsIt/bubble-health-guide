@@ -80,7 +80,7 @@ export default function UserDashboard() {
       </header>
 
       {/* Main Content */}
-      <div className="flex flex-col h-[calc(100vh-64px)]">
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
           {/* Tab Navigation */}
           {isMobile ? (
@@ -138,35 +138,35 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 py-6")}>
-            <TabsContent value="chat" className="h-full m-0 flex flex-col">
+          <div className={cn("flex-1", isMobile ? "order-1" : "px-4 py-6")}>
+            <TabsContent value="chat" className="h-full m-0 flex flex-col" style={{ height: 'calc(100% - 2rem)' }}>
               <ChatInterfaceWithPatients isMobile={isMobile} />
             </TabsContent>
 
-            <TabsContent value="health" className="h-full m-0">
-              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
+            <TabsContent value="health" className="h-full m-0" style={{ height: 'calc(100% - 2rem)' }}>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "")}>
                 <HealthRecords />
               </div>
             </TabsContent>
 
             {!isMobile && (
-              <TabsContent value="forms" className="h-full m-0">
-                <div className="h-full overflow-auto p-4">
+              <TabsContent value="forms" className="h-full m-0" style={{ height: 'calc(100% - 2rem)' }}>
+                <div className="h-full overflow-auto">
                   <HealthForms onFormSubmit={() => setActiveTab('health')} />
                 </div>
               </TabsContent>
             )}
 
             {!isMobile && (
-              <TabsContent value="ai-settings" className="h-full m-0">
-                <div className="h-full overflow-auto p-4">
+              <TabsContent value="ai-settings" className="h-full m-0" style={{ height: 'calc(100% - 2rem)' }}>
+                <div className="h-full overflow-auto">
                   <AISettings />
                 </div>
               </TabsContent>
             )}
 
-            <TabsContent value="settings" className="h-full m-0">
-              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
+            <TabsContent value="settings" className="h-full m-0" style={{ height: 'calc(100% - 2rem)' }}>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "")}>
                 {/* Mobile: Show additional navigation options */}
                 {isMobile && (
                   <div className="space-y-4 mb-6">
@@ -199,8 +199,8 @@ export default function UserDashboard() {
               </div>
             </TabsContent>
 
-            <TabsContent value="overview" className="h-full m-0">
-              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "p-4")}>
+            <TabsContent value="overview" className="h-full m-0" style={{ height: 'calc(100% - 2rem)' }}>
+              <div className={cn("h-full overflow-auto", isMobile ? "p-4 pb-20" : "")}>
                 <div className="space-y-6">
                   <div className={cn("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                     <Card>
