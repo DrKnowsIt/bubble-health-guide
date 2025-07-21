@@ -5,7 +5,7 @@ import { Send, Mic, MicOff, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
-import { MedicalDisclaimerModal } from "@/components/MedicalDisclaimerModal";
+
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
@@ -24,41 +24,6 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
   const [inputValue, setInputValue] = useState('');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
-
-  // Check if disclaimer was previously accepted
-  useEffect(() => {
-    const accepted = localStorage.getItem('medical_disclaimer_accepted');
-    const acceptedDate = localStorage.getItem('medical_disclaimer_date');
-    
-    // Check if disclaimer was accepted within the last 24 hours
-    if (accepted && acceptedDate) {
-      const acceptedTime = new Date(acceptedDate).getTime();
-      const now = new Date().getTime();
-      const hoursDiff = (now - acceptedTime) / (1000 * 60 * 60);
-      
-      if (hoursDiff < 24) {
-        setDisclaimerAccepted(true);
-      } else {
-        // Disclaimer expired, show again
-        localStorage.removeItem('medical_disclaimer_accepted');
-        localStorage.removeItem('medical_disclaimer_date');
-      }
-    }
-  }, []);
-
-  const handleDisclaimerAccept = () => {
-    setDisclaimerAccepted(true);
-    setShowDisclaimer(false);
-  };
-
-  const handleDisclaimerDecline = () => {
-    setShowDisclaimer(false);
-    setDisclaimerAccepted(false);
-    // Redirect away from the chat since user declined
-    window.location.href = '/';
-  };
 
   const generateConversationTitle = (message: string) => {
     // Generate a title from the first user message (truncate if too long)
@@ -67,12 +32,6 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
-
-    // Show disclaimer if not accepted
-    if (!disclaimerAccepted) {
-      setShowDisclaimer(true);
-      return;
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -127,12 +86,6 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
   };
 
   return (
-    <>
-      <MedicalDisclaimerModal 
-        isOpen={showDisclaimer}
-        onAccept={handleDisclaimerAccept}
-        onDecline={handleDisclaimerDecline}
-      />
       <div className="flex-1 flex flex-col">
       {/* Chat Container */}
       <div className="flex-1 flex flex-col shadow-elevated">
@@ -252,6 +205,5 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
         </p>
       </div>
     </div>
-    </>
   );
 };

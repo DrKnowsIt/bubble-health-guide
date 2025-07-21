@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePatients } from '@/hooks/usePatients';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,7 @@ const recordTypes = [
 
 export const HealthRecords = () => {
   const { user } = useAuth();
+  const { patients, selectedPatient } = usePatients();
   const { toast } = useToast();
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -132,6 +134,7 @@ export const HealthRecords = () => {
         .from('health_records')
         .insert({
           user_id: user?.id,
+          patient_id: selectedPatient?.id || null,
           record_type: formData.record_type,
           title: formData.title,
           data: parsedData,
@@ -220,6 +223,19 @@ export const HealthRecords = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={createRecord} className="space-y-4">
+                  {/* Patient Selection */}
+                  {patients.length > 0 && (
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <h4 className="font-medium mb-2">Record will be saved for:</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : 'No patient selected'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Change patient selection in the patient selector above if needed.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="record_type">Record Type</Label>

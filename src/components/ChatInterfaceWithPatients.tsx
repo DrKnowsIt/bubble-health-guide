@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Mic, MicOff, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PatientSelector } from "./PatientSelector";
-import { MedicalDisclaimerModal } from "./MedicalDisclaimerModal";
+
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,32 +29,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
   const [inputValue, setInputValue] = useState('');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
-
-  // Check disclaimer acceptance on mount
-  useEffect(() => {
-    const accepted = localStorage.getItem('medical_disclaimer_accepted') === 'true';
-    const acceptanceDate = localStorage.getItem('medical_disclaimer_date');
-    
-    // Check if disclaimer was accepted within the last 30 days
-    const isRecentlyAccepted = acceptanceDate && 
-      new Date().getTime() - new Date(acceptanceDate).getTime() < 30 * 24 * 60 * 60 * 1000;
-    
-    setDisclaimerAccepted(accepted && !!isRecentlyAccepted);
-  }, []);
-
-  const handleDisclaimerAccept = () => {
-    setDisclaimerAccepted(true);
-    setShowDisclaimer(false);
-  };
-
-  const handleDisclaimerDecline = () => {
-    setShowDisclaimer(false);
-    setDisclaimerAccepted(false);
-    // Redirect away from the chat since user declined
-    window.location.href = '/';
-  };
 
   const generateConversationTitle = (message: string): string => {
     const words = message.split(' ').slice(0, 6);
@@ -63,12 +37,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
-
-    // Check if disclaimer is accepted
-    if (!disclaimerAccepted) {
-      setShowDisclaimer(true);
-      return;
-    }
 
     // Check if patient is selected
     if (!selectedPatient) {
@@ -308,12 +276,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage }: ChatInterfaceWithPa
         </p>
       </div>
 
-      {/* Medical Disclaimer Modal */}
-      <MedicalDisclaimerModal
-        isOpen={showDisclaimer}
-        onAccept={handleDisclaimerAccept}
-        onDecline={handleDisclaimerDecline}
-      />
     </div>
   );
 };

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Brain, HardDrive, Settings, Trash2 } from 'lucide-react';
@@ -91,11 +90,44 @@ export const AISettings = () => {
   };
 
   const clearConversationHistory = async () => {
-    // This would be implemented when we have a conversations table
-    toast({
-      title: "Success",
-      description: "Conversation history cleared successfully.",
-    });
+    if (!user) return;
+    
+    try {
+      // Delete all conversations and their messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .in('conversation_id', 
+          await supabase
+            .from('conversations')
+            .select('id')
+            .eq('user_id', user.id)
+            .then(({ data }) => data?.map(c => c.id) || [])
+        );
+
+      if (messagesError) throw messagesError;
+
+      const { error: conversationsError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (conversationsError) throw conversationsError;
+
+      toast({
+        title: "Success",
+        description: "Conversation history cleared successfully.",
+      });
+
+      // Force refresh the page to update the UI
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to clear conversation history.",
+      });
+    }
   };
 
   const resetToDefaults = () => {
@@ -135,30 +167,6 @@ export const AISettings = () => {
                 setSettings({ ...settings, memory_enabled: checked })
               }
             />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Conversation History Limit</Label>
-            <div className="space-y-2">
-              <Slider
-                value={[settings.conversation_history_limit]}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, conversation_history_limit: value[0] })
-                }
-                max={200}
-                min={10}
-                step={10}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>10 messages</span>
-                <span className="font-medium">{settings.conversation_history_limit} messages</span>
-                <span>200 messages</span>
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Number of previous messages DrKnowItAll can reference in conversations.
-            </div>
           </div>
 
           <div className="space-y-3">
@@ -222,19 +230,10 @@ export const AISettings = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <h4 className="font-medium">Current Memory Status</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3 border rounded-lg">
-                <div className="text-sm text-muted-foreground">Total Conversations</div>
-                <div className="text-2xl font-bold">12</div>
-              </div>
-              <div className="p-3 border rounded-lg">
-                <div className="text-sm text-muted-foreground">Messages Stored</div>
-                <div className="text-2xl font-bold">247</div>
-              </div>
-              <div className="p-3 border rounded-lg">
-                <div className="text-sm text-muted-foreground">Memory Usage</div>
-                <div className="text-2xl font-bold">2.4MB</div>
-              </div>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Real conversation data is stored and tracked based on your actual usage.
+              </p>
             </div>
           </div>
 
@@ -265,16 +264,6 @@ export const AISettings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Enable Medical Disclaimers</Label>
-                <div className="text-sm text-muted-foreground">
-                  Include medical disclaimers in AI responses for safety.
-                </div>
-              </div>
-              <Switch defaultChecked />
-            </div>
-
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Use Conservative Responses</Label>

@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePatients } from '@/hooks/usePatients';
 import { 
   Users, 
   Activity, 
@@ -253,6 +254,7 @@ interface HealthFormsProps {
 
 export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
   const { user } = useAuth();
+  const { patients, selectedPatient } = usePatients();
   const { toast } = useToast();
   const [selectedForm, setSelectedForm] = useState<HealthForm | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -314,6 +316,7 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
         .from('health_records')
         .insert({
           user_id: user?.id,
+          patient_id: selectedPatient?.id || null,
           record_type: selectedForm.id,
           title: selectedForm.title,
           category: selectedForm.category,
@@ -321,7 +324,8 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
           file_url: fileUrl,
           metadata: {
             form_version: '1.0',
-            completed_at: new Date().toISOString()
+            completed_at: new Date().toISOString(),
+            patient_name: selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
           }
         });
 
@@ -429,6 +433,19 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
+            {/* Patient Selection */}
+            {patients.length > 0 && (
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-medium mb-2">Form will be saved for:</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : 'No patient selected'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Change patient selection in the patient selector above if needed.
+                </p>
+              </div>
+            )}
+
             {selectedForm.fields.map((field) => (
               <div key={field.name} className="space-y-2">
                 <Label htmlFor={field.name}>

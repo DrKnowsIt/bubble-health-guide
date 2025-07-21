@@ -362,9 +362,36 @@ export const UserSettings = () => {
             Manage your account session and data.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Button variant="destructive" onClick={handleSignOut}>
             Sign Out
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={async () => {
+              if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                try {
+                  // Delete user data and account
+                  const { error } = await supabase.auth.admin.deleteUser(user?.id!);
+                  if (error) throw error;
+                  
+                  toast({
+                    title: "Account Deleted",
+                    description: "Your account has been permanently deleted.",
+                  });
+                  
+                  await signOut();
+                } catch (error: any) {
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to delete account. Please contact support.",
+                  });
+                }
+              }
+            }}
+          >
+            Delete Account
           </Button>
         </CardContent>
       </Card>
