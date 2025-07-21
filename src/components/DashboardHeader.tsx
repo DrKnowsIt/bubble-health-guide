@@ -1,13 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Stethoscope, Menu, LogOut, Bell, Settings, User, ChevronDown } from "lucide-react";
+import { Stethoscope, Menu, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
   user: {
@@ -57,33 +50,15 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full"></span>
           </Button>
           
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-2 px-3 py-2 h-auto hover:bg-accent">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-foreground">Welcome, {user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.subscription}</p>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Account Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleLogout}
-                className="text-destructive focus:text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button 
+            onClick={handleLogout}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 text-destructive border-destructive hover:bg-destructive hover:text-white"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
         </div>
       </div>
     </header>
