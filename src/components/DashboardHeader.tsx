@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { DashboardNavMenu } from "@/components/DashboardNavMenu";
+import { Link } from "react-router-dom";
 
 interface DashboardHeaderProps {
   user: {
@@ -45,9 +45,17 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
         </div>
 
         {/* Center Navigation Menu */}
-        <div className="hidden sm:flex">
-          <DashboardNavMenu />
-        </div>
+        <nav className="hidden sm:flex items-center space-x-6">
+          <Link to="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
+            Features
+          </Link>
+          <Link to="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+            How It Works
+          </Link>
+          <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+            Pricing
+          </Link>
+        </nav>
 
         {/* Right Side */}
         <div className="flex items-center space-x-3">
