@@ -200,7 +200,9 @@ const Pricing = () => {
                   className={`w-full ${plan.buttonVariant === 'default' ? 'btn-primary' : 'btn-outline'}`}
                   onClick={() => handlePlanAction(plan.name)}
                 >
-                  {user && plan.name === "Pro" && subscribed && subscription_tier === 'pro' 
+                  {user && plan.name === "Free" && (!subscribed || subscription_tier === 'free') 
+                    ? "Current" 
+                    : user && plan.name === "Pro" && subscribed && subscription_tier === 'pro' 
                     ? "Manage Subscription" 
                     : plan.buttonText}
                 </Button>

@@ -45,11 +45,12 @@ const Index = () => {
             <div className="h-full flex flex-col">
               {/* Mobile Header */}
               <div className="shrink-0 text-center p-4 bg-card border-b border-border">
-                <h1 className="text-xl font-bold text-foreground mb-1">
-                  Chat with <span className="text-primary">DrKnowsIt</span>
+                <h1 className="text-lg font-bold text-foreground mb-2">
+                  Tired of expensive doctor visits?
                 </h1>
-                <p className="text-sm text-muted-foreground mb-2">
-                  AI-powered health guidance
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get instant health guidance with{" "}
+                  <span className="text-primary font-semibold">DrKnowsIt</span>
                 </p>
                 
                 {/* Compact Disclaimer */}
@@ -88,15 +89,27 @@ const Index = () => {
           // Desktop: Full layout with sidebar
           <section className="relative bg-background">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-              {/* Desktop Header */}
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-foreground mb-2">
-                  Chat with{" "}
-                  <span className="text-primary">DrKnowsIt</span>
-                </h1>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Get instant medical guidance through AI-powered conversation
-                </p>
+              {/* Pain Point Hero */}
+              <div className="text-center mb-8">
+                <div className="mb-6">
+                  <h1 className="text-3xl font-bold text-foreground mb-3">
+                    Tired of endless doctor visits and sky-high medical bills?
+                  </h1>
+                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">
+                    Get instant health guidance without the wait times, copays, or scheduling hassles. 
+                    Start with free basic questions or upgrade for comprehensive health tracking.
+                  </p>
+                </div>
+                
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">
+                    Chat with{" "}
+                    <span className="text-primary">DrKnowsIt</span>
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    AI-powered health guidance available 24/7
+                  </p>
+                </div>
                 
                 {/* Legal Disclaimer */}
                 <div className="mx-auto max-w-xl rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
