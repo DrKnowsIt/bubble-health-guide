@@ -106,7 +106,7 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
       {/* Messages Container with proper constraints */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto overscroll-contain">
-          <div className="p-3 space-y-3 min-h-full">
+          <div className="p-3 space-y-3">
             {/* History button for logged in users - floating */}
             {user && onShowHistory && (
               <div className="flex justify-end mb-2">
