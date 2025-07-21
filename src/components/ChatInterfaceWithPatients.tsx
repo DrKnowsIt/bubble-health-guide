@@ -7,6 +7,7 @@ import { Send, Mic, MicOff, Bot, User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatients } from '@/hooks/usePatients';
 import { useConversations, Message } from '@/hooks/useConversations';
+import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { PatientSelector } from './PatientSelector';
 import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
@@ -34,9 +35,15 @@ export const ChatInterfaceWithPatients = ({
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Voice recording functionality
+  const { isRecording, isProcessing, toggleRecording } = useVoiceRecording({
+    onTranscription: (text: string) => {
+      setInputValue(text);
+    }
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -285,10 +292,11 @@ export const ChatInterfaceWithPatients = ({
             <Button 
               size="icon"
               variant="ghost"
-              onClick={() => setIsVoiceMode(!isVoiceMode)}
-              className={isVoiceMode ? "text-primary" : ""}
+              onClick={toggleRecording}
+              disabled={isProcessing}
+              className={isRecording ? "text-destructive" : ""}
             >
-              {isVoiceMode ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </Button>
             <Button 
               size="icon"
@@ -388,12 +396,13 @@ export const ChatInterfaceWithPatients = ({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setIsVoiceMode(!isVoiceMode)}
+                  onClick={toggleRecording}
+                  disabled={isProcessing}
                   className={`absolute right-2 bottom-2 h-8 w-8 p-0 ${
-                    isVoiceMode && "text-primary"
+                    isRecording && "text-destructive"
                   }`}
                 >
-                  {isVoiceMode ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
               </div>
               <Button 
