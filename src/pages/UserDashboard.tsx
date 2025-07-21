@@ -175,8 +175,10 @@ export default function UserDashboard() {
             )}
 
             {!isMobile && (
-              <TabsContent value="ai-settings" className="space-y-6">
-                <AISettings />
+              <TabsContent value="ai-settings" className="h-full m-0">
+                <div className="h-full overflow-auto space-y-6">
+                  <AISettings />
+                </div>
               </TabsContent>
             )}
 
