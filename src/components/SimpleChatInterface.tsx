@@ -92,88 +92,91 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto bg-background">
-        <div className="p-4 space-y-4">
-          {/* History button for logged in users - floating */}
-          {user && onShowHistory && (
-            <div className="flex justify-end mb-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onShowHistory}
-                className="flex items-center gap-1 text-xs"
-              >
-                <History className="h-3 w-3" />
-                History
-              </Button>
-            </div>
-          )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex",
-                message.type === 'user' ? "justify-end" : "justify-start"
-              )}
-            >
+    <div className="flex flex-col h-full max-h-full overflow-hidden">
+      {/* Messages Container with proper constraints */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-y-auto overscroll-contain">
+          <div className="p-3 space-y-3 min-h-full">
+            {/* History button for logged in users - floating */}
+            {user && onShowHistory && (
+              <div className="flex justify-end mb-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onShowHistory}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <History className="h-3 w-3" />
+                  History
+                </Button>
+              </div>
+            )}
+            
+            {messages.map((message) => (
               <div
+                key={message.id}
                 className={cn(
-                  "flex max-w-[85%] space-x-2",
-                  message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
+                  "flex",
+                  message.type === 'user' ? "justify-end" : "justify-start"
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1",
-                    message.type === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-primary text-white"
+                    "flex max-w-[85%] space-x-2",
+                    message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                   )}
                 >
-                  {message.type === 'user' ? (
-                    <User className="h-3 w-3" />
-                  ) : (
-                    <Bot className="h-3 w-3" />
-                  )}
-                </div>
-                <div
-                  className={cn(
-                    "px-3 py-2 text-sm rounded-2xl",
-                    message.type === 'user' 
-                      ? "bg-primary text-primary-foreground rounded-br-md" 
-                      : "bg-card border border-border rounded-bl-md"
-                  )}
-                >
-                  {message.content}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Typing indicator */}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex space-x-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1">
-                  <Bot className="h-3 w-3" />
-                </div>
-                <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
-                  <div className="flex space-x-1">
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div
+                    className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-primary text-white"
+                    )}
+                  >
+                    {message.type === 'user' ? (
+                      <User className="h-3 w-3" />
+                    ) : (
+                      <Bot className="h-3 w-3" />
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "px-3 py-2 text-sm rounded-2xl break-words",
+                      message.type === 'user' 
+                        ? "bg-primary text-primary-foreground rounded-br-md" 
+                        : "bg-card border border-border rounded-bl-md"
+                    )}
+                  >
+                    {message.content}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            ))}
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="flex space-x-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white mt-1">
+                    <Bot className="h-3 w-3" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3 py-2">
+                    <div className="flex space-x-1">
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Input */}
-      <div className="shrink-0 bg-card border-t border-border p-4">
+      {/* Input - Fixed at bottom */}
+      <div className="shrink-0 bg-card border-t border-border p-3">
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
@@ -188,7 +191,7 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
             size="sm"
-            className="px-4"
+            className="px-3"
           >
             <Send className="h-4 w-4" />
           </Button>
