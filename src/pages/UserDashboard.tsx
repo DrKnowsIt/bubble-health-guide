@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePatients } from '@/hooks/usePatients';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,11 +25,14 @@ import { UserSettings } from '@/components/UserSettings';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
+import { PatientDropdown } from '@/components/PatientDropdown';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth();
+  const { patients, selectedPatient, setSelectedPatient } = usePatients();
   const [activeTab, setActiveTab] = useState('chat');
+  const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
 
@@ -56,6 +60,29 @@ export default function UserDashboard() {
               <Heart className="h-5 w-5 text-primary" />
               <h1 className="font-semibold text-lg">DrKnowsIt</h1>
             </div>
+            
+            {/* Global Patient Selection - Only show for patient-specific tabs */}
+            {(activeTab === 'chat' || activeTab === 'health' || activeTab === 'forms') && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground hidden md:block">
+                  Current Patient:
+                </span>
+                <div className="min-w-[200px]">
+                  <PatientDropdown
+                    patients={patients}
+                    selectedPatient={selectedPatient}
+                    onPatientSelect={(patient) => setSelectedPatient(patient)}
+                    open={patientDropdownOpen}
+                    onOpenChange={setPatientDropdownOpen}
+                  />
+                </div>
+                {!selectedPatient && patients.length > 0 && (
+                  <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                    Select a patient to view their data
+                  </span>
+                )}
+              </div>
+            )}
             
             {/* Center Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
@@ -155,7 +182,7 @@ export default function UserDashboard() {
             <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <div className="flex flex-col h-full">
-                  <ChatInterfaceWithPatients isMobile={true} />
+                  <ChatInterfaceWithPatients isMobile={true} selectedPatient={selectedPatient} />
                 </div>
               ) : (
                 <div className="h-full flex flex-col min-h-[calc(100vh-200px)]">
@@ -164,7 +191,7 @@ export default function UserDashboard() {
                     <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
                   </div>
                   <div className="flex-1 min-h-0">
-                    <ChatInterfaceWithPatients />
+                    <ChatInterfaceWithPatients selectedPatient={selectedPatient} />
                   </div>
                 </div>
               )}
@@ -172,14 +199,14 @@ export default function UserDashboard() {
 
             <TabsContent value="health" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                <HealthRecords />
+                <HealthRecords selectedPatient={selectedPatient} />
               </div>
             </TabsContent>
 
             {!isMobile && (
               <TabsContent value="forms" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
-                  <HealthForms onFormSubmit={() => setActiveTab('health')} />
+                  <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
                 </div>
               </TabsContent>
             )}

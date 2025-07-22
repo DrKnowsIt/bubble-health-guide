@@ -18,7 +18,8 @@ import {
   Utensils, 
   Dumbbell, 
   Dna,
-  Upload
+  Upload,
+  Calendar
 } from 'lucide-react';
 
 interface HealthForm {
@@ -250,21 +251,27 @@ const healthForms: HealthForm[] = [
 
 interface HealthFormsProps {
   onFormSubmit?: () => void;
+  selectedPatient?: any | null;
 }
 
-export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
+export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient }: HealthFormsProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient } = usePatients();
+  const { patients, selectedPatient: hookSelectedPatient } = usePatients();
+  
+  // Use prop patient if provided, otherwise use hook patient
+  const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
   const { toast } = useToast();
   const [selectedForm, setSelectedForm] = useState<HealthForm | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
 
-  // Debug logging
+  // Update form data when selectedPatient changes
   useEffect(() => {
-    console.log('HealthForms: selectedPatient changed:', selectedPatient);
-    console.log('HealthForms: patients list:', patients);
-  }, [selectedPatient, patients]);
+    // Auto-assign the selected patient to form data if available
+    if (selectedPatient) {
+      setFormData(prev => ({ ...prev, patient_id: selectedPatient.id }));
+    }
+  }, [selectedPatient]);
 
   const handleInputChange = (name: string, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -499,17 +506,42 @@ export const HealthForms = ({ onFormSubmit }: HealthFormsProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Optional Health Information Forms</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Optional Health Information Forms
+            {selectedPatient && (
+              <span className="text-sm font-normal text-muted-foreground">
+                - {selectedPatient.first_name} {selectedPatient.last_name}
+              </span>
+            )}
+          </CardTitle>
           <CardDescription>
-            These forms are completely optional but help DrKnowItAll provide more personalized and insightful health analysis. 
-            Each form captures important details that doctors often overlook, including your personal observations and historical patterns.
-            Fill out only what you're comfortable sharing - even partial information is valuable.
+            {selectedPatient 
+              ? `Complete optional health forms for ${selectedPatient.first_name}. These forms help DrKnowItAll provide more personalized analysis.`
+              : "Select a patient to complete their optional health assessment forms. These forms help provide more personalized and insightful health analysis."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!selectedPatient && patients.length > 0 && (
+            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-orange-800 text-sm">
+                ⚠️ Please select a patient from the dropdown above to complete their health forms.
+              </p>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {healthForms.map((form) => (
-              <Card key={form.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedForm(form)}>
+              <Card 
+                key={form.id} 
+                className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && patients.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                onClick={() => {
+                  if (selectedPatient || patients.length === 0) {
+                    setSelectedForm(form);
+                  }
+                }}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
                     <form.icon className="h-6 w-6 text-primary mt-1" />

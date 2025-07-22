@@ -20,11 +20,15 @@ import { supabase } from '@/integrations/supabase/client';
 interface ChatInterfaceWithPatientsProps {
   onSendMessage?: (message: string) => void;
   isMobile?: boolean;
+  selectedPatient?: Patient | null;
 }
 
-export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: ChatInterfaceWithPatientsProps) => {
+export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, selectedPatient: propSelectedPatient }: ChatInterfaceWithPatientsProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient, setSelectedPatient, loading: patientsLoading } = usePatients();
+  const { patients, selectedPatient: hookSelectedPatient, setSelectedPatient, loading: patientsLoading } = usePatients();
+  
+  // Use prop patient if provided, otherwise use hook patient
+  const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
   const { 
     messages, 
     loading: messagesLoading, 
@@ -474,12 +478,19 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false }: C
 
         {/* Right Sidebar - Probable Diagnoses */}
         <div className="w-80">
-          {selectedPatient && (
+          {selectedPatient ? (
             <ProbableDiagnoses 
               diagnoses={selectedPatient.probable_diagnoses || []}
               patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
               patientId={selectedPatient.id}
             />
+          ) : (
+            <div className="p-6 bg-muted/30 rounded-lg">
+              <h3 className="font-medium mb-2">Probable Diagnoses</h3>
+              <p className="text-sm text-muted-foreground">
+                Select a patient to view their probable diagnoses based on conversation history.
+              </p>
+            </div>
           )}
         </div>
       </div>

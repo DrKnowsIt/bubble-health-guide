@@ -13,15 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-
-interface Patient {
-  id: string;
-  first_name: string;
-  last_name: string;
-  relationship: string;
-  is_primary: boolean;
-  date_of_birth?: string;
-}
+import { Patient } from '@/hooks/usePatients';
 
 interface PatientDropdownProps {
   patients: Patient[];

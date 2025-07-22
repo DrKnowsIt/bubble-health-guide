@@ -42,9 +42,16 @@ const recordTypes = [
   { value: 'dna', label: 'DNA Analysis', icon: Dna },
 ];
 
-export const HealthRecords = () => {
+interface HealthRecordsProps {
+  selectedPatient?: any | null;
+}
+
+export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRecordsProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient } = usePatients();
+  const { patients, selectedPatient: hookSelectedPatient } = usePatients();
+  
+  // Use prop patient if provided, otherwise use hook patient
+  const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
   const { toast } = useToast();
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,27 +66,31 @@ export const HealthRecords = () => {
 
   // Update patient_id when selectedPatient changes
   useEffect(() => {
-    console.log('HealthRecords: selectedPatient changed:', selectedPatient);
-    console.log('HealthRecords: patients list:', patients);
     setFormData(prev => ({
       ...prev,
       patient_id: selectedPatient?.id || 'none'
     }));
-  }, [selectedPatient, patients]);
+  }, [selectedPatient]);
 
   useEffect(() => {
     if (user) {
       loadRecords();
     }
-  }, [user]);
+  }, [user, selectedPatient]);
 
   const loadRecords = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('health_records')
         .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+        .eq('user_id', user?.id);
+
+      // Filter by selected patient if one is selected
+      if (selectedPatient) {
+        query = query.eq('patient_id', selectedPatient.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setRecords(data || []);
@@ -120,7 +131,6 @@ export const HealthRecords = () => {
 
   const createRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating record with patient_id:', formData.patient_id);
     setLoading(true);
 
     try {
@@ -217,22 +227,41 @@ export const HealthRecords = () => {
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Health Records
+                {selectedPatient && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    - {selectedPatient.first_name} {selectedPatient.last_name}
+                  </span>
+                )}
               </CardTitle>
               <CardDescription>
-                Manage your medical history, lab results, and health documents.
+                {selectedPatient 
+                  ? `Manage ${selectedPatient.first_name}'s medical history, lab results, and health documents.`
+                  : "Select a patient to manage their medical history, lab results, and health documents."
+                }
               </CardDescription>
             </div>
-            <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+            <Button 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              disabled={!selectedPatient && patients.length > 0}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Record
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {showCreateForm && (
+          {!selectedPatient && patients.length > 0 && (
+            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-orange-800 text-sm">
+                ⚠️ Please select a patient from the dropdown above to view and manage their health records.
+              </p>
+            </div>
+          )}
+          
+          {showCreateForm && selectedPatient && (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-lg">Create New Health Record</CardTitle>
+                <CardTitle className="text-lg">Create New Health Record for {selectedPatient.first_name} {selectedPatient.last_name}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={createRecord} className="space-y-4">
@@ -346,12 +375,10 @@ export const HealthRecords = () => {
                 <p className="text-muted-foreground mb-4">
                   Start by adding your first health record to build your medical profile.
                 </p>
-                <Button onClick={() => {
-                  console.log('Add Your First Record clicked');
-                  console.log('Current patients:', patients);
-                  console.log('Selected patient:', selectedPatient);
-                  setShowCreateForm(true);
-                }}>
+                <Button 
+                  onClick={() => setShowCreateForm(true)}
+                  disabled={!selectedPatient && patients.length > 0}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Record
                 </Button>
