@@ -221,7 +221,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
-              placeholder="Ask DrKnowsIt about symptoms, medications, health tips..."
+              placeholder="Describe your symptoms to prepare questions for your doctor..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}

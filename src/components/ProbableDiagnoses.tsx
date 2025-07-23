@@ -110,7 +110,7 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: Pr
         <CardContent className="p-6 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            No probable diagnoses yet. Continue chatting for AI analysis.
+            No discussion topics yet. Continue chatting to prepare questions for your doctor.
           </p>
         </CardContent>
       </Card>
@@ -137,7 +137,7 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: Pr
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Probable Diagnoses</CardTitle>
+                <CardTitle className="text-lg">Topics to Discuss with Your Doctor</CardTitle>
                 <Badge variant="secondary" className="ml-2">
                   {diagnoses.length}
                 </Badge>
@@ -147,7 +147,7 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: Pr
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-left">
-              AI analysis for {patientName}
+              Preparation topics for {patientName}'s doctor visit
             </p>
           </CardHeader>
         </CollapsibleTrigger>
@@ -225,8 +225,8 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: Pr
               <div className="flex items-start space-x-2">
                 <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-muted-foreground">
-                  <strong>Important:</strong> These are AI-generated suggestions based on symptoms discussed. 
-                  Always consult with healthcare professionals for proper diagnosis and treatment.
+                   <strong>Important:</strong> These are AI-generated possibilities to help you prepare questions for your doctor. 
+                   Only healthcare professionals can provide proper diagnosis and treatment. Use these to have better conversations with your doctor.
                 </p>
               </div>
             </div>

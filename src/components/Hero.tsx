@@ -23,25 +23,25 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
 
           {/* Main Heading */}
           <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Meet{" "}
+            Tired of visiting{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              DrKnowsIt
+              so many doctors?
             </span>
             <br />
-            Your AI Medical Companion
+            Get better prepared with AI insights
           </h1>
 
           {/* Subtitle */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            Get instant medical guidance through intelligent conversation. Chat or speak with DrKnowsIt 
-            to understand your symptoms, prepare for doctor visits, and take control of your health journey.
+            Use AI to help guess what might be happening with your symptoms before your doctor visit. 
+            DrKnowsIt helps you organize your thoughts and questions - never replacing professional medical care.
           </p>
 
           {/* Legal Disclaimer */}
           <div className="mx-auto mt-6 max-w-3xl rounded-xl bg-warning/10 border border-warning/20 p-4">
             <p className="text-sm font-medium text-warning">
-              ⚠️ Important: DrKnowsIt is not a replacement for professional medical care.
-              Always consult with qualified healthcare providers for medical decisions.
+              ⚠️ For informational purposes only. This AI helps you prepare questions and organize symptoms for your doctor visit.
+              Only qualified healthcare providers can provide medical diagnoses and treatment decisions.
             </p>
           </div>
 

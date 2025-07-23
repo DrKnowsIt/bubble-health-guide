@@ -16,7 +16,7 @@ const steps = [
   {
     icon: CheckCircle,
     title: "Confidence Scoring",
-    description: "Every response includes a confidence score and uncertainty indicators, ensuring you know when to seek additional professional medical advice.",
+    description: "Every suggestion includes confidence indicators to help you understand which possibilities to discuss with your doctor first.",
     step: "03"
   },
   {
@@ -37,7 +37,7 @@ export const HowItWorks = () => {
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Our unique architecture processes health information through multiple validation layers, 
-            ensuring reliable responses while minimizing AI hallucinations.
+            helping you organize symptoms and prepare thoughtful questions for your doctor.
           </p>
         </div>
 
@@ -82,10 +82,10 @@ export const HowItWorks = () => {
             Built for Medical Accuracy
           </h3>
           <p className="text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Our proprietary chain-of-thought processing architecture breaks down complex medical queries into 
-            structured reasoning steps. Each response is validated against multiple medical knowledge bases, 
-            filtered for accuracy, and scored for confidence. This multi-layer approach dramatically reduces 
-            hallucinations while maintaining the conversational nature that makes health information accessible.
+            Our proprietary chain-of-thought processing architecture breaks down complex symptom descriptions into 
+            structured possibilities. Each suggestion is validated against medical knowledge bases and scored for 
+            likelihood. This helps you prepare informed questions and organize your thoughts before consulting with 
+            healthcare professionals for proper diagnosis and treatment.
           </p>
         </div>
       </div>

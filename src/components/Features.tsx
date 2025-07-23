@@ -4,7 +4,7 @@ const features = [
   {
     icon: MessageCircle,
     title: "Intelligent Chat Interface",
-    description: "Engage in natural conversations with DrKnowsIt. Our AI understands medical terminology and provides clear, helpful responses to your health questions."
+    description: "Engage in natural conversations with DrKnowsIt. Our AI helps you organize symptoms and prepare thoughtful questions for your healthcare provider."
   },
   {
     icon: Mic,
@@ -19,7 +19,7 @@ const features = [
   {
     icon: Users,
     title: "Doctor Communication",
-    description: "Generate professional summaries of your AI interactions to share with your healthcare provider, facilitating better doctor-patient communication."
+    description: "Generate organized summaries of your symptoms and concerns to share with your healthcare provider, ensuring you don't forget important details during appointments."
   },
   {
     icon: Shield,
@@ -29,7 +29,7 @@ const features = [
   {
     icon: Zap,
     title: "Instant Responses",
-    description: "Get immediate guidance 24/7. DrKnowsIt is always available to help you understand health topics and prepare for medical appointments."
+    description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical appointments."
   }
 ];
 
@@ -42,8 +42,8 @@ export const Features = () => {
             Why Choose DrKnowsIt?
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Our AI-powered platform combines cutting-edge technology with medical expertise 
-            to provide you with reliable, accessible healthcare guidance.
+            Our AI-powered platform helps you organize symptoms and prepare better questions 
+            for more productive conversations with your healthcare provider.
           </p>
         </div>
 
