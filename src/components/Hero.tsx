@@ -23,18 +23,18 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
 
           {/* Main Heading */}
           <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Tired of visiting{" "}
+            Healthcare feeling more like a{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              so many doctors?
+              rushed assembly line
             </span>
             <br />
-            Get better prepared with AI insights
+            than actual care?
           </h1>
 
           {/* Subtitle */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            Use AI to help guess what might be happening with your symptoms before your doctor visit. 
-            DrKnowsIt helps you organize your thoughts and questions - never replacing professional medical care.
+            Beat the system by coming over-prepared. Organized symptoms, smart questions, and clear timelines 
+            that demand real attention from your healthcare team.
           </p>
 
           {/* Legal Disclaimer */}
