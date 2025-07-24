@@ -24,7 +24,7 @@ interface PatientDropdownProps {
 }
 
 export const PatientDropdown = ({
-  patients,
+  patients = [],
   selectedPatient,
   onPatientSelect,
   open,
