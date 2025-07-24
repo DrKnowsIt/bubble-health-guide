@@ -30,6 +30,8 @@ export const PatientDropdown = ({
   open,
   onOpenChange,
 }: PatientDropdownProps) => {
+  // Ensure patients is always an array to prevent cmdk iteration errors
+  const safePatients = Array.isArray(patients) ? patients : [];
   const getPatientDisplayName = (patient: Patient) => {
     const name = `${patient.first_name} ${patient.last_name}`;
     if (patient.is_primary) {
@@ -61,12 +63,12 @@ export const PatientDropdown = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        {Array.isArray(patients) ? (
+        {safePatients.length >= 0 ? (
           <Command>
             <CommandInput placeholder="Search patients..." />
             <CommandEmpty>No patients found.</CommandEmpty>
             <CommandGroup>
-              {patients.map((patient) => (
+              {safePatients.map((patient) => (
                 <CommandItem
                   key={patient.id}
                   value={`${patient.first_name} ${patient.last_name}`}
