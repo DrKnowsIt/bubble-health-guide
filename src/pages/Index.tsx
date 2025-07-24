@@ -46,10 +46,10 @@ const Index = () => {
               {/* Mobile Header */}
               <div className="shrink-0 text-center p-4 bg-card border-b border-border">
                 <h1 className="text-lg font-bold text-foreground mb-2">
-                  Tired of expensive doctor visits?
+                  Healthcare feeling like an assembly line?
                 </h1>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Get instant health guidance with{" "}
+                  Beat the system - come over-prepared with{" "}
                   <span className="text-primary font-semibold">DrKnowsIt</span>
                 </p>
                 <p className="text-xs text-muted-foreground/70 mb-3">
@@ -96,11 +96,11 @@ const Index = () => {
               <div className="text-center mb-8">
                 <div className="mb-6">
                   <h1 className="text-3xl font-bold text-foreground mb-3">
-                    Tired of endless doctor visits and sky-high medical bills?
+                    Healthcare feeling more like a rushed assembly line than actual care?
                   </h1>
                   <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">
-                    Get instant health guidance without the wait times, copays, or scheduling hassles. 
-                    Start with free basic questions or upgrade for comprehensive health tracking.
+                    Beat the system by coming over-prepared. Organized symptoms, smart questions, and clear timelines 
+                    that demand real attention from your healthcare team.
                   </p>
                 </div>
                 
