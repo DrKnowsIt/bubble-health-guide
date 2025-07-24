@@ -65,31 +65,33 @@ export const PatientDropdown = ({
           <CommandInput placeholder="Search patients..." />
           <CommandEmpty>No patients found.</CommandEmpty>
           <CommandGroup>
-            {patients.map((patient) => (
-              <CommandItem
-                key={patient.id}
-                value={`${patient.first_name} ${patient.last_name}`}
-                onSelect={() => {
-                  onPatientSelect(patient.id === selectedPatient?.id ? null : patient);
-                  onOpenChange(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium">
-                    {getPatientDisplayName(patient)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    DOB: {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'Not provided'}
-                  </span>
-                </div>
-              </CommandItem>
-            ))}
+            {patients && patients.length > 0 ? (
+              patients.map((patient) => (
+                <CommandItem
+                  key={patient.id}
+                  value={`${patient.first_name} ${patient.last_name}`}
+                  onSelect={() => {
+                    onPatientSelect(patient.id === selectedPatient?.id ? null : patient);
+                    onOpenChange(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-medium">
+                      {getPatientDisplayName(patient)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      DOB: {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'Not provided'}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))
+            ) : null}
           </CommandGroup>
         </Command>
       </PopoverContent>
