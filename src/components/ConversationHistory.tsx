@@ -121,7 +121,7 @@ export const ConversationHistory = ({
       </CardHeader>
 
       <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-full px-4 pb-4">
+        <ScrollArea className="h-[calc(100vh-280px)] px-4 pb-4">
           {loading ? (
             <div className="space-y-2">
               {[...Array(3)].map((_, i) => (
