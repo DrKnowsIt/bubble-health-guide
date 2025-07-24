@@ -340,18 +340,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
       <div className="flex-[2] flex space-x-4">
         {/* Left Sidebar - History and Patient Selection */}
         <div className="w-80 space-y-4">
-          {/* Patient Selection */}
-          <Card>
-            <CardContent className="p-4">
-              <PatientDropdown
-                patients={patients}
-                selectedPatient={selectedPatient}
-                onPatientSelect={handlePatientSelect}
-                open={patientDropdownOpen}
-                onOpenChange={setPatientDropdownOpen}
-              />
-            </CardContent>
-          </Card>
 
           {/* Conversation History */}
           <div className="flex-1">
