@@ -61,12 +61,12 @@ export const PatientDropdown = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search patients..." />
-          <CommandEmpty>No patients found.</CommandEmpty>
-          <CommandGroup>
-            {patients && patients.length > 0 ? (
-              patients.map((patient) => (
+        {Array.isArray(patients) ? (
+          <Command>
+            <CommandInput placeholder="Search patients..." />
+            <CommandEmpty>No patients found.</CommandEmpty>
+            <CommandGroup>
+              {patients.map((patient) => (
                 <CommandItem
                   key={patient.id}
                   value={`${patient.first_name} ${patient.last_name}`}
@@ -90,10 +90,14 @@ export const PatientDropdown = ({
                     </span>
                   </div>
                 </CommandItem>
-              ))
-            ) : null}
-          </CommandGroup>
-        </Command>
+              ))}
+            </CommandGroup>
+          </Command>
+        ) : (
+          <div className="p-4 text-center text-muted-foreground">
+            Loading patients...
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
