@@ -22,12 +22,34 @@ const Pricing = () => {
   };
 
   const handlePlanAction = async (planName: string) => {
-    if (planName === "Free") {
+    if (planName === "Basic") {
       if (!user) {
         openAuth('signup');
+        return;
+      }
+      
+      if (subscribed && subscription_tier === 'basic') {
+        // Already subscribed - open customer portal
+        try {
+          await openCustomerPortal();
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to open customer portal. Please try again.",
+            variant: "destructive",
+          });
+        }
       } else {
-        // Redirect to dashboard for free tier
-        window.location.href = '/dashboard';
+        // Start subscription for basic plan
+        try {
+          await createCheckoutSession();
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to start checkout process. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } else if (planName === "Pro") {
       if (!user) {
@@ -62,27 +84,27 @@ const Pricing = () => {
   };
   const plans = [
     {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      description: "Basic AI health questions with no data tracking",
+      name: "Basic",
+      price: "$25",
+      period: "per month",
+      description: "Essential AI health questions with basic data tracking",
       features: [
         "Answer basic health questions",
         "General wellness information",
         "Health education content",
-        "No conversation history",
-        "No health forms or tracking",
-        "No personal data storage",
+        "Basic conversation history",
+        "Limited health forms",
+        "Personal data storage",
         "Standard response time"
       ],
-      buttonText: "Start Free",
+      buttonText: "Choose Basic",
       buttonVariant: "outline" as const,
       icon: MessageCircle,
       popular: false
     },
     {
       name: "Pro",
-      price: "$2",
+      price: "$50",
       period: "per month",
       description: "Full AI health guidance with complete tracking and history",
       features: [
@@ -108,7 +130,7 @@ const Pricing = () => {
     {
       icon: Shield,
       title: "Secure & Private",
-      description: "Your data is encrypted and secure. Free plan doesn't store personal data, paid plan keeps your information private"
+      description: "Your data is encrypted and secure. All plans include secure data storage and keep your information private"
     },
     {
       icon: MessageCircle,
@@ -145,7 +167,7 @@ const Pricing = () => {
             Choose Your Health Journey
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Start with our free plan for basic health questions, or upgrade to the paid plan 
+            Start with our Basic plan for essential health questions, or upgrade to Pro 
             for comprehensive health tracking and advanced AI guidance.
           </p>
         </div>
@@ -200,8 +222,8 @@ const Pricing = () => {
                   className={`w-full ${plan.buttonVariant === 'default' ? 'btn-primary' : 'btn-outline'}`}
                   onClick={() => handlePlanAction(plan.name)}
                 >
-                  {user && plan.name === "Free" && (!subscribed || subscription_tier === 'free') 
-                    ? "Current" 
+                  {user && plan.name === "Basic" && subscribed && subscription_tier === 'basic' 
+                    ? "Manage Subscription" 
                     : user && plan.name === "Pro" && subscribed && subscription_tier === 'pro' 
                     ? "Manage Subscription" 
                     : plan.buttonText}
@@ -271,9 +293,8 @@ const Pricing = () => {
                   How secure is my health information?
                 </h3>
                 <p className="text-muted-foreground">
-                  Your data security is important to us. The free plan doesn't store any personal health data. 
-                  The paid plan uses encryption to protect your information, which is stored securely and never 
-                  shared without your consent.
+                  Your data security is important to us. All plans use encryption to protect your information, 
+                  which is stored securely and never shared without your consent.
                 </p>
               </CardContent>
             </Card>
@@ -281,11 +302,11 @@ const Pricing = () => {
             <Card className="medical-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-2">
-                  What's the difference between Free and Pro plans?
+                  What's the difference between Basic and Pro plans?
                 </h3>
                 <p className="text-muted-foreground">
-                  The Free plan answers basic health questions but doesn't save any data or conversation history. 
-                  The Pro plan includes health tracking, conversation history, health forms, and more advanced AI analysis.
+                  The Basic plan answers essential health questions with basic data tracking and conversation history. 
+                  The Pro plan includes full health tracking, comprehensive conversation history, health forms, and more advanced AI analysis.
                 </p>
               </CardContent>
             </Card>
