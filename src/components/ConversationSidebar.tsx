@@ -23,16 +23,7 @@ export const ConversationSidebar = ({
   isAuthenticated 
 }: ConversationSidebarProps) => {
   if (!isAuthenticated) {
-    return (
-      <div className="w-80 border-r border-border bg-card p-4">
-        <div className="text-center">
-          <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-sm text-muted-foreground mb-4">
-            Sign in to save and access your conversation history
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
