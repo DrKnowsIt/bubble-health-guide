@@ -32,6 +32,13 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             <Link
               to="/#features"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+              onClick={(e) => {
+                const currentPath = window.location.pathname;
+                if (currentPath === '/') {
+                  e.preventDefault();
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               Features
             </Link>
@@ -81,7 +88,14 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             <Link
               to="/#features"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                const currentPath = window.location.pathname;
+                if (currentPath === '/') {
+                  e.preventDefault();
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }
+                setIsMenuOpen(false);
+              }}
             >
               Features
             </Link>
