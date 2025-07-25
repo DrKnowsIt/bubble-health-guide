@@ -29,18 +29,18 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a
-              href="#features"
+            <Link
+              to="/#features"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
             >
               Features
-            </a>
-            <a
-              href="#how-it-works"
+            </Link>
+            <Link
+              to="/#how-it-works"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
             >
               How It Works
-            </a>
+            </Link>
             <Link
               to="/pricing"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
@@ -78,20 +78,20 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
           )}
         >
           <div className="pb-4 pt-2 space-y-2">
-            <a
-              href="#features"
+            <Link
+              to="/#features"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
               onClick={() => setIsMenuOpen(false)}
             >
               Features
-            </a>
-            <a
-              href="#how-it-works"
+            </Link>
+            <Link
+              to="/#how-it-works"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
               onClick={() => setIsMenuOpen(false)}
             >
               How It Works
-            </a>
+            </Link>
             <Link
               to="/pricing"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
