@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Plus } from "lucide-react";
+import { Send, Bot, User, Plus, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
+import { DemoConversation } from "@/components/DemoConversation";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
@@ -13,6 +15,7 @@ interface ChatInterfaceWithHistoryProps {
 
 export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
+  const { subscribed, loading: subscriptionLoading } = useSubscription();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     currentConversation,
@@ -42,6 +45,11 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+    
+    // Check if user is logged in and has subscription
+    if (!user || !subscribed) {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -125,6 +133,40 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
     }
   };
 
+  // Show demo conversation for logged-out users
+  if (!user) {
+    return <DemoConversation />;
+  }
+
+  // Show upgrade message for logged-in users without subscription
+  if (!subscriptionLoading && !subscribed) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div className="mb-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Upgrade to Chat with DrKnowsIt
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Get unlimited access to our AI health assistant, personalized insights, and conversation history.
+          </p>
+        </div>
+        <Button 
+          onClick={() => window.location.href = '/pricing'}
+          className="mb-4"
+        >
+          View Pricing Plans
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          Want to see how it works? Check out the demo conversation.
+        </p>
+      </div>
+    );
+  }
+
+  // Regular chat interface for subscribed users
   return (
     <div className="flex-1 flex flex-col max-h-full overflow-hidden">
       {/* Chat Header with New Conversation Button */}
@@ -226,16 +268,20 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
+              disabled={!subscribed}
             />
           </div>
           <Button 
             onClick={handleSendMessage}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || !subscribed}
             size="sm"
             className="px-3"
           >
             <Send className="h-4 w-4" />
           </Button>
+        </div>
+        <div className="mt-2 text-center text-xs text-muted-foreground">
+          Premium AI health assistant - unlimited conversations
         </div>
       </div>
     </div>

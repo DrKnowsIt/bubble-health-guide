@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, History } from "lucide-react";
+import { Send, Bot, User, History, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
+import { DemoConversation } from "@/components/DemoConversation";
 
 interface Message {
   id: string;
@@ -19,6 +21,7 @@ interface SimpleChatInterfaceProps {
 
 export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps) => {
   const { user } = useAuth();
+  const { subscribed, loading: subscriptionLoading } = useSubscription();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -42,6 +45,11 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+    
+    // Check if user is logged in and has subscription
+    if (!user || !subscribed) {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -101,6 +109,40 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
     }
   };
 
+  // Show demo conversation for logged-out users
+  if (!user) {
+    return <DemoConversation />;
+  }
+
+  // Show upgrade message for logged-in users without subscription
+  if (!subscriptionLoading && !subscribed) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8 text-center">
+        <div className="mb-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Upgrade to Chat with DrKnowsIt
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Get unlimited access to our AI health assistant, personalized insights, and conversation history.
+          </p>
+        </div>
+        <Button 
+          onClick={() => window.location.href = '/pricing'}
+          className="mb-4"
+        >
+          View Pricing Plans
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          Want to see how it works? Check out the demo conversation above.
+        </p>
+      </div>
+    );
+  }
+
+  // Regular chat interface for subscribed users
   return (
     <div className="flex flex-col h-full max-h-full overflow-hidden">
       {/* Messages Container with proper constraints */}
@@ -210,11 +252,9 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
           </Button>
         </div>
         
-        {!user && (
-          <div className="mt-2 text-center text-xs text-muted-foreground">
-            Sign in to save conversations and access personalized health tracking
-          </div>
-        )}
+        <div className="mt-2 text-center text-xs text-muted-foreground">
+          Premium AI health assistant - unlimited conversations
+        </div>
       </div>
     </div>
   );
