@@ -22,63 +22,34 @@ const Pricing = () => {
   };
 
   const handlePlanAction = async (planName: string) => {
-    if (planName === "Basic") {
-      if (!user) {
-        openAuth('signup');
-        return;
+    if (!user) {
+      openAuth('signup');
+      return;
+    }
+    
+    const planType = planName.toLowerCase() as 'basic' | 'pro';
+    
+    if (subscribed && subscription_tier === planType) {
+      // Already subscribed to this plan - open customer portal
+      try {
+        await openCustomerPortal();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to open customer portal. Please try again.",
+          variant: "destructive",
+        });
       }
-      
-      if (subscribed && subscription_tier === 'basic') {
-        // Already subscribed - open customer portal
-        try {
-          await openCustomerPortal();
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to open customer portal. Please try again.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        // Start subscription for basic plan
-        try {
-          await createCheckoutSession();
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to start checkout process. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    } else if (planName === "Pro") {
-      if (!user) {
-        openAuth('signup');
-        return;
-      }
-      
-      if (subscribed && subscription_tier === 'pro') {
-        // Already subscribed - open customer portal
-        try {
-          await openCustomerPortal();
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to open customer portal. Please try again.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        // Start subscription
-        try {
-          await createCheckoutSession();
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to start checkout process. Please try again.",
-            variant: "destructive",
-          });
-        }
+    } else {
+      // Start subscription for the selected plan
+      try {
+        await createCheckoutSession(planType);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to start checkout process. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -222,11 +193,9 @@ const Pricing = () => {
                   className={`w-full ${plan.buttonVariant === 'default' ? 'btn-primary' : 'btn-outline'}`}
                   onClick={() => handlePlanAction(plan.name)}
                 >
-                  {user && plan.name === "Basic" && subscribed && subscription_tier === 'basic' 
+                  {user && plan.name.toLowerCase() === subscription_tier 
                     ? "Manage Subscription" 
-                    : user && plan.name === "Pro" && subscribed && subscription_tier === 'pro' 
-                    ? "Manage Subscription" 
-                    : plan.buttonText}
+                    : `Choose ${plan.name}`}
                 </Button>
               </CardContent>
             </Card>
@@ -360,10 +329,10 @@ const Pricing = () => {
             Ready to Take Control of Your Health?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Start your free trial today and experience the future of personalized health guidance.
+            Choose your plan and start getting personalized health guidance today.
           </p>
           <Button size="lg" className="btn-primary text-lg px-8 py-4" onClick={() => openAuth('signup')}>
-            Start Free Trial
+            Get Started Now
           </Button>
         </div>
       </div>

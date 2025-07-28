@@ -85,8 +85,22 @@ serve(async (req) => {
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      subscriptionTier = 'pro'; // All paid subscriptions are Pro tier
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      
+      // Determine subscription tier from price
+      const priceId = subscription.items.data[0].price.id;
+      const price = await stripe.prices.retrieve(priceId);
+      const amount = price.unit_amount || 0;
+      
+      if (amount >= 5000) { // $50 or more = Pro
+        subscriptionTier = 'pro';
+      } else if (amount >= 2500) { // $25 = Basic
+        subscriptionTier = 'basic';
+      } else {
+        subscriptionTier = 'basic'; // Default to basic for any paid plan
+      }
+      
+      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
     } else {
       logStep("No active subscription found");
     }

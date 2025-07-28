@@ -52,13 +52,15 @@ export const useSubscription = () => {
     }
   };
 
-  const createCheckoutSession = async () => {
+  const createCheckoutSession = async (plan: 'basic' | 'pro' = 'pro') => {
     if (!user) {
       throw new Error('User must be authenticated');
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { plan }
+      });
       
       if (error) {
         throw new Error(error.message);

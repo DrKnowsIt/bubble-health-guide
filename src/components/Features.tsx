@@ -7,42 +7,42 @@ const features = [
     icon: MessageCircle,
     title: "Intelligent Chat Interface",
     description: "Engage in natural conversations with DrKnowsIt. Our AI helps you organize symptoms and prepare thoughtful questions for your healthcare provider.",
-    highlight: "Most Popular",
+    highlight: "All Plans",
     benefits: ["Natural conversation flow", "Smart follow-up questions", "Context-aware responses"]
   },
   {
     icon: Mic,
     title: "Voice Mode",
     description: "Speak naturally with DrKnowsIt using our advanced voice recognition. Perfect for when you're on the go or prefer verbal communication.",
-    highlight: "New",
+    highlight: "Pro Only",
     benefits: ["Advanced voice recognition", "Hands-free operation", "Natural speech processing"]
   },
   {
     icon: FileText,
     title: "Auto Health Records",
     description: "DrKnowsIt automatically organizes your conversations into a comprehensive health profile, making it easy to track symptoms and concerns over time.",
-    highlight: "Pro",
+    highlight: "Pro Only",
     benefits: ["Automatic organization", "Timeline tracking", "Comprehensive reports"]
   },
   {
     icon: Users,
     title: "Doctor Communication",
     description: "Generate organized summaries of your symptoms and concerns to share with your healthcare provider, ensuring you don't forget important details during appointments.",
-    highlight: "Essential",
+    highlight: "Basic+",
     benefits: ["Professional summaries", "Key points highlighted", "Appointment preparation"]
   },
   {
     icon: Shield,
     title: "Privacy & Security",
     description: "Your health information is protected with enterprise-grade security and encryption. We maintain strict data protection standards and never share your personal information without permission.",
-    highlight: "Certified",
+    highlight: "All Plans",
     benefits: ["End-to-end encryption", "HIPAA compliant", "Zero data sharing"]
   },
   {
     icon: Zap,
     title: "Instant Responses",
     description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical appointments.",
-    highlight: "24/7",
+    highlight: "All Plans",
     benefits: ["Lightning fast responses", "Always available", "Real-time processing"]
   }
 ];

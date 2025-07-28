@@ -56,6 +56,22 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
     
+    // Get the request body to determine which plan to create
+    const body = await req.json();
+    const plan = body.plan || 'pro'; // Default to pro if not specified
+    
+    let productName, productDescription, unitAmount;
+    
+    if (plan === 'basic') {
+      productName = "DrKnowsIt Basic Plan";
+      productDescription = "Essential AI health questions with basic data tracking";
+      unitAmount = 2500; // $25.00 in cents
+    } else {
+      productName = "DrKnowsIt Pro Plan";
+      productDescription = "Full AI health guidance with complete tracking and history";
+      unitAmount = 5000; // $50.00 in cents
+    }
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -64,10 +80,10 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { 
-              name: "DrKnowsIt Pro Subscription",
-              description: "Full AI health guidance with complete tracking and history"
+              name: productName,
+              description: productDescription
             },
-            unit_amount: 200, // $2.00 in cents
+            unit_amount: unitAmount,
             recurring: { interval: "month" },
           },
           quantity: 1,
@@ -78,6 +94,7 @@ serve(async (req) => {
       cancel_url: `${origin}/pricing`,
       metadata: {
         user_id: user.id,
+        plan: plan
       }
     });
 
