@@ -55,7 +55,7 @@ export const Features = () => {
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
           <Badge variant="outline" className="mb-4 px-4 py-2 text-sm font-medium">
-            ✨ Trusted by thousands of users
+            🚀 Coming Soon
           </Badge>
           <h2 className="text-4xl font-bold text-foreground sm:text-5xl mb-6 gradient-text">
             Why Choose DrKnowsIt?
@@ -116,21 +116,20 @@ export const Features = () => {
                 Ready to Transform Your Healthcare Experience?
               </h3>
               <p className="text-muted-foreground mb-6 max-w-2xl">
-                Join thousands of users who are already using DrKnowsIt to better understand their health 
-                and communicate more effectively with their healthcare providers.
+                Join our early users who are helping us build the future of AI-powered healthcare communication.
               </p>
               <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  Free to start
+                  Early access available
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  No credit card required
+                  AI-powered insights
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  Instant access
+                  Secure & private
                 </div>
               </div>
             </CardContent>
