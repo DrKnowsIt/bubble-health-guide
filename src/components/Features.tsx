@@ -1,4 +1,4 @@
-import { MessageCircle, Mic, FileText, Users, Shield, Zap, CheckCircle, Star, Heart } from "lucide-react";
+import { MessageCircle, Mic, FileText, Users, Shield, Zap, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -47,12 +47,6 @@ const features = [
   }
 ];
 
-const stats = [
-  { icon: Heart, label: "Patient Satisfaction", value: "98%", color: "text-red-500" },
-  { icon: CheckCircle, label: "Accuracy Rate", value: "95%", color: "text-green-500" },
-  { icon: Star, label: "User Rating", value: "4.9/5", color: "text-yellow-500" },
-  { icon: Shield, label: "Security Score", value: "A+", color: "text-blue-500" }
-];
 
 export const Features = () => {
   return (
@@ -72,25 +66,13 @@ export const Features = () => {
           </p>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {stats.map((stat, index) => (
-            <Card key={index} className="text-center p-6 hover-scale animate-fade-in border-0 bg-white/80 backdrop-blur">
-              <CardContent className="p-0">
-                <stat.icon className={`h-8 w-8 mx-auto mb-2 ${stat.color}`} />
-                <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="group hover-scale animate-fade-in border-0 bg-white/80 backdrop-blur shadow-card hover:shadow-elevated transition-all duration-300"
+              className="group hover-scale animate-fade-in bg-card/95 backdrop-blur shadow-card hover:shadow-elevated transition-all duration-300"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CardContent className="p-8">
