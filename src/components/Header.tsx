@@ -45,6 +45,13 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             <Link
               to="/#how-it-works"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+              onClick={(e) => {
+                const currentPath = window.location.pathname;
+                if (currentPath === '/') {
+                  e.preventDefault();
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               How It Works
             </Link>
@@ -102,7 +109,14 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             <Link
               to="/#how-it-works"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                const currentPath = window.location.pathname;
+                if (currentPath === '/') {
+                  e.preventDefault();
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }
+                setIsMenuOpen(false);
+              }}
             >
               How It Works
             </Link>

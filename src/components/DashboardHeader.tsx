@@ -46,10 +46,30 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
 
         {/* Center Navigation Menu */}
         <nav className="flex items-center space-x-6">
-          <Link to="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link 
+            to="/#features" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => {
+              const currentPath = window.location.pathname;
+              if (currentPath === '/') {
+                e.preventDefault();
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          >
             Features
           </Link>
-          <Link to="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link 
+            to="/#how-it-works" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => {
+              const currentPath = window.location.pathname;
+              if (currentPath === '/') {
+                e.preventDefault();
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          >
             How It Works
           </Link>
           <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">

@@ -86,10 +86,30 @@ export default function UserDashboard() {
             
             {/* Center Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <a href="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="/#features" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={(e) => {
+                  const currentPath = window.location.pathname;
+                  if (currentPath === '/') {
+                    e.preventDefault();
+                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 Features
               </a>
-              <a href="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="/#how-it-works" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={(e) => {
+                  const currentPath = window.location.pathname;
+                  if (currentPath === '/') {
+                    e.preventDefault();
+                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 How It Works
               </a>
               <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
