@@ -14,7 +14,9 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
 
   const handleUpgrade = async () => {
     try {
-      await createCheckoutSession();
+      // Always upgrade to Pro if they're not Pro
+      const targetPlan = subscription_tier === 'pro' ? 'pro' : 'pro';
+      await createCheckoutSession(targetPlan);
     } catch (error) {
       toast({
         title: "Error",
@@ -34,6 +36,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
   }
 
   const isPro = subscribed && subscription_tier === 'pro';
+  const isBasic = subscribed && subscription_tier === 'basic';
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
@@ -43,6 +46,8 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           flex items-center space-x-1
           ${isPro 
             ? 'bg-orange-100 text-orange-700 border-orange-200' 
+            : isBasic
+            ? 'bg-blue-100 text-blue-700 border-blue-200'
             : 'bg-gray-100 text-gray-600 border-gray-200'
           }
         `}
@@ -50,12 +55,17 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
         {isPro ? (
           <>
             <Crown className="h-3 w-3" />
-            <span>Pro Tier</span>
+            <span>Pro</span>
+          </>
+        ) : isBasic ? (
+          <>
+            <Zap className="h-3 w-3" />
+            <span>Basic</span>
           </>
         ) : (
           <>
             <Zap className="h-3 w-3" />
-            <span>Free Tier</span>
+            <span>Free</span>
           </>
         )}
       </Badge>
@@ -67,7 +77,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           onClick={handleUpgrade}
           className="h-7 px-3 text-xs"
         >
-          Upgrade
+          {isBasic ? 'Upgrade to Pro' : 'Subscribe'}
         </Button>
       )}
     </div>

@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Link } from "react-router-dom";
+import { TierStatus } from "@/components/TierStatus";
 
 interface DashboardHeaderProps {
   user: {
@@ -79,6 +81,8 @@ export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderPro
 
         {/* Right Side */}
         <div className="flex items-center space-x-3">
+          <TierStatus showUpgradeButton={false} className="hidden md:flex" />
+          
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full"></span>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Plus, Lock } from "lucide-react";
+import { Send, Bot, User, Plus, Lock, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,9 +11,10 @@ import { DemoConversation } from "@/components/DemoConversation";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
+  onShowHistory?: () => void;
 }
 
-export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHistoryProps) => {
+export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
   const { subscribed, loading: subscriptionLoading } = useSubscription();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -173,15 +174,28 @@ export const ChatInterfaceWithHistory = ({ onSendMessage }: ChatInterfaceWithHis
       <div className="shrink-0 border-b border-border p-4 flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
         {user && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={startNewConversation}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Conversation
-          </Button>
+          <div className="flex items-center gap-2">
+            {onShowHistory && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onShowHistory}
+                className="flex items-center gap-2"
+              >
+                <History className="h-4 w-4" />
+                History
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={startNewConversation}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Conversation
+            </Button>
+          </div>
         )}
       </div>
 

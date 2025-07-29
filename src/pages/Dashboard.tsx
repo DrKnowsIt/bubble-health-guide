@@ -20,22 +20,19 @@ import {
   X
 } from "lucide-react";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { ChatDashboard } from "@/components/ChatDashboard";
+import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory";
 import { HealthProfile } from "@/components/HealthProfile";
-import { SettingsDashboard } from "@/components/SettingsDashboard";
+import { UserSettings } from "@/components/UserSettings";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { TierStatus } from "@/components/TierStatus";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("chat");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Mock user data
-  const user = {
-    name: "John Doe",
-    email: "john@example.com",
-    subscription: "Basic Plan",
-    creditsRemaining: 85,
-    joinDate: "March 2025"
-  };
+  
+  const { user } = useAuth();
+  const { subscribed, subscription_tier, loading } = useSubscription();
 
   const sidebarItems = [
     { id: "chat", label: "Chat with DrKnowItAll", icon: MessageCircle },
@@ -43,10 +40,22 @@ const Dashboard = () => {
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  const userForHeader = {
+    name: user.user_metadata?.first_name && user.user_metadata?.last_name 
+      ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+      : user.email?.split('@')[0] || 'User',
+    email: user.email || '',
+    subscription: subscription_tier === 'pro' ? 'Pro Plan' : subscription_tier === 'basic' ? 'Basic Plan' : 'Free Plan'
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader 
-        user={user}
+        user={userForHeader}
         onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
       
@@ -80,35 +89,9 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {/* User Stats */}
+            {/* Subscription Status */}
             <div className="mt-8 space-y-4">
-              <Card className="medical-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Credits Remaining</p>
-                      <p className="text-2xl font-bold text-primary">{user.creditsRemaining}</p>
-                    </div>
-                    <Activity className="h-8 w-8 text-primary" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="medical-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Plan</p>
-                      <p className="text-sm font-medium text-foreground">{user.subscription}</p>
-                    </div>
-                    <Shield className="h-6 w-6 text-accent" />
-                  </div>
-                  <Button size="sm" variant="outline" className="w-full mt-3">
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Upgrade Plan
-                  </Button>
-                </CardContent>
-              </Card>
+              <TierStatus showUpgradeButton={true} />
             </div>
           </div>
         </div>
@@ -124,9 +107,9 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="flex-1 p-6 flex flex-col min-h-0">
-            {activeTab === "chat" && <ChatDashboard />}
-            {activeTab === "health" && <HealthProfile user={user} />}
-            {activeTab === "settings" && <SettingsDashboard user={user} />}
+            {activeTab === "chat" && <ChatInterfaceWithHistory />}
+            {activeTab === "health" && <HealthProfile user={userForHeader} />}
+            {activeTab === "settings" && <UserSettings />}
           </div>
         </div>
       </div>
