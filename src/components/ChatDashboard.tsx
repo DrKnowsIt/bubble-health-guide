@@ -35,73 +35,68 @@ export const ChatDashboard = () => {
 
   // Load diagnoses for current conversation and patient
   useEffect(() => {
-    if (currentConversation && selectedPatient?.id) {
+    if (currentConversation && selectedPatient?.id && messages.length > 0) {
       loadDiagnosesForConversation();
     } else {
       setDiagnoses([]);
     }
-  }, [currentConversation, selectedPatient?.id]);
+  }, [currentConversation, selectedPatient?.id, messages.length]);
 
   const loadDiagnosesForConversation = async () => {
     try {
-      // Extract potential diagnoses from the current conversation messages
-      // This is a simple implementation - in a real app, you'd use AI to generate diagnoses
-      const userMessages = messages.filter(msg => msg.type === 'user');
-      const aiMessages = messages.filter(msg => msg.type === 'ai');
-      
-      if (userMessages.length > 0 && aiMessages.length > 0) {
-        // Mock diagnoses based on conversation content
-        const mockDiagnoses: Diagnosis[] = [
-          {
-            diagnosis: "General Health Assessment",
-            confidence: 0.7,
-            reasoning: "Based on the conversation, general health topics were discussed that may warrant doctor consultation.",
-            updated_at: new Date().toISOString()
-          }
-        ];
+      // Load existing diagnoses from database
+      const { data, error } = await supabase
+        .from('conversation_diagnoses')
+        .select('*')
+        .eq('conversation_id', currentConversation)
+        .eq('patient_id', selectedPatient?.id)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
 
-        // Look for symptom keywords to create more specific diagnoses
-        const conversationText = userMessages.map(msg => msg.content.toLowerCase()).join(' ');
-        
-        if (conversationText.includes('headache') || conversationText.includes('head pain')) {
-          mockDiagnoses.push({
-            diagnosis: "Headache Assessment",
-            confidence: 0.8,
-            reasoning: "Patient mentioned headache symptoms that should be evaluated by a healthcare professional.",
-            updated_at: new Date().toISOString()
-          });
-        }
+      if (error) throw error;
 
-        if (conversationText.includes('fever') || conversationText.includes('temperature')) {
-          mockDiagnoses.push({
-            diagnosis: "Fever Evaluation",
-            confidence: 0.75,
-            reasoning: "Patient reported fever symptoms requiring medical assessment.",
-            updated_at: new Date().toISOString()
-          });
-        }
+      const formattedDiagnoses: Diagnosis[] = (data || []).map(item => ({
+        diagnosis: item.diagnosis,
+        confidence: item.confidence,
+        reasoning: item.reasoning,
+        updated_at: item.updated_at
+      }));
 
-        if (conversationText.includes('chest pain') || conversationText.includes('chest')) {
-          mockDiagnoses.push({
-            diagnosis: "Chest Pain Assessment",
-            confidence: 0.9,
-            reasoning: "Chest pain symptoms mentioned - urgent medical evaluation recommended.",
-            updated_at: new Date().toISOString()
-          });
-        }
-
-        setDiagnoses(mockDiagnoses);
-      }
+      setDiagnoses(formattedDiagnoses);
     } catch (error) {
       console.error('Error loading diagnoses:', error);
     }
   };
 
+  const generateDiagnoses = async () => {
+    if (!currentConversation || !selectedPatient?.id || messages.length === 0) {
+      return;
+    }
+
+    try {
+      // Call the generate-diagnosis edge function
+      const { data, error } = await supabase.functions.invoke('generate-diagnosis', {
+        body: {
+          conversation_id: currentConversation,
+          patient_id: selectedPatient.id,
+          messages: messages
+        }
+      });
+
+      if (error) throw error;
+
+      // Reload diagnoses from database
+      await loadDiagnosesForConversation();
+    } catch (error) {
+      console.error('Error generating diagnoses:', error);
+    }
+  };
+
   const handleSendMessage = async (message: string) => {
-    // After sending a message, reload diagnoses to reflect new conversation content
-    setTimeout(() => {
-      loadDiagnosesForConversation();
-    }, 2000); // Wait for AI response to be processed
+    // After sending a message and getting AI response, generate diagnoses
+    setTimeout(async () => {
+      await generateDiagnoses();
+    }, 3000); // Wait for AI response to be processed and saved
   };
 
   if (!user || !subscribed) {

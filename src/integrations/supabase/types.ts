@@ -41,6 +41,57 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_diagnoses: {
+        Row: {
+          confidence: number | null
+          conversation_id: string
+          created_at: string
+          diagnosis: string
+          id: string
+          patient_id: string
+          reasoning: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          conversation_id: string
+          created_at?: string
+          diagnosis: string
+          id?: string
+          patient_id: string
+          reasoning?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          conversation_id?: string
+          created_at?: string
+          diagnosis?: string
+          id?: string
+          patient_id?: string
+          reasoning?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_diagnoses_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_diagnoses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
