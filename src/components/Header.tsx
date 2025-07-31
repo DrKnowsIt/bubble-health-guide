@@ -61,6 +61,12 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             >
               Pricing
             </Link>
+            <Link
+              to="/faq"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+            >
+              FAQ
+            </Link>
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -126,6 +132,13 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               onClick={() => setIsMenuOpen(false)}
             >
               Pricing
+            </Link>
+            <Link
+              to="/faq"
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              FAQ
             </Link>
             <div className="border-t border-border pt-4 space-y-2">
               <Button variant="outline" size="sm" className="w-full btn-outline" onClick={onSignIn}>

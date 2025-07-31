@@ -1,4 +1,4 @@
-import { HomeIcon, Type, FileText, DollarSign, Shield, AlertTriangle, User, LogIn } from "lucide-react";
+import { HomeIcon, Type, FileText, DollarSign, Shield, AlertTriangle, User, LogIn, HelpCircle } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import Auth from "./pages/Auth.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
@@ -7,6 +7,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
 import UserAgreement from "./pages/UserAgreement.jsx";
 import Pricing from "./pages/Pricing.jsx";
+import FAQ from "./pages/FAQ.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 /**
@@ -18,6 +19,13 @@ export const navItems = [
     to: "/",
     icon: <HomeIcon className="h-4 w-4" />,
     page: <Index />,
+    protected: false,
+  },
+  {
+    title: "FAQ",
+    to: "/faq",
+    icon: <HelpCircle className="h-4 w-4" />,
+    page: <FAQ />,
     protected: false,
   },
   {
