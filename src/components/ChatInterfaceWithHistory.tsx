@@ -65,7 +65,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     let conversationId = currentConversation;
     if (user && !currentConversation) {
       const title = generateConversationTitle(inputValue);
-      conversationId = await createConversation(title);
+      conversationId = await createConversation(title, null);
     }
 
     // Save user message if authenticated
