@@ -132,7 +132,7 @@ const Pricing = () => {
         </Link>
       </div>
       {/* Header */}
-      <div className="py-20 text-center gradient-hero">
+      <div className="py-20 text-center gradient-hero" style={{ scrollMarginTop: '64px' }}>
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-foreground sm:text-5xl mb-6">
             Choose Your Health Journey
