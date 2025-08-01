@@ -82,6 +82,9 @@ export const useConversations = () => {
 
       if (error) throw error;
       
+      // Set as current conversation immediately
+      setCurrentConversation(data.id);
+      
       // Add default intro message to the new conversation
       await saveMessage(
         data.id, 
@@ -89,6 +92,7 @@ export const useConversations = () => {
         "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
       );
       
+      // Refresh the conversations list to show in sidebar
       await fetchConversations();
       return data.id;
     } catch (error) {
