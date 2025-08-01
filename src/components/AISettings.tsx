@@ -66,33 +66,6 @@ export const AISettings = () => {
     }
   };
 
-  const updateSettings = async () => {
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('ai_settings')
-        .upsert({
-          user_id: user?.id,
-          memory_enabled: settings.memory_enabled
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "AI settings updated successfully.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update AI settings.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const clearConversationHistory = async () => {
     if (!user) return;
@@ -220,11 +193,6 @@ export const AISettings = () => {
     return knowledge;
   };
 
-  const resetToDefaults = () => {
-    setSettings({
-      memory_enabled: true
-    });
-  };
 
   // Show loading state or restricted access for non-subscribers
   if (!subscribed) {
@@ -262,21 +230,36 @@ export const AISettings = () => {
             <Switch
               id="memory-enabled"
               checked={settings.memory_enabled}
-              onCheckedChange={(checked) => 
-                setSettings({ ...settings, memory_enabled: checked })
-              }
+              onCheckedChange={async (checked) => {
+                setSettings({ ...settings, memory_enabled: checked });
+                
+                try {
+                  const { error } = await supabase
+                    .from('ai_settings')
+                    .upsert({
+                      user_id: user?.id,
+                      memory_enabled: checked
+                    });
+
+                  if (error) throw error;
+
+                  toast({
+                    title: "Settings updated",
+                    description: `AI memory ${checked ? 'enabled' : 'disabled'}.`,
+                  });
+                } catch (error: any) {
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to update AI settings.",
+                  });
+                  // Revert the toggle if save failed
+                  setSettings({ ...settings, memory_enabled: !checked });
+                }
+              }}
             />
           </div>
 
-
-          <div className="flex gap-2">
-            <Button onClick={updateSettings} disabled={loading}>
-              {loading ? 'Saving...' : 'Save Settings'}
-            </Button>
-            <Button variant="outline" onClick={resetToDefaults}>
-              Reset to Defaults
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
