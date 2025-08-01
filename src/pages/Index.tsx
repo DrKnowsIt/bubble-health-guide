@@ -11,6 +11,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
 import { SimpleChatInterface } from "@/components/SimpleChatInterface";
+import aiDoctorHologram from "@/assets/ai-doctor-hologram.jpg";
 const Index = () => {
   const {
     user
@@ -79,31 +80,46 @@ const Index = () => {
       // Desktop: Full layout with sidebar
       <section className="relative bg-background">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-              {/* Pain Point Hero */}
-              <div className="text-center mb-8">
-                <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare feeling like a rushed assembly line more than actual care?</h1>
-                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">Get organized before your appointment so you can communicate clearly and feel confident about your health concerns.</p>
+              {/* Hero Section with Image */}
+              <div className="grid lg:grid-cols-2 gap-12 items-center mb-8">
+                {/* Left side - Text content */}
+                <div className="text-center lg:text-left">
+                  <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare feeling like a rushed assembly line more than actual care?</h1>
+                    <p className="text-lg text-muted-foreground mb-4">Get organized before your appointment so you can communicate clearly and feel confident about your health concerns.</p>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
+                      Chat with{" "}
+                      <span className="text-primary">DrKnowsIt</span>
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      AI-powered health guidance available 24/7
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Powered by Grok
+                    </p>
+                  </div>
+                  
+                  {/* Legal Disclaimer */}
+                  <div className="max-w-xl mx-auto lg:mx-0 rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
+                    <p className="text-xs font-medium text-warning">
+                      ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold text-foreground mb-2">
-                    Chat with{" "}
-                    <span className="text-primary">DrKnowsIt</span>
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    AI-powered health guidance available 24/7
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">
-                    Powered by Grok
-                  </p>
-                </div>
-                
-                {/* Legal Disclaimer */}
-                <div className="mx-auto max-w-xl rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
-                  <p className="text-xs font-medium text-warning">
-                    ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
-                  </p>
+                {/* Right side - AI Doctor Hologram Image */}
+                <div className="flex justify-center lg:justify-end">
+                  <div className="relative max-w-md w-full">
+                    <img 
+                      src={aiDoctorHologram} 
+                      alt="Person using computer with holographic AI doctor providing health guidance"
+                      className="w-full h-auto rounded-2xl shadow-2xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
+                  </div>
                 </div>
               </div>
 
