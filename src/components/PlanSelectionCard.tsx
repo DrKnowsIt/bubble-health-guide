@@ -15,9 +15,11 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
       name: "Basic",
       price: "$25",
       period: "per month",
-      description: "Essential AI health questions with basic data tracking",
+      description: "Essential AI health questions with up to 2 patients and 4 core health forms",
       features: [
         "Answer basic health questions",
+        "Manage up to 2 patients",
+        "4 essential health forms",
         "General wellness information",
         "Basic conversation history",
         "Personal data storage"
@@ -30,13 +32,15 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
       name: "Pro",
       price: "$50",
       period: "per month", 
-      description: "Full AI health guidance with complete tracking and history",
+      description: "Complete AI health guidance with up to 10 patients and all 11 comprehensive health forms",
       features: [
         "Unlimited health questions",
+        "Manage up to 10 patients",
+        "All 11 comprehensive health forms",
         "Complex medical reasoning & analysis",
         "Health profile management",
         "Conversation history tracking",
-        "Health forms and records",
+        "Health records & data tracking",
         "Symptom tracking over time",
         "Priority processing speed"
       ],
