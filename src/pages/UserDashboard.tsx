@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePatients } from '@/hooks/usePatients';
@@ -63,6 +63,16 @@ export default function UserDashboard() {
       console.error('Error upgrading subscription:', error);
     }
   };
+
+  // Listen for navigation events from header
+  useEffect(() => {
+    const handleNavigateToSettings = () => {
+      setActiveTab('settings');
+    };
+
+    window.addEventListener('navigateToSettings', handleNavigateToSettings);
+    return () => window.removeEventListener('navigateToSettings', handleNavigateToSettings);
+  }, []);
 
   // Tab configuration with subscription requirements
   const tabConfig = {

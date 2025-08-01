@@ -124,7 +124,14 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
                 <User className="h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2">
+              <DropdownMenuItem 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => {
+                  // Navigate to settings tab on the dashboard
+                  const event = new CustomEvent('navigateToSettings');
+                  window.dispatchEvent(event);
+                }}
+              >
                 <Settings className="h-4 w-4" />
                 Settings
               </DropdownMenuItem>
