@@ -11,6 +11,7 @@ import {
 import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface DashboardHeaderProps {
@@ -125,15 +126,13 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem 
+                asChild
                 className="flex items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  // Navigate to settings tab on the dashboard
-                  const event = new CustomEvent('navigateToSettings');
-                  window.dispatchEvent(event);
-                }}
               >
-                <Settings className="h-4 w-4" />
-                Settings
+                <Link to="/settings">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

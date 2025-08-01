@@ -24,7 +24,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { ChatInterfaceWithPatients } from '@/components/ChatInterfaceWithPatients';
-import { UserSettings } from '@/components/UserSettings';
+
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -64,15 +64,6 @@ export default function UserDashboard() {
     }
   };
 
-  // Listen for navigation events from header
-  useEffect(() => {
-    const handleNavigateToSettings = () => {
-      setActiveTab('settings');
-    };
-
-    window.addEventListener('navigateToSettings', handleNavigateToSettings);
-    return () => window.removeEventListener('navigateToSettings', handleNavigateToSettings);
-  }, []);
 
   // Tab configuration with subscription requirements
   const tabConfig = {
@@ -80,8 +71,7 @@ export default function UserDashboard() {
     health: { requiredTier: 'basic', icon: Activity, title: "Health Records" },
     forms: { requiredTier: 'pro', icon: Calendar, title: "Health Forms" },
     'ai-settings': { requiredTier: 'basic', icon: Brain, title: "AI Settings" },
-    overview: { requiredTier: 'basic', icon: FileText, title: "Overview" },
-    settings: { requiredTier: null, icon: Settings, title: "Account" }
+    overview: { requiredTier: 'basic', icon: FileText, title: "Overview" }
   };
 
   // Check if user has access to a specific tier
@@ -127,7 +117,7 @@ export default function UserDashboard() {
           {isMobile ? (
             // Mobile: Simple bottom navigation
             <div className="order-2 border-t border-border bg-background p-2 mt-auto">
-              <TabsList className="w-full grid grid-cols-4">
+              <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger 
                   value="chat" 
                   className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}
@@ -158,16 +148,12 @@ export default function UserDashboard() {
                   </div>
                   <span className="text-xs">Overview</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-2">
-                  <Settings className="h-4 w-4" />
-                  <span className="text-xs">More</span>
-                </TabsTrigger>
               </TabsList>
             </div>
           ) : (
             // Desktop: Top navigation
             <div className="px-4 pt-6">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger 
                   value="chat" 
                   className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}
@@ -207,10 +193,6 @@ export default function UserDashboard() {
                     {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   AI Settings
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Account
                 </TabsTrigger>
                 <TabsTrigger 
                   value="overview" 
@@ -328,39 +310,6 @@ export default function UserDashboard() {
               </TabsContent>
             )}
 
-            <TabsContent value="settings" className="h-full mt-0 pt-4">
-              <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                {/* Mobile: Show additional navigation options */}
-                {isMobile && (
-                  <div className="space-y-4 mb-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Quick Access</CardTitle>
-                      </CardHeader>
-                      <CardContent className="grid grid-cols-2 gap-3">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setActiveTab('health')}
-                          className="flex flex-col items-center gap-2 h-16"
-                        >
-                          <Activity className="h-5 w-5" />
-                          <span className="text-sm">Records</span>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setActiveTab('overview')}
-                          className="flex flex-col items-center gap-2 h-16"
-                        >
-                          <FileText className="h-5 w-5" />
-                          <span className="text-sm">Overview</span>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                <UserSettings />
-              </div>
-            </TabsContent>
 
             <TabsContent value="overview" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
@@ -465,17 +414,6 @@ export default function UserDashboard() {
                               </span>
                             </Button>
 
-                            <Button 
-                              variant="outline" 
-                              className="h-auto p-4 flex-col items-start"
-                              onClick={() => setActiveTab('settings')}
-                            >
-                              <Settings className="h-5 w-5 mb-2" />
-                              <span className="font-medium">Account Settings</span>
-                              <span className="text-sm text-muted-foreground text-left">
-                                Update your profile and preferences
-                              </span>
-                            </Button>
 
                             <Button 
                               variant="outline" 
