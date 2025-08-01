@@ -55,7 +55,10 @@ serve(async (req) => {
       throw new Error("Email mismatch");
     }
 
-    logStep("Updating subscription", { subscribed, subscription_tier, subscription_end });
+    // Normalize subscription tier to lowercase
+    const normalizedTier = subscription_tier ? subscription_tier.toLowerCase() : null;
+
+    logStep("Updating subscription", { subscribed, subscription_tier: normalizedTier, subscription_end });
 
     // Update subscribers table
     const { error: updateError } = await supabaseClient
@@ -64,7 +67,7 @@ serve(async (req) => {
         email: user.email,
         user_id: user.id,
         subscribed,
-        subscription_tier,
+        subscription_tier: normalizedTier,
         subscription_end,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });

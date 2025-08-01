@@ -24,12 +24,12 @@ export const AlphaTesterPanel = () => {
         unpaid: { subscribed: false, tier: null, end: null },
         basic: { 
           subscribed: true, 
-          tier: 'Basic',
+          tier: 'basic',
           end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         },
         pro: { 
           subscribed: true, 
-          tier: 'Pro',
+          tier: 'pro',
           end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         }
       };
