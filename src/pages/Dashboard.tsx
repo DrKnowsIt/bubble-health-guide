@@ -49,7 +49,7 @@ const Dashboard = () => {
       ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
       : user.email?.split('@')[0] || 'User',
     email: user.email || '',
-    subscription: subscription_tier === 'pro' ? 'Pro Plan' : subscription_tier === 'basic' ? 'Basic Plan' : 'Free Plan'
+    subscription: subscription_tier === 'pro' ? 'Pro Plan' : subscription_tier === 'basic' ? 'Basic Plan' : 'No Subscription'
   };
 
   return (

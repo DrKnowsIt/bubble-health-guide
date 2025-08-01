@@ -7,7 +7,7 @@ const features = [
     icon: MessageCircle,
     title: "Intelligent Chat Interface",
     description: "Engage in natural conversations with DrKnowsIt. Our AI helps you organize symptoms and prepare thoughtful questions for your healthcare provider.",
-    highlight: "All Plans",
+    highlight: "Basic+",
     benefits: ["Natural conversation flow", "Smart follow-up questions", "Context-aware responses"]
   },
   {
@@ -35,14 +35,14 @@ const features = [
     icon: Shield,
     title: "Privacy & Security",
     description: "Your health information is protected with enterprise-grade security and encryption. We maintain strict data protection standards and never share your personal information without permission.",
-    highlight: "All Plans",
+    highlight: "Basic+",
     benefits: ["End-to-end encryption", "HIPAA compliant", "Zero data sharing"]
   },
   {
     icon: Zap,
     title: "Instant Responses",
     description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical appointments.",
-    highlight: "All Plans",
+    highlight: "Basic+",
     benefits: ["Lightning fast responses", "Always available", "Real-time processing"]
   }
 ];

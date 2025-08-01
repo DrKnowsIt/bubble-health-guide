@@ -20,7 +20,8 @@ export const SubscriptionGate = ({
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
 
   const hasAccess = () => {
-    if (!subscribed) return false;
+    // No access without subscription
+    if (!subscribed || !subscription_tier) return false;
     
     if (requiredTier === 'basic') {
       return subscription_tier === 'basic' || subscription_tier === 'pro';

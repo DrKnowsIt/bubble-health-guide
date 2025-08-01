@@ -13,7 +13,7 @@ export const useSubscription = () => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionInfo>({
     subscribed: false,
-    subscription_tier: 'free',
+    subscription_tier: null,
     subscription_end: null,
     loading: true
   });
@@ -22,7 +22,7 @@ export const useSubscription = () => {
     if (!user) {
       setSubscription({
         subscribed: false,
-        subscription_tier: 'free',
+        subscription_tier: null,
         subscription_end: null,
         loading: false
       });
@@ -42,7 +42,7 @@ export const useSubscription = () => {
 
       setSubscription({
         subscribed: data.subscribed || false,
-        subscription_tier: data.subscription_tier || 'free',
+        subscription_tier: data.subscription_tier || null,
         subscription_end: data.subscription_end,
         loading: false
       });

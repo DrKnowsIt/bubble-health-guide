@@ -56,13 +56,13 @@ serve(async (req) => {
         user_id: user.id,
         stripe_customer_id: null,
         subscribed: false,
-        subscription_tier: 'free',
+        subscription_tier: null,
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
       return new Response(JSON.stringify({ 
         subscribed: false, 
-        subscription_tier: 'free',
+        subscription_tier: null,
         subscription_end: null 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ serve(async (req) => {
       limit: 1,
     });
     const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionTier = 'free';
+    let subscriptionTier = null;
     let subscriptionEnd = null;
 
     if (hasActiveSub) {
@@ -92,12 +92,11 @@ serve(async (req) => {
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
       
-      if (amount >= 5000) { // $50 or more = Pro
-        subscriptionTier = 'pro';
-      } else if (amount >= 2500) { // $25 = Basic
-        subscriptionTier = 'basic';
-      } else {
-        subscriptionTier = 'basic'; // Default to basic for any paid plan
+      // Only basic and pro tiers are available now
+      if (amount <= 2999) { // $29.99 or less
+        subscriptionTier = "basic";
+      } else { // Above $29.99
+        subscriptionTier = "pro";
       }
       
       logStep("Determined subscription tier", { priceId, amount, subscriptionTier });

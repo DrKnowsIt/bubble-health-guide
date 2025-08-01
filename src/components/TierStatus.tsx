@@ -37,6 +37,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
 
   const isPro = subscribed && subscription_tier === 'pro';
   const isBasic = subscribed && subscription_tier === 'basic';
+  const isUnsubscribed = !subscribed;
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
@@ -48,7 +49,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
             ? 'bg-orange-100 text-orange-700 border-orange-200' 
             : isBasic
             ? 'bg-blue-100 text-blue-700 border-blue-200'
-            : 'bg-gray-100 text-gray-600 border-gray-200'
+            : 'bg-red-100 text-red-700 border-red-200'
           }
         `}
       >
@@ -65,7 +66,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
         ) : (
           <>
             <Zap className="h-3 w-3" />
-            <span>Free</span>
+            <span>No Subscription</span>
           </>
         )}
       </Badge>
@@ -77,7 +78,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           onClick={handleUpgrade}
           className="h-7 px-3 text-xs"
         >
-          {isBasic ? 'Upgrade to Pro' : 'Subscribe'}
+          {isBasic ? 'Upgrade to Pro' : isUnsubscribed ? 'Subscribe Now' : 'Subscribe'}
         </Button>
       )}
     </div>
