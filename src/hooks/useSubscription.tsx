@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionInfo {
   subscribed: boolean;
-  subscription_tier: string;
+  subscription_tier: string | null;
   subscription_end: string | null;
   loading: boolean;
 }
@@ -39,6 +39,8 @@ export const useSubscription = () => {
         setSubscription(prev => ({ ...prev, loading: false }));
         return;
       }
+
+      console.log('Subscription data received:', data);
 
       setSubscription({
         subscribed: data.subscribed || false,
