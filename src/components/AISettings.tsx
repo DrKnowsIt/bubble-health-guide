@@ -9,62 +9,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePatients } from '@/hooks/usePatients';
+import { useAISettings } from '@/hooks/useAISettings';
 import { Brain, HardDrive, Settings, Trash2, User, Users } from 'lucide-react';
-
-interface AISettingsData {
-  memory_enabled: boolean;
-}
 
 export const AISettings = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { toast } = useToast();
   const { patients, loading: patientsLoading } = usePatients();
-  const [loading, setLoading] = useState(false);
+  const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [patientKnowledge, setPatientKnowledge] = useState<string>('');
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
-  const [settings, setSettings] = useState<AISettingsData>({
-    memory_enabled: true
-  });
-
-  useEffect(() => {
-    if (user) {
-      loadSettings();
-    }
-  }, [user]);
 
   useEffect(() => {
     if (selectedPatientId) {
       loadPatientKnowledge();
     }
   }, [selectedPatientId]);
-
-  const loadSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('ai_settings')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        setSettings({
-          memory_enabled: data.memory_enabled
-        });
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load AI settings.",
-      });
-    }
-  };
 
 
   const clearConversationHistory = async () => {
@@ -229,35 +191,63 @@ export const AISettings = () => {
             </div>
             <Switch
               id="memory-enabled"
-              checked={settings.memory_enabled}
+              checked={settings?.memory_enabled ?? true}
+              disabled={aiSettingsLoading}
               onCheckedChange={async (checked) => {
-                setSettings({ ...settings, memory_enabled: checked });
-                
-                try {
-                  const { error } = await supabase
-                    .from('ai_settings')
-                    .upsert({
-                      user_id: user?.id,
-                      memory_enabled: checked
-                    });
-
-                  if (error) throw error;
-
+                const success = await updateSettings({ memory_enabled: checked });
+                if (success) {
                   toast({
                     title: "Settings updated",
                     description: `AI memory ${checked ? 'enabled' : 'disabled'}.`,
                   });
-                } catch (error: any) {
+                } else {
                   toast({
                     variant: "destructive",
                     title: "Error",
                     description: "Failed to update AI settings.",
                   });
-                  // Revert the toggle if save failed
-                  setSettings({ ...settings, memory_enabled: !checked });
                 }
               }}
             />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="personalization-level" className="text-base">
+                Personalization Level
+              </Label>
+              <div className="text-sm text-muted-foreground">
+                Control how much the AI personalizes responses based on your health history.
+              </div>
+            </div>
+            <Select
+              value={settings?.personalization_level ?? 'medium'}
+              onValueChange={async (value) => {
+                const success = await updateSettings({ personalization_level: value });
+                if (success) {
+                  toast({
+                    title: "Settings updated",
+                    description: `Personalization level set to ${value}.`,
+                  });
+                } else {
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to update personalization settings.",
+                  });
+                }
+              }}
+              disabled={aiSettingsLoading}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
         </CardContent>

@@ -78,11 +78,15 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
 
     try {
       // Call AI service here
+      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: { 
           message: currentInput,
-          patientId: selectedPatient.id,
-          conversationId: currentConversation 
+          conversation_history: conversationHistory,
+          patient_id: selectedPatient?.id,
+          user_id: user.id,
+          conversation_id: currentConversation 
         }
       });
 

@@ -73,7 +73,8 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: {
           message: currentInput,
-          conversation_history: conversationHistory
+          conversation_history: conversationHistory,
+          user_id: user.id
         }
       });
 
