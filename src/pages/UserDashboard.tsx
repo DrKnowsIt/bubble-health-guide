@@ -29,6 +29,8 @@ import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 import { PatientDropdown } from '@/components/PatientDropdown';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
@@ -64,12 +66,28 @@ export default function UserDashboard() {
 
   // Tab configuration with subscription requirements
   const tabConfig = {
-    chat: { requiresSubscription: true, icon: MessageSquare, title: "AI Chat" },
-    health: { requiresSubscription: true, icon: Activity, title: "Health Records" },
-    forms: { requiresSubscription: true, icon: Calendar, title: "Health Forms" },
-    'ai-settings': { requiresSubscription: true, icon: Brain, title: "AI Settings" },
-    overview: { requiresSubscription: true, icon: FileText, title: "Overview" },
-    settings: { requiresSubscription: false, icon: Settings, title: "Account" }
+    chat: { requiredTier: 'basic', icon: MessageSquare, title: "AI Chat" },
+    health: { requiredTier: 'basic', icon: Activity, title: "Health Records" },
+    forms: { requiredTier: 'pro', icon: Calendar, title: "Health Forms" },
+    'ai-settings': { requiredTier: 'basic', icon: Brain, title: "AI Settings" },
+    overview: { requiredTier: 'basic', icon: FileText, title: "Overview" },
+    settings: { requiredTier: null, icon: Settings, title: "Account" }
+  };
+
+  // Check if user has access to a specific tier
+  const hasAccess = (requiredTier: string | null) => {
+    if (!requiredTier) return true; // No subscription required
+    if (!subscribed || !subscription_tier) return false;
+    
+    if (requiredTier === 'basic') {
+      return subscription_tier === 'basic' || subscription_tier === 'pro';
+    }
+    
+    if (requiredTier === 'pro') {
+      return subscription_tier === 'pro';
+    }
+    
+    return false;
   };
 
   return (
@@ -80,11 +98,11 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4">
             <div className="flex items-center gap-2">
               <Crown className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Upgrade to unlock all features</span>
+              <span className="text-sm font-medium">Choose a plan to unlock features</span>
             </div>
-            <Button size="sm" onClick={handleUpgrade} className="bg-primary hover:bg-primary/90">
-              Upgrade Now
-            </Button>
+            <a href="/pricing" className="text-sm text-primary hover:underline">
+              View Plans
+            </a>
           </div>
         </div>
       )}
@@ -100,7 +118,7 @@ export default function UserDashboard() {
             
             {/* Global Patient Selection - Only show for patient-specific tabs */}
             {(activeTab === 'chat' || activeTab === 'health' || activeTab === 'forms') && (
-              <div className={cn("flex items-center gap-3", !subscribed && "opacity-50")}>
+              <div className={cn("flex items-center gap-3", !hasAccess(tabConfig[activeTab]?.requiredTier) && "opacity-50")}>
                 <span className="text-sm text-muted-foreground hidden md:block">
                   Current Patient:
                 </span>
@@ -108,18 +126,18 @@ export default function UserDashboard() {
                   <PatientDropdown
                     patients={patients}
                     selectedPatient={selectedPatient}
-                    onPatientSelect={(patient) => subscribed ? setSelectedPatient(patient) : null}
-                    open={subscribed ? patientDropdownOpen : false}
-                    onOpenChange={subscribed ? setPatientDropdownOpen : () => {}}
+                    onPatientSelect={(patient) => hasAccess(tabConfig[activeTab]?.requiredTier) ? setSelectedPatient(patient) : null}
+                    open={hasAccess(tabConfig[activeTab]?.requiredTier) ? patientDropdownOpen : false}
+                    onOpenChange={hasAccess(tabConfig[activeTab]?.requiredTier) ? setPatientDropdownOpen : () => {}}
                   />
                 </div>
-                {!subscribed && (
+                {!hasAccess(tabConfig[activeTab]?.requiredTier) && (
                   <div className="flex items-center gap-1">
                     <Lock className="h-3 w-3 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">Requires subscription</span>
                   </div>
                 )}
-                {subscribed && !selectedPatient && patients.length > 0 && (
+                {hasAccess(tabConfig[activeTab]?.requiredTier) && !selectedPatient && patients.length > 0 && (
                   <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
                     Select a patient to view their data
                   </span>
@@ -192,34 +210,31 @@ export default function UserDashboard() {
               <TabsList className="w-full grid grid-cols-4">
                 <TabsTrigger 
                   value="chat" 
-                  className={cn("flex flex-col items-center gap-1 py-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   <span className="text-xs">Chat</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="health" 
-                  className={cn("flex flex-col items-center gap-1 py-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <Activity className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   <span className="text-xs">Records</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="overview" 
-                  className={cn("flex flex-col items-center gap-1 py-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <FileText className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   <span className="text-xs">Overview</span>
                 </TabsTrigger>
@@ -235,45 +250,41 @@ export default function UserDashboard() {
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger 
                   value="chat" 
-                  className={cn("flex items-center gap-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   AI Chat
                 </TabsTrigger>
                 <TabsTrigger 
                   value="health" 
-                  className={cn("flex items-center gap-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <Activity className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   Health Records
                 </TabsTrigger>
                 <TabsTrigger 
                   value="forms" 
-                  className={cn("flex items-center gap-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex items-center gap-2 relative", !hasAccess('pro') && "opacity-50")}
                 >
                   <div className="relative">
                     <Calendar className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('pro') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   Health Forms
                 </TabsTrigger>
                 <TabsTrigger 
                   value="ai-settings" 
-                  className={cn("flex items-center gap-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <Brain className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   AI Settings
                 </TabsTrigger>
@@ -283,12 +294,11 @@ export default function UserDashboard() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="overview" 
-                  className={cn("flex items-center gap-2 relative", !subscribed && "opacity-50")}
-                  disabled={!subscribed}
+                  className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}
                 >
                   <div className="relative">
                     <FileText className="h-4 w-4" />
-                    {!subscribed && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   Overview
                 </TabsTrigger>
@@ -299,28 +309,12 @@ export default function UserDashboard() {
            {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
-              {!subscribed ? (
-                <div className="flex items-center justify-center h-full">
-                  <Card className="max-w-md">
-                    <CardHeader className="text-center">
-                      <div className="flex justify-center mb-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <Lock className="h-6 w-6" />
-                        </div>
-                      </div>
-                      <CardTitle>AI Chat Requires Subscription</CardTitle>
-                      <CardDescription>
-                        Upgrade to unlock unlimited AI conversations and personalized health guidance.
-                      </CardDescription>
-                    </CardHeader>
-                    <div className="px-6 pb-6">
-                      <Button onClick={handleUpgrade} className="w-full">
-                        Upgrade to Pro ($50/month)
-                      </Button>
-                    </div>
-                  </Card>
-                </div>
-              ) : isMobile ? (
+              <SubscriptionGate
+                requiredTier="basic"
+                feature="AI Chat"
+                description="Start conversations with our AI health assistant using a Basic or Pro subscription."
+              >
+                {isMobile ? (
                 <div className="flex flex-col h-full">
                   <ChatInterfaceWithPatients isMobile={true} selectedPatient={selectedPatient} />
                 </div>
@@ -334,65 +328,32 @@ export default function UserDashboard() {
                     <ChatInterfaceWithPatients selectedPatient={selectedPatient} />
                   </div>
                 </div>
-              )}
+                )}
+              </SubscriptionGate>
             </TabsContent>
 
             <TabsContent value="health" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                {!subscribed ? (
-                  <div className="flex items-center justify-center h-full">
-                    <Card className="max-w-md">
-                      <CardHeader className="text-center">
-                        <div className="flex justify-center mb-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <Lock className="h-6 w-6" />
-                          </div>
-                        </div>
-                        <CardTitle>Health Records Require Subscription</CardTitle>
-                        <CardDescription>
-                          Upgrade to store and manage your health records securely.
-                        </CardDescription>
-                      </CardHeader>
-                      <div className="px-6 pb-6">
-                        <Button onClick={handleUpgrade} className="w-full">
-                          Upgrade to Pro ($50/month)
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                ) : (
+                <SubscriptionGate
+                  requiredTier="basic"
+                  feature="Health Records"
+                  description="Store and manage your health records securely with a Basic or Pro subscription."
+                >
                   <HealthRecords selectedPatient={selectedPatient} />
-                )}
+                </SubscriptionGate>
               </div>
             </TabsContent>
 
             {!isMobile && (
               <TabsContent value="forms" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
-                  {!subscribed ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Card className="max-w-md">
-                        <CardHeader className="text-center">
-                          <div className="flex justify-center mb-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                              <Lock className="h-6 w-6" />
-                            </div>
-                          </div>
-                          <CardTitle>Health Forms Require Subscription</CardTitle>
-                          <CardDescription>
-                            Upgrade to access structured health forms and comprehensive data entry.
-                          </CardDescription>
-                        </CardHeader>
-                        <div className="px-6 pb-6">
-                          <Button onClick={handleUpgrade} className="w-full">
-                            Upgrade to Pro ($50/month)
-                          </Button>
-                        </div>
-                      </Card>
-                    </div>
-                  ) : (
+                  <SubscriptionGate
+                    requiredTier="pro"
+                    feature="Health Forms"
+                    description="Access structured health forms and comprehensive data entry with a Pro subscription."
+                  >
                     <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
-                  )}
+                  </SubscriptionGate>
                 </div>
               </TabsContent>
             )}
@@ -400,30 +361,13 @@ export default function UserDashboard() {
             {!isMobile && (
               <TabsContent value="ai-settings" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
-                  {!subscribed ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Card className="max-w-md">
-                        <CardHeader className="text-center">
-                          <div className="flex justify-center mb-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                              <Lock className="h-6 w-6" />
-                            </div>
-                          </div>
-                          <CardTitle>AI Settings Require Subscription</CardTitle>
-                          <CardDescription>
-                            Upgrade to customize AI behavior and manage memory settings.
-                          </CardDescription>
-                        </CardHeader>
-                        <div className="px-6 pb-6">
-                          <Button onClick={handleUpgrade} className="w-full">
-                            Upgrade to Pro ($50/month)
-                          </Button>
-                        </div>
-                      </Card>
-                    </div>
-                  ) : (
+                  <SubscriptionGate
+                    requiredTier="basic"
+                    feature="AI Settings"
+                    description="Customize AI behavior and personalization preferences with a Basic or Pro subscription."
+                  >
                     <AISettings />
-                  )}
+                  </SubscriptionGate>
                 </div>
               </TabsContent>
             )}
@@ -464,28 +408,11 @@ export default function UserDashboard() {
 
             <TabsContent value="overview" className="h-full mt-0 pt-4">
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                {!subscribed ? (
-                  <div className="flex items-center justify-center h-full">
-                    <Card className="max-w-md">
-                      <CardHeader className="text-center">
-                        <div className="flex justify-center mb-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <Lock className="h-6 w-6" />
-                          </div>
-                        </div>
-                        <CardTitle>Overview Requires Subscription</CardTitle>
-                        <CardDescription>
-                          Upgrade to view your health analytics and activity summary.
-                        </CardDescription>
-                      </CardHeader>
-                      <div className="px-6 pb-6">
-                        <Button onClick={handleUpgrade} className="w-full">
-                          Upgrade to Pro ($50/month)
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                ) : (
+                <SubscriptionGate
+                  requiredTier="basic"
+                  feature="Overview"
+                  description="View your health analytics and activity summary with a Basic or Pro subscription."
+                >
                   <div className="space-y-6">
                     <div className={cn("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                       <Card>
@@ -610,7 +537,7 @@ export default function UserDashboard() {
                       </CardContent>
                     </Card>
                   </div>
-                )}
+                </SubscriptionGate>
               </div>
             </TabsContent>
           </div>
