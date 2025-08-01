@@ -69,7 +69,7 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
             <Card 
               key={plan.name}
               className={`
-                relative transition-all hover:scale-[1.02]
+                relative transition-all hover:scale-[1.02] h-full flex flex-col
                 ${plan.popular ? 'ring-2 ring-primary shadow-lg' : 'border-muted'}
               `}
             >
@@ -97,7 +97,7 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
                 <ul className="space-y-2">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start space-x-2">
