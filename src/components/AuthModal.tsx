@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Stethoscope, Eye, EyeOff, Mail, Lock, User, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProps) => {
+  const { signIn, signUp } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,12 +29,38 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    onClose();
-    // In a real app, this would handle authentication
+    try {
+      if (mode === 'signup') {
+        if (formData.password !== formData.confirmPassword) {
+          alert("Passwords don't match!");
+          setIsLoading(false);
+          return;
+        }
+        
+        const { error } = await signUp(
+          formData.email, 
+          formData.password, 
+          formData.firstName, 
+          formData.lastName
+        );
+        
+        if (!error) {
+          onClose();
+          resetForm();
+        }
+      } else {
+        const { error } = await signIn(formData.email, formData.password);
+        
+        if (!error) {
+          onClose();
+          resetForm();
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetForm = () => {
