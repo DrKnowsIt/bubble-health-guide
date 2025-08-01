@@ -121,10 +121,6 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
                 </Badge>
               </div>
               <DropdownMenuSeparator className="md:hidden" />
-              <DropdownMenuItem className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
               <DropdownMenuItem 
                 asChild
                 className="flex items-center gap-2 cursor-pointer"
