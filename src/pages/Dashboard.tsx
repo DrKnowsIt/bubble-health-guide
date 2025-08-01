@@ -108,7 +108,7 @@ const Dashboard = () => {
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="flex-1 p-6 flex flex-col min-h-0">
             {activeTab === "chat" && <ChatDashboard />}
-            {activeTab === "health" && <HealthProfile user={userForHeader} />}
+            {activeTab === "health" && <HealthProfile />}
             {activeTab === "settings" && <UserSettings />}
           </div>
         </div>

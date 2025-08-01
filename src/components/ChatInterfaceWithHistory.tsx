@@ -147,37 +147,31 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     return <DemoConversation />;
   }
 
-  // Show upgrade message for logged-in users without subscription
-  if (!subscriptionLoading && !subscribed) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <div className="mb-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
-            <Lock className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Upgrade to Chat with DrKnowsIt
-          </h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Get unlimited access to our AI health assistant, personalized insights, and conversation history.
-          </p>
-        </div>
-        <Button 
-          onClick={() => window.location.href = '/pricing'}
-          className="mb-4"
-        >
-          View Pricing Plans
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Want to see how it works? Check out the demo conversation.
-        </p>
-      </div>
-    );
-  }
+  // Show subscription prompt for non-subscribed users but keep interface visible
+  const showSubscriptionPrompt = !subscriptionLoading && !subscribed;
 
-  // Regular chat interface for subscribed users
+  // Regular chat interface with conditional functionality
   return (
     <div className="flex-1 flex flex-col max-h-full overflow-hidden">
+      {/* Subscription Alert */}
+      {showSubscriptionPrompt && (
+        <div className="shrink-0 bg-warning/10 border-b border-warning/20 p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-warning">
+            <Lock className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Subscribe to unlock unlimited AI health consultations and conversation history
+            </span>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.href = '/pricing'}
+              className="ml-2 h-6 px-2 text-xs"
+            >
+              View Plans
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Chat Header with New Conversation Button */}
       <div className="shrink-0 border-b border-border p-4 flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
@@ -188,7 +182,8 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
                 variant="outline" 
                 size="sm" 
                 onClick={onShowHistory}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${!subscribed ? 'opacity-50' : ''}`}
+                disabled={!subscribed}
               >
                 <History className="h-4 w-4" />
                 History
@@ -198,7 +193,8 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
               variant="outline" 
               size="sm" 
               onClick={startNewConversation}
-              className="flex items-center gap-2"
+              className={`flex items-center gap-2 ${!subscribed ? 'opacity-50' : ''}`}
+              disabled={!subscribed}
             >
               <Plus className="h-4 w-4" />
               New Conversation
@@ -285,11 +281,11 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
-              placeholder="Describe your symptoms to prepare questions for your doctor..."
+              placeholder={subscribed ? "Describe your symptoms to prepare questions for your doctor..." : "Subscribe to start organizing your health questions..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
+              className={`text-base border-0 bg-muted focus:ring-2 focus:ring-primary ${!subscribed ? 'opacity-50' : ''}`}
               disabled={!subscribed}
             />
           </div>
@@ -297,13 +293,16 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || !subscribed}
             size="sm"
-            className="px-3"
+            className={`px-3 ${!subscribed ? 'opacity-50' : ''}`}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
         <div className="mt-2 text-center text-xs text-muted-foreground">
-          Premium AI health assistant - unlimited conversations
+          {subscribed 
+            ? "Premium AI health assistant - unlimited conversations"
+            : "Subscribe to unlock unlimited AI health conversations and history"
+          }
         </div>
       </div>
     </div>

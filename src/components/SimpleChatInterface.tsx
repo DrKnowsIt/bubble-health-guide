@@ -48,6 +48,7 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
     
     // Check if user is logged in and has subscription
     if (!user || !subscribed) {
+      // Show toast message instead of blocking
       return;
     }
 
@@ -114,37 +115,31 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
     return <DemoConversation />;
   }
 
-  // Show upgrade message for logged-in users without subscription
-  if (!subscriptionLoading && !subscribed) {
-    return (
-      <div className="flex flex-col h-full items-center justify-center p-8 text-center">
-        <div className="mb-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
-            <Lock className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Upgrade to Chat with DrKnowsIt
-          </h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Get unlimited access to our AI health assistant, personalized insights, and conversation history.
-          </p>
-        </div>
-        <Button 
-          onClick={() => window.location.href = '/pricing'}
-          className="mb-4"
-        >
-          View Pricing Plans
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Want to see how it works? Check out the demo conversation above.
-        </p>
-      </div>
-    );
-  }
+  // Show subscription prompt for non-subscribed users but keep interface visible
+  const showSubscriptionPrompt = !subscriptionLoading && !subscribed;
 
-  // Regular chat interface for subscribed users
+  // Regular chat interface with conditional functionality
   return (
     <div className="flex flex-col h-full max-h-full overflow-hidden">
+      {/* Subscription Alert */}
+      {showSubscriptionPrompt && (
+        <div className="shrink-0 bg-warning/10 border-b border-warning/20 p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-warning">
+            <Lock className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Subscribe to unlock unlimited AI health consultations
+            </span>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.href = '/pricing'}
+              className="ml-2 h-6 px-2 text-xs"
+            >
+              View Plans
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Messages Container with proper constraints */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto overscroll-contain">
@@ -235,25 +230,29 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
-              placeholder="Ask DrKnowsIt about symptoms, medications, health tips..."
+              placeholder={subscribed ? "Ask DrKnowsIt about symptoms, medications, health tips..." : "Subscribe to start chatting with DrKnowsIt..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="text-base border-0 bg-muted focus:ring-2 focus:ring-primary"
+              className={`text-base border-0 bg-muted focus:ring-2 focus:ring-primary ${!subscribed ? 'opacity-50' : ''}`}
+              disabled={!subscribed}
             />
           </div>
           <Button 
             onClick={handleSendMessage}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || !subscribed}
             size="sm"
-            className="px-3"
+            className={`px-3 ${!subscribed ? 'opacity-50' : ''}`}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
         
         <div className="mt-2 text-center text-xs text-muted-foreground">
-          Premium AI health assistant - unlimited conversations
+          {subscribed 
+            ? "Premium AI health assistant - unlimited conversations"
+            : "Subscribe to unlock unlimited AI health conversations"
+          }
         </div>
       </div>
     </div>

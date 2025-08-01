@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { History } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 interface Diagnosis {
   diagnosis: string;
@@ -118,21 +118,40 @@ export const ChatDashboard = () => {
     }, 3000); // Wait for AI response to be processed and saved
   };
 
-  if (!user || !subscribed) {
-    return <ChatInterfaceWithHistory />;
-  }
+  // Always show the interface, but add subscription prompt if needed
+  const showSubscriptionPrompt = user && !subscribed;
 
   return (
     <div className="h-full flex flex-col space-y-4">
+      {/* Subscription Alert */}
+      {showSubscriptionPrompt && (
+        <div className="shrink-0 bg-warning/10 border border-warning/20 rounded-lg p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-warning">
+            <Lock className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Subscribe to unlock full chat features, patient management, and health diagnosis tools
+            </span>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.href = '/pricing'}
+              className="ml-2 h-6 px-2 text-xs"
+            >
+              View Plans
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Patient Selector */}
-      <div className="shrink-0">
+      <div className={`shrink-0 ${!subscribed ? 'opacity-50 pointer-events-none' : ''}`}>
         <PatientSelector />
       </div>
 
       {/* Main Chat Layout */}
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className={`flex-1 flex gap-4 min-h-0 ${!subscribed ? 'opacity-60' : ''}`}>
         {/* Conversation History Sidebar - Left */}
-        <div className={`${showHistory ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden shrink-0`}>
+        <div className={`${showHistory ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden shrink-0 ${!subscribed ? 'pointer-events-none' : ''}`}>
           <ConversationSidebar 
             conversations={conversations}
             currentConversation={currentConversation}
