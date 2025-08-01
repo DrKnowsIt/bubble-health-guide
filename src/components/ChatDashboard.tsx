@@ -133,7 +133,7 @@ export const ChatDashboard = () => {
         </div>
 
         {/* Diagnosis Panel - Right */}
-        {selectedPatient && currentConversation && (
+        {selectedPatient && currentConversation && messages.length > 1 && (
           <div className="w-80 shrink-0">
             <ProbableDiagnoses 
               diagnoses={diagnoses}
