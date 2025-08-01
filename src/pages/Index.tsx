@@ -83,7 +83,7 @@ const Index = () => {
               <div className="text-center mb-8">
                 <div className="mb-6">
                   <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare feeling like a rushed assembly line more than actual care?</h1>
-                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">Organize symptoms and clear timelines that demand real attention from your healthcare team.</p>
+                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">Get organized before your appointment so you can communicate clearly and feel confident about your health concerns.</p>
                 </div>
                 
                 <div className="mb-4">
