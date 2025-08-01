@@ -59,23 +59,31 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       timestamp: new Date()
     };
 
+    // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
     
-    // If user is authenticated and no current conversation, create one
+    // If user is authenticated and no current conversation, create one FIRST
     let conversationId = currentConversation;
     if (user && !currentConversation) {
       const title = generateConversationTitle(inputValue);
       conversationId = await createConversation(title, null);
+      
+      if (!conversationId) {
+        console.error('Failed to create conversation');
+        return;
+      }
     }
+
+    const currentInput = inputValue;
+    setInputValue('');
+    setIsTyping(true);
 
     // Save user message if authenticated
     if (user && conversationId) {
       await saveMessage(conversationId, 'user', inputValue);
     }
 
-    const currentInput = inputValue;
-    setInputValue('');
-    setIsTyping(true);
+    // Call onSendMessage callback after conversation is created and message is saved
     onSendMessage?.(currentInput);
 
     try {

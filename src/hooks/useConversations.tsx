@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -24,10 +24,6 @@ export const useConversations = () => {
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  // Ref to track optimistic updates for rollback
-  const optimisticConversationRef = useRef<Conversation | null>(null);
   
   // Debug logging
   const logDebug = (action: string, data?: any) => {
@@ -92,32 +88,9 @@ export const useConversations = () => {
       return null;
     }
 
-    // Create optimistic conversation for immediate UI update
-    const tempId = `temp-${Date.now()}`;
-    const optimisticConversation: Conversation = {
-      id: tempId,
-      title,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    logDebug('Creating conversation with optimistic update', { 
-      title, 
-      patientId, 
-      userId: user.id,
-      tempId
-    });
+    logDebug('Creating conversation', { title, patientId, userId: user.id });
 
     try {
-      // Optimistic update - add conversation immediately to UI
-      optimisticConversationRef.current = optimisticConversation;
-      flushSync(() => {
-        setConversations(prev => [optimisticConversation, ...prev]);
-        setCurrentConversation(tempId);
-      });
-      
-      logDebug('Optimistic conversation added to UI');
-      
       const insertData = {
         user_id: user.id,
         title,
@@ -134,57 +107,22 @@ export const useConversations = () => {
 
       if (error) {
         logDebug('Database error creating conversation', error);
-        
-        // Rollback optimistic update
-        flushSync(() => {
-          setConversations(prev => prev.filter(conv => conv.id !== tempId));
-          setCurrentConversation(null);
-        });
-        optimisticConversationRef.current = null;
-        
         throw error;
       }
       
       logDebug('Conversation created successfully in database', data);
       
-      // Replace optimistic conversation with real one
+      // Immediately update local state with flushSync for synchronous update
       flushSync(() => {
-        setConversations(prev => 
-          prev.map(conv => conv.id === tempId ? data : conv)
-        );
+        setConversations(prev => [data, ...prev]);
         setCurrentConversation(data.id);
       });
       
-      optimisticConversationRef.current = null;
-      
-      // Trigger refresh to ensure sidebar is in sync
-      setRefreshTrigger(prev => prev + 1);
-      
-      // Add default intro message to the new conversation
-      try {
-        await saveMessage(
-          data.id, 
-          'ai', 
-          "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
-        );
-        logDebug('Default message saved successfully');
-      } catch (messageError) {
-        logDebug('Error saving default message', messageError);
-      }
+      logDebug('Conversation added to local state');
       
       return data.id;
     } catch (error) {
       logDebug('Error creating conversation', error);
-      
-      // Ensure rollback happened if not already done
-      if (optimisticConversationRef.current) {
-        flushSync(() => {
-          setConversations(prev => prev.filter(conv => conv.id !== tempId));
-          setCurrentConversation(null);
-        });
-        optimisticConversationRef.current = null;
-      }
-      
       return null;
     }
   };
@@ -224,13 +162,13 @@ export const useConversations = () => {
         timestamp: new Date()
       }]);
     });
-    
-    // Trigger refresh to ensure conversations are up to date
-    setRefreshTrigger(prev => prev + 1);
   };
 
   const selectConversation = (conversationId: string) => {
-    setCurrentConversation(conversationId);
+    logDebug('Selecting conversation', conversationId);
+    flushSync(() => {
+      setCurrentConversation(conversationId);
+    });
     fetchMessages(conversationId);
   };
 
@@ -271,9 +209,6 @@ export const useConversations = () => {
         }
       });
 
-      // Trigger refresh
-      setRefreshTrigger(prev => prev + 1);
-
       toast({
         title: "Conversation deleted",
         description: "The conversation has been successfully deleted.",
@@ -307,13 +242,6 @@ export const useConversations = () => {
     }
   }, [user, fetchConversations]);
 
-  // Effect for refresh trigger - ensures conversations are synced
-  useEffect(() => {
-    if (refreshTrigger > 0 && user) {
-      logDebug('Refresh triggered, re-fetching conversations');
-      fetchConversations();
-    }
-  }, [refreshTrigger, user, fetchConversations]);
 
   return {
     conversations,
@@ -326,7 +254,6 @@ export const useConversations = () => {
     startNewConversation,
     selectConversation,
     fetchConversations,
-    deleteConversation,
-    refreshTrigger // Expose for external components to track updates
+    deleteConversation
   };
 };

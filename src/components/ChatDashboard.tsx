@@ -28,8 +28,7 @@ export const ChatDashboard = () => {
     messages, 
     startNewConversation,
     selectConversation,
-    deleteConversation,
-    refreshTrigger
+    deleteConversation
   } = useConversations();
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -43,10 +42,9 @@ export const ChatDashboard = () => {
   useEffect(() => {
     logDebug('Conversations updated', { 
       count: conversations.length, 
-      current: currentConversation,
-      refreshTrigger 
+      current: currentConversation
     });
-  }, [conversations, currentConversation, refreshTrigger, logDebug]);
+  }, [conversations, currentConversation, logDebug]);
 
   // Load diagnoses for current conversation and patient
   useEffect(() => {
@@ -142,7 +140,6 @@ export const ChatDashboard = () => {
             onStartNewConversation={startNewConversation}
             onDeleteConversation={deleteConversation}
             isAuthenticated={!!user}
-            key={`sidebar-${refreshTrigger}-${conversations.length}`} // Force re-render on updates
           />
         </div>
 
