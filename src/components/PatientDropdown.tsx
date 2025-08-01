@@ -51,6 +51,13 @@ export const PatientDropdown = ({
     return `${name} (${patient.relationship || 'Unknown'})`;
   };
 
+  const getPatientValue = (patient: Patient) => {
+    if (!patient || !patient.first_name || !patient.last_name) {
+      return `unknown-${patient?.id || 'patient'}`;
+    }
+    return `${patient.first_name.trim()} ${patient.last_name.trim()}`.toLowerCase();
+  };
+
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -82,10 +89,12 @@ export const PatientDropdown = ({
               {safePatients.map((patient) => (
                 <CommandItem
                   key={patient.id}
-                  value={`${patient.first_name} ${patient.last_name}`}
-                  onSelect={() => {
-                    onPatientSelect(patient.id === selectedPatient?.id ? null : patient);
-                    onOpenChange(false);
+                  value={getPatientValue(patient)}
+                  onSelect={(value) => {
+                    if (patient && patient.id) {
+                      onPatientSelect(patient.id === selectedPatient?.id ? null : patient);
+                      onOpenChange(false);
+                    }
                   }}
                 >
                   <Check
