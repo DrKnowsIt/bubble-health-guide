@@ -9,7 +9,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Lock, Crown } from 'lucide-react';
 
 interface Diagnosis {
   diagnosis: string;
@@ -20,7 +21,7 @@ interface Diagnosis {
 
 export const ChatDashboard = () => {
   const { user } = useAuth();
-  const { subscribed } = useSubscription();
+  const { subscribed, createCheckoutSession } = useSubscription();
   const { selectedPatient } = usePatients();
   const { 
     conversations,
@@ -118,30 +119,56 @@ export const ChatDashboard = () => {
     }, 3000); // Wait for AI response to be processed and saved
   };
 
-  // Always show the interface, but add subscription prompt if needed
-  const showSubscriptionPrompt = user && !subscribed;
+  // Show subscription gate if not subscribed
+  if (user && !subscribed) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Card className="max-w-lg">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Crown className="h-8 w-8" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl">Unlock AI Health Assistant</CardTitle>
+            <CardDescription className="text-base">
+              Get unlimited access to advanced AI conversations, patient management, health record integration, and AI-powered diagnostic insights.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                <span>Unlimited AI health conversations</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                <span>Patient profiles and data management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                <span>AI-powered diagnostic insights</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                <span>Conversation history and memory</span>
+              </div>
+            </div>
+            <Button 
+              onClick={() => createCheckoutSession('pro')}
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              Upgrade to Pro - $50/month
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col space-y-4">
-      {/* Subscription Alert */}
-      {showSubscriptionPrompt && (
-        <div className="shrink-0 bg-warning/10 border border-warning/20 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center gap-2 text-warning">
-            <Lock className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Subscribe to unlock full chat features, patient management, and health diagnosis tools
-            </span>
-            <Button 
-              size="sm"
-              variant="outline"
-              onClick={() => window.location.href = '/pricing'}
-              className="ml-2 h-6 px-2 text-xs"
-            >
-              View Plans
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Patient Selector */}
       <div className={`shrink-0 ${!subscribed ? 'opacity-50 pointer-events-none' : ''}`}>

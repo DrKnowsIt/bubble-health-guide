@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -17,6 +18,7 @@ interface AISettingsData {
 
 export const AISettings = () => {
   const { user } = useAuth();
+  const { subscribed } = useSubscription();
   const { toast } = useToast();
   const { patients, loading: patientsLoading } = usePatients();
   const [loading, setLoading] = useState(false);
@@ -228,6 +230,17 @@ export const AISettings = () => {
       personalization_level: 'medium'
     });
   };
+
+  // Show loading state or restricted access for non-subscribers
+  if (!subscribed) {
+    return (
+      <div className="space-y-6 opacity-50 pointer-events-none">
+        <div className="text-center text-muted-foreground py-8">
+          <p>AI Settings require a subscription.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

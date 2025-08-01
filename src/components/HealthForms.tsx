@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -503,7 +504,12 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   }
 
   return (
-    <div className="space-y-6">
+    <SubscriptionGate
+      requiredTier="pro"
+      feature="Health Forms"
+      description="Access comprehensive health forms to systematically collect and organize your medical information for better AI insights."
+    >
+      <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -560,5 +566,6 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         </CardContent>
       </Card>
     </div>
+    </SubscriptionGate>
   );
 };
