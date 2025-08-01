@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PlanSelectionCard } from "@/components/PlanSelectionCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SubscriptionGateProps {
   children: ReactNode;
@@ -15,7 +16,7 @@ export const SubscriptionGate = ({
   feature, 
   description 
 }: SubscriptionGateProps) => {
-  const { subscribed, subscription_tier } = useSubscription();
+  const { subscribed, subscription_tier, loading } = useSubscription();
 
   const hasAccess = () => {
     // No access without subscription
@@ -31,6 +32,17 @@ export const SubscriptionGate = ({
     
     return false;
   };
+
+  // Show loading state while checking subscription
+  if (loading) {
+    return (
+      <div className="space-y-4 p-6">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    );
+  }
 
   if (hasAccess()) {
     return <>{children}</>;
