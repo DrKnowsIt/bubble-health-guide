@@ -14,6 +14,7 @@ import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 import { ContextualPatientSelector } from '@/components/ContextualPatientSelector';
+import { UserDropdown } from '@/components/UserDropdown';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -34,6 +35,7 @@ export default function UserDashboard() {
     setSelectedPatient
   } = usePatients();
   const [activeTab, setActiveTab] = useState('chat');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const {
     totalRecords,
     totalConversations,
@@ -222,8 +224,20 @@ export default function UserDashboard() {
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Store and manage your health records securely with a Basic or Pro subscription.">
                   <div className="space-y-4">
-                    {/* Contextual Patient Selector */}
-                    <ContextualPatientSelector patients={patients} selectedPatient={selectedPatient} onPatientSelect={setSelectedPatient} hasAccess={hasAccess('basic')} title="Health Records" description="Select a patient to view their health records" />
+                    {/* Patient Selector - Only show when user has access */}
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">Health Records</h3>
+                      <p className="text-sm text-muted-foreground">Select a patient to view their health records</p>
+                      <div className="max-w-xs">
+                        <UserDropdown
+                          patients={patients}
+                          selectedPatient={selectedPatient}
+                          onPatientSelect={setSelectedPatient}
+                          open={dropdownOpen}
+                          onOpenChange={setDropdownOpen}
+                        />
+                      </div>
+                    </div>
                     
                     <HealthRecords selectedPatient={selectedPatient} />
                   </div>
