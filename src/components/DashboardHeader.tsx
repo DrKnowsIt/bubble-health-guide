@@ -1,102 +1,143 @@
 import { Button } from "@/components/ui/button";
-import { Stethoscope, Menu, LogOut, Bell } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Link } from "react-router-dom";
-import { TierStatus } from "@/components/TierStatus";
+import { cn } from "@/lib/utils";
 
 interface DashboardHeaderProps {
-  user: {
-    name: string;
-    email: string;
-    subscription: string;
-  };
-  onMobileMenuToggle: () => void;
+  className?: string;
 }
 
-export const DashboardHeader = ({ user, onMobileMenuToggle }: DashboardHeaderProps) => {
-  const { signOut } = useAuth();
+export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
+  const { user, signOut } = useAuth();
+  const { subscription_tier, subscribed } = useSubscription();
 
   const handleLogout = async () => {
     await signOut();
   };
 
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+    }
+    return user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'User';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserDisplayName();
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getTierDisplay = () => {
+    if (!subscribed || !subscription_tier) return { text: 'Free', variant: 'secondary' as const };
+    if (subscription_tier === 'pro') return { text: 'Pro', variant: 'default' as const };
+    if (subscription_tier === 'basic') return { text: 'Basic', variant: 'outline' as const };
+    return { text: 'Free', variant: 'secondary' as const };
+  };
+
+  const tierInfo = getTierDisplay();
+
   return (
-    <header className="sticky top-0 z-50 w-full h-20 border-b border-border bg-background/95 backdrop-blur">
-      <div className="flex h-full items-center justify-between px-6">
-        {/* Left Side */}
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMobileMenuToggle}
-            className="md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-bubble">
-              <Stethoscope className="h-5 w-5 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-lg font-bold text-foreground">DrKnowsIt</span>
-              <span className="text-xs text-muted-foreground ml-2">Dashboard</span>
-            </div>
+    <header className={cn(
+      "sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+      className
+    )}>
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Brand Section */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
+            <Stethoscope className="h-5 w-5 text-white" />
+          </div>
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-semibold text-foreground">DrKnowsIt</h1>
+            <p className="text-xs text-muted-foreground">Dashboard</p>
           </div>
         </div>
 
-        {/* Center Navigation Menu */}
-        <nav className="flex items-center space-x-6">
-          <Link 
-            to="/#features" 
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            onClick={(e) => {
-              const currentPath = window.location.pathname;
-              if (currentPath === '/') {
-                e.preventDefault();
-                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            Features
-          </Link>
-          <Link 
-            to="/#how-it-works" 
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            onClick={(e) => {
-              const currentPath = window.location.pathname;
-              if (currentPath === '/') {
-                e.preventDefault();
-                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            How It Works
-          </Link>
-          <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-            Pricing
-          </Link>
-        </nav>
+        {/* Actions Section */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Tier Badge - Hidden on mobile */}
+          <Badge variant={tierInfo.variant} className="hidden md:inline-flex">
+            {tierInfo.text}
+          </Badge>
 
-        {/* Right Side */}
-        <div className="flex items-center space-x-3">
-          <TierStatus showUpgradeButton={false} className="hidden md:flex" />
-          
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full"></span>
+          {/* Notifications */}
+          <Button variant="ghost" size="sm" className="relative h-9 w-9 rounded-full">
+            <Bell className="h-4 w-4" />
+            <span className="absolute -top-1 -right-1 h-2 w-2 bg-accent rounded-full"></span>
           </Button>
-          
-          <Button 
-            onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2 text-destructive border-destructive hover:bg-destructive hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="flex items-center gap-2 h-9 px-2 hover:bg-muted/50"
+              >
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-medium leading-none">
+                    {getUserDisplayName()}
+                  </span>
+                  <span className="text-xs text-muted-foreground leading-none mt-0.5">
+                    {user?.email}
+                  </span>
+                </div>
+                <ChevronDown className="h-3 w-3 text-muted-foreground hidden md:block" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center gap-2 p-2 md:hidden">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{getUserDisplayName()}</span>
+                  <span className="text-xs text-muted-foreground">{user?.email}</span>
+                </div>
+              </div>
+              <DropdownMenuSeparator className="md:hidden" />
+              <div className="p-2 md:hidden">
+                <Badge variant={tierInfo.variant} className="text-xs">
+                  {tierInfo.text} Plan
+                </Badge>
+              </div>
+              <DropdownMenuSeparator className="md:hidden" />
+              <DropdownMenuItem className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="flex items-center gap-2 text-destructive focus:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

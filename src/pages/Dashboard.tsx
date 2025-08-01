@@ -56,10 +56,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader 
-        user={userForHeader}
-        onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      />
+      <DashboardHeader />
       
       <div className="flex h-[calc(100vh-5rem)]">
         {/* Sidebar */}

@@ -9,28 +9,29 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  User, 
   Settings, 
   FileText, 
   MessageSquare, 
   Brain,
-  Heart,
   Activity,
   Calendar,
   Upload,
   Plus,
-  LogOut,
   Lock,
-  Crown
+  Crown,
+  Heart,
+  User,
+  LogOut
 } from 'lucide-react';
 import { ChatInterfaceWithPatients } from '@/components/ChatInterfaceWithPatients';
 import { UserSettings } from '@/components/UserSettings';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
-import { PatientDropdown } from '@/components/PatientDropdown';
+import { ContextualPatientSelector } from '@/components/ContextualPatientSelector';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
+import { DashboardHeader } from '@/components/DashboardHeader';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
@@ -38,7 +39,6 @@ export default function UserDashboard() {
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { patients, selectedPatient, setSelectedPatient } = usePatients();
   const [activeTab, setActiveTab] = useState('chat');
-  const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
 
@@ -107,98 +107,8 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              <h1 className="font-semibold text-lg">DrKnowsIt</h1>
-            </div>
-            
-            {/* Global Patient Selection - Only show for patient-specific tabs */}
-            {(activeTab === 'chat' || activeTab === 'health' || activeTab === 'forms') && (
-              <div className={cn("flex items-center gap-3", !hasAccess(tabConfig[activeTab]?.requiredTier) && "opacity-50")}>
-                <span className="text-sm text-muted-foreground hidden md:block">
-                  Current Patient:
-                </span>
-                <div className="min-w-[200px]">
-                  <PatientDropdown
-                    patients={patients}
-                    selectedPatient={selectedPatient}
-                    onPatientSelect={(patient) => hasAccess(tabConfig[activeTab]?.requiredTier) ? setSelectedPatient(patient) : null}
-                    open={hasAccess(tabConfig[activeTab]?.requiredTier) ? patientDropdownOpen : false}
-                    onOpenChange={hasAccess(tabConfig[activeTab]?.requiredTier) ? setPatientDropdownOpen : () => {}}
-                  />
-                </div>
-                {!hasAccess(tabConfig[activeTab]?.requiredTier) && (
-                  <div className="flex items-center gap-1">
-                    <Lock className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Requires subscription</span>
-                  </div>
-                )}
-                {hasAccess(tabConfig[activeTab]?.requiredTier) && !selectedPatient && patients.length > 0 && (
-                  <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                    Select a patient to view their data
-                  </span>
-                )}
-              </div>
-            )}
-            
-            {/* Center Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
-              <a 
-                href="/#features" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                onClick={(e) => {
-                  const currentPath = window.location.pathname;
-                  if (currentPath === '/') {
-                    e.preventDefault();
-                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                Features
-              </a>
-              <a 
-                href="/#how-it-works" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                onClick={(e) => {
-                  const currentPath = window.location.pathname;
-                  if (currentPath === '/') {
-                    e.preventDefault();
-                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                How It Works
-              </a>
-              <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-                Pricing
-              </a>
-            </nav>
-            <div className="flex items-center gap-2">
-              {!isMobile && (
-                <span className="text-sm text-muted-foreground">
-                  Welcome, {user?.user_metadata?.first_name || user?.email}
-                </span>
-              )}
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
-              </div>
-              <Button 
-                onClick={() => signOut()}
-                variant="outline"
-                size="sm"
-                className="text-destructive border-destructive hover:bg-destructive hover:text-white"
-              >
-                <LogOut className="h-4 w-4" />
-                {!isMobile && <span className="ml-2">Logout</span>}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Modern Dashboard Header */}
+      <DashboardHeader />
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">
@@ -314,21 +224,33 @@ export default function UserDashboard() {
                 feature="AI Chat"
                 description="Start conversations with our AI health assistant using a Basic or Pro subscription."
               >
-                {isMobile ? (
-                <div className="flex flex-col h-full">
-                  <ChatInterfaceWithPatients isMobile={true} selectedPatient={selectedPatient} />
+                <div className="space-y-4">
+                  {/* Contextual Patient Selector */}
+                  <ContextualPatientSelector
+                    patients={patients}
+                    selectedPatient={selectedPatient}
+                    onPatientSelect={setSelectedPatient}
+                    hasAccess={hasAccess('basic')}
+                    title="Chat with AI"
+                    description="Select a patient to have personalized conversations"
+                  />
+                  
+                  {isMobile ? (
+                    <div className="flex flex-col h-full">
+                      <ChatInterfaceWithPatients isMobile={true} selectedPatient={selectedPatient} />
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
+                      <div className="mb-4 flex-shrink-0">
+                        <h2 className="text-lg font-semibold">AI Health Assistant</h2>
+                        <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <ChatInterfaceWithPatients selectedPatient={selectedPatient} />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="h-full flex flex-col min-h-[calc(100vh-200px)]">
-                  <div className="mb-4 flex-shrink-0">
-                    <h2 className="text-lg font-semibold">AI Health Assistant</h2>
-                    <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
-                  </div>
-                  <div className="flex-1 min-h-0">
-                    <ChatInterfaceWithPatients selectedPatient={selectedPatient} />
-                  </div>
-                </div>
-                )}
               </SubscriptionGate>
             </TabsContent>
 
@@ -339,7 +261,19 @@ export default function UserDashboard() {
                   feature="Health Records"
                   description="Store and manage your health records securely with a Basic or Pro subscription."
                 >
-                  <HealthRecords selectedPatient={selectedPatient} />
+                  <div className="space-y-4">
+                    {/* Contextual Patient Selector */}
+                    <ContextualPatientSelector
+                      patients={patients}
+                      selectedPatient={selectedPatient}
+                      onPatientSelect={setSelectedPatient}
+                      hasAccess={hasAccess('basic')}
+                      title="Health Records"
+                      description="Select a patient to view their health records"
+                    />
+                    
+                    <HealthRecords selectedPatient={selectedPatient} />
+                  </div>
                 </SubscriptionGate>
               </div>
             </TabsContent>
@@ -352,7 +286,19 @@ export default function UserDashboard() {
                     feature="Health Forms"
                     description="Access structured health forms and comprehensive data entry with a Pro subscription."
                   >
-                    <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
+                    <div className="space-y-4">
+                      {/* Contextual Patient Selector */}
+                      <ContextualPatientSelector
+                        patients={patients}
+                        selectedPatient={selectedPatient}
+                        onPatientSelect={setSelectedPatient}
+                        hasAccess={hasAccess('pro')}
+                        title="Health Forms"
+                        description="Select a patient to fill out their health forms"
+                      />
+                      
+                      <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
+                    </div>
                   </SubscriptionGate>
                 </div>
               </TabsContent>
