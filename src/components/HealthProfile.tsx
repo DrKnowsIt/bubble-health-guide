@@ -20,13 +20,13 @@ export const HealthProfile = () => {
 
   return (
     <div className="space-y-6">
-      {/* Subscription Alert */}
+      {/* Subscription Alert - Only show for AI-related features */}
       {!subscribed && (
         <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 text-center">
           <div className="flex items-center justify-center gap-2 text-warning mb-2">
             <Lock className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Subscribe to unlock health records storage and patient management
+              Subscribe to unlock health records storage, patient management, and AI health features
             </span>
           </div>
           <Button 

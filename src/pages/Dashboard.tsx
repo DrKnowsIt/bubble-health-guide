@@ -17,7 +17,9 @@ import {
   CreditCard,
   LogOut,
   Menu,
-  X
+  X,
+  Lock,
+  Badge
 } from "lucide-react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ChatDashboard } from "@/components/ChatDashboard";
@@ -35,9 +37,9 @@ const Dashboard = () => {
   const { subscribed, subscription_tier, loading } = useSubscription();
 
   const sidebarItems = [
-    { id: "chat", label: "Chat with DrKnowItAll", icon: MessageCircle },
-    { id: "health", label: "Health Profile", icon: Heart },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "chat", label: "Chat with DrKnowItAll", icon: MessageCircle, requiresSubscription: true },
+    { id: "health", label: "Health Profile", icon: Heart, requiresSubscription: true },
+    { id: "settings", label: "Account Settings", icon: Settings, requiresSubscription: false },
   ];
 
   if (!user) {
@@ -81,10 +83,15 @@ const Dashboard = () => {
                       ? 'bg-primary text-primary-foreground shadow-bubble' 
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }
+                    ${item.requiresSubscription && !subscribed ? 'opacity-50' : ''}
                   `}
+                  disabled={item.requiresSubscription && !subscribed}
                 >
                   <item.icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
+                  {item.requiresSubscription && !subscribed && (
+                    <Lock className="h-3 w-3 ml-auto" />
+                  )}
                 </button>
               ))}
             </div>
