@@ -8,10 +8,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { PatientSelector } from "@/components/PatientSelector";
 import { HealthRecords } from "@/components/HealthRecords";
 import { HealthForms } from "@/components/HealthForms";
+import { useNavigate } from "react-router-dom";
 
 export const HealthProfile = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
   if (!user) {
@@ -32,7 +34,7 @@ export const HealthProfile = () => {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => window.location.href = '/pricing'}
+            onClick={() => navigate('/pricing')}
             className="h-6 px-2 text-xs"
           >
             View Plans

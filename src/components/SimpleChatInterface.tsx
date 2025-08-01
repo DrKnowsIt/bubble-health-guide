@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -22,6 +23,7 @@ interface SimpleChatInterfaceProps {
 export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps) => {
   const { user } = useAuth();
   const { subscribed, loading: subscriptionLoading } = useSubscription();
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -132,7 +134,7 @@ export const SimpleChatInterface = ({ onShowHistory }: SimpleChatInterfaceProps)
             <Button 
               size="sm"
               variant="outline"
-              onClick={() => window.location.href = '/pricing'}
+              onClick={() => navigate('/pricing')}
               className="ml-2 h-6 px-2 text-xs"
             >
               View Plans

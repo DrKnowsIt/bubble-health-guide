@@ -8,9 +8,7 @@ import { PatientSelector } from '@/components/PatientSelector';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Crown } from 'lucide-react';
+import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 
 interface Diagnosis {
   diagnosis: string;
@@ -122,47 +120,10 @@ export const ChatDashboard = () => {
   // Show subscription gate if not subscribed
   if (user && !subscribed) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <Card className="max-w-lg">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Crown className="h-8 w-8" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl">Unlock AI Health Assistant</CardTitle>
-            <CardDescription className="text-base">
-              Get unlimited access to advanced AI conversations, patient management, health record integration, and AI-powered diagnostic insights.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span>Unlimited AI health conversations</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span>Patient profiles and data management</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span>AI-powered diagnostic insights</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span>Conversation history and memory</span>
-              </div>
-            </div>
-            <Button 
-              onClick={() => createCheckoutSession('pro')}
-              size="lg"
-              className="w-full bg-primary hover:bg-primary/90"
-            >
-              Upgrade to Pro - $50/month
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="h-full flex items-center justify-center p-8">
+        <div className="max-w-4xl w-full">
+          <PlanSelectionCard description="Unlock AI health consultations, patient management, and diagnostic insights. Choose the plan that fits your needs:" />
+        </div>
       </div>
     );
   }

@@ -12,10 +12,12 @@ import { User, Shield, CreditCard, Bell, Settings, Lock, AlertTriangle, Trash2 }
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const UserSettings = () => {
   const { user, signOut } = useAuth();
   const { subscribed, openCustomerPortal } = useSubscription();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -49,7 +51,7 @@ export const UserSettings = () => {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => window.location.href = '/pricing'}
+            onClick={() => navigate('/pricing')}
             className="h-6 px-2 text-xs"
           >
             View Plans
@@ -130,7 +132,7 @@ export const UserSettings = () => {
                   )}
                   {!subscribed && (
                     <Button 
-                      onClick={() => window.location.href = '/pricing'}
+                      onClick={() => navigate('/pricing')}
                     >
                       Subscribe Now
                     </Button>
