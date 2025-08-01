@@ -30,14 +30,25 @@ export const PatientDropdown = ({
   open,
   onOpenChange,
 }: PatientDropdownProps) => {
-  // Ensure patients is always an array to prevent cmdk iteration errors
-  const safePatients = Array.isArray(patients) ? patients : [];
+  // Ensure patients is always an array and each patient has required fields
+  const safePatients = Array.isArray(patients) 
+    ? patients.filter(patient => 
+        patient && 
+        patient.id && 
+        patient.first_name && 
+        patient.last_name
+      )
+    : [];
+
   const getPatientDisplayName = (patient: Patient) => {
+    if (!patient || !patient.first_name || !patient.last_name) {
+      return 'Unknown Patient';
+    }
     const name = `${patient.first_name} ${patient.last_name}`;
     if (patient.is_primary) {
       return `${name} (Primary)`;
     }
-    return `${name} (${patient.relationship})`;
+    return `${name} (${patient.relationship || 'Unknown'})`;
   };
 
   return (
@@ -63,7 +74,7 @@ export const PatientDropdown = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        {safePatients.length >= 0 ? (
+        {safePatients.length > 0 ? (
           <Command>
             <CommandInput placeholder="Search patients..." />
             <CommandEmpty>No patients found.</CommandEmpty>
@@ -97,7 +108,7 @@ export const PatientDropdown = ({
           </Command>
         ) : (
           <div className="p-4 text-center text-muted-foreground">
-            Loading patients...
+            No patients available
           </div>
         )}
       </PopoverContent>
