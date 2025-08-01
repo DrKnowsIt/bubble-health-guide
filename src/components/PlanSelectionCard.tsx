@@ -39,10 +39,9 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
         "All 11 comprehensive health forms",
         "Complex medical reasoning & analysis",
         "Health profile management",
-        "Conversation history tracking",
-        "Health records & data tracking",
-        "Symptom tracking over time",
-        "Priority processing speed"
+        "Complete conversation history",
+        "Health records & data organization",
+        "Symptom pattern analysis over time"
       ],
       icon: Crown,
       tier: 'pro' as const,
