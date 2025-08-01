@@ -270,6 +270,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          alpha_tester: boolean
           created_at: string
           date_of_birth: string | null
           email: string | null
@@ -283,6 +284,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          alpha_tester?: boolean
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -296,6 +298,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          alpha_tester?: boolean
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -351,7 +354,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_alpha_tester: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
