@@ -288,19 +288,19 @@ export const AISettings = () => {
                 <SelectItem value="low">
                   <div className="space-y-1">
                     <div className="font-medium">Low</div>
-                    <div className="text-xs text-muted-foreground">Basic personalization</div>
+                    <div className="text-xs text-muted-foreground">Standard responses</div>
                   </div>
                 </SelectItem>
                 <SelectItem value="medium">
                   <div className="space-y-1">
                     <div className="font-medium">Medium</div>
-                    <div className="text-xs text-muted-foreground">Balanced personalization</div>
+                    <div className="text-xs text-muted-foreground">Remembers your health information</div>
                   </div>
                 </SelectItem>
                 <SelectItem value="high">
                   <div className="space-y-1">
                     <div className="font-medium">High</div>
-                    <div className="text-xs text-muted-foreground">Deep personalization</div>
+                    <div className="text-xs text-muted-foreground">Tailored to your specific needs</div>
                   </div>
                 </SelectItem>
               </SelectContent>
