@@ -13,7 +13,6 @@ import { Brain, HardDrive, Settings, Trash2, User, Users } from 'lucide-react';
 
 interface AISettingsData {
   memory_enabled: boolean;
-  personalization_level: 'low' | 'medium' | 'high';
 }
 
 export const AISettings = () => {
@@ -26,8 +25,7 @@ export const AISettings = () => {
   const [patientKnowledge, setPatientKnowledge] = useState<string>('');
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
   const [settings, setSettings] = useState<AISettingsData>({
-    memory_enabled: true,
-    personalization_level: 'medium'
+    memory_enabled: true
   });
 
   useEffect(() => {
@@ -56,8 +54,7 @@ export const AISettings = () => {
 
       if (data) {
         setSettings({
-          memory_enabled: data.memory_enabled,
-          personalization_level: data.personalization_level as 'low' | 'medium' | 'high'
+          memory_enabled: data.memory_enabled
         });
       }
     } catch (error: any) {
@@ -77,8 +74,7 @@ export const AISettings = () => {
         .from('ai_settings')
         .upsert({
           user_id: user?.id,
-          memory_enabled: settings.memory_enabled,
-          personalization_level: settings.personalization_level
+          memory_enabled: settings.memory_enabled
         });
 
       if (error) throw error;
@@ -226,8 +222,7 @@ export const AISettings = () => {
 
   const resetToDefaults = () => {
     setSettings({
-      memory_enabled: true,
-      personalization_level: 'medium'
+      memory_enabled: true
     });
   };
 
@@ -248,10 +243,10 @@ export const AISettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
-            AI Memory & Personalization
+            AI Memory
           </CardTitle>
           <CardDescription>
-            Configure how DrKnowItAll remembers and personalizes your interactions.
+            Configure how DrKnowItAll remembers your health information across conversations.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -273,42 +268,6 @@ export const AISettings = () => {
             />
           </div>
 
-          <div className="space-y-3">
-            <Label>Personalization Level</Label>
-            <Select
-              value={settings.personalization_level}
-              onValueChange={(value) =>
-                setSettings({ ...settings, personalization_level: value as 'low' | 'medium' | 'high' })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">
-                  <div className="space-y-1">
-                    <div className="font-medium">Low</div>
-                    <div className="text-xs text-muted-foreground">Standard responses</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="medium">
-                  <div className="space-y-1">
-                    <div className="font-medium">Medium</div>
-                    <div className="text-xs text-muted-foreground">Remembers your health information</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="high">
-                  <div className="space-y-1">
-                    <div className="font-medium">High</div>
-                    <div className="text-xs text-muted-foreground">Tailored to your specific needs</div>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="text-sm text-muted-foreground">
-              Higher levels provide more personalized responses based on your health profile and preferences.
-            </div>
-          </div>
 
           <div className="flex gap-2">
             <Button onClick={updateSettings} disabled={loading}>
@@ -411,7 +370,7 @@ export const AISettings = () => {
               </div>
               <div className="text-xs text-muted-foreground">
                 This shows what DrKnowsIt has learned about the selected patient based on your conversations. 
-                The AI uses this information to provide more personalized and relevant health guidance.
+                The AI uses this information to provide more relevant health guidance.
               </div>
             </div>
           )}
