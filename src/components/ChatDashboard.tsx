@@ -132,8 +132,8 @@ export const ChatDashboard = () => {
           />
         </div>
 
-        {/* Diagnosis Panel - Right */}
-        {selectedPatient && currentConversation && messages.length > 1 && (
+        {/* Diagnosis Panel - Right - Only show when there's an active conversation with messages */}
+        {selectedPatient && currentConversation && messages.length > 1 && diagnoses.length > 0 && (
           <div className="w-80 shrink-0">
             <ProbableDiagnoses 
               diagnoses={diagnoses}

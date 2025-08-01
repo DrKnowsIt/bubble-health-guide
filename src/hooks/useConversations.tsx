@@ -70,6 +70,8 @@ export const useConversations = () => {
     if (!user) return null;
 
     try {
+      console.log('Creating conversation:', { title, patientId, userId: user.id });
+      
       const { data, error } = await supabase
         .from('conversations')
         .insert({
@@ -80,7 +82,12 @@ export const useConversations = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating conversation:', error);
+        throw error;
+      }
+      
+      console.log('Conversation created successfully:', data);
       
       // Set as current conversation immediately
       setCurrentConversation(data.id);
