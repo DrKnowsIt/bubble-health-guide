@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface AuthModalProps {
 
 export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProps) => {
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -47,6 +49,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
         if (!error) {
           onClose();
           resetForm();
+          navigate('/dashboard');
         }
       } else {
         const { error } = await signIn(formData.email, formData.password);
@@ -54,6 +57,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
         if (!error) {
           onClose();
           resetForm();
+          navigate('/dashboard');
         }
       }
     } catch (error) {
