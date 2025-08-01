@@ -15,10 +15,10 @@
     --card-foreground: 0 0% 98%;
 
     /* Primary - Bright Teal */
-    --primary: 180 84% 50%;
+    --primary: 180 84% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 180 84% 55%;
-    --primary-light: 180 84% 85%;
+    --primary-hover: 180 84% 50%;
+    --primary-light: 180 84% 80%;
 
     /* Secondary - Clean Grey */
     --secondary: 220 15% 16%;
@@ -38,11 +38,11 @@
     /* Interface Elements */
     --border: 220 15% 24%;
     --input: 220 15% 13%;
-    --ring: 180 84% 50%;
+    --ring: 180 84% 45%;
 
     /* Chat Interface */
     --chat-bg: 220 15% 9%;
-    --chat-user: 180 84% 50%;
+    --chat-user: 180 84% 45%;
     --chat-ai: 220 15% 13%;
     --chat-bubble-shadow: 220 15% 5%;
 
@@ -51,15 +51,15 @@
     --warning: 20 100% 60%;
     --destructive: 0 60% 55%;
     --destructive-soft: 0 40% 50%;
-    --info: 180 84% 50%;
+    --info: 180 84% 45%;
 
     /* Solid Backgrounds - No Gradients */
-    --solid-primary: 180 84% 50%;
+    --solid-primary: 180 84% 45%;
     --solid-accent: 20 100% 60%;
     --solid-hero: 220 15% 10%;
 
     /* Shadows */
-    --shadow-bubble: 0 4px 16px -2px hsl(180 84% 50% / 0.3);
+    --shadow-bubble: 0 4px 16px -2px hsl(180 84% 45% / 0.3);
     --shadow-card: 0 2px 8px -1px hsl(220 15% 5% / 0.4);
     --shadow-elevated: 0 8px 24px -4px hsl(220 15% 5% / 0.5);
 
@@ -72,12 +72,12 @@
     /* Sidebar */
     --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 180 84% 50%;
+    --sidebar-primary: 180 84% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 15% 18%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 180 84% 50%;
+    --sidebar-ring: 180 84% 45%;
 
     /* Popovers */
     --popover: 220 15% 13%;
