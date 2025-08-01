@@ -143,9 +143,9 @@ const UserAgreement = () => {
                   </ul>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2">Monetary Limitation</h4>
-                  <p className="text-blue-700 text-sm">
+                <div className="bg-teal-50 border border-teal-200 p-4 rounded-lg">
+                  <h4 className="font-semibold text-teal-800 mb-2">Monetary Limitation</h4>
+                  <p className="text-teal-700 text-sm">
                     In no event shall our total liability to you exceed the amount you paid 
                     for the service in the 12 months preceding the claim, or $100, whichever is less.
                   </p>

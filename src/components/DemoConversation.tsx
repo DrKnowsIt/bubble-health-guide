@@ -125,19 +125,19 @@ export const DemoConversation = () => {
 
           {/* Probable Diagnoses - Right Side */}
           <div className="w-80 shrink-0">
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/20 dark:to-indigo-950/20 dark:border-blue-800 h-fit">
+            <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 dark:from-teal-950/20 dark:to-cyan-950/20 dark:border-teal-800 h-fit">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                <CardTitle className="flex items-center gap-2 text-teal-900 dark:text-teal-100">
                   <TrendingUp className="h-5 w-5" />
                   Initial Assessment
                 </CardTitle>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+                <p className="text-sm text-teal-700 dark:text-teal-300">
                   Based on limited information, these conditions require further evaluation:
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
                 {probableDiagnoses.map((diagnosis, index) => (
-                  <div key={index} className="flex items-start justify-between p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-blue-100 dark:border-blue-800">
+                  <div key={index} className="flex items-start justify-between p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-teal-100 dark:border-teal-800">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-gray-900 dark:text-gray-100">
@@ -152,7 +152,7 @@ export const DemoConversation = () => {
                       </p>
                     </div>
                     <div className="text-right ml-3">
-                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      <div className="text-lg font-bold text-teal-600 dark:text-teal-400">
                         {diagnosis.probability}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
