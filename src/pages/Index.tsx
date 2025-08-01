@@ -11,9 +11,10 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
 import { SimpleChatInterface } from "@/components/SimpleChatInterface";
-
 const Index = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showHistory, setShowHistory] = useState(false);
@@ -24,24 +25,24 @@ const Index = () => {
     selectConversation,
     deleteConversation
   } = useConversations();
-
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
-
   const openAuth = (mode: 'signin' | 'signup') => {
-    navigate('/auth', { state: { mode } });
+    navigate('/auth', {
+      state: {
+        mode
+      }
+    });
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       <main>
-        {isMobile ? (
-          // Mobile: Clean, simple chat interface
-          <section className="h-[calc(100vh-64px)]">
+        {isMobile ?
+      // Mobile: Clean, simple chat interface
+      <section className="h-[calc(100vh-64px)]">
             <div className="h-full flex flex-col">
               {/* Mobile Header */}
               <div className="shrink-0 text-center p-4 bg-card border-b border-border">
@@ -66,42 +67,23 @@ const Index = () => {
 
               {/* Mobile Chat - Simple interface */}
               <div className="flex-1">
-                {showHistory && user ? (
-                  <div className="h-full flex">
-                    <ConversationSidebar
-                      conversations={conversations}
-                      currentConversation={currentConversation}
-                      onSelectConversation={selectConversation}
-                      onStartNewConversation={startNewConversation}
-                      onDeleteConversation={deleteConversation}
-                      isAuthenticated={!!user}
-                    />
+                {showHistory && user ? <div className="h-full flex">
+                    <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                     <div className="flex-1">
                       <ChatInterfaceWithHistory />
                     </div>
-                  </div>
-                ) : (
-                  <SimpleChatInterface 
-                    onShowHistory={user ? () => setShowHistory(true) : undefined}
-                  />
-                )}
+                  </div> : <SimpleChatInterface onShowHistory={user ? () => setShowHistory(true) : undefined} />}
               </div>
             </div>
-          </section>
-        ) : (
-          // Desktop: Full layout with sidebar
-          <section className="relative bg-background">
+          </section> :
+      // Desktop: Full layout with sidebar
+      <section className="relative bg-background">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
               {/* Pain Point Hero */}
               <div className="text-center mb-8">
                 <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-foreground mb-3">
-                    Healthcare feeling more like a rushed assembly line than actual care?
-                  </h1>
-                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">
-                    Beat the system by coming over-prepared. Organized symptoms, smart questions, and clear timelines 
-                    that demand real attention from your healthcare team.
-                  </p>
+                  <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare feeling like a rushed assembly line more than actual care?</h1>
+                  <p className="text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">Organize symptoms and clear timelines that demand real attention from your healthcare team.</p>
                 </div>
                 
                 <div className="mb-4">
@@ -126,32 +108,22 @@ const Index = () => {
               </div>
 
               {/* Desktop Chat Interface with Sidebar */}
-              <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{ height: '70vh' }}>
-                <ConversationSidebar
-                  conversations={conversations}
-                  currentConversation={currentConversation}
-                  onSelectConversation={selectConversation}
-                  onStartNewConversation={startNewConversation}
-                  onDeleteConversation={deleteConversation}
-                  isAuthenticated={!!user}
-                />
+              <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{
+            height: '70vh'
+          }}>
+                <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                 <ChatInterfaceWithHistory />
               </div>
             </div>
-          </section>
-        )}
+          </section>}
 
         {/* Info Sections - Hidden on mobile to keep it simple */}
-        {!isMobile && (
-          <div className="mt-12">
+        {!isMobile && <div className="mt-12">
             <HowItWorks />
             <Features />
-          </div>
-        )}
+          </div>}
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
