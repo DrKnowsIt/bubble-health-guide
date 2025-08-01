@@ -73,7 +73,7 @@ export default function UserDashboard() {
       title: "Health Records"
     },
     forms: {
-      requiredTier: 'pro',
+      requiredTier: 'basic',
       icon: Calendar,
       title: "Health Forms"
     },
@@ -123,7 +123,7 @@ export default function UserDashboard() {
           {isMobile ?
         // Mobile: Simple bottom navigation
         <div className="order-2 border-t border-border bg-background p-2 mt-auto">
-              <TabsList className="w-full grid grid-cols-3">
+              <TabsList className="w-full grid grid-cols-4">
                 <TabsTrigger value="chat" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
@@ -137,6 +137,13 @@ export default function UserDashboard() {
                     {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   <span className="text-xs">Records</span>
+                </TabsTrigger>
+                <TabsTrigger value="forms" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
+                  <div className="relative">
+                    <Calendar className="h-4 w-4" />
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                  </div>
+                  <span className="text-xs">Forms</span>
                 </TabsTrigger>
                 <TabsTrigger value="overview" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
@@ -164,13 +171,13 @@ export default function UserDashboard() {
                   </div>
                   Health Records
                 </TabsTrigger>
-                <TabsTrigger value="forms" className={cn("flex items-center gap-2 relative", !hasAccess('pro') && "opacity-50")}>
-                  <div className="relative">
-                    <Calendar className="h-4 w-4" />
-                    {!hasAccess('pro') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
-                  </div>
-                  Health Forms
-                </TabsTrigger>
+                 <TabsTrigger value="forms" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}>
+                   <div className="relative">
+                     <Calendar className="h-4 w-4" />
+                     {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                   </div>
+                   Health Forms
+                 </TabsTrigger>
                 <TabsTrigger value="ai-settings" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <Brain className="h-4 w-4" />
@@ -224,18 +231,18 @@ export default function UserDashboard() {
               </div>
             </TabsContent>
 
-            {!isMobile && <TabsContent value="forms" className="h-full mt-0 pt-4">
-                <div className="h-full overflow-y-auto">
-                  <SubscriptionGate requiredTier="pro" feature="Health Forms" description="Access structured health forms and comprehensive data entry with a Pro subscription.">
+            <TabsContent value="forms" className="h-full mt-0 pt-4">
+                <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
+                  <SubscriptionGate requiredTier="basic" feature="Health Forms" description="Access structured health forms and comprehensive data entry with a Basic or Pro subscription.">
                     <div className="space-y-4">
                       {/* Contextual Patient Selector */}
-                      <ContextualPatientSelector patients={patients} selectedPatient={selectedPatient} onPatientSelect={setSelectedPatient} hasAccess={hasAccess('pro')} title="Health Forms" description="Select a patient to fill out their health forms" />
+                      <ContextualPatientSelector patients={patients} selectedPatient={selectedPatient} onPatientSelect={setSelectedPatient} hasAccess={hasAccess('basic')} title="Health Forms" description="Select a patient to fill out their health forms" />
                       
                       <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
                     </div>
                   </SubscriptionGate>
                 </div>
-              </TabsContent>}
+              </TabsContent>
 
             {!isMobile && <TabsContent value="ai-settings" className="h-full mt-0 pt-4">
                 <div className="h-full overflow-y-auto">
