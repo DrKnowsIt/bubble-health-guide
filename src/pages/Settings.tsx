@@ -11,14 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAlphaTester } from "@/hooks/useAlphaTester";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AlphaTesterPanel } from "@/components/AlphaTesterPanel";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
+  const { isAlphaTester } = useAlphaTester();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -221,6 +224,9 @@ const Settings = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Alpha Tester Panel - Only visible to alpha testers */}
+              {isAlphaTester && <AlphaTesterPanel />}
             </TabsContent>
 
             {/* Privacy Tab */}
