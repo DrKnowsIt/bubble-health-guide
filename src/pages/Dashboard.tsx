@@ -20,7 +20,7 @@ import {
   X
 } from "lucide-react";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory";
+import { ChatDashboard } from "@/components/ChatDashboard";
 import { HealthProfile } from "@/components/HealthProfile";
 import { UserSettings } from "@/components/UserSettings";
 import { useAuth } from "@/hooks/useAuth";
@@ -107,7 +107,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="flex-1 p-6 flex flex-col min-h-0">
-            {activeTab === "chat" && <ChatInterfaceWithHistory />}
+            {activeTab === "chat" && <ChatDashboard />}
             {activeTab === "health" && <HealthProfile user={userForHeader} />}
             {activeTab === "settings" && <UserSettings />}
           </div>
