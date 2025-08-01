@@ -11,7 +11,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
 import { SimpleChatInterface } from "@/components/SimpleChatInterface";
-import aiDoctorHologram from "@/assets/ai-doctor-hologram.jpg";
+import friendlyAiDoctor from "@/assets/friendly-ai-doctor.jpg";
 const Index = () => {
   const {
     user
@@ -114,8 +114,8 @@ const Index = () => {
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative max-w-md w-full">
                     <img 
-                      src={aiDoctorHologram} 
-                      alt="Person using computer with holographic AI doctor providing health guidance"
+                      src={friendlyAiDoctor} 
+                      alt="Friendly 3D AI doctor character with a welcoming smile providing health guidance"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
