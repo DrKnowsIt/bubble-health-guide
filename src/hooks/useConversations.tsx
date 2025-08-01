@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -23,9 +24,20 @@ export const useConversations = () => {
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Ref to track optimistic updates for rollback
+  const optimisticConversationRef = useRef<Conversation | null>(null);
+  
+  // Debug logging
+  const logDebug = (action: string, data?: any) => {
+    console.log(`[Conversations Debug] ${action}:`, data);
+  };
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!user) return;
+    
+    logDebug('Fetching conversations for user', user.id);
     
     try {
       const { data, error } = await supabase
@@ -34,11 +46,19 @@ export const useConversations = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      logDebug('Conversations fetched', { count: data?.length || 0 });
+      
+      // Use flushSync to ensure immediate state update
+      flushSync(() => {
+        setConversations(data || []);
+      });
+      
     } catch (error) {
       console.error('Error fetching conversations:', error);
+      logDebug('Error fetching conversations', error);
     }
-  };
+  }, [user]);
 
   const fetchMessages = async (conversationId: string) => {
     try {
@@ -68,17 +88,35 @@ export const useConversations = () => {
 
   const createConversation = async (title: string, patientId?: string | null) => {
     if (!user) {
-      console.error('No user found when trying to create conversation');
+      logDebug('No user found when trying to create conversation');
       return null;
     }
 
+    // Create optimistic conversation for immediate UI update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticConversation: Conversation = {
+      id: tempId,
+      title,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    logDebug('Creating conversation with optimistic update', { 
+      title, 
+      patientId, 
+      userId: user.id,
+      tempId
+    });
+
     try {
-      console.log('Creating conversation with:', { 
-        title, 
-        patientId, 
-        userId: user.id,
-        userEmail: user.email 
+      // Optimistic update - add conversation immediately to UI
+      optimisticConversationRef.current = optimisticConversation;
+      flushSync(() => {
+        setConversations(prev => [optimisticConversation, ...prev]);
+        setCurrentConversation(tempId);
       });
+      
+      logDebug('Optimistic conversation added to UI');
       
       const insertData = {
         user_id: user.id,
@@ -86,7 +124,7 @@ export const useConversations = () => {
         patient_id: patientId
       };
       
-      console.log('Insert data:', insertData);
+      logDebug('Inserting conversation to database', insertData);
       
       const { data, error } = await supabase
         .from('conversations')
@@ -95,23 +133,32 @@ export const useConversations = () => {
         .single();
 
       if (error) {
-        console.error('Database error creating conversation:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+        logDebug('Database error creating conversation', error);
+        
+        // Rollback optimistic update
+        flushSync(() => {
+          setConversations(prev => prev.filter(conv => conv.id !== tempId));
+          setCurrentConversation(null);
         });
+        optimisticConversationRef.current = null;
+        
         throw error;
       }
       
-      console.log('Conversation created successfully:', data);
+      logDebug('Conversation created successfully in database', data);
       
-      // Set as current conversation immediately
-      setCurrentConversation(data.id);
+      // Replace optimistic conversation with real one
+      flushSync(() => {
+        setConversations(prev => 
+          prev.map(conv => conv.id === tempId ? data : conv)
+        );
+        setCurrentConversation(data.id);
+      });
       
-      // Update conversations list immediately with the new conversation
-      setConversations(prev => [data, ...prev]);
+      optimisticConversationRef.current = null;
+      
+      // Trigger refresh to ensure sidebar is in sync
+      setRefreshTrigger(prev => prev + 1);
       
       // Add default intro message to the new conversation
       try {
@@ -120,15 +167,24 @@ export const useConversations = () => {
           'ai', 
           "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
         );
-        console.log('Default message saved successfully');
+        logDebug('Default message saved successfully');
       } catch (messageError) {
-        console.error('Error saving default message:', messageError);
+        logDebug('Error saving default message', messageError);
       }
       
       return data.id;
     } catch (error) {
-      console.error('Error creating conversation:', error);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
+      logDebug('Error creating conversation', error);
+      
+      // Ensure rollback happened if not already done
+      if (optimisticConversationRef.current) {
+        flushSync(() => {
+          setConversations(prev => prev.filter(conv => conv.id !== tempId));
+          setCurrentConversation(null);
+        });
+        optimisticConversationRef.current = null;
+      }
+      
       return null;
     }
   };
@@ -157,13 +213,20 @@ export const useConversations = () => {
   };
 
   const startNewConversation = () => {
-    setCurrentConversation(null);
-    setMessages([{
-      id: 'welcome',
-      type: 'ai',
-      content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
-      timestamp: new Date()
-    }]);
+    logDebug('Starting new conversation');
+    
+    flushSync(() => {
+      setCurrentConversation(null);
+      setMessages([{
+        id: 'welcome',
+        type: 'ai',
+        content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
+        timestamp: new Date()
+      }]);
+    });
+    
+    // Trigger refresh to ensure conversations are up to date
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const selectConversation = (conversationId: string) => {
@@ -173,6 +236,8 @@ export const useConversations = () => {
 
   const deleteConversation = async (conversationId: string) => {
     if (!user) return;
+
+    logDebug('Deleting conversation', conversationId);
 
     try {
       // Delete messages first (due to foreign key constraint)
@@ -190,26 +255,33 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
-      
-      // If we deleted the current conversation, start a new one
-      if (currentConversation === conversationId) {
-        setCurrentConversation(null);
-        setMessages([{
-          id: 'welcome',
-          type: 'ai',
-          content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
-          timestamp: new Date()
-        }]);
-      }
+      // Update local state with flushSync for immediate update
+      flushSync(() => {
+        setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+        
+        // If we deleted the current conversation, start a new one
+        if (currentConversation === conversationId) {
+          setCurrentConversation(null);
+          setMessages([{
+            id: 'welcome',
+            type: 'ai',
+            content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
+            timestamp: new Date()
+          }]);
+        }
+      });
+
+      // Trigger refresh
+      setRefreshTrigger(prev => prev + 1);
 
       toast({
         title: "Conversation deleted",
         description: "The conversation has been successfully deleted.",
       });
+      
+      logDebug('Conversation deleted successfully');
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      logDebug('Error deleting conversation', error);
       toast({
         title: "Error",
         description: "Failed to delete conversation. Please try again.",
@@ -218,8 +290,10 @@ export const useConversations = () => {
     }
   };
 
+  // Effect for initial load and user changes
   useEffect(() => {
     if (user) {
+      logDebug('User changed, fetching conversations');
       fetchConversations();
       if (!currentConversation) {
         setCurrentConversation(null);
@@ -231,7 +305,15 @@ export const useConversations = () => {
         }]);
       }
     }
-  }, [user]);
+  }, [user, fetchConversations]);
+
+  // Effect for refresh trigger - ensures conversations are synced
+  useEffect(() => {
+    if (refreshTrigger > 0 && user) {
+      logDebug('Refresh triggered, re-fetching conversations');
+      fetchConversations();
+    }
+  }, [refreshTrigger, user, fetchConversations]);
 
   return {
     conversations,
@@ -244,6 +326,7 @@ export const useConversations = () => {
     startNewConversation,
     selectConversation,
     fetchConversations,
-    deleteConversation
+    deleteConversation,
+    refreshTrigger // Expose for external components to track updates
   };
 };

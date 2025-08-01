@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory';
 import { ConversationSidebar } from '@/components/ConversationSidebar';
 import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
@@ -28,19 +28,40 @@ export const ChatDashboard = () => {
     messages, 
     startNewConversation,
     selectConversation,
-    deleteConversation
+    deleteConversation,
+    refreshTrigger
   } = useConversations();
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  
+  // Debug logging for state tracking
+  const logDebug = useCallback((action: string, data?: any) => {
+    console.log(`[ChatDashboard Debug] ${action}:`, data);
+  }, []);
+  
+  // Track dependency changes
+  useEffect(() => {
+    logDebug('Conversations updated', { 
+      count: conversations.length, 
+      current: currentConversation,
+      refreshTrigger 
+    });
+  }, [conversations, currentConversation, refreshTrigger, logDebug]);
 
   // Load diagnoses for current conversation and patient
   useEffect(() => {
+    logDebug('Diagnoses dependency changed', {
+      currentConversation,
+      patientId: selectedPatient?.id,
+      messagesLength: messages.length
+    });
+    
     if (currentConversation && selectedPatient?.id && messages.length > 0) {
       loadDiagnosesForConversation();
     } else {
       setDiagnoses([]);
     }
-  }, [currentConversation, selectedPatient?.id, messages.length]);
+  }, [currentConversation, selectedPatient?.id, messages.length, logDebug]);
 
   const loadDiagnosesForConversation = async () => {
     try {
@@ -121,6 +142,7 @@ export const ChatDashboard = () => {
             onStartNewConversation={startNewConversation}
             onDeleteConversation={deleteConversation}
             isAuthenticated={!!user}
+            key={`sidebar-${refreshTrigger}-${conversations.length}`} // Force re-render on updates
           />
         </div>
 
