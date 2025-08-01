@@ -6,6 +6,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -84,8 +85,9 @@ export const PatientDropdown = ({
         {safePatients.length > 0 ? (
           <Command>
             <CommandInput placeholder="Search patients..." />
-            <CommandEmpty>No patients found.</CommandEmpty>
-            <CommandGroup>
+            <CommandList>
+              <CommandEmpty>No patients found.</CommandEmpty>
+              <CommandGroup>
               {safePatients.map((patient) => (
                 <CommandItem
                   key={patient.id}
@@ -112,8 +114,9 @@ export const PatientDropdown = ({
                     </span>
                   </div>
                 </CommandItem>
-              ))}
-            </CommandGroup>
+               ))}
+              </CommandGroup>
+            </CommandList>
           </Command>
         ) : (
           <div className="p-4 text-center text-muted-foreground">
