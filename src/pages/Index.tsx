@@ -11,7 +11,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
 import { SimpleChatInterface } from "@/components/SimpleChatInterface";
-import friendlyAiDoctor from "@/assets/friendly-ai-doctor.jpg";
+// Using the uploaded Dr. Knowsit mascot image
 const Index = () => {
   const {
     user
@@ -114,8 +114,8 @@ const Index = () => {
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative max-w-md w-full">
                     <img 
-                      src={friendlyAiDoctor} 
-                      alt="Friendly 3D AI doctor character with a welcoming smile providing health guidance"
+                      src="/lovable-uploads/069921a5-1824-4d71-9236-bfaad178e67d.png" 
+                      alt="Dr. Knowsit mascot - a friendly cartoon stethoscope character introducing himself"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
