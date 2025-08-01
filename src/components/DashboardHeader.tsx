@@ -1,57 +1,59 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
 interface DashboardHeaderProps {
   className?: string;
 }
-
-export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
-  const { user, signOut } = useAuth();
-  const { subscription_tier, subscribed } = useSubscription();
-
+export const DashboardHeader = ({
+  className
+}: DashboardHeaderProps) => {
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    subscription_tier,
+    subscribed
+  } = useSubscription();
   const handleLogout = async () => {
     await signOut();
   };
-
   const getUserDisplayName = () => {
     if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
       return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
     }
     return user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'User';
   };
-
   const getUserInitials = () => {
     const name = getUserDisplayName();
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
   const getTierDisplay = () => {
-    if (!subscribed || !subscription_tier) return { text: 'Free', variant: 'secondary' as const };
-    if (subscription_tier === 'pro') return { text: 'Pro', variant: 'default' as const };
-    if (subscription_tier === 'basic') return { text: 'Basic', variant: 'outline' as const };
-    return { text: 'Free', variant: 'secondary' as const };
+    if (!subscribed || !subscription_tier) return {
+      text: 'Free',
+      variant: 'secondary' as const
+    };
+    if (subscription_tier === 'pro') return {
+      text: 'Pro',
+      variant: 'default' as const
+    };
+    if (subscription_tier === 'basic') return {
+      text: 'Basic',
+      variant: 'outline' as const
+    };
+    return {
+      text: 'Free',
+      variant: 'secondary' as const
+    };
   };
-
   const tierInfo = getTierDisplay();
-
-  return (
-    <header className={cn(
-      "sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
-      className
-    )}>
+  return <header className={cn("sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80", className)}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Brand Section */}
         <div className="flex items-center gap-3">
@@ -72,18 +74,12 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
           </Badge>
 
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative h-9 w-9 rounded-full">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-2 w-2 bg-accent rounded-full"></span>
-          </Button>
+          
 
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2 h-9 px-2 hover:bg-muted/50"
-              >
+              <Button variant="ghost" className="flex items-center gap-2 h-9 px-2 hover:bg-muted/50">
                 <Avatar className="h-7 w-7">
                   <AvatarImage src={user?.user_metadata?.avatar_url} />
                   <AvatarFallback className="text-xs bg-primary/10 text-primary">
@@ -121,20 +117,14 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
                 </Badge>
               </div>
               <DropdownMenuSeparator className="md:hidden" />
-              <DropdownMenuItem 
-                asChild
-                className="flex items-center gap-2 cursor-pointer"
-              >
+              <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
                 <Link to="/settings">
                   <Settings className="h-4 w-4" />
                   Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="flex items-center gap-2 text-destructive focus:text-destructive"
-                onClick={handleLogout}
-              >
+              <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
                 Log out
               </DropdownMenuItem>
@@ -142,6 +132,5 @@ export const DashboardHeader = ({ className }: DashboardHeaderProps) => {
           </DropdownMenu>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
