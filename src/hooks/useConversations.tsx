@@ -67,23 +67,41 @@ export const useConversations = () => {
   };
 
   const createConversation = async (title: string, patientId?: string | null) => {
-    if (!user) return null;
+    if (!user) {
+      console.error('No user found when trying to create conversation');
+      return null;
+    }
 
     try {
-      console.log('Creating conversation:', { title, patientId, userId: user.id });
+      console.log('Creating conversation with:', { 
+        title, 
+        patientId, 
+        userId: user.id,
+        userEmail: user.email 
+      });
+      
+      const insertData = {
+        user_id: user.id,
+        title,
+        patient_id: patientId
+      };
+      
+      console.log('Insert data:', insertData);
       
       const { data, error } = await supabase
         .from('conversations')
-        .insert({
-          user_id: user.id,
-          title,
-          patient_id: patientId
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating conversation:', error);
+        console.error('Database error creating conversation:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
       
@@ -96,15 +114,21 @@ export const useConversations = () => {
       setConversations(prev => [data, ...prev]);
       
       // Add default intro message to the new conversation
-      await saveMessage(
-        data.id, 
-        'ai', 
-        "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
-      );
+      try {
+        await saveMessage(
+          data.id, 
+          'ai', 
+          "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?"
+        );
+        console.log('Default message saved successfully');
+      } catch (messageError) {
+        console.error('Error saving default message:', messageError);
+      }
       
       return data.id;
     } catch (error) {
       console.error('Error creating conversation:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
       return null;
     }
   };
