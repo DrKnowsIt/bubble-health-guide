@@ -46,6 +46,35 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if user is an alpha tester and has existing subscription data
+    const { data: existingSubscription } = await supabaseClient
+      .from("subscribers")
+      .select("*")
+      .eq("email", user.email)
+      .single();
+
+    const { data: profileData } = await supabaseClient
+      .from("profiles")
+      .select("alpha_tester")
+      .eq("email", user.email)
+      .single();
+
+    const isAlphaTester = profileData?.alpha_tester || false;
+    logStep("Alpha tester status checked", { isAlphaTester, hasExistingSubscription: !!existingSubscription });
+
+    // If user is an alpha tester and has existing subscription data, prioritize that
+    if (isAlphaTester && existingSubscription && existingSubscription.subscribed) {
+      logStep("Returning existing alpha tester subscription data");
+      return new Response(JSON.stringify({
+        subscribed: existingSubscription.subscribed,
+        subscription_tier: existingSubscription.subscription_tier,
+        subscription_end: existingSubscription.subscription_end
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
