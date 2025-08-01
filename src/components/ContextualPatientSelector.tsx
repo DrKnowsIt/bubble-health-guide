@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PatientDropdown } from "@/components/PatientDropdown";
+import { UserDropdown } from "@/components/UserDropdown";
 import { Patient } from "@/hooks/usePatients";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,8 +20,8 @@ export const ContextualPatientSelector = ({
   onPatientSelect,
   hasAccess,
   className,
-  title = "Patient Selection",
-  description = "Select a patient to view their data"
+  title = "User Selection",
+  description = "Select a user to view their data"
 }: ContextualPatientSelectorProps) => {
   const [open, setOpen] = useState(false);
 
@@ -43,7 +43,7 @@ export const ContextualPatientSelector = ({
       </div>
       
       <div className={cn("max-w-xs", !hasAccess && "opacity-50 pointer-events-none")}>
-        <PatientDropdown
+        <UserDropdown
           patients={patients}
           selectedPatient={selectedPatient}
           onPatientSelect={hasAccess ? onPatientSelect : () => {}}
@@ -54,7 +54,7 @@ export const ContextualPatientSelector = ({
       
       {hasAccess && !selectedPatient && patients.length > 0 && (
         <div className="text-xs text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 px-3 py-2 rounded-md border border-orange-200">
-          Please select a patient to view their data
+          Please select a user to view their data
         </div>
       )}
     </div>

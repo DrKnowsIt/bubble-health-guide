@@ -102,9 +102,9 @@ export const usePatients = () => {
     if (!canAddPatient()) {
       const limit = getPatientLimit();
       if (limit === 0) {
-        throw new Error('A subscription is required to add patients. Please upgrade to access this feature.');
+        throw new Error('A subscription is required to add users. Please upgrade to access this feature.');
       } else {
-        throw new Error(`Patient limit reached. Your ${subscription_tier} plan allows up to ${limit} patients. Please upgrade to add more patients.`);
+        throw new Error(`User limit reached. Your ${subscription_tier} plan allows up to ${limit} users. Please upgrade to add more users.`);
       }
     }
 

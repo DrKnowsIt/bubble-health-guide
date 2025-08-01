@@ -9,11 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePatients, Patient } from '@/hooks/usePatients';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
-import { PatientSelector } from './PatientSelector';
+import { UserSelector } from './UserSelector';
 import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
 import { ConversationHistory } from './ConversationHistory';
-import { PatientDropdown } from './PatientDropdown';
+import { UserDropdown } from './UserDropdown';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -174,9 +174,9 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
     return (
       <div className="text-center p-8">
         <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No Patients Found</h3>
+        <h3 className="text-lg font-medium mb-2">No Users Found</h3>
         <p className="text-muted-foreground mb-4">
-          You need to add patients before you can start chatting.
+          You need to add users before you can start chatting.
         </p>
       </div>
     );
@@ -187,7 +187,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
     return (
       <div className="h-full flex flex-col">
         <div className="p-4 border-b">
-          <PatientDropdown
+          <UserDropdown
             patients={patients}
             selectedPatient={selectedPatient}
             onPatientSelect={handlePatientSelect}
@@ -360,9 +360,9 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Select a Patient</h3>
+                    <h3 className="text-lg font-medium mb-2">Select a User</h3>
                     <p className="text-muted-foreground">
-                      Choose a patient from the dropdown to start chatting.
+                      Choose a user from the dropdown to start chatting.
                     </p>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
             <div className="p-6 bg-muted/30 rounded-lg">
               <h3 className="font-medium mb-2">Probable Diagnoses</h3>
               <p className="text-sm text-muted-foreground">
-                Select a patient to view their probable diagnoses based on conversation history.
+                Select a user to view their probable diagnoses based on conversation history.
               </p>
             </div>
           )}

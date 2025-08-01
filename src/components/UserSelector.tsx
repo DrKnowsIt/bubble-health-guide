@@ -10,12 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { usePatients, Patient, CreatePatientData } from '@/hooks/usePatients';
 import { useToast } from '@/hooks/use-toast';
 
-interface PatientSelectorProps {
-  onPatientSelected?: (patient: Patient | null) => void;
+interface UserSelectorProps {
+  onUserSelected?: (user: Patient | null) => void;
   className?: string;
 }
 
-export const PatientSelector = ({ onPatientSelected, className }: PatientSelectorProps) => {
+export const UserSelector = ({ onUserSelected, className }: UserSelectorProps) => {
   const { patients, selectedPatient, setSelectedPatient, createPatient, loading, canAddPatient, getPatientLimit } = usePatients();
   const { toast } = useToast();
   const [isAddingPatient, setIsAddingPatient] = useState(false);
@@ -28,10 +28,10 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     is_primary: false
   });
 
-  const handlePatientChange = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId) || null;
-    setSelectedPatient(patient);
-    onPatientSelected?.(patient);
+  const handleUserChange = (userId: string) => {
+    const user = patients.find(p => p.id === userId) || null;
+    setSelectedPatient(user);
+    onUserSelected?.(user);
   };
 
   const handleCreatePatient = async () => {
@@ -47,11 +47,11 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     try {
       await createPatient({
         ...newPatient,
-        is_primary: patients.length === 0 // First patient is automatically primary
+        is_primary: patients.length === 0 // First user is automatically primary
       });
       
       toast({
-        title: "Patient Added",
+        title: "User Added",
         description: `${newPatient.first_name} ${newPatient.last_name} has been added successfully.`
       });
 
@@ -67,7 +67,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to add patient. Please try again.",
+        description: error.message || "Failed to add user. Please try again.",
         variant: "destructive"
       });
     }
@@ -77,7 +77,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        <span className="text-sm text-muted-foreground">Loading patients...</span>
+        <span className="text-sm text-muted-foreground">Loading users...</span>
       </div>
     );
   }
@@ -94,7 +94,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
               Subscription Required
             </CardTitle>
             <CardDescription>
-              A subscription is required to add patients. Please upgrade to access this feature.
+              A subscription is required to add users. Please upgrade to access this feature.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -106,11 +106,11 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
             <Users className="h-5 w-5" />
-            No Patients Added
+            No Users Added
           </CardTitle>
           <CardDescription>
-            You need to add at least one patient before you can start chatting with DrKnowsIt.
-            Your plan allows up to {patientLimit} patients.
+            You need to add at least one user before you can start chatting with DrKnowsIt.
+            Your plan allows up to {patientLimit} users.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
@@ -118,12 +118,12 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
             <DialogTrigger asChild>
               <Button className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Patient
+                Add Your First User
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Patient</DialogTitle>
+                <DialogTitle>Add New User</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -194,7 +194,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
                 </div>
 
                 <Button onClick={handleCreatePatient} className="w-full">
-                  Add Patient
+                  Add User
                 </Button>
               </div>
             </DialogContent>
@@ -208,15 +208,15 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     <div className={`flex items-center space-x-4 ${className}`}>
       <div className="flex items-center space-x-2">
         <User className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Patient:</span>
+        <span className="text-sm font-medium">User:</span>
       </div>
       
       <Select 
         value={selectedPatient?.id || ''} 
-        onValueChange={handlePatientChange}
+        onValueChange={handleUserChange}
       >
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select patient" />
+          <SelectValue placeholder="Select user" />
         </SelectTrigger>
         <SelectContent>
           {patients.map((patient) => (
@@ -238,16 +238,16 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
             variant="outline" 
             size="sm"
             disabled={!canAddPatient()}
-            title={!canAddPatient() ? `Patient limit reached (${getPatientLimit()} max)` : undefined}
+            title={!canAddPatient() ? `User limit reached (${getPatientLimit()} max)` : undefined}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Patient
+            Add User
             {!canAddPatient() && <Lock className="h-3 w-3 ml-1" />}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Patient</DialogTitle>
+            <DialogTitle>Add New User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -318,7 +318,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
             </div>
 
             <Button onClick={handleCreatePatient} className="w-full">
-              Add Patient
+              Add User
             </Button>
           </div>
         </DialogContent>
@@ -326,3 +326,6 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
     </div>
   );
 };
+
+// Backward compatibility export
+export const PatientSelector = UserSelector;

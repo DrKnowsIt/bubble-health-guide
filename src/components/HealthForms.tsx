@@ -565,7 +565,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           <CardDescription>
             {selectedPatient 
               ? `Complete optional health forms for ${selectedPatient.first_name}. These forms help DrKnowItAll provide more personalized analysis.`
-              : "Select a patient to complete their optional health assessment forms. These forms help provide more personalized and insightful health analysis."
+              : "Select a user to complete their optional health assessment forms. These forms help provide more personalized and insightful health analysis."
             }
             {subscription_tier === 'basic' && (
               <span className="block mt-2 text-orange-600">
@@ -578,7 +578,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           {!selectedPatient && patients.length > 0 && (
             <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <p className="text-orange-800 text-sm">
-                ⚠️ Please select a patient from the dropdown above to complete their health forms.
+                ⚠️ Please select a user from the dropdown above to complete their health forms.
               </p>
             </div>
           )}

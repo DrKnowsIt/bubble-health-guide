@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Patient } from '@/hooks/usePatients';
 
-interface PatientDropdownProps {
+interface UserDropdownProps {
   patients: Patient[];
   selectedPatient: Patient | null;
   onPatientSelect: (patient: Patient | null) => void;
@@ -24,13 +24,13 @@ interface PatientDropdownProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const PatientDropdown = ({
+export const UserDropdown = ({
   patients = [],
   selectedPatient,
   onPatientSelect,
   open,
   onOpenChange,
-}: PatientDropdownProps) => {
+}: UserDropdownProps) => {
   // Ensure patients is always an array and each patient has required fields
   const safePatients = Array.isArray(patients) 
     ? patients.filter(patient => 
@@ -43,7 +43,7 @@ export const PatientDropdown = ({
 
   const getPatientDisplayName = (patient: Patient) => {
     if (!patient || !patient.first_name || !patient.last_name) {
-      return 'Unknown Patient';
+      return 'Unknown User';
     }
     const name = `${patient.first_name} ${patient.last_name}`;
     if (patient.is_primary) {
@@ -54,7 +54,7 @@ export const PatientDropdown = ({
 
   const getPatientValue = (patient: Patient) => {
     if (!patient || !patient.first_name || !patient.last_name) {
-      return `unknown-${patient?.id || 'patient'}`;
+      return `unknown-${patient?.id || 'user'}`;
     }
     return `${patient.first_name.trim()} ${patient.last_name.trim()}`.toLowerCase();
   };
@@ -75,7 +75,7 @@ export const PatientDropdown = ({
                 {getPatientDisplayName(selectedPatient)}
               </span>
             ) : (
-              <span className="text-muted-foreground">Select patient...</span>
+              <span className="text-muted-foreground">Select user...</span>
             )}
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -84,9 +84,9 @@ export const PatientDropdown = ({
       <PopoverContent className="w-full p-0" align="start">
         {safePatients.length > 0 ? (
           <Command>
-            <CommandInput placeholder="Search patients..." />
+            <CommandInput placeholder="Search users..." />
             <CommandList>
-              <CommandEmpty>No patients found.</CommandEmpty>
+              <CommandEmpty>No users found.</CommandEmpty>
               <CommandGroup>
               {safePatients.map((patient) => (
                 <CommandItem
@@ -120,10 +120,13 @@ export const PatientDropdown = ({
           </Command>
         ) : (
           <div className="p-4 text-center text-muted-foreground">
-            No patients available
+            No users available
           </div>
         )}
       </PopoverContent>
     </Popover>
   );
 };
+
+// Backward compatibility export
+export const PatientDropdown = UserDropdown;

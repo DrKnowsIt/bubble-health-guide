@@ -4,7 +4,7 @@ import { ConversationSidebar } from '@/components/ConversationSidebar';
 import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
 import { useConversations } from '@/hooks/useConversations';
 import { usePatients } from '@/hooks/usePatients';
-import { PatientSelector } from '@/components/PatientSelector';
+import { UserSelector } from '@/components/UserSelector';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,7 +122,7 @@ export const ChatDashboard = () => {
     return (
       <div className="h-full flex items-center justify-center p-8">
         <div className="max-w-4xl w-full">
-          <PlanSelectionCard description="Unlock AI health consultations, patient management, and diagnostic insights. Choose the plan that fits your needs:" />
+          <PlanSelectionCard description="Unlock AI health consultations, user management, and diagnostic insights. Choose the plan that fits your needs:" />
         </div>
       </div>
     );
@@ -133,7 +133,7 @@ export const ChatDashboard = () => {
 
       {/* Patient Selector */}
       <div className={`shrink-0 ${!subscribed ? 'opacity-50 pointer-events-none' : ''}`}>
-        <PatientSelector />
+        <UserSelector />
       </div>
 
       {/* Main Chat Layout */}

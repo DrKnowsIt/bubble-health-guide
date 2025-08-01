@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, User, Calendar, Activity, Lock, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PatientSelector } from "@/components/PatientSelector";
+import { UserSelector } from "@/components/UserSelector";
 import { HealthRecords } from "@/components/HealthRecords";
 import { HealthForms } from "@/components/HealthForms";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +44,7 @@ export const HealthProfile = () => {
 
       {/* Patient Selector */}
       <div className={!subscribed ? 'opacity-50 pointer-events-none' : ''}>
-        <PatientSelector />
+        <UserSelector />
       </div>
 
       {/* Health Profile Tabs */}
