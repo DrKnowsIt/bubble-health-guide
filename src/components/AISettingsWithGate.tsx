@@ -4,9 +4,9 @@ import { AISettings } from '@/components/AISettings';
 export const AISettingsWithGate = () => {
   return (
     <SubscriptionGate
-      requiredTier="pro"
+      requiredTier="basic"
       feature="AI Settings"
-      description="Customize AI behavior, memory settings, and personalization preferences to enhance your health conversations."
+      description="Customize AI behavior and personalization preferences with a Basic or Pro subscription."
     >
       <AISettings />
     </SubscriptionGate>
