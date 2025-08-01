@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Auth() {
-  const { user, signIn, signUp } = useAuth();
+  const { user, session, loading: authLoading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -26,22 +26,50 @@ export default function Auth() {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  // Debug logging for authentication state
   useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
+    console.log('Auth component - Current state:', {
+      user: user?.id || 'null',
+      session: session?.access_token ? 'exists' : 'null',
+      authLoading,
+      currentPath: location.pathname,
+      redirectTo: from
+    });
+  }, [user, session, authLoading, location.pathname, from]);
+
+  useEffect(() => {
+    if (!authLoading && user && session) {
+      console.log('Auth - Redirecting authenticated user to:', from);
+      try {
+        navigate(from, { replace: true });
+      } catch (error) {
+        console.error('Auth - Navigation error:', error);
+        // Fallback navigation
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [user, navigate, from]);
+  }, [user, session, authLoading, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log('Auth - Form submission started:', { isSignUp, email: formData.email });
 
     try {
-      if (isSignUp) {
-        await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
-      } else {
-        await signIn(formData.email, formData.password);
+      const result = isSignUp 
+        ? await signUp(formData.email, formData.password, formData.firstName, formData.lastName)
+        : await signIn(formData.email, formData.password);
+      
+      console.log('Auth - Form submission result:', { 
+        success: !result?.error, 
+        error: result?.error?.message 
+      });
+      
+      if (result?.error) {
+        console.error('Auth - Authentication failed:', result.error);
       }
+    } catch (error) {
+      console.error('Auth - Unexpected error during authentication:', error);
     } finally {
       setLoading(false);
     }
