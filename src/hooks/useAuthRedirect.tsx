@@ -11,8 +11,8 @@ export const useAuthRedirect = () => {
     // Don't redirect while loading
     if (loading) return;
 
-    // Don't redirect if on auth page (allow login/signup)
-    if (location.pathname === '/auth') return;
+    // Don't redirect if on auth page (allow login/signup) or settings page
+    if (location.pathname === '/auth' || location.pathname === '/settings') return;
 
     // If user is authenticated and not already on dashboard, redirect to dashboard
     if (user && location.pathname !== '/dashboard') {

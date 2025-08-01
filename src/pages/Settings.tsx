@@ -128,7 +128,7 @@ const Settings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" value={user.email || ''} disabled />
+                      <Input id="email" value={user.email || ''} readOnly />
                       <p className="text-xs text-muted-foreground">Your email cannot be changed</p>
                     </div>
                     <div className="space-y-2">
