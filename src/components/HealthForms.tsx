@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,8 @@ import {
   Dumbbell, 
   Dna,
   Upload,
-  Calendar
+  Calendar,
+  Lock
 } from 'lucide-react';
 
 interface HealthForm {
@@ -258,6 +260,7 @@ interface HealthFormsProps {
 export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient }: HealthFormsProps) => {
   const { user } = useAuth();
   const { patients, selectedPatient: hookSelectedPatient } = usePatients();
+  const { subscribed, subscription_tier } = useSubscription();
   
   // Use prop patient if provided, otherwise use hook patient
   const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
@@ -265,6 +268,37 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [selectedForm, setSelectedForm] = useState<HealthForm | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+
+  // Define forms available for basic tier
+  const basicTierFormIds = [
+    'personal_demographics', 
+    'medical_history', 
+    'vital_signs_current', 
+    'patient_observations'
+  ];
+
+  // Filter forms based on subscription tier
+  const getAvailableForms = () => {
+    if (!subscribed || !subscription_tier) return [];
+    
+    if (subscription_tier === 'basic') {
+      return healthForms.filter(form => basicTierFormIds.includes(form.id));
+    }
+    
+    if (subscription_tier === 'pro') {
+      return healthForms;
+    }
+    
+    return [];
+  };
+
+  const availableForms = getAvailableForms();
+  const restrictedForms = healthForms.filter(form => !availableForms.includes(form));
+
+  // Check if a form is accessible
+  const isFormAccessible = (formId: string) => {
+    return availableForms.some(form => form.id === formId);
+  };
 
   // Update form data when selectedPatient changes
   useEffect(() => {
@@ -503,13 +537,20 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     );
   }
 
+  if (!subscribed || !subscription_tier) {
+    return (
+      <SubscriptionGate
+        requiredTier="basic"
+        feature="Health Forms"
+        description="Access health forms to systematically collect and organize your medical information for better AI insights."
+      >
+        <div />
+      </SubscriptionGate>
+    );
+  }
+
   return (
-    <SubscriptionGate
-      requiredTier="pro"
-      feature="Health Forms"
-      description="Access comprehensive health forms to systematically collect and organize your medical information for better AI insights."
-    >
-      <div className="space-y-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -526,6 +567,11 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
               ? `Complete optional health forms for ${selectedPatient.first_name}. These forms help DrKnowItAll provide more personalized analysis.`
               : "Select a patient to complete their optional health assessment forms. These forms help provide more personalized and insightful health analysis."
             }
+            {subscription_tier === 'basic' && (
+              <span className="block mt-2 text-orange-600">
+                Your Basic plan includes 4 essential forms. Upgrade to Pro for access to all 11 comprehensive forms.
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -537,35 +583,79 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             </div>
           )}
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {healthForms.map((form) => (
-              <Card 
-                key={form.id} 
-                className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && patients.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                onClick={() => {
-                  if (selectedPatient || patients.length === 0) {
-                    setSelectedForm(form);
-                  }
-                }}
-              >
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <form.icon className="h-6 w-6 text-primary mt-1" />
-                    <div>
-                      <h3 className="font-medium mb-2">{form.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {form.fields.length} fields to complete
-                      </p>
-                      <Button size="sm">Fill Out Form</Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {/* Available Forms */}
+          {availableForms.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">
+                Available Forms ({availableForms.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableForms.map((form) => (
+                  <Card 
+                    key={form.id} 
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && patients.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    onClick={() => {
+                      if (selectedPatient || patients.length === 0) {
+                        setSelectedForm(form);
+                      }
+                    }}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-3">
+                        <form.icon className="h-6 w-6 text-primary mt-1" />
+                        <div>
+                          <h3 className="font-medium mb-2">{form.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {form.fields.length} fields to complete
+                          </p>
+                          <Button size="sm">Fill Out Form</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Restricted Forms (for Basic tier users) */}
+          {restrictedForms.length > 0 && subscription_tier === 'basic' && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+                Pro Forms ({restrictedForms.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {restrictedForms.map((form) => (
+                  <Card 
+                    key={form.id} 
+                    className="opacity-60 cursor-not-allowed border-dashed"
+                  >
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-3">
+                        <div className="relative">
+                          <form.icon className="h-6 w-6 text-muted-foreground mt-1" />
+                          <Lock className="h-3 w-3 absolute -top-1 -right-1 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium mb-2 text-muted-foreground">{form.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {form.fields.length} fields • Pro Only
+                          </p>
+                          <Button size="sm" variant="outline" disabled>
+                            <Lock className="h-3 w-3 mr-1" />
+                            Upgrade to Access
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
-    </SubscriptionGate>
   );
 };

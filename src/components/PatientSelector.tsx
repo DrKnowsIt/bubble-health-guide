@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, User, Users } from 'lucide-react';
+import { Plus, User, Users, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ interface PatientSelectorProps {
 }
 
 export const PatientSelector = ({ onPatientSelected, className }: PatientSelectorProps) => {
-  const { patients, selectedPatient, setSelectedPatient, createPatient, loading } = usePatients();
+  const { patients, selectedPatient, setSelectedPatient, createPatient, loading, canAddPatient, getPatientLimit } = usePatients();
   const { toast } = useToast();
   const [isAddingPatient, setIsAddingPatient] = useState(false);
   const [newPatient, setNewPatient] = useState<CreatePatientData>({
@@ -64,10 +64,10 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
         relationship: 'self',
         is_primary: false
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to add patient. Please try again.",
+        description: error.message || "Failed to add patient. Please try again.",
         variant: "destructive"
       });
     }
@@ -83,6 +83,24 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
   }
 
   if (patients.length === 0) {
+    const patientLimit = getPatientLimit();
+    
+    if (patientLimit === 0) {
+      return (
+        <Card className={className}>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Lock className="h-5 w-5" />
+              Subscription Required
+            </CardTitle>
+            <CardDescription>
+              A subscription is required to add patients. Please upgrade to access this feature.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      );
+    }
+    
     return (
       <Card className={className}>
         <CardHeader className="text-center">
@@ -92,6 +110,7 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
           </CardTitle>
           <CardDescription>
             You need to add at least one patient before you can start chatting with DrKnowsIt.
+            Your plan allows up to {patientLimit} patients.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
@@ -215,9 +234,15 @@ export const PatientSelector = ({ onPatientSelected, className }: PatientSelecto
 
       <Dialog open={isAddingPatient} onOpenChange={setIsAddingPatient}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            disabled={!canAddPatient()}
+            title={!canAddPatient() ? `Patient limit reached (${getPatientLimit()} max)` : undefined}
+          >
             <Plus className="h-4 w-4 mr-1" />
             Add Patient
+            {!canAddPatient() && <Lock className="h-3 w-3 ml-1" />}
           </Button>
         </DialogTrigger>
         <DialogContent>

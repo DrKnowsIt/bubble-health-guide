@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useSubscription } from './useSubscription';
 
 export interface Diagnosis {
   diagnosis: string;
@@ -34,6 +35,7 @@ export interface CreatePatientData {
 
 export const usePatients = () => {
   const { user } = useAuth();
+  const { subscribed, subscription_tier } = useSubscription();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,9 +80,33 @@ export const usePatients = () => {
     }
   };
 
+  // Get patient limit based on subscription
+  const getPatientLimit = () => {
+    if (!subscribed || !subscription_tier) return 0;
+    if (subscription_tier === 'basic') return 2;
+    if (subscription_tier === 'pro') return 10;
+    return 0;
+  };
+
+  // Check if user can add more patients
+  const canAddPatient = () => {
+    const limit = getPatientLimit();
+    return patients.length < limit;
+  };
+
   // Create a new patient
   const createPatient = async (patientData: CreatePatientData) => {
     if (!user) throw new Error('User not authenticated');
+    
+    // Check patient limit
+    if (!canAddPatient()) {
+      const limit = getPatientLimit();
+      if (limit === 0) {
+        throw new Error('A subscription is required to add patients. Please upgrade to access this feature.');
+      } else {
+        throw new Error(`Patient limit reached. Your ${subscription_tier} plan allows up to ${limit} patients. Please upgrade to add more patients.`);
+      }
+    }
 
     try {
       const { data, error } = await supabase
@@ -191,6 +217,8 @@ export const usePatients = () => {
     createPatient,
     updatePatient,
     deletePatient,
-    refreshPatients: fetchPatients
+    refreshPatients: fetchPatients,
+    canAddPatient,
+    getPatientLimit
   };
 };
