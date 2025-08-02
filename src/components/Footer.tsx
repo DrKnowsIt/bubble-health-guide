@@ -98,17 +98,17 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-border py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-muted-foreground">
+        {/* Bottom Section - Mobile optimized */}
+        <div className="border-t border-border py-6 lg:py-8">
+          <div className="flex flex-col lg:flex-row justify-between items-center space-y-3 lg:space-y-0 gap-4">
+            <div className="mobile-text-sm text-muted-foreground text-center lg:text-left">
               © 2025 DrKnowsIt. All rights reserved.
             </div>
             
-            {/* Important Medical Disclaimer */}
-            <div className="flex items-center space-x-2 rounded-lg bg-warning/10 border border-warning/20 px-3 py-1">
-              <Heart className="h-4 w-4 text-warning" />
-              <span className="text-xs font-medium text-warning">
+            {/* Important Medical Disclaimer - Mobile responsive */}
+            <div className="flex items-center gap-2 rounded-lg bg-warning/10 border border-warning/20 px-3 py-2 max-w-full">
+              <Heart className="h-4 w-4 text-warning flex-shrink-0" />
+              <span className="mobile-text-xs font-medium text-warning text-center lg:text-left break-words">
                 Not a substitute for professional medical advice
               </span>
             </div>

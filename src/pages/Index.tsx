@@ -42,38 +42,40 @@ const Index = () => {
       <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       <main>
         {isMobile ?
-      // Mobile: Clean, simple chat interface
-      <section className="h-[calc(100vh-64px)]">
+      // Mobile: Clean, simple chat interface with better spacing
+      <section className="h-[calc(100vh-4rem)]">
             <div className="h-full flex flex-col">
-              {/* Mobile Header */}
-              <div className="shrink-0 text-center p-4 bg-card border-b border-border">
-                <h1 className="text-lg font-bold text-foreground mb-2">
+              {/* Mobile Header - Properly spaced */}
+              <div className="shrink-0 text-center p-4 bg-card border-b border-border space-y-3">
+                <h1 className="mobile-text-lg sm:text-xl font-bold text-foreground leading-tight">
                   Healthcare feeling like an assembly line?
                 </h1>
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="mobile-text-sm text-muted-foreground leading-relaxed">
                   Beat the system - come over-prepared with{" "}
                   <span className="text-primary font-semibold">DrKnowsIt</span>
                 </p>
-                <p className="text-xs text-muted-foreground/70 mb-3">
+                <p className="mobile-text-xs text-muted-foreground/70">
                   Powered by Grok
                 </p>
                 
-                {/* Compact Disclaimer */}
-                <div className="rounded-md bg-warning/10 border border-warning/20 p-2">
-                  <p className="text-xs text-warning font-medium">
+                {/* Compact Disclaimer - Better mobile formatting */}
+                <div className="rounded-md bg-warning/10 border border-warning/20 p-3 mx-2">
+                  <p className="mobile-text-xs text-warning font-medium leading-relaxed">
                     ⚠️ General information only. Consult healthcare professionals for medical decisions.
                   </p>
                 </div>
               </div>
 
-              {/* Mobile Chat - Simple interface */}
-              <div className="flex-1">
+              {/* Mobile Chat - Properly contained with spacing */}
+              <div className="flex-1 min-h-0 overflow-hidden">
                 {showHistory && user ? <div className="h-full flex">
                     <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                    <div className="flex-1">
+                    <div className="flex-1 min-h-0 overflow-hidden">
                       <ChatInterfaceWithHistory />
                     </div>
-                  </div> : <SimpleChatInterface onShowHistory={user ? () => setShowHistory(true) : undefined} />}
+                  </div> : <div className="h-full overflow-hidden">
+                    <SimpleChatInterface onShowHistory={user ? () => setShowHistory(true) : undefined} />
+                  </div>}
               </div>
             </div>
           </section> :
