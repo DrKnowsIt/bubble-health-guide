@@ -79,7 +79,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-card border-border">
+      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-bubble">
