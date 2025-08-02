@@ -118,13 +118,24 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error calling Grok AI:', error);
+      
+      // Enhanced error handling with specific error types
+      let errorContent = 'I apologize, but I encountered an error while processing your request.';
+      
+      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
+      } else if (error.message?.includes('rate limit')) {
+        errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
+      } else if (error.message?.includes('unauthorized')) {
+        errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
+      }
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: 'I apologize, but I encountered an error while processing your request. Please try again or check your connection.',
+        content: errorContent + ' You can try asking your question again.',
         timestamp: new Date()
       };
       

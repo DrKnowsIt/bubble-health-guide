@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserDropdown } from "@/components/UserDropdown";
 import { Patient } from "@/hooks/usePatients";
-import { Lock } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContextualPatientSelectorProps {
@@ -9,6 +9,7 @@ interface ContextualPatientSelectorProps {
   selectedPatient: Patient | null;
   onPatientSelect: (patient: Patient | null) => void;
   hasAccess: boolean;
+  loading?: boolean;
   className?: string;
   title?: string;
   description?: string;
@@ -19,6 +20,7 @@ export const ContextualPatientSelector = ({
   selectedPatient,
   onPatientSelect,
   hasAccess,
+  loading = false,
   className,
   title = "User Selection",
   description = "Select a user to view their data"
@@ -43,13 +45,20 @@ export const ContextualPatientSelector = ({
       </div>
       
       <div className={cn("max-w-xs", !hasAccess && "opacity-50 pointer-events-none")}>
-        <UserDropdown
-          patients={patients}
-          selectedPatient={selectedPatient}
-          onPatientSelect={hasAccess ? onPatientSelect : () => {}}
-          open={hasAccess ? open : false}
-          onOpenChange={hasAccess ? setOpen : () => {}}
-        />
+        {loading ? (
+          <div className="flex items-center gap-2 p-2 border rounded-md">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm text-muted-foreground">Loading patients...</span>
+          </div>
+        ) : (
+          <UserDropdown
+            patients={patients}
+            selectedPatient={selectedPatient}
+            onPatientSelect={hasAccess ? onPatientSelect : () => {}}
+            open={hasAccess ? open : false}
+            onOpenChange={hasAccess ? setOpen : () => {}}
+          />
+        )}
       </div>
       
       {hasAccess && !selectedPatient && patients.length > 0 && (

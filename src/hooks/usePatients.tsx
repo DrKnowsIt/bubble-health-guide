@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
+import { useToast } from './use-toast';
 
 export interface Diagnosis {
   diagnosis: string;
@@ -36,12 +37,13 @@ export interface CreatePatientData {
 export const usePatients = () => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
+  const { toast } = useToast();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch patients
-  const fetchPatients = async () => {
+  const fetchPatients = async (retryCount = 0) => {
     if (!user) {
       setPatients([]);
       setLoading(false);
@@ -73,8 +75,27 @@ export const usePatients = () => {
         const primaryPatient = transformedData.find(p => p.is_primary);
         setSelectedPatient(primaryPatient || transformedData[0]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching patients:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 2 && (error.message?.includes('network') || error.message?.includes('timeout'))) {
+        console.log(`Retrying patients fetch... (attempt ${retryCount + 1})`);
+        setTimeout(() => fetchPatients(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
+      setPatients([]);
+      setSelectedPatient(null);
+      
+      // Only show toast if not a retry
+      if (retryCount === 0) {
+        toast({
+          variant: "destructive",
+          title: "Error Loading Patients",
+          description: "Failed to load patient data. Please check your connection.",
+        });
+      }
     } finally {
       setLoading(false);
     }

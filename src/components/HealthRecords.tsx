@@ -91,7 +91,8 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
     }
   }, [user, selectedPatient]);
 
-  const loadRecords = async () => {
+  const loadRecords = async (retryCount = 0) => {
+    setLoading(true);
     try {
       let query = supabase
         .from('health_records')
@@ -108,11 +109,31 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
       if (error) throw error;
       setRecords(data || []);
     } catch (error: any) {
+      console.error('Failed to load health records:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 2 && (error.message?.includes('network') || error.message?.includes('timeout'))) {
+        console.log(`Retrying health records load... (attempt ${retryCount + 1})`);
+        setTimeout(() => loadRecords(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to load health records.",
+        title: "Error Loading Records",
+        description: "Failed to load health records. Please check your connection and try again.",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadRecords()}
+          >
+            Retry
+          </Button>
+        ),
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -489,8 +510,15 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
               isLargeFile={currentFileSize > 5 * 1024 * 1024}
             />
 
-            <div className="space-y-4">
-              {records.length === 0 ? (
+            {/* Loading State */}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">Loading health records...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {records.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No Health Records</h3>
@@ -559,7 +587,8 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                   );
                 })
               )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
         
