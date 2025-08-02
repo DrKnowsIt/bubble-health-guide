@@ -99,34 +99,6 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
         >
           <div className="pb-4 pt-2 space-y-2">
             <Link
-              to="/#features"
-              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
-              onClick={(e) => {
-                const currentPath = window.location.pathname;
-                if (currentPath === '/') {
-                  e.preventDefault();
-                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                }
-                setIsMenuOpen(false);
-              }}
-            >
-              Features
-            </Link>
-            <Link
-              to="/#how-it-works"
-              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
-              onClick={(e) => {
-                const currentPath = window.location.pathname;
-                if (currentPath === '/') {
-                  e.preventDefault();
-                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-                }
-                setIsMenuOpen(false);
-              }}
-            >
-              How It Works
-            </Link>
-            <Link
               to="/pricing"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
               onClick={() => setIsMenuOpen(false)}
