@@ -14,6 +14,7 @@ import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
+import { MobileChatInterface } from './MobileChatInterface';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -186,150 +187,13 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     );
   }
 
-  // Mobile layout
+  // Mobile layout - Use new simplified interface
   if (isMobile) {
     return (
-      <div className="h-full flex flex-col">
-        <div className="p-4 border-b">
-          <UserDropdown
-            users={users}
-            selectedUser={selectedUser}
-            onUserSelect={handleUserSelect}
-            open={userDropdownOpen}
-            onOpenChange={setUserDropdownOpen}
-          />
-        </div>
-
-        {selectedUser && (
-          <div className="p-4 border-b">
-            <ProbableDiagnoses 
-              diagnoses={selectedUser.probable_diagnoses || []}
-              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-              patientId={selectedUser.id}
-            />
-          </div>
-        )}
-
-        {/* Mobile Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              History
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="chat" className="flex-1 flex flex-col mt-4">
-            <Card className="flex-1 flex flex-col mx-4">
-              <CardContent className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[400px]">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`flex max-w-[80%] space-x-3 ${
-                        message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
-                          message.type === 'user' 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {message.type === 'user' ? (
-                          <UserIcon className="h-5 w-5" />
-                        ) : (
-                          <Bot className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div
-                        className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden ${
-                          message.type === 'user'
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                          {message.content}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex space-x-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                        <Bot className="h-5 w-5" />
-                      </div>
-                      <div className="bg-muted px-4 py-3 rounded-2xl">
-                        <div className="flex space-x-1">
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </CardContent>
-
-              <div className="border-t p-4">
-                <div className="flex space-x-2">
-                  <div className="flex-1 relative">
-                    <Textarea
-                      placeholder="Describe your symptoms..."
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="min-h-[50px] max-h-[120px] resize-none pr-12"
-                      disabled={!selectedUser}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute bottom-2 right-2 h-8 w-8 p-0"
-                      onClick={toggleRecording}
-                      disabled={!selectedUser || isProcessing}
-                    >
-                      {isRecording ? (
-                        <MicOff className="h-4 w-4 text-red-500" />
-                      ) : (
-                        <Mic className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <Button 
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isTyping || !selectedUser}
-                    className="h-[50px] px-6"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="history" className="flex-1 mt-4 mx-4">
-            <ConversationHistory
-              selectedPatientId={selectedUser?.id}
-              onConversationSelect={handleConversationSelect}
-              onNewConversation={handleNewConversation}
-              activeConversationId={currentConversation}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+      <MobileChatInterface 
+        selectedUser={selectedUser}
+        onUserSelect={handleUserSelect}
+      />
     );
   }
 
