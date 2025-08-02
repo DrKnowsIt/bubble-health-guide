@@ -31,15 +31,19 @@ export const Footer = () => {
                       to="/#features" 
                       className="text-muted-foreground hover:text-primary transition-smooth"
                       onClick={(e) => {
-                        const currentPath = window.location.pathname;
-                        const isMobile = window.innerWidth < 768;
-                        if (currentPath === '/' && !isMobile) {
-                          e.preventDefault();
-                          setTimeout(() => {
-                            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                          }, 100);
+                        // Always prevent default and handle the navigation manually
+                        e.preventDefault();
+                        
+                        // If we're already on the home page, just scroll
+                        if (window.location.pathname === '/') {
+                          const featuresElement = document.getElementById('features');
+                          if (featuresElement) {
+                            featuresElement.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        } else {
+                          // Navigate to home page with features hash
+                          window.location.href = '/#features';
                         }
-                        // For mobile or other pages, let the default navigation happen
                       }}
                     >
                       Features
