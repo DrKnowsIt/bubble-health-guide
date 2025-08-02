@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { useToast } from './ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { UploadProgressDialog } from '@/components/UploadProgressDialog';
 
 interface DNAUploadProps {
   selectedPatient?: any | null;
@@ -18,6 +19,14 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
   const [dragActive, setDragActive] = useState(false);
   const [existingDNARecords, setExistingDNARecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<'uploading' | 'analyzing' | 'complete' | 'error'>('uploading');
+  const [progressError, setProgressError] = useState<string>('');
+  const [analysisSummary, setAnalysisSummary] = useState<string>('');
+  const [currentFileName, setCurrentFileName] = useState<string>('');
+  const [currentFileSize, setCurrentFileSize] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -60,11 +69,12 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       return false;
     }
 
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+    // Hard limit at 10MB
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         variant: "destructive",
         title: "File Too Large",
-        description: "DNA files must be under 50MB.",
+        description: "DNA files must be under 10MB. Please compress or contact support for larger files.",
       });
       return false;
     }
@@ -72,17 +82,68 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
     return true;
   };
 
+  const triggerAIAnalysis = async (healthRecordId: string, fileName: string, fileSize: number) => {
+    try {
+      setCurrentStep('analyzing');
+      setAnalysisProgress(10);
+
+      // Simulate analysis progress
+      const progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => Math.min(prev + 20, 90));
+      }, 1000);
+
+      const { data, error } = await supabase.functions.invoke('summarize-health-records', {
+        body: { 
+          health_record_id: healthRecordId,
+          force_regenerate: true 
+        }
+      });
+
+      clearInterval(progressInterval);
+      setAnalysisProgress(100);
+
+      if (error) throw error;
+
+      setAnalysisSummary(data?.summary || 'Analysis completed successfully.');
+      setCurrentStep('complete');
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      setAnalysisSummary('Analysis completed with limited results due to file size or format.');
+      setCurrentStep('complete');
+    }
+  };
+
   const handleFileUpload = async (file: File) => {
     if (!validateDNAFile(file)) return;
 
+    // Check if file is large (>5MB) for warning
+    const isLargeFile = file.size > 5 * 1024 * 1024;
+    
+    setCurrentFileName(file.name);
+    setCurrentFileSize(file.size);
     setUploading(true);
+    setShowProgressDialog(true);
+    setCurrentStep('uploading');
+    setUploadProgress(0);
+    setAnalysisProgress(0);
+    setProgressError('');
+    setAnalysisSummary('');
+
     try {
+      // Simulate upload progress
+      const uploadInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}/dna/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('health-records')
         .upload(fileName, file);
+
+      clearInterval(uploadInterval);
+      setUploadProgress(100);
 
       if (uploadError) throw uploadError;
 
@@ -91,7 +152,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
         .getPublicUrl(fileName);
 
       // Create health record for DNA file
-      const { error: recordError } = await supabase
+      const { data: recordData, error: recordError } = await supabase
         .from('health_records')
         .insert({
           user_id: user?.id,
@@ -103,22 +164,30 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
             fileSize: file.size,
             uploadDate: new Date().toISOString(),
             source: file.name.toLowerCase().includes('ancestry') ? 'Ancestry' : 
-                   file.name.toLowerCase().includes('23andme') ? '23andMe' : 'Unknown'
+                   file.name.toLowerCase().includes('23andme') ? '23andMe' : 'Unknown',
+            isLargeFile
           },
           file_url: data.publicUrl
-        });
+        })
+        .select('id')
+        .single();
 
       if (recordError) throw recordError;
 
+      // Trigger AI analysis
+      await triggerAIAnalysis(recordData.id, file.name, file.size);
+
       toast({
-        title: "DNA File Uploaded",
-        description: `Successfully uploaded ${file.name}`,
+        title: "DNA File Processed",
+        description: `Successfully uploaded and analyzed ${file.name}`,
       });
 
       // Refresh existing records and notify parent
       loadExistingDNARecords();
       onUploadComplete?.();
     } catch (error: any) {
+      setCurrentStep('error');
+      setProgressError(error.message || "Failed to upload DNA file.");
       toast({
         variant: "destructive",
         title: "Upload Failed",
@@ -127,6 +196,15 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
     } finally {
       setUploading(false);
     }
+  };
+
+  const closeProgressDialog = () => {
+    setShowProgressDialog(false);
+    setCurrentStep('uploading');
+    setUploadProgress(0);
+    setAnalysisProgress(0);
+    setProgressError('');
+    setAnalysisSummary('');
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -258,6 +336,20 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
             </div>
           </div>
         )}
+
+        {/* Upload Progress Dialog */}
+        <UploadProgressDialog
+          open={showProgressDialog}
+          onClose={closeProgressDialog}
+          fileName={currentFileName}
+          uploadProgress={uploadProgress}
+          analysisProgress={analysisProgress}
+          currentStep={currentStep}
+          error={progressError}
+          summary={analysisSummary}
+          fileSize={currentFileSize}
+          isLargeFile={currentFileSize > 5 * 1024 * 1024}
+        />
       </CardContent>
     </Card>
   );

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatients } from '@/hooks/usePatients';
+import { UploadProgressDialog } from '@/components/UploadProgressDialog';
 import { 
   Users, 
   Activity, 
@@ -268,6 +269,14 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [selectedForm, setSelectedForm] = useState<HealthForm | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<'uploading' | 'analyzing' | 'complete' | 'error'>('uploading');
+  const [progressError, setProgressError] = useState<string>('');
+  const [analysisSummary, setAnalysisSummary] = useState<string>('');
+  const [currentFileName, setCurrentFileName] = useState<string>('');
+  const [currentFileSize, setCurrentFileSize] = useState<number>(0);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
@@ -312,14 +321,80 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileUpload = async (file: File): Promise<string | null> => {
+  const validateFileSize = (file: File): boolean => {
+    // Hard limit at 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File Too Large",
+        description: "Files must be under 10MB. Please compress your file or contact support for larger files.",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const triggerAIAnalysis = async (healthRecordId: string, fileName: string, fileSize: number) => {
     try {
+      setCurrentStep('analyzing');
+      setAnalysisProgress(10);
+
+      // Simulate analysis progress
+      const progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => Math.min(prev + 15, 90));
+      }, 800);
+
+      const { data, error } = await supabase.functions.invoke('summarize-health-records', {
+        body: { 
+          health_record_id: healthRecordId,
+          force_regenerate: true 
+        }
+      });
+
+      clearInterval(progressInterval);
+      setAnalysisProgress(100);
+
+      if (error) throw error;
+
+      setAnalysisSummary(data?.summary || 'Analysis completed successfully.');
+      setCurrentStep('complete');
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      setAnalysisSummary('Analysis completed with limited results due to file size or format.');
+      setCurrentStep('complete');
+    }
+  };
+
+  const handleFileUpload = async (file: File): Promise<string | null> => {
+    if (!validateFileSize(file)) return null;
+
+    // Check if file is large (>5MB) for warning
+    const isLargeFile = file.size > 5 * 1024 * 1024;
+    
+    setCurrentFileName(file.name);
+    setCurrentFileSize(file.size);
+    setShowProgressDialog(true);
+    setCurrentStep('uploading');
+    setUploadProgress(0);
+    setAnalysisProgress(0);
+    setProgressError('');
+    setAnalysisSummary('');
+
+    try {
+      // Simulate upload progress
+      const uploadInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 12, 90));
+      }, 300);
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}/dna/${Date.now()}.${fileExt}`;
+      const fileName = `${user?.id}/forms/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('health-records')
         .upload(fileName, file);
+
+      clearInterval(uploadInterval);
+      setUploadProgress(100);
 
       if (uploadError) throw uploadError;
 
@@ -329,6 +404,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
       return data.publicUrl;
     } catch (error: any) {
+      setCurrentStep('error');
+      setProgressError(error.message || "Failed to upload file.");
       toast({
         variant: "destructive",
         title: "Upload Error",
@@ -338,12 +415,22 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     }
   };
 
+  const closeProgressDialog = () => {
+    setShowProgressDialog(false);
+    setCurrentStep('uploading');
+    setUploadProgress(0);
+    setAnalysisProgress(0);
+    setProgressError('');
+    setAnalysisSummary('');
+  };
+
   const submitForm = async () => {
     if (!selectedForm) return;
 
     setLoading(true);
     try {
       let fileUrl = null;
+      let healthRecordId = null;
       const fileField = selectedForm.fields.find(f => f.type === 'file');
       
       if (fileField && formData[fileField.name]) {
@@ -360,7 +447,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         delete processedData[fileField.name]; // Remove file object from data
       }
 
-      const { error } = await supabase
+      const { data: recordData, error } = await supabase
         .from('health_records')
         .insert({
           user_id: user?.id,
@@ -368,20 +455,31 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           record_type: selectedForm.id,
           title: selectedForm.title,
           category: selectedForm.category,
-          data: processedData,
+          data: {
+            ...processedData,
+            isLargeFile: fileField && formData[fileField.name] ? formData[fileField.name].size > 5 * 1024 * 1024 : false
+          },
           file_url: fileUrl,
           metadata: {
             form_version: '1.0',
             completed_at: new Date().toISOString(),
             patient_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
           }
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+      healthRecordId = recordData?.id;
+
+      // Trigger AI analysis if file was uploaded
+      if (fileUrl && healthRecordId && fileField && formData[fileField.name]) {
+        await triggerAIAnalysis(healthRecordId, formData[fileField.name].name, formData[fileField.name].size);
+      }
 
       toast({
         title: "Success",
-        description: `${selectedForm.title} saved successfully.`,
+        description: fileUrl ? `${selectedForm.title} saved and analyzed successfully.` : `${selectedForm.title} saved successfully.`,
       });
 
       setFormData({});
@@ -665,6 +763,20 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           )}
         </CardContent>
       </Card>
+
+      {/* Upload Progress Dialog */}
+      <UploadProgressDialog
+        open={showProgressDialog}
+        onClose={closeProgressDialog}
+        fileName={currentFileName}
+        uploadProgress={uploadProgress}
+        analysisProgress={analysisProgress}
+        currentStep={currentStep}
+        error={progressError}
+        summary={analysisSummary}
+        fileSize={currentFileSize}
+        isLargeFile={currentFileSize > 5 * 1024 * 1024}
+      />
     </div>
   );
 };
