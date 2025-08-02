@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { UserDropdown } from "@/components/UserDropdown";
-import { Patient } from "@/hooks/usePatients";
+import { User } from "@/hooks/useUsers";
 import { Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ContextualPatientSelectorProps {
-  patients: Patient[];
-  selectedPatient: Patient | null;
-  onPatientSelect: (patient: Patient | null) => void;
+interface ContextualUserSelectorProps {
+  users: User[];
+  selectedUser: User | null;
+  onUserSelect: (user: User | null) => void;
   hasAccess: boolean;
   loading?: boolean;
   className?: string;
@@ -15,16 +15,16 @@ interface ContextualPatientSelectorProps {
   description?: string;
 }
 
-export const ContextualPatientSelector = ({
-  patients,
-  selectedPatient,
-  onPatientSelect,
+export const ContextualUserSelector = ({
+  users,
+  selectedUser,
+  onUserSelect,
   hasAccess,
   loading = false,
   className,
   title = "User Selection",
   description = "Select a user to view their data"
-}: ContextualPatientSelectorProps) => {
+}: ContextualUserSelectorProps) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -48,20 +48,20 @@ export const ContextualPatientSelector = ({
         {loading ? (
           <div className="flex items-center gap-2 p-2 border rounded-md">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm text-muted-foreground">Loading patients...</span>
+            <span className="text-sm text-muted-foreground">Loading users...</span>
           </div>
         ) : (
           <UserDropdown
-            patients={patients}
-            selectedPatient={selectedPatient}
-            onPatientSelect={hasAccess ? onPatientSelect : () => {}}
+            users={users}
+            selectedUser={selectedUser}
+            onUserSelect={hasAccess ? onUserSelect : () => {}}
             open={hasAccess ? open : false}
             onOpenChange={hasAccess ? setOpen : () => {}}
           />
         )}
       </div>
       
-      {hasAccess && !selectedPatient && patients.length > 0 && (
+      {hasAccess && !selectedUser && users.length > 0 && (
         <div className="text-xs text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 px-3 py-2 rounded-md border border-orange-200">
           Please select a user to view their data
         </div>
@@ -69,3 +69,6 @@ export const ContextualPatientSelector = ({
     </div>
   );
 };
+
+// Backward compatibility
+export const ContextualPatientSelector = ContextualUserSelector;

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Send, Mic, MicOff, Bot, User, Loader2, MessageCircle, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePatients, Patient } from '@/hooks/usePatients';
+import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { UserSelector } from './UserSelector';

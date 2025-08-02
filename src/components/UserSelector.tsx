@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, User, Users, Lock } from 'lucide-react';
+import { Plus, User as UserIcon, Users, Lock, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -7,19 +7,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { usePatients, Patient, CreatePatientData } from '@/hooks/usePatients';
+import { useUsers, User, CreateUserData } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface UserSelectorProps {
-  onPatientSelected?: (patient: Patient | null) => void;
+  onUserSelected?: (user: User | null) => void;
   className?: string;
 }
 
-export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps) => {
-  const { patients, selectedPatient, setSelectedPatient, createPatient, loading, canAddPatient, getPatientLimit } = usePatients();
+export const UserSelector = ({ onUserSelected, className }: UserSelectorProps) => {
+  const { users, selectedUser, setSelectedUser, createUser, deleteUser, loading, canAddUser, canDeleteUser, getUserLimit } = useUsers();
   const { toast } = useToast();
-  const [isAddingPatient, setIsAddingPatient] = useState(false);
-  const [newPatient, setNewPatient] = useState<CreatePatientData>({
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [newUser, setNewUser] = useState<CreateUserData>({
     first_name: '',
     last_name: '',
     date_of_birth: '',
@@ -28,14 +29,14 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
     is_primary: false
   });
 
-  const handlePatientChange = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId) || null;
-    setSelectedPatient(patient);
-    onPatientSelected?.(patient);
+  const handleUserChange = (userId: string) => {
+    const user = users.find(p => p.id === userId) || null;
+    setSelectedUser(user);
+    onUserSelected?.(user);
   };
 
-  const handleCreatePatient = async () => {
-    if (!newPatient.first_name || !newPatient.last_name) {
+  const handleCreateUser = async () => {
+    if (!newUser.first_name || !newUser.last_name) {
       toast({
         title: "Missing Information",
         description: "Please enter at least first and last name.",
@@ -45,18 +46,18 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
     }
 
     try {
-      await createPatient({
-        ...newPatient,
-        is_primary: patients.length === 0 // First user is automatically primary
+      await createUser({
+        ...newUser,
+        is_primary: users.length === 0 // First user is automatically primary
       });
       
       toast({
-        title: "Patient Added",
-        description: `${newPatient.first_name} ${newPatient.last_name} has been added successfully.`
+        title: "User Added",
+        description: `${newUser.first_name} ${newUser.last_name} has been added successfully.`
       });
 
-      setIsAddingPatient(false);
-      setNewPatient({
+      setIsAddingUser(false);
+      setNewUser({
         first_name: '',
         last_name: '',
         date_of_birth: '',
@@ -67,7 +68,19 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to add patient. Please try again.",
+        description: error.message || "Failed to add user. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    try {
+      await deleteUser(user.id);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user. Please try again.",
         variant: "destructive"
       });
     }
@@ -77,15 +90,15 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        <span className="text-sm text-muted-foreground">Loading patients...</span>
+        <span className="text-sm text-muted-foreground">Loading users...</span>
       </div>
     );
   }
 
-  if (patients.length === 0) {
-    const patientLimit = getPatientLimit();
+  if (users.length === 0) {
+    const userLimit = getUserLimit();
     
-    if (patientLimit === 0) {
+    if (userLimit === 0) {
       return (
         <Card className={className}>
           <CardHeader className="text-center">
@@ -94,7 +107,7 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
               Subscription Required
             </CardTitle>
             <CardDescription>
-              A subscription is required to add patients. Please upgrade to access this feature.
+              A subscription is required to add users. Please upgrade to access this feature.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -106,24 +119,24 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
             <Users className="h-5 w-5" />
-            No Patients Added
+            No Users Added
           </CardTitle>
           <CardDescription>
-            You need to add at least one patient before you can start chatting with DrKnowsIt.
-            Your plan allows up to {patientLimit} patients.
+            You need to add at least one user before you can start chatting with DrKnowsIt.
+            Your plan allows up to {userLimit} users.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Dialog open={isAddingPatient} onOpenChange={setIsAddingPatient}>
+          <Dialog open={isAddingUser} onOpenChange={setIsAddingUser}>
             <DialogTrigger asChild>
               <Button className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Patient
+                Add Your First User
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Patient</DialogTitle>
+                <DialogTitle>Add New User</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -131,8 +144,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                     <Label htmlFor="first_name">First Name *</Label>
                     <Input
                       id="first_name"
-                      value={newPatient.first_name}
-                      onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                      value={newUser.first_name}
+                      onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
                       placeholder="Enter first name"
                     />
                   </div>
@@ -140,8 +153,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                     <Label htmlFor="last_name">Last Name *</Label>
                     <Input
                       id="last_name"
-                      value={newPatient.last_name}
-                      onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                      value={newUser.last_name}
+                      onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
                       placeholder="Enter last name"
                     />
                   </div>
@@ -152,14 +165,14 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                   <Input
                     id="date_of_birth"
                     type="date"
-                    value={newPatient.date_of_birth}
-                    onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                    value={newUser.date_of_birth}
+                    onChange={(e) => setNewUser({ ...newUser, date_of_birth: e.target.value })}
                   />
                 </div>
 
                 <div>
                   <Label htmlFor="gender">Gender</Label>
-                  <Select onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}>
+                  <Select onValueChange={(value) => setNewUser({ ...newUser, gender: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select gender (optional)" />
                     </SelectTrigger>
@@ -175,8 +188,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                 <div>
                   <Label htmlFor="relationship">Relationship to You</Label>
                   <Select 
-                    value={newPatient.relationship} 
-                    onValueChange={(value) => setNewPatient({ ...newPatient, relationship: value })}
+                    value={newUser.relationship} 
+                    onValueChange={(value) => setNewUser({ ...newUser, relationship: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -193,8 +206,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                   </Select>
                 </div>
 
-                <Button onClick={handleCreatePatient} className="w-full">
-                  Add Patient
+                <Button onClick={handleCreateUser} className="w-full">
+                  Add User
                 </Button>
               </div>
             </DialogContent>
@@ -207,24 +220,58 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
   return (
     <div className={`flex items-center space-x-4 ${className}`}>
       <div className="flex items-center space-x-2">
-        <User className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Patient:</span>
+        <UserIcon className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">User:</span>
       </div>
       
       <Select 
-        value={selectedPatient?.id || ''} 
-        onValueChange={handlePatientChange}
+        value={selectedUser?.id || ''} 
+        onValueChange={handleUserChange}
       >
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select patient" />
+          <SelectValue placeholder="Select user" />
         </SelectTrigger>
         <SelectContent>
-          {patients.map((patient) => (
-            <SelectItem key={patient.id} value={patient.id}>
-              <div className="flex items-center space-x-2">
-                <span>{patient.first_name} {patient.last_name}</span>
-                {patient.is_primary && (
-                  <Badge variant="secondary" className="text-xs">Primary</Badge>
+          {users.map((user) => (
+            <SelectItem key={user.id} value={user.id}>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center space-x-2">
+                  <span>{user.first_name} {user.last_name}</span>
+                  {user.is_primary && (
+                    <Badge variant="secondary" className="text-xs">Primary</Badge>
+                  )}
+                </div>
+                {canDeleteUser(user) && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0 ml-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete User</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete {user.first_name} {user.last_name}? 
+                          This action cannot be undone and will remove all their health records and conversations.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteUser(user)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </SelectItem>
@@ -232,22 +279,22 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
         </SelectContent>
       </Select>
 
-      <Dialog open={isAddingPatient} onOpenChange={setIsAddingPatient}>
+      <Dialog open={isAddingUser} onOpenChange={setIsAddingUser}>
         <DialogTrigger asChild>
           <Button 
             variant="outline" 
             size="sm"
-            disabled={!canAddPatient()}
-            title={!canAddPatient() ? `Patient limit reached (${getPatientLimit()} max)` : undefined}
+            disabled={!canAddUser()}
+            title={!canAddUser() ? `User limit reached (${getUserLimit()} max)` : undefined}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Patient
-            {!canAddPatient() && <Lock className="h-3 w-3 ml-1" />}
+            Add User
+            {!canAddUser() && <Lock className="h-3 w-3 ml-1" />}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Patient</DialogTitle>
+            <DialogTitle>Add New User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -255,8 +302,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                 <Label htmlFor="first_name">First Name *</Label>
                 <Input
                   id="first_name"
-                  value={newPatient.first_name}
-                  onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                  value={newUser.first_name}
+                  onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
                   placeholder="Enter first name"
                 />
               </div>
@@ -264,8 +311,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
                 <Label htmlFor="last_name">Last Name *</Label>
                 <Input
                   id="last_name"
-                  value={newPatient.last_name}
-                  onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                  value={newUser.last_name}
+                  onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
                   placeholder="Enter last name"
                 />
               </div>
@@ -276,14 +323,14 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
               <Input
                 id="date_of_birth"
                 type="date"
-                value={newPatient.date_of_birth}
-                onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                value={newUser.date_of_birth}
+                onChange={(e) => setNewUser({ ...newUser, date_of_birth: e.target.value })}
               />
             </div>
 
             <div>
               <Label htmlFor="gender">Gender</Label>
-              <Select onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}>
+              <Select onValueChange={(value) => setNewUser({ ...newUser, gender: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select gender (optional)" />
                 </SelectTrigger>
@@ -299,8 +346,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
             <div>
               <Label htmlFor="relationship">Relationship to You</Label>
               <Select 
-                value={newPatient.relationship} 
-                onValueChange={(value) => setNewPatient({ ...newPatient, relationship: value })}
+                value={newUser.relationship} 
+                onValueChange={(value) => setNewUser({ ...newUser, relationship: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -317,8 +364,8 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
               </Select>
             </div>
 
-            <Button onClick={handleCreatePatient} className="w-full">
-              Add Patient
+            <Button onClick={handleCreateUser} className="w-full">
+              Add User
             </Button>
           </div>
         </DialogContent>
@@ -327,5 +374,5 @@ export const UserSelector = ({ onPatientSelected, className }: UserSelectorProps
   );
 };
 
-// Backward compatibility export
+// Backward compatibility exports
 export const PatientSelector = UserSelector;

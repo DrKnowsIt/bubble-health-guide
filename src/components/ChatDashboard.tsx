@@ -3,7 +3,7 @@ import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory'
 import { ConversationSidebar } from '@/components/ConversationSidebar';
 import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
 import { useConversations } from '@/hooks/useConversations';
-import { usePatients } from '@/hooks/usePatients';
+import { useUsers } from '@/hooks/useUsers';
 import { UserSelector } from '@/components/UserSelector';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -20,7 +20,7 @@ interface Diagnosis {
 export const ChatDashboard = () => {
   const { user } = useAuth();
   const { subscribed, createCheckoutSession } = useSubscription();
-  const { selectedPatient } = usePatients();
+  const { selectedUser } = useUsers();
   const { 
     conversations,
     currentConversation, 
@@ -49,16 +49,16 @@ export const ChatDashboard = () => {
   useEffect(() => {
     logDebug('Diagnoses dependency changed', {
       currentConversation,
-      patientId: selectedPatient?.id,
+      userId: selectedUser?.id,
       messagesLength: messages.length
     });
     
-    if (currentConversation && selectedPatient?.id && messages.length > 0) {
+    if (currentConversation && selectedUser?.id && messages.length > 0) {
       loadDiagnosesForConversation();
     } else {
       setDiagnoses([]);
     }
-  }, [currentConversation, selectedPatient?.id, messages.length, logDebug]);
+  }, [currentConversation, selectedUser?.id, messages.length, logDebug]);
 
   const loadDiagnosesForConversation = async () => {
     try {
@@ -67,7 +67,7 @@ export const ChatDashboard = () => {
         .from('conversation_diagnoses')
         .select('*')
         .eq('conversation_id', currentConversation)
-        .eq('patient_id', selectedPatient?.id)
+        .eq('patient_id', selectedUser?.id)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -87,7 +87,7 @@ export const ChatDashboard = () => {
   };
 
   const generateDiagnoses = async () => {
-    if (!currentConversation || !selectedPatient?.id || messages.length === 0) {
+    if (!currentConversation || !selectedUser?.id || messages.length === 0) {
       return;
     }
 
@@ -96,7 +96,7 @@ export const ChatDashboard = () => {
       const { data, error } = await supabase.functions.invoke('generate-diagnosis', {
         body: {
           conversation_id: currentConversation,
-          patient_id: selectedPatient.id,
+          patient_id: selectedUser.id,
           messages: messages
         }
       });
@@ -159,12 +159,12 @@ export const ChatDashboard = () => {
         </div>
 
         {/* Diagnosis Panel - Right - Only show when there's an active conversation with messages */}
-        {selectedPatient && currentConversation && messages.length > 1 && diagnoses.length > 0 && (
+        {selectedUser && currentConversation && messages.length > 1 && diagnoses.length > 0 && (
           <div className="w-80 shrink-0">
             <ProbableDiagnoses 
               diagnoses={diagnoses}
-              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
-              patientId={selectedPatient.id}
+              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
+              patientId={selectedUser.id}
             />
           </div>
         )}
