@@ -10,16 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
-import { Brain, HardDrive, Settings, Trash2, User, Users } from 'lucide-react';
+import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const AISettings = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { toast } = useToast();
-  const { users, loading: usersLoading } = useUsers();
+  const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [userKnowledge, setUserKnowledge] = useState<string>('');
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
 
   useEffect(() => {
@@ -153,6 +155,30 @@ export const AISettings = () => {
     }
 
     return knowledge;
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    setDeletingUserId(userId);
+    try {
+      await deleteUser(userId);
+      // Reset selected user if it was the deleted one
+      if (selectedUserId === userId) {
+        setSelectedUserId('');
+        setUserKnowledge('');
+      }
+      toast({
+        title: "User Deleted",
+        description: `${userName} and all associated data has been permanently deleted.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete user. Please try again.",
+      });
+    } finally {
+      setDeletingUserId(null);
+    }
   };
 
 
@@ -324,6 +350,87 @@ export const AISettings = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* User Management Actions */}
+          {selectedUserId && (
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const selectedUser = users.find(u => u.id === selectedUserId);
+                  return selectedUser ? (
+                    <>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">
+                          {selectedUser.first_name} {selectedUser.last_name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {selectedUser.is_primary ? 'Primary User' : selectedUser.relationship}
+                        </div>
+                      </div>
+                    </>
+                  ) : null;
+                })()}
+              </div>
+              
+              {(() => {
+                const selectedUser = users.find(u => u.id === selectedUserId);
+                return selectedUser && canDeleteUser(selectedUser) ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={deletingUserId === selectedUser.id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        {deletingUserId === selectedUser.id ? "Deleting..." : "Delete User"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          Delete User - Are You Sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>
+                            <strong>This action cannot be undone.</strong> This will permanently delete:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li><strong>{selectedUser.first_name} {selectedUser.last_name}</strong>'s profile</li>
+                            <li>All their health records and documents</li>
+                            <li>All conversation history with AI</li>
+                            <li>All diagnoses and health data</li>
+                            <li>All doctor notes and feedback</li>
+                            <li>All AI knowledge about this user</li>
+                          </ul>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteUser(selectedUser.id, `${selectedUser.first_name} ${selectedUser.last_name}`)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Permanently
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : selectedUser && !canDeleteUser(selectedUser) ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <AlertTriangle className="h-4 w-4" />
+                    Cannot delete primary user
+                  </div>
+                ) : null;
+              })()}
+            </div>
+          )}
 
           {selectedUserId && (
             <div className="space-y-3">
