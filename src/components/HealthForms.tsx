@@ -14,6 +14,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePatients } from '@/hooks/usePatients';
 import { UploadProgressDialog } from '@/components/UploadProgressDialog';
+import { FormProgress } from '@/components/FormProgress';
+import { UserSelectionGuide } from '@/components/UserSelectionGuide';
+import { EmptyStateMessage } from '@/components/EmptyStateMessage';
 import { 
   Users, 
   Activity, 
@@ -23,7 +26,8 @@ import {
   Dna,
   Upload,
   Calendar,
-  Lock
+  Lock,
+  FileText
 } from 'lucide-react';
 
 interface HealthForm {
@@ -313,7 +317,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   useEffect(() => {
     // Auto-assign the selected patient to form data if available
     if (selectedPatient) {
-      setFormData(prev => ({ ...prev, patient_id: selectedPatient.id }));
+      setFormData(prev => ({ ...prev, user_id: selectedPatient.id }));
     }
   }, [selectedPatient]);
 
@@ -463,7 +467,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           metadata: {
             form_version: '1.0',
             completed_at: new Date().toISOString(),
-            patient_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
+            user_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
           }
         })
         .select('id')
@@ -567,27 +571,47 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     }
   };
 
+  // Count completed fields for progress tracking
+  const completedFields = selectedForm 
+    ? selectedForm.fields.filter(field => {
+        const value = formData[field.name];
+        if (field.required) {
+          return value !== undefined && value !== '' && value !== null;
+        }
+        return value !== undefined && value !== '' && value !== null;
+      }).length 
+    : 0;
+
   if (selectedForm) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <selectedForm.icon className="h-5 w-5" />
-                {selectedForm.title}
-              </CardTitle>
-              <CardDescription>
-                Complete this form to help DrKnowItAll provide better health insights.
-              </CardDescription>
+      <div className="space-y-6">
+        <FormProgress 
+          currentStep={1}
+          totalSteps={1}
+          completedFields={completedFields}
+          totalFields={selectedForm.fields.length}
+          formTitle={selectedForm.title}
+        />
+        
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <selectedForm.icon className="h-5 w-5" />
+                  {selectedForm.title}
+                </CardTitle>
+                <CardDescription>
+                  Complete this form to help DrKnowItAll provide better health insights.
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => setSelectedForm(null)}>
+                Back to Forms
+              </Button>
             </div>
-            <Button variant="outline" onClick={() => setSelectedForm(null)}>
-              Back to Forms
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
             {/* Patient Selection */}
             <div className="space-y-2">
               <Label htmlFor="patient_selection">Assign to Patient</Label>
@@ -641,6 +665,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           </div>
         </CardContent>
       </Card>
+    </div>
     );
   }
 
@@ -653,6 +678,29 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       >
         <div />
       </SubscriptionGate>
+    );
+  }
+
+  // Show user selection guide if no users exist
+  if (patients.length === 0) {
+    return (
+      <UserSelectionGuide 
+        hasUsers={false}
+        hasSelectedUser={false}
+        title="Health Forms"
+        description="Create user profiles to complete health forms"
+      />
+    );
+  }
+
+  // Show empty state if no patient selected but patients exist
+  if (!selectedPatient && patients.length > 0) {
+    return (
+      <EmptyStateMessage 
+        icon={<FileText className="h-6 w-6" />}
+        title="Select a User"
+        description="Choose a user from the dropdown above to complete their health forms and provide personalized health insights."
+      />
     );
   }
 
@@ -682,13 +730,6 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!selectedPatient && patients.length > 0 && (
-            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-orange-800 text-sm">
-                ⚠️ Please select a user from the dropdown above to complete their health forms.
-              </p>
-            </div>
-          )}
           
           {/* Available Forms */}
           {availableForms.length > 0 && (

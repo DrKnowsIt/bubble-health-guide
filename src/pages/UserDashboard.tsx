@@ -19,6 +19,7 @@ import { UserManagement } from '@/components/UserManagement';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
+import { FeatureDiscovery } from '@/components/FeatureDiscovery';
 import { cn } from '@/lib/utils';
 export default function UserDashboard() {
   const {
@@ -126,7 +127,7 @@ export default function UserDashboard() {
           {isMobile ?
         // Mobile: Simple bottom navigation
         <div className="order-2 border-t border-border bg-background p-2 mt-auto">
-              <TabsList className="w-full grid grid-cols-4">
+              <TabsList className="w-full grid grid-cols-5">
                 <TabsTrigger value="chat" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
@@ -147,6 +148,13 @@ export default function UserDashboard() {
                     {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   <span className="text-xs">Forms</span>
+                </TabsTrigger>
+                <TabsTrigger value="ai-settings" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
+                  <div className="relative">
+                    <Brain className="h-4 w-4" />
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                  </div>
+                  <span className="text-xs">AI</span>
                 </TabsTrigger>
                 <TabsTrigger value="overview" className={cn("flex flex-col items-center gap-1 py-2 relative", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
@@ -259,13 +267,25 @@ export default function UserDashboard() {
                 </div>
               </TabsContent>
 
-            {!isMobile && <TabsContent value="ai-settings" className="h-full mt-0 pt-4">
-                <div className="h-full overflow-y-auto">
+            <TabsContent value="ai-settings" className="h-full mt-0 pt-4">
+                <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                   <SubscriptionGate requiredTier="basic" feature="AI Settings" description="Customize AI behavior and personalization preferences with a Basic or Pro subscription.">
-                    <AISettings />
+                    {isMobile ? (
+                      <div className="space-y-4">
+                        <div className="bg-muted/50 p-4 rounded-lg border">
+                          <h3 className="font-semibold text-center mb-2">AI Settings</h3>
+                          <p className="text-sm text-muted-foreground text-center">
+                            Access full AI settings and memory management features on desktop for the best experience.
+                          </p>
+                        </div>
+                        <AISettings />
+                      </div>
+                    ) : (
+                      <AISettings />
+                    )}
                   </SubscriptionGate>
                 </div>
-              </TabsContent>}
+              </TabsContent>
 
 
             <TabsContent value="overview" className="h-full mt-0 pt-4">
@@ -315,13 +335,13 @@ export default function UserDashboard() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-3")}>
-                        {!isMobile && <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('forms')}>
-                            <Calendar className="h-5 w-5 mb-2" />
-                            <span className="font-medium">Complete Health Forms</span>
-                            <span className="text-sm text-muted-foreground text-left">
-                              Fill out structured forms for comprehensive health data
-                            </span>
-                          </Button>}
+                        <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('forms')}>
+                          <Calendar className="h-5 w-5 mb-2" />
+                          <span className="font-medium">Complete Health Forms</span>
+                          <span className="text-sm text-muted-foreground text-left">
+                            Fill out structured forms for comprehensive health data
+                          </span>
+                        </Button>
 
                         <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('health')}>
                           <Upload className="h-5 w-5 mb-2" />
@@ -339,30 +359,22 @@ export default function UserDashboard() {
                           </span>
                         </Button>
 
-                        {!isMobile && <>
-                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('ai-settings')}>
-                              <Brain className="h-5 w-5 mb-2" />
-                              <span className="font-medium">Customize AI</span>
-                              <span className="text-sm text-muted-foreground text-left">
-                                Adjust memory and personalization settings
-                              </span>
-                            </Button>
+                        <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('ai-settings')}>
+                          <Brain className="h-5 w-5 mb-2" />
+                          <span className="font-medium">Customize AI</span>
+                          <span className="text-sm text-muted-foreground text-left">
+                            Adjust memory and personalization settings
+                          </span>
+                        </Button>
+                      </CardContent>
+                    </Card>
 
+                    {/* Feature Discovery */}
+                    <FeatureDiscovery onNavigateToTab={setActiveTab} />
 
-                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('health')}>
-                              <Upload className="h-5 w-5 mb-2" />
-                              <span className="font-medium">Upload DNA File</span>
-                              <span className="text-sm text-muted-foreground text-left">
-                                Upload genetic data for personalized insights
-                              </span>
-                            </Button>
-                          </>}
-                       </CardContent>
-                     </Card>
-
-                     {/* User Management Card */}
-                     <UserManagement />
-                   </div>
+                    {/* User Management Card */}
+                    <UserManagement />
+                  </div>
                 </SubscriptionGate>
               </div>
             </TabsContent>

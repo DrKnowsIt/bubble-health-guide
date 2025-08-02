@@ -472,34 +472,50 @@ export const AISettings = () => {
             Advanced AI Settings
           </CardTitle>
           <CardDescription>
-            Fine-tune DrKnowItAll's behavior and response preferences.
+            Additional AI behavior and security preferences.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Use Conservative Responses</Label>
-                <div className="text-sm text-muted-foreground">
-                  Prioritize safety over specificity in medical advice.
-                </div>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="conservative-responses" className="text-base">
+                Use Conservative Responses
+              </Label>
+              <div className="text-sm text-muted-foreground">
+                AI will provide more cautious and conservative medical guidance.
               </div>
-              <Switch defaultChecked />
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Enable Learning Mode</Label>
-                <div className="text-sm text-muted-foreground">
-                  Allow DrKnowItAll to learn from your feedback and preferences.
-                </div>
-              </div>
-              <Switch defaultChecked />
-            </div>
+            <Switch
+              id="conservative-responses"
+              defaultChecked={false}
+              onCheckedChange={(checked) => {
+                toast({
+                  title: "Setting updated",
+                  description: `Conservative responses ${checked ? 'enabled' : 'disabled'}.`,
+                });
+              }}
+            />
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            Advanced settings are automatically optimized for the best experience. Changes may affect response quality.
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="learning-mode" className="text-base">
+                Enable Learning Mode
+              </Label>
+              <div className="text-sm text-muted-foreground">
+                Allow AI to learn from your feedback and improve responses over time.
+              </div>
+            </div>
+            <Switch
+              id="learning-mode"
+              defaultChecked={true}
+              onCheckedChange={(checked) => {
+                toast({
+                  title: "Setting updated",
+                  description: `Learning mode ${checked ? 'enabled' : 'disabled'}.`,
+                });
+              }}
+            />
           </div>
         </CardContent>
       </Card>
