@@ -34,6 +34,27 @@ export const ConversationHistory = ({
   useEffect(() => {
     if (selectedPatientId && user?.id) {
       loadConversations();
+      
+      // Set up real-time subscription for conversation changes
+      const channel = supabase
+        .channel('conversation-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'conversations',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadConversations();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       setConversations([]);
     }
