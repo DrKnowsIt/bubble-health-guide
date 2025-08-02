@@ -241,135 +241,106 @@ export const UserSelector = ({ onUserSelected, className }: UserSelectorProps) =
                     <Badge variant="secondary" className="text-xs">Primary</Badge>
                   )}
                 </div>
-                {canDeleteUser(user) && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 w-6 p-0 ml-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete User</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete {user.first_name} {user.last_name}? 
-                          This action cannot be undone and will remove all their health records and conversations.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => handleDeleteUser(user)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
               </div>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      <Dialog open={isAddingUser} onOpenChange={setIsAddingUser}>
-        <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm"
-            disabled={!canAddUser()}
-            title={!canAddUser() ? `User limit reached (${getUserLimit()} max)` : undefined}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add User
-            {!canAddUser() && <Lock className="h-3 w-3 ml-1" />}
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="first_name">First Name *</Label>
-                <Input
-                  id="first_name"
-                  value={newUser.first_name}
-                  onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
-                  placeholder="Enter first name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="last_name">Last Name *</Label>
-                <Input
-                  id="last_name"
-                  value={newUser.last_name}
-                  onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
-                  placeholder="Enter last name"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="date_of_birth">Date of Birth</Label>
-              <Input
-                id="date_of_birth"
-                type="date"
-                value={newUser.date_of_birth}
-                onChange={(e) => setNewUser({ ...newUser, date_of_birth: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="gender">Gender</Label>
-              <Select onValueChange={(value) => setNewUser({ ...newUser, gender: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="relationship">Relationship to You</Label>
-              <Select 
-                value={newUser.relationship} 
-                onValueChange={(value) => setNewUser({ ...newUser, relationship: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="self">Myself</SelectItem>
-                  <SelectItem value="spouse">Spouse/Partner</SelectItem>
-                  <SelectItem value="child">Child</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="sibling">Sibling</SelectItem>
-                  <SelectItem value="other-family">Other Family Member</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={handleCreateUser} className="w-full">
+      <div className="flex items-center space-x-2">
+        {/* Add User Button */}
+        <Dialog open={isAddingUser} onOpenChange={setIsAddingUser}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled={!canAddUser()}
+              title={!canAddUser() ? `User limit reached (${getUserLimit()} max)` : undefined}
+            >
+              <Plus className="h-4 w-4 mr-1" />
               Add User
+              {!canAddUser() && <Lock className="h-3 w-3 ml-1" />}
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="first_name">First Name *</Label>
+                  <Input
+                    id="first_name"
+                    value={newUser.first_name}
+                    onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="last_name">Last Name *</Label>
+                  <Input
+                    id="last_name"
+                    value={newUser.last_name}
+                    onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  value={newUser.date_of_birth}
+                  onChange={(e) => setNewUser({ ...newUser, date_of_birth: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="gender">Gender</Label>
+                <Select onValueChange={(value) => setNewUser({ ...newUser, gender: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="relationship">Relationship to You</Label>
+                <Select 
+                  value={newUser.relationship} 
+                  onValueChange={(value) => setNewUser({ ...newUser, relationship: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="self">Myself</SelectItem>
+                    <SelectItem value="spouse">Spouse/Partner</SelectItem>
+                    <SelectItem value="child">Child</SelectItem>
+                    <SelectItem value="parent">Parent</SelectItem>
+                    <SelectItem value="sibling">Sibling</SelectItem>
+                    <SelectItem value="other-family">Other Family Member</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button onClick={handleCreateUser} className="w-full">
+                Add User
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

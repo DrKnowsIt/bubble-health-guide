@@ -15,6 +15,7 @@ import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
+import { UserManagement } from '@/components/UserManagement';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -356,9 +357,12 @@ export default function UserDashboard() {
                               </span>
                             </Button>
                           </>}
-                      </CardContent>
-                    </Card>
-                  </div>
+                       </CardContent>
+                     </Card>
+
+                     {/* User Management Card */}
+                     <UserManagement />
+                   </div>
                 </SubscriptionGate>
               </div>
             </TabsContent>

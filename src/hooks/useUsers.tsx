@@ -206,7 +206,7 @@ export const useUsers = () => {
     }
   };
 
-  // Delete a user
+  // Delete a user and all associated data
   const deleteUser = async (userId: string) => {
     if (!authUser) throw new Error('User not authenticated');
 
@@ -221,6 +221,68 @@ export const useUsers = () => {
     }
 
     try {
+      // Delete all associated data first (conversations, messages, health records, etc.)
+      
+      // 1. Delete messages from conversations for this user
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('patient_id', userId);
+
+      if (conversations && conversations.length > 0) {
+        const conversationIds = conversations.map(c => c.id);
+        
+        // Delete messages
+        await supabase
+          .from('messages')
+          .delete()
+          .in('conversation_id', conversationIds);
+      }
+
+      // 2. Delete conversations for this user
+      await supabase
+        .from('conversations')
+        .delete()
+        .eq('patient_id', userId);
+
+      // 3. Delete health records for this user
+      await supabase
+        .from('health_records')
+        .delete()
+        .eq('patient_id', userId);
+
+      // 4. Delete health record summaries for this user
+      await supabase
+        .from('health_record_summaries')
+        .delete()
+        .eq('user_id', authUser.id)
+        .in('health_record_id', 
+          await supabase
+            .from('health_records')
+            .select('id')
+            .eq('patient_id', userId)
+            .then(({ data }) => data?.map(hr => hr.id) || [])
+        );
+
+      // 5. Delete diagnosis feedback for this user
+      await supabase
+        .from('diagnosis_feedback')
+        .delete()
+        .eq('patient_id', userId);
+
+      // 6. Delete conversation diagnoses for this user
+      await supabase
+        .from('conversation_diagnoses')
+        .delete()
+        .eq('patient_id', userId);
+
+      // 7. Delete doctor notes for this user
+      await supabase
+        .from('doctor_notes')
+        .delete()
+        .eq('patient_id', userId);
+
+      // 8. Finally, delete the user record itself
       const { error } = await supabase
         .from('patients')
         .delete()
@@ -229,6 +291,7 @@ export const useUsers = () => {
 
       if (error) throw error;
 
+      // Update local state
       setUsers(prev => prev.filter(p => p.id !== userId));
       
       if (selectedUser?.id === userId) {
@@ -238,10 +301,15 @@ export const useUsers = () => {
 
       toast({
         title: "User Deleted",
-        description: `${userToDelete.first_name} ${userToDelete.last_name} has been deleted.`,
+        description: `${userToDelete.first_name} ${userToDelete.last_name} and all associated data has been permanently deleted.`,
       });
     } catch (error) {
       console.error('Error deleting user:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+      });
       throw error;
     }
   };
