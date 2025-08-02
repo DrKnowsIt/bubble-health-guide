@@ -94,7 +94,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
         <div
           className={cn(
             "md:hidden overflow-hidden transition-all duration-300 ease-out",
-            isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           )}
         >
           <div className="pb-4 pt-2 space-y-2">
