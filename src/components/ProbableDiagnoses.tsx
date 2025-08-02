@@ -23,8 +23,8 @@ interface ProbableDiagnosesProps {
 }
 
 interface DiagnosisFeedback {
-  diagnosis: string;
-  feedback: 'positive' | 'negative';
+  diagnosis_text: string;
+  feedback_type: 'positive' | 'negative';
 }
 
 export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: ProbableDiagnosesProps) => {
@@ -42,7 +42,7 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
     try {
       const { data, error } = await supabase
         .from('diagnosis_feedback')
-        .select('diagnosis, feedback')
+        .select('diagnosis_text, feedback_type')
         .eq('user_id', user?.id)
         .eq('patient_id', patientId);
 
@@ -50,7 +50,7 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
 
       const feedbackMap: Record<string, 'positive' | 'negative'> = {};
       data?.forEach((item: DiagnosisFeedback) => {
-        feedbackMap[item.diagnosis] = item.feedback;
+        feedbackMap[item.diagnosis_text] = item.feedback_type;
       });
       setUserFeedback(feedbackMap);
     } catch (error) {
@@ -67,8 +67,8 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
         .upsert({
           user_id: user.id,
           patient_id: patientId,
-          diagnosis,
-          feedback,
+          diagnosis_text: diagnosis,
+          feedback_type: feedback,
           created_at: new Date().toISOString(),
         });
 
