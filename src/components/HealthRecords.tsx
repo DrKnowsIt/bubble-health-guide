@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { DNAUpload } from '@/components/DNAUpload';
 import { 
   Plus, 
   FileText, 
@@ -448,6 +449,12 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
             </div>
           </CardContent>
         </Card>
+        
+        {/* DNA Upload Section */}
+        <DNAUpload 
+          selectedPatient={selectedPatient} 
+          onUploadComplete={loadRecords}
+        />
       </div>
     </SubscriptionGate>
   );
