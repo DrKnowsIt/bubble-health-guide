@@ -1,6 +1,8 @@
 import { Stethoscope, Heart, Shield, Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 export const Footer = () => {
   const isMobile = useIsMobile();
   
@@ -29,16 +31,56 @@ export const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Product</h3>
                <ul className="space-y-3 text-sm">
-                  {!isMobile && (
-                    <li>
+                  <li>
+                    {isMobile ? (
+                      <Dialog>
+                        <DialogTrigger className="text-muted-foreground hover:text-primary transition-smooth text-left">
+                          Features
+                        </DialogTrigger>
+                        <DialogContent className="max-w-[95vw] max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>DrKnowsIt Features</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-6">
+                            <div className="space-y-4">
+                              <div>
+                                <h4 className="font-semibold text-primary mb-2">🔍 AI-Powered Health Analysis</h4>
+                                <p className="text-sm text-muted-foreground">Get personalized insights from your symptoms and health data using advanced AI technology.</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-primary mb-2">💬 Interactive Medical Chat</h4>
+                                <p className="text-sm text-muted-foreground">Ask questions about your health in natural language and receive detailed, informative responses.</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-primary mb-2">📋 Comprehensive Health Records</h4>
+                                <p className="text-sm text-muted-foreground">Maintain detailed health profiles with medical history, medications, and ongoing conditions.</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-primary mb-2">🔒 Privacy & Security</h4>
+                                <p className="text-sm text-muted-foreground">Your health data is encrypted and securely stored with enterprise-grade security measures.</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-primary mb-2">📱 Mobile Optimized</h4>
+                                <p className="text-sm text-muted-foreground">Access your health guidance anywhere with our responsive mobile interface.</p>
+                              </div>
+                            </div>
+                            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                              <p className="text-xs text-warning font-medium">
+                                ⚠️ DrKnowsIt is for informational purposes only and not a substitute for professional medical advice, diagnosis, or treatment.
+                              </p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
                       <Link 
                         to="/#features" 
                         className="text-muted-foreground hover:text-primary transition-smooth"
                       >
                         Features
                       </Link>
-                    </li>
-                  )}
+                    )}
+                  </li>
                  <li>
                    <Link to="/pricing" className="text-muted-foreground hover:text-primary transition-smooth">
                      Pricing
