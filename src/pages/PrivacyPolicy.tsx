@@ -150,16 +150,15 @@ const PrivacyPolicy = () => {
             <CardContent>
               <div className="bg-accent-light p-4 rounded-lg mb-4">
                 <p className="text-accent-foreground font-medium">
-                  🔒 DrKnowsIt employs enterprise-grade security measures to protect your health information.
+                  🔒 DrKnowsIt employs security measures to protect your health information.
                 </p>
               </div>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>All health data is encrypted in transit and at rest using industry standards</li>
-                <li>Access to your information is strictly limited to authorized personnel</li>
-                <li>We maintain detailed audit logs of all data access and modifications</li>
-                <li>Business associate agreements are in place with all third-party vendors</li>
-                <li>Regular security assessments and compliance audits are conducted</li>
-                <li>Multi-layer security architecture protects against data breaches</li>
+                <li>Health data is encrypted in transit and at rest</li>
+                <li>Access to your information is limited to authorized personnel</li>
+                <li>We maintain audit logs of data access</li>
+                <li>Regular security assessments are conducted</li>
+                <li>Security architecture protects against data breaches</li>
               </ul>
             </CardContent>
           </Card>
@@ -220,12 +219,10 @@ const PrivacyPolicy = () => {
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>End-to-end encryption for all data transmission</li>
-                <li>Advanced firewalls and intrusion detection systems</li>
-                <li>Regular security audits and penetration testing</li>
+                <li>Encryption for data transmission</li>
+                <li>Firewalls and security monitoring</li>
                 <li>Multi-factor authentication for account access</li>
-                <li>Employee security training and background checks</li>
-                <li>Secure data centers with physical access controls</li>
+                <li>Secure data storage and access controls</li>
               </ul>
             </CardContent>
           </Card>
@@ -239,9 +236,8 @@ const PrivacyPolicy = () => {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Email:</strong> privacy@drknowit.com</p>
+                <p><strong>Email:</strong> support@drknowit.com</p>
                 <p><strong>Phone:</strong> 919-616-6125</p>
-                <p><strong>Mail:</strong> DrKnowsIt Privacy Officer<br />123 Health Street<br />Medical City, MC 12345</p>
               </div>
             </CardContent>
           </Card>
