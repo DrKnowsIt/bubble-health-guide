@@ -75,9 +75,9 @@ export const DemoConversation = () => {
     <div className="flex flex-col h-full max-h-full overflow-hidden">
       {/* Main Content - Side by Side Layout */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="flex h-full gap-4 p-4">
-          {/* Chat Messages - Left Side */}
-          <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="flex flex-col lg:flex-row h-full gap-4 p-4 max-w-full">
+          {/* Chat Messages - Full Width on Mobile, Left Side on Desktop */}
+          <div className="flex-1 overflow-y-auto overscroll-contain min-h-[300px] lg:min-h-0">
             <div className="space-y-4">
               {demoMessages.map((message) => (
                 <div
@@ -123,8 +123,8 @@ export const DemoConversation = () => {
             </div>
           </div>
 
-          {/* Probable Diagnoses - Right Side */}
-          <div className="w-80 shrink-0">
+          {/* Initial Assessment - Below Chat on Mobile, Right Side on Desktop */}
+          <div className="w-full lg:w-80 lg:shrink-0 mt-6 lg:mt-0">
             <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 dark:from-teal-950/20 dark:to-cyan-950/20 dark:border-teal-800 h-fit">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-teal-900 dark:text-teal-100">
