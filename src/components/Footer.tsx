@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-export const Footer = () => {
+export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
   const isMobile = useIsMobile();
   
   return <footer className="bg-muted/50 border-t border-border">
@@ -87,9 +87,18 @@ export const Footer = () => {
                    </Link>
                  </li>
                  <li>
-                   <Link to="/" className="text-muted-foreground hover:text-primary transition-smooth">
-                     Try DrKnowsIt
-                   </Link>
+                   {onSignUp ? (
+                     <button 
+                       onClick={onSignUp}
+                       className="text-muted-foreground hover:text-primary transition-smooth text-left"
+                     >
+                       Try DrKnowsIt
+                     </button>
+                   ) : (
+                     <Link to="/" className="text-muted-foreground hover:text-primary transition-smooth">
+                       Try DrKnowsIt
+                     </Link>
+                   )}
                  </li>
                </ul>
             </div>

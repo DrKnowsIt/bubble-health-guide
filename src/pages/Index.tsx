@@ -141,7 +141,7 @@ const Index = () => {
             <Features />
           </div>}
       </main>
-      <Footer />
+      <Footer onSignUp={() => openAuth('signup')} />
     </div>;
 };
 export default Index;
