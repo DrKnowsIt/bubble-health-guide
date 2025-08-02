@@ -72,13 +72,13 @@ const probableDiagnoses = [
 
 export const DemoConversation = () => {
   return (
-    <div className="flex flex-col h-full max-h-full overflow-hidden">
-      {/* Main Content - Side by Side Layout */}
+    <div className="flex flex-col h-full max-h-full overflow-hidden bg-background">
+      {/* Main Content - Responsive Layout */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="flex flex-col lg:flex-row h-full gap-4 p-4 max-w-full">
-          {/* Chat Messages - Full Width on Mobile, Left Side on Desktop */}
-          <div className="flex-1 overflow-y-auto overscroll-contain min-h-[300px] lg:min-h-0">
-            <div className="space-y-4">
+        <div className="flex flex-col lg:flex-row h-full gap-4 p-4 max-w-full overflow-hidden">
+          {/* Chat Messages - Properly Contained */}
+          <div className="flex-1 overflow-y-auto overscroll-contain min-h-[40vh] lg:min-h-0 max-w-full">
+            <div className="space-y-4 pr-2">
               {demoMessages.map((message) => (
                 <div
                   key={message.id}
@@ -89,7 +89,7 @@ export const DemoConversation = () => {
                 >
                   <div
                     className={cn(
-                      "flex max-w-[85%] space-x-3",
+                      "flex max-w-[90%] space-x-2 lg:space-x-3",
                       message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
                     )}
                   >
@@ -109,7 +109,7 @@ export const DemoConversation = () => {
                     </div>
                     <div
                       className={cn(
-                        "px-4 py-3 text-sm rounded-2xl break-words whitespace-pre-line",
+                        "px-3 py-2 lg:px-4 lg:py-3 text-sm rounded-2xl break-words whitespace-pre-line word-break max-w-full overflow-wrap-anywhere",
                         message.type === 'user' 
                           ? "bg-primary text-primary-foreground rounded-br-md" 
                           : "bg-card border border-border rounded-bl-md"
@@ -123,8 +123,8 @@ export const DemoConversation = () => {
             </div>
           </div>
 
-          {/* Initial Assessment - Below Chat on Mobile, Right Side on Desktop */}
-          <div className="w-full lg:w-80 lg:shrink-0 mt-6 lg:mt-0">
+          {/* Initial Assessment - Properly Sized and Contained */}
+          <div className="w-full lg:w-80 lg:shrink-0 mt-4 lg:mt-0 max-w-full">
             <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 dark:from-teal-950/20 dark:to-cyan-950/20 dark:border-teal-800 h-fit">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-teal-900 dark:text-teal-100">
@@ -137,21 +137,21 @@ export const DemoConversation = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {probableDiagnoses.map((diagnosis, index) => (
-                  <div key={index} className="flex items-start justify-between p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-teal-100 dark:border-teal-800">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                  <div key={index} className="flex items-start justify-between p-2 lg:p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-teal-100 dark:border-teal-800 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 lg:gap-2 mb-1 flex-wrap">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm lg:text-base truncate">
                           {diagnosis.condition}
                         </h4>
                         <Badge variant="outline" className="text-xs">
                           needs evaluation
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 break-words">
                         {diagnosis.description}
                       </p>
                     </div>
-                    <div className="text-right ml-3">
+                    <div className="text-right ml-2 lg:ml-3 flex-shrink-0">
                       <div className="text-lg font-bold text-teal-600 dark:text-teal-400">
                         {diagnosis.probability}
                       </div>
@@ -167,15 +167,15 @@ export const DemoConversation = () => {
         </div>
       </div>
 
-      {/* Demo Notice */}
-      <div className="shrink-0 bg-card border-t border-border p-4">
+      {/* Demo Notice - Properly Contained */}
+      <div className="shrink-0 bg-card border-t border-border p-3 lg:p-4 max-w-full">
         <div className="text-center">
           <div className="inline-flex items-center px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 mb-2">
             <span className="text-sm font-medium text-primary">
               This is a demo conversation
             </span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground max-w-full break-words px-2">
             Sign up to start your own conversations with DrKnowsIt and get personalized health insights
           </p>
         </div>
