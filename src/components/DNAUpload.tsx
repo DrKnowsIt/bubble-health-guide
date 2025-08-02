@@ -274,6 +274,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
               variant="outline" 
               className="mt-4"
               disabled={uploading}
+              onClick={() => document.getElementById('dna-file')?.click()}
             >
               {uploading ? 'Uploading...' : 'Select File'}
             </Button>
