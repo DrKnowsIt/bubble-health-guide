@@ -50,22 +50,22 @@ export const HealthProfile = () => {
       {/* Health Profile Tabs */}
       <div className={!subscribed ? 'opacity-60' : ''}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" disabled={!subscribed}>
-              <User className="h-4 w-4 mr-2" />
-              Overview
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="overview" disabled={!subscribed} className="flex-col gap-1 py-2 px-1 min-h-[3rem]">
+              <User className="h-4 w-4" />
+              <span className="mobile-text-xs sm:text-sm">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="records" disabled={!subscribed}>
-              <FileText className="h-4 w-4 mr-2" />
-              Health Records
+            <TabsTrigger value="records" disabled={!subscribed} className="flex-col gap-1 py-2 px-1 min-h-[3rem]">
+              <FileText className="h-4 w-4" />
+              <span className="mobile-text-xs sm:text-sm">Records</span>
             </TabsTrigger>
-            <TabsTrigger value="forms" disabled={!subscribed}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Health Forms
+            <TabsTrigger value="forms" disabled={!subscribed} className="flex-col gap-1 py-2 px-1 min-h-[3rem]">
+              <Calendar className="h-4 w-4" />
+              <span className="mobile-text-xs sm:text-sm">Forms</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" disabled={!subscribed}>
-              <Activity className="h-4 w-4 mr-2" />
-              Analytics
+            <TabsTrigger value="analytics" disabled={!subscribed} className="flex-col gap-1 py-2 px-1 min-h-[3rem]">
+              <Activity className="h-4 w-4" />
+              <span className="mobile-text-xs sm:text-sm">Analytics</span>
             </TabsTrigger>
           </TabsList>
 

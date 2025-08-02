@@ -188,14 +188,14 @@ export const MobileChatInterface = ({ selectedUser: propSelectedUser, onUserSele
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header with User Selection */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-        <div className="p-4 space-y-3">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 min-h-[60px]">
+        <div className="p-3 space-y-3">
           {/* User Selector */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h2 className="text-sm font-medium text-muted-foreground mb-2">Chat with</h2>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <h2 className="mobile-text-xs font-medium text-muted-foreground mb-1.5">Chat with</h2>
               {users.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No users found</div>
+                <div className="mobile-text-sm text-muted-foreground">No users found</div>
               ) : (
                 <UserDropdown
                   users={users}
@@ -211,7 +211,7 @@ export const MobileChatInterface = ({ selectedUser: propSelectedUser, onUserSele
               variant="ghost" 
               size="sm"
               onClick={() => setShowHistory(true)}
-              className="ml-3"
+              className="flex-shrink-0"
             >
               <History className="h-4 w-4" />
             </Button>
@@ -261,82 +261,86 @@ export const MobileChatInterface = ({ selectedUser: propSelectedUser, onUserSele
         ) : (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                >
+            <div className="flex-1 overflow-y-auto mobile-chat-messages">
+              <div className="space-y-3">
+                {messages.map((message) => (
                   <div
-                    className={`flex max-w-[85%] space-x-3 ${
-                      message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                    }`}
+                    key={message.id}
+                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
-                        message.type === 'user' 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-muted-foreground"
+                      className={`flex max-w-[80%] gap-2 ${
+                        message.type === 'user' ? "flex-row-reverse" : "flex-row"
                       }`}
                     >
-                      {message.type === 'user' ? (
-                        <UserIcon className="h-4 w-4" />
-                      ) : (
-                        <Bot className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div
-                      className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden ${
-                        message.type === 'user'
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-foreground"
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex space-x-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                      <Bot className="h-4 w-4" />
-                    </div>
-                    <div className="bg-muted px-4 py-3 rounded-2xl">
-                      <div className="flex space-x-1">
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div
+                        className={`flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 mt-1 ${
+                          message.type === 'user' 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {message.type === 'user' ? (
+                          <UserIcon className="h-3.5 w-3.5" />
+                        ) : (
+                          <Bot className="h-3.5 w-3.5" />
+                        )}
+                      </div>
+                      <div
+                        className={`px-3 py-3 rounded-lg max-w-full overflow-hidden ${
+                          message.type === 'user'
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted text-foreground"
+                        }`}
+                      >
+                        <p className="mobile-text-sm whitespace-pre-wrap break-words leading-relaxed">
+                          {message.content}
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+                ))}
+
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground mt-1">
+                        <Bot className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="bg-muted px-3 py-3 rounded-lg">
+                        <div className="flex space-x-1">
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
 
             {/* Input Area */}
-            <div className="border-t bg-background/95 backdrop-blur p-4">
-              <div className="flex space-x-3">
-                <div className="flex-1 relative">
+            <div className="border-t bg-background/95 backdrop-blur mobile-chat-input mobile-safe-area">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
                   <Textarea
                     placeholder="Describe your symptoms or ask a health question..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="min-h-[52px] max-h-[120px] resize-none pr-12 text-base"
+                    className="mobile-input min-h-[3rem] max-h-24 resize-none"
                     disabled={!selectedUser}
                   />
+                </div>
+                <div className="flex flex-col gap-1.5 flex-shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute bottom-2 right-2 h-8 w-8 p-0"
                     onClick={toggleRecording}
                     disabled={!selectedUser || isProcessing}
+                    className="h-9 w-9 p-0 flex-shrink-0"
                   >
                     {isRecording ? (
                       <MicOff className="h-4 w-4 text-red-500" />
@@ -344,15 +348,15 @@ export const MobileChatInterface = ({ selectedUser: propSelectedUser, onUserSele
                       <Mic className="h-4 w-4" />
                     )}
                   </Button>
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={!inputValue.trim() || isTyping || !selectedUser}
+                    size="sm"
+                    className="h-9 w-9 p-0 flex-shrink-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isTyping || !selectedUser}
-                  className="h-[52px] px-4 rounded-2xl"
-                  size="sm"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </>

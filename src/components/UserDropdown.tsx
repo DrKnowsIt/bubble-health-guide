@@ -52,24 +52,24 @@ export const UserDropdown = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between min-h-[2.5rem] bg-background"
         >
           {selectedUser ? (
-            <div className="flex items-center gap-2">
-              <UserIcon className="h-4 w-4" />
-              <span className="truncate">{getUserDisplayName(selectedUser)}</span>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <UserIcon className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate mobile-text-sm">{getUserDisplayName(selectedUser)}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <UserIcon className="h-4 w-4" />
-              <span className="text-muted-foreground">Select user...</span>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <UserIcon className="h-4 w-4 flex-shrink-0" />
+              <span className="text-muted-foreground mobile-text-sm">Select user...</span>
             </div>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
+      <PopoverContent className="w-full p-0 bg-background border-border z-[100]" align="start">
+        <Command className="bg-background">
           <CommandInput placeholder="Search users..." />
           <CommandList>
             <CommandEmpty>No users found.</CommandEmpty>
@@ -82,29 +82,30 @@ export const UserDropdown = ({
                     onUserSelect(user.id === selectedUser?.id ? null : user);
                     onOpenChange(false);
                   }}
+                  className="min-h-[3rem] p-2"
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 flex-shrink-0",
                       selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col">
-                      <span className="font-medium">
+                  <div className="flex items-center justify-between w-full min-w-0">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="font-medium mobile-text-sm truncate">
                         {user.first_name} {user.last_name}
                       </span>
                       {user.date_of_birth && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="mobile-text-xs text-muted-foreground truncate">
                           Born: {new Date(user.date_of_birth).toLocaleDateString()}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {user.is_primary ? (
-                        <Badge variant="default" className="text-xs">Primary</Badge>
+                        <Badge variant="default" className="mobile-text-xs">Primary</Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-xs capitalize">
+                        <Badge variant="secondary" className="mobile-text-xs capitalize max-w-[4rem] truncate">
                           {user.relationship}
                         </Badge>
                       )}

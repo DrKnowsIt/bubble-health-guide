@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronDown, ChevronUp, AlertCircle, Calendar, TrendingUp, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ThumbsUp, ThumbsDown, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 interface Diagnosis {
   diagnosis: string;
@@ -18,85 +19,64 @@ interface Diagnosis {
 interface ProbableDiagnosesProps {
   diagnoses: Diagnosis[];
   patientName: string;
-  patientId?: string;
+  patientId: string;
 }
 
 interface DiagnosisFeedback {
-  diagnosis_text: string;
-  feedback_type: 'up' | 'down';
+  diagnosis: string;
+  feedback: 'positive' | 'negative';
 }
 
-export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: ProbableDiagnosesProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({});
+export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: ProbableDiagnosesProps) => {
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [userFeedback, setUserFeedback] = useState<Record<string, 'positive' | 'negative'>>({});
 
-  // Load existing feedback on component mount
   useEffect(() => {
-    if (user?.id && patientId && diagnoses.length > 0) {
+    if (user && patientId) {
       loadExistingFeedback();
     }
-  }, [user?.id, patientId, diagnoses]);
+  }, [user, patientId, diagnoses]);
 
   const loadExistingFeedback = async () => {
     try {
       const { data, error } = await supabase
         .from('diagnosis_feedback')
-        .select('diagnosis_text, feedback_type')
+        .select('diagnosis, feedback')
         .eq('user_id', user?.id)
         .eq('patient_id', patientId);
 
       if (error) throw error;
 
-      const feedbackMap: Record<string, 'up' | 'down'> = {};
+      const feedbackMap: Record<string, 'positive' | 'negative'> = {};
       data?.forEach((item: DiagnosisFeedback) => {
-        feedbackMap[item.diagnosis_text] = item.feedback_type;
+        feedbackMap[item.diagnosis] = item.feedback;
       });
-      setFeedback(feedbackMap);
+      setUserFeedback(feedbackMap);
     } catch (error) {
-      console.error('Error loading diagnosis feedback:', error);
+      console.error('Error loading feedback:', error);
     }
   };
 
-  const handleFeedback = async (diagnosisText: string, feedbackType: 'up' | 'down') => {
-    if (!user?.id || !patientId) return;
+  const handleFeedback = async (diagnosis: string, feedback: 'positive' | 'negative') => {
+    if (!user || !patientId) return;
 
     try {
-      // Check if feedback already exists
-      const { data: existing } = await supabase
+      const { error } = await supabase
         .from('diagnosis_feedback')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('patient_id', patientId)
-        .eq('diagnosis_text', diagnosisText)
-        .single();
+        .upsert({
+          user_id: user.id,
+          patient_id: patientId,
+          diagnosis,
+          feedback,
+          created_at: new Date().toISOString(),
+        });
 
-      if (existing) {
-        // Update existing feedback
-        const { error } = await supabase
-          .from('diagnosis_feedback')
-          .update({ feedback_type: feedbackType })
-          .eq('id', existing.id);
+      if (error) throw error;
 
-        if (error) throw error;
-      } else {
-        // Insert new feedback
-        const { error } = await supabase
-          .from('diagnosis_feedback')
-          .insert({
-            user_id: user.id,
-            patient_id: patientId,
-            diagnosis_text: diagnosisText,
-            feedback_type: feedbackType
-          });
-
-        if (error) throw error;
-      }
-
-      // Update local state
-      setFeedback(prev => ({
+      setUserFeedback(prev => ({
         ...prev,
-        [diagnosisText]: feedbackType
+        [diagnosis]: feedback
       }));
 
     } catch (error) {
@@ -133,101 +113,102 @@ export const ProbableDiagnoses = ({ diagnoses = [], patientName, patientId }: Pr
     <Card className="border-l-4 border-l-primary">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Topics to Discuss with Your Doctor</CardTitle>
-                <Badge variant="secondary" className="ml-2">
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <CardTitle className="mobile-text-sm sm:text-lg truncate">Topics to Discuss with Your Doctor</CardTitle>
+                <Badge variant="secondary" className="mobile-text-xs flex-shrink-0">
                   {diagnoses.length}
                 </Badge>
               </div>
-              <Button variant="ghost" size="sm">
-                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              <Button variant="ghost" size="sm" className="flex-shrink-0">
+                {isOpen ? <ChevronDown className="h-4 w-4 rotate-180" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground text-left">
+            <p className="mobile-text-xs sm:text-sm text-muted-foreground text-left truncate">
               Preparation topics for {patientName}'s doctor visit
             </p>
           </CardHeader>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <CardContent className="pt-0 space-y-4">
-            {diagnoses.map((diagnosis, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-foreground">
-                    {diagnosis.diagnosis}
-                  </h4>
-                  <Badge 
-                    variant="secondary" 
-                    className={`text-xs px-2 py-1 ${getConfidenceColor(diagnosis.confidence)}`}
-                  >
-                    {getConfidenceLevel(diagnosis.confidence)}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-muted-foreground">Confidence:</span>
-                    <Progress value={diagnosis.confidence * 100} className="flex-1 h-2" />
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(diagnosis.confidence * 100)}%
-                    </span>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <div className="space-y-3">
+              {diagnoses.map((diagnosis, index) => (
+                <div key={index} className="border rounded-lg p-3 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-medium text-foreground mobile-text-sm sm:text-base break-words leading-snug flex-1">
+                      {diagnosis.diagnosis}
+                    </h4>
+                    <Badge 
+                      variant="secondary" 
+                      className={`mobile-text-xs px-2 py-1 flex-shrink-0 ${getConfidenceColor(diagnosis.confidence)}`}
+                    >
+                      {getConfidenceLevel(diagnosis.confidence)}
+                    </Badge>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground">
-                    {diagnosis.reasoning}
-                  </p>
-                  
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>
-                        {new Date(diagnosis.updated_at).toLocaleDateString()}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="mobile-text-xs text-muted-foreground flex-shrink-0">Confidence:</span>
+                      <Progress value={diagnosis.confidence * 100} className="flex-1 h-1.5 sm:h-2" />
+                      <span className="mobile-text-xs text-muted-foreground flex-shrink-0">
+                        {Math.round(diagnosis.confidence * 100)}%
                       </span>
                     </div>
                     
-                    {/* Thumb up/down buttons */}
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleFeedback(diagnosis.diagnosis, 'up')}
-                        className={`h-8 w-8 p-0 ${
-                          feedback[diagnosis.diagnosis] === 'up' 
-                            ? 'text-green-600 bg-green-100 hover:bg-green-200' 
-                            : 'text-muted-foreground hover:text-green-600'
-                        }`}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleFeedback(diagnosis.diagnosis, 'down')}
-                        className={`h-8 w-8 p-0 ${
-                          feedback[diagnosis.diagnosis] === 'down' 
-                            ? 'text-red-600 bg-red-100 hover:bg-red-200' 
-                            : 'text-muted-foreground hover:text-red-600'
-                        }`}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                      </Button>
+                    <p className="mobile-text-sm text-muted-foreground break-words leading-relaxed">
+                      {diagnosis.reasoning}
+                    </p>
+                    
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center space-x-1 mobile-text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {format(new Date(diagnosis.updated_at), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleFeedback(diagnosis.diagnosis, 'positive')}
+                          className={`h-7 w-7 p-0 ${
+                            userFeedback[diagnosis.diagnosis] === 'positive' 
+                              ? 'text-green-600 bg-green-100 hover:bg-green-200' 
+                              : 'text-muted-foreground hover:text-green-600'
+                          }`}
+                        >
+                          <ThumbsUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleFeedback(diagnosis.diagnosis, 'negative')}
+                          className={`h-7 w-7 p-0 ${
+                            userFeedback[diagnosis.diagnosis] === 'negative' 
+                              ? 'text-red-600 bg-red-100 hover:bg-red-200' 
+                              : 'text-muted-foreground hover:text-red-600'
+                          }`}
+                        >
+                          <ThumbsDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-muted-foreground">
-                   <strong>Important:</strong> These are AI-generated possibilities to help you prepare questions for your doctor. 
-                   Only healthcare professionals can provide proper diagnosis and treatment. Use these to have better conversations with your doctor.
-                </p>
+              <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="mobile-text-xs text-muted-foreground">
+                     <strong>Important:</strong> These are AI-generated possibilities to help you prepare questions for your doctor. 
+                     Only healthcare professionals can provide proper diagnosis and treatment.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>

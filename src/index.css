@@ -185,20 +185,37 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    padding: 0.75rem;
+    padding-bottom: 8rem;
+    scroll-behavior: smooth;
   }
   
   .mobile-chat-input {
-    position: sticky;
+    position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
     background: hsl(var(--background));
     border-top: 1px solid hsl(var(--border));
-    z-index: 10;
+    padding: 0.75rem;
+    z-index: 50;
+    box-shadow: 0 -2px 10px hsl(var(--shadow) / 0.1);
   }
 
   /* Prevent viewport zoom on input focus for iOS */
   .mobile-input {
     font-size: 16px !important;
     transform-origin: top left;
+    width: 100%;
+    resize: none;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: hsl(var(--foreground));
+    line-height: 1.5;
+    max-height: 6rem;
+    overflow-y: auto;
   }
 
   /* Prevent body scroll when chat is active on mobile */
@@ -207,6 +224,52 @@
     position: fixed;
     width: 100%;
     height: 100%;
+  }
+
+  /* Mobile responsive text utilities */
+  .mobile-text-xs { font-size: 0.75rem; line-height: 1rem; }
+  .mobile-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .mobile-text-base { font-size: 1rem; line-height: 1.5rem; }
+  .mobile-text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+
+  /* Mobile spacing utilities */
+  .mobile-space-tight > * + * { margin-top: 0.5rem; }
+  .mobile-space-normal > * + * { margin-top: 0.75rem; }
+  .mobile-space-loose > * + * { margin-top: 1rem; }
+
+  /* Mobile container utilities */
+  .mobile-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .mobile-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Better mobile form handling */
+  .mobile-form-field {
+    margin-bottom: 1rem;
+  }
+
+  .mobile-form-field label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: hsl(var(--foreground));
+  }
+
+  .mobile-form-field input,
+  .mobile-form-field textarea,
+  .mobile-form-field select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 1rem;
   }
 
   .chat-bubble-user {
