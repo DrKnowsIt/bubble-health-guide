@@ -1,6 +1,9 @@
 import { Stethoscope, Heart, Shield, Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 export const Footer = () => {
+  const isMobile = useIsMobile();
+  
   return <footer className="bg-muted/50 border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-12">
@@ -26,29 +29,16 @@ export const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Product</h3>
                <ul className="space-y-3 text-sm">
-                  <li>
-                    <Link 
-                      to="/#features" 
-                      className="text-muted-foreground hover:text-primary transition-smooth"
-                      onClick={(e) => {
-                        // Always prevent default and handle the navigation manually
-                        e.preventDefault();
-                        
-                        // If we're already on the home page, just scroll
-                        if (window.location.pathname === '/') {
-                          const featuresElement = document.getElementById('features');
-                          if (featuresElement) {
-                            featuresElement.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        } else {
-                          // Navigate to home page with features hash
-                          window.location.href = '/#features';
-                        }
-                      }}
-                    >
-                      Features
-                    </Link>
-                  </li>
+                  {!isMobile && (
+                    <li>
+                      <Link 
+                        to="/#features" 
+                        className="text-muted-foreground hover:text-primary transition-smooth"
+                      >
+                        Features
+                      </Link>
+                    </li>
+                  )}
                  <li>
                    <Link to="/pricing" className="text-muted-foreground hover:text-primary transition-smooth">
                      Pricing
