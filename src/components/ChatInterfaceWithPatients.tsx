@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Send, Mic, MicOff, Bot, User, Loader2, MessageCircle, Users } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
@@ -17,18 +17,18 @@ import { UserDropdown } from './UserDropdown';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ChatInterfaceWithPatientsProps {
+interface ChatInterfaceWithUsersProps {
   onSendMessage?: (message: string) => void;
   isMobile?: boolean;
-  selectedPatient?: Patient | null;
+  selectedUser?: User | null;
 }
 
-export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, selectedPatient: propSelectedPatient }: ChatInterfaceWithPatientsProps) => {
+export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, selectedUser: propSelectedUser }: ChatInterfaceWithUsersProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient: hookSelectedPatient, setSelectedPatient, loading: patientsLoading } = usePatients();
+  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsers();
   
-  // Use prop patient if provided, otherwise use hook patient
-  const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
+  // Use prop user if provided, otherwise use hook user
+  const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
   const { 
     messages, 
     loading: messagesLoading, 
@@ -42,7 +42,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
-  const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -62,7 +62,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !selectedPatient) return;
+    if (!inputValue.trim() || !selectedUser) return;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}-${Math.random()}`,
@@ -84,7 +84,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
         body: { 
           message: currentInput,
           conversation_history: conversationHistory,
-          patient_id: selectedPatient?.id,
+          patient_id: selectedUser?.id,
           user_id: user.id,
           conversation_id: currentConversation 
         }
@@ -135,12 +135,12 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
   };
 
   const handleNewConversation = async () => {
-    if (!selectedPatient) return;
+    if (!selectedUser) return;
     
     try {
       const newConversationId = await createConversation(
-        `Chat with ${selectedPatient.first_name}`, 
-        selectedPatient.id
+        `Chat with ${selectedUser.first_name}`, 
+        selectedUser.id
       );
       
       if (newConversationId) {
@@ -158,15 +158,15 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
     }
   };
 
-  const handlePatientSelect = (patient: Patient | null) => {
-    setSelectedPatient(patient);
-    if (patient) {
-      // Create or switch to conversation for this patient
+  const handleUserSelect = (user: User | null) => {
+    setSelectedUser(user);
+    if (user) {
+      // Create or switch to conversation for this user
       handleNewConversation();
     }
   };
 
-  if (patientsLoading) {
+  if (usersLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -174,10 +174,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
     );
   }
 
-  if (patients.length === 0) {
+  if (users.length === 0) {
     return (
       <div className="text-center p-8">
-        <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <UserIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-medium mb-2">No Users Found</h3>
         <p className="text-muted-foreground mb-4">
           You need to add users before you can start chatting.
@@ -192,20 +192,20 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
       <div className="h-full flex flex-col">
         <div className="p-4 border-b">
           <UserDropdown
-            patients={patients}
-            selectedPatient={selectedPatient}
-            onPatientSelect={handlePatientSelect}
-            open={patientDropdownOpen}
-            onOpenChange={setPatientDropdownOpen}
+            users={users}
+            selectedUser={selectedUser}
+            onUserSelect={handleUserSelect}
+            open={userDropdownOpen}
+            onOpenChange={setUserDropdownOpen}
           />
         </div>
 
-        {selectedPatient && (
+        {selectedUser && (
           <div className="p-4 border-b">
             <ProbableDiagnoses 
-              diagnoses={selectedPatient.probable_diagnoses || []}
-              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
-              patientId={selectedPatient.id}
+              diagnoses={selectedUser.probable_diagnoses || []}
+              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
+              patientId={selectedUser.id}
             />
           </div>
         )}
@@ -244,7 +244,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                         }`}
                       >
                         {message.type === 'user' ? (
-                          <User className="h-5 w-5" />
+                          <UserIcon className="h-5 w-5" />
                         ) : (
                           <Bot className="h-5 w-5" />
                         )}
@@ -292,14 +292,14 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
                       className="min-h-[50px] max-h-[120px] resize-none pr-12"
-                      disabled={!selectedPatient}
+                      disabled={!selectedUser}
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       className="absolute bottom-2 right-2 h-8 w-8 p-0"
                       onClick={toggleRecording}
-                      disabled={!selectedPatient || isProcessing}
+                      disabled={!selectedUser || isProcessing}
                     >
                       {isRecording ? (
                         <MicOff className="h-4 w-4 text-red-500" />
@@ -310,7 +310,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                   </div>
                   <Button 
                     onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isTyping || !selectedPatient}
+                    disabled={!inputValue.trim() || isTyping || !selectedUser}
                     className="h-[50px] px-6"
                   >
                     <Send className="h-4 w-4" />
@@ -322,7 +322,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
 
           <TabsContent value="history" className="flex-1 mt-4 mx-4">
             <ConversationHistory
-              selectedPatientId={selectedPatient?.id}
+              selectedPatientId={selectedUser?.id}
               onConversationSelect={handleConversationSelect}
               onNewConversation={handleNewConversation}
               activeConversationId={currentConversation}
@@ -342,13 +342,13 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
       </div>
       
       <div className="flex-[2] flex space-x-4">
-        {/* Left Sidebar - History and Patient Selection */}
+        {/* Left Sidebar - History and User Selection */}
         <div className="w-80 space-y-4">
 
           {/* Conversation History */}
           <div className="flex-1">
             <ConversationHistory
-              selectedPatientId={selectedPatient?.id}
+              selectedPatientId={selectedUser?.id}
               onConversationSelect={handleConversationSelect}
               onNewConversation={handleNewConversation}
               activeConversationId={currentConversation}
@@ -360,10 +360,10 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
         <div className="flex-1 flex flex-col">
           <Card className="flex-1 flex flex-col min-h-[600px]">
             <CardContent className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[500px]">
-              {!selectedPatient ? (
+              {!selectedUser ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <UserIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">Select a User</h3>
                     <p className="text-muted-foreground">
                       Choose a user from the dropdown to start chatting.
@@ -390,7 +390,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                           }`}
                         >
                           {message.type === 'user' ? (
-                            <User className="h-5 w-5" />
+                            <UserIcon className="h-5 w-5" />
                           ) : (
                             <Bot className="h-5 w-5" />
                           )}
@@ -440,14 +440,14 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="min-h-[50px] max-h-[120px] resize-none pr-12"
-                    disabled={!selectedPatient}
+                    disabled={!selectedUser}
                   />
                   <Button
                     variant="ghost"
                     size="sm"
                     className="absolute bottom-2 right-2 h-8 w-8 p-0"
                     onClick={toggleRecording}
-                    disabled={!selectedPatient || isProcessing}
+                    disabled={!selectedUser || isProcessing}
                   >
                     {isRecording ? (
                       <MicOff className="h-4 w-4 text-red-500" />
@@ -458,7 +458,7 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
                 </div>
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isTyping || !selectedPatient}
+                  disabled={!inputValue.trim() || isTyping || !selectedUser}
                   className="h-[50px] px-6"
                 >
                   <Send className="h-4 w-4" />
@@ -470,11 +470,11 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
 
         {/* Right Sidebar - Probable Diagnoses */}
         <div className="w-80">
-          {selectedPatient ? (
+          {selectedUser ? (
             <ProbableDiagnoses 
-              diagnoses={selectedPatient.probable_diagnoses || []}
-              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
-              patientId={selectedPatient.id}
+              diagnoses={selectedUser.probable_diagnoses || []}
+              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
+              patientId={selectedUser.id}
             />
           ) : (
             <div className="p-6 bg-muted/30 rounded-lg">
@@ -489,3 +489,6 @@ export const ChatInterfaceWithPatients = ({ onSendMessage, isMobile = false, sel
     </div>
   );
 };
+
+// Backward compatibility
+export const ChatInterfaceWithPatients = ChatInterfaceWithUsers;
