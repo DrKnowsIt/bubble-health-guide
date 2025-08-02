@@ -35,8 +35,11 @@ export const Footer = () => {
                         const isMobile = window.innerWidth < 768;
                         if (currentPath === '/' && !isMobile) {
                           e.preventDefault();
-                          document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                          setTimeout(() => {
+                            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
                         }
+                        // For mobile or other pages, let the default navigation happen
                       }}
                     >
                       Features
