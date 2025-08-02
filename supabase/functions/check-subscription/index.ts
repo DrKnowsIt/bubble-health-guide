@@ -116,19 +116,22 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determine subscription tier from price
+      // Determine subscription tier from specific Price IDs
       const priceId = subscription.items.data[0].price.id;
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount || 0;
       
-      // Only basic and pro tiers are available now
-      if (amount <= 2999) { // $29.99 or less
+      // Use your specific Stripe Price IDs to determine tier
+      if (priceId === "price_1RrgK1K37LckM7aOVxpr9WPz") {
         subscriptionTier = "basic";
-      } else { // Above $29.99
+      } else if (priceId === "price_1RrgL2K37LckM7aO9rmy59vl") {
         subscriptionTier = "pro";
+      } else {
+        // Fallback to amount-based detection for any other prices
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount || 0;
+        subscriptionTier = amount <= 2999 ? "basic" : "pro";
       }
       
-      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
+      logStep("Determined subscription tier", { priceId, subscriptionTier });
     } else {
       logStep("No active subscription found");
     }

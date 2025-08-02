@@ -60,32 +60,23 @@ serve(async (req) => {
     const body = await req.json();
     const plan = body.plan || 'pro'; // Default to pro if not specified
     
-    let productName, productDescription, unitAmount;
+    // Use existing Stripe Price IDs for the user's products
+    let priceId;
     
     if (plan === 'basic') {
-      productName = "DrKnowsIt Basic Plan";
-      productDescription = "Essential AI health questions with basic data tracking";
-      unitAmount = 2500; // $25.00 in cents
+      priceId = "price_1RrgK1K37LckM7aOVxpr9WPz"; // Basic plan
     } else {
-      productName = "DrKnowsIt Pro Plan";
-      productDescription = "Full AI health guidance with complete tracking and history";
-      unitAmount = 5000; // $50.00 in cents
+      priceId = "price_1RrgL2K37LckM7aO9rmy59vl"; // Pro plan
     }
+    
+    logStep("Using existing Stripe product", { plan, priceId });
     
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: productName,
-              description: productDescription
-            },
-            unit_amount: unitAmount,
-            recurring: { interval: "month" },
-          },
+          price: priceId,
           quantity: 1,
         },
       ],
