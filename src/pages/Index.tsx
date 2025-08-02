@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ChatInterfaceWithPatients } from "@/components/ChatInterfaceWithPatients";
+import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
 import { SimpleChatInterface } from "@/components/SimpleChatInterface";
 // Using the uploaded Dr. Knowsit mascot image
 const Index = () => {

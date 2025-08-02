@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
-import { usePatients } from '@/hooks/usePatients';
+import { useUsers } from '@/hooks/useUsers';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
-import { ChatInterfaceWithPatients } from '@/components/ChatInterfaceWithPatients';
+import { ChatInterfaceWithUsers } from '@/components/ChatInterfaceWithPatients';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
-import { ContextualPatientSelector } from '@/components/ContextualPatientSelector';
+import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
@@ -30,10 +30,10 @@ export default function UserDashboard() {
     createCheckoutSession
   } = useSubscription();
   const {
-    patients,
-    selectedPatient,
-    setSelectedPatient
-  } = usePatients();
+    users,
+    selectedUser,
+    setSelectedUser
+  } = useUsers();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const {
@@ -203,17 +203,17 @@ export default function UserDashboard() {
               <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
                 <div className="space-y-4">
                   {/* Contextual Patient Selector */}
-                  <ContextualPatientSelector patients={patients} selectedPatient={selectedPatient} onPatientSelect={setSelectedPatient} hasAccess={hasAccess('basic')} title="Chat with AI" description="Select a patient to have personalized conversations" />
+                  <ContextualUserSelector users={users} selectedUser={selectedUser} onUserSelect={setSelectedUser} hasAccess={hasAccess('basic')} title="Chat with AI" description="Select a user to have personalized conversations" />
                   
                   {isMobile ? <div className="flex flex-col h-full">
-                      <ChatInterfaceWithPatients isMobile={true} selectedPatient={selectedPatient} />
+                      <ChatInterfaceWithUsers isMobile={true} selectedUser={selectedUser} />
                     </div> : <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
                       <div className="mb-4 flex-shrink-0">
                         <h2 className="text-lg font-semibold">AI Health Assistant</h2>
                         <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
                       </div>
                       <div className="flex-1 min-h-0">
-                        <ChatInterfaceWithPatients selectedPatient={selectedPatient} />
+                        <ChatInterfaceWithUsers selectedUser={selectedUser} />
                       </div>
                     </div>}
                 </div>
@@ -224,22 +224,22 @@ export default function UserDashboard() {
               <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Store and manage your health records securely with a Basic or Pro subscription.">
                   <div className="space-y-4">
-                    {/* Patient Selector - Only show when user has access */}
+                    {/* User Selector - Only show when user has access */}
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">Health Records</h3>
-                      <p className="text-sm text-muted-foreground">Select a patient to view their health records</p>
+                      <p className="text-sm text-muted-foreground">Select a user to view their health records</p>
                       <div className="max-w-xs">
                         <UserDropdown
-                          patients={patients}
-                          selectedPatient={selectedPatient}
-                          onPatientSelect={setSelectedPatient}
+                          users={users}
+                          selectedUser={selectedUser}
+                          onUserSelect={setSelectedUser}
                           open={dropdownOpen}
                           onOpenChange={setDropdownOpen}
                         />
                       </div>
                     </div>
                     
-                    <HealthRecords selectedPatient={selectedPatient} />
+                    <HealthRecords selectedPatient={selectedUser} />
                   </div>
                 </SubscriptionGate>
               </div>
@@ -249,10 +249,10 @@ export default function UserDashboard() {
                 <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
                   <SubscriptionGate requiredTier="basic" feature="Health Forms" description="Access structured health forms and comprehensive data entry with a Basic or Pro subscription.">
                     <div className="space-y-4">
-                      {/* Contextual Patient Selector */}
-                      <ContextualPatientSelector patients={patients} selectedPatient={selectedPatient} onPatientSelect={setSelectedPatient} hasAccess={hasAccess('basic')} title="Health Forms" description="Select a patient to fill out their health forms" />
+                      {/* Contextual User Selector */}
+                      <ContextualUserSelector users={users} selectedUser={selectedUser} onUserSelect={setSelectedUser} hasAccess={hasAccess('basic')} title="Health Forms" description="Select a user to fill out their health forms" />
                       
-                      <HealthForms selectedPatient={selectedPatient} onFormSubmit={() => setActiveTab('health')} />
+                      <HealthForms selectedPatient={selectedUser} onFormSubmit={() => setActiveTab('health')} />
                     </div>
                   </SubscriptionGate>
                 </div>
