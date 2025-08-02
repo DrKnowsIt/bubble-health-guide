@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_conversation_strategies: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          strategy_config: Json
+          strategy_name: string
+          subscription_tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          strategy_config?: Json
+          strategy_name: string
+          subscription_tier: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          strategy_config?: Json
+          strategy_name?: string
+          subscription_tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_settings: {
         Row: {
           created_at: string
@@ -148,6 +181,119 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      doctor_notes: {
+        Row: {
+          confidence_score: number | null
+          content: string
+          conversation_context: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          note_type: string
+          patient_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content: string
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          note_type: string
+          patient_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: string
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          note_type?: string
+          patient_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_data_priorities: {
+        Row: {
+          created_at: string
+          data_type: string
+          id: string
+          priority_level: string
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_type: string
+          id?: string
+          priority_level: string
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_type?: string
+          id?: string
+          priority_level?: string
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_record_summaries: {
+        Row: {
+          created_at: string
+          health_record_id: string
+          id: string
+          priority_level: string
+          summary_text: string
+          summary_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          health_record_id: string
+          id?: string
+          priority_level?: string
+          summary_text: string
+          summary_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          health_record_id?: string
+          id?: string
+          priority_level?: string
+          summary_text?: string
+          summary_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_health_record_summaries_health_record_id"
+            columns: ["health_record_id"]
+            isOneToOne: false
+            referencedRelation: "health_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       health_records: {
         Row: {

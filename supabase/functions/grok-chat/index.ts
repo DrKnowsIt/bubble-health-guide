@@ -43,6 +43,30 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get user subscription tier
+    const { data: subscription } = await supabase
+      .from('subscribers')
+      .select('subscription_tier')
+      .eq('user_id', user_id)
+      .single();
+
+    const subscriptionTier = subscription?.subscription_tier || 'basic';
+
+    // Get strategic referencing data
+    const { data: dataPriorities } = await supabase
+      .from('health_data_priorities')
+      .select('*')
+      .eq('user_id', user_id)
+      .or(`subscription_tier.is.null,subscription_tier.eq.${subscriptionTier}`);
+
+    const { data: doctorNotes } = await supabase
+      .from('doctor_notes')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
     // Get AI settings for the user
     const { data: aiSettings } = await supabase
       .from('ai_settings')
@@ -96,8 +120,28 @@ serve(async (req) => {
         );
       }
 
-      // Get health records for this patient
-      const { data: healthRecords } = await supabase
+      // Get strategic health data based on subscription and priorities
+      const { data: healthRecordSummaries } = await supabase
+        .from('health_records')
+        .select(`
+          id,
+          title,
+          record_type,
+          data,
+          file_url,
+          created_at,
+          health_record_summaries!inner(
+            id,
+            summary_text,
+            priority_level
+          )
+        `)
+        .eq('patient_id', patient_id)
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false });
+
+      // Get full health records for fallback
+      const { data: allHealthRecords } = await supabase
         .from('health_records')
         .select('*')
         .eq('patient_id', patient_id)
@@ -119,63 +163,138 @@ PATIENT PROFILE:
 - Relationship: ${patient.relationship}
 - Primary User: ${patient.is_primary ? 'Yes' : 'No'}`;
 
-      if (healthRecords?.length) {
-        // Categorize health records by type
-        const recordsByType = healthRecords.reduce((acc, record) => {
-          const type = record.record_type || 'general';
-          if (!acc[type]) acc[type] = [];
-          acc[type].push(record);
-          return acc;
-        }, {});
+      // Build strategic health context based on subscription and priorities
+      let healthRecordsText = '\n\nHEALTH RECORDS:';
+      
+      // Organize priorities
+      const alwaysPriorities = (dataPriorities || []).filter(p => p.priority_level === 'always');
+      const conditionalPriorities = (dataPriorities || []).filter(p => p.priority_level === 'conditional');
+      
+      // Check if we should include conditional data
+      const shouldIncludeConditional = subscriptionTier === 'pro' || 
+        (subscriptionTier === 'basic' && conditionalPriorities.length > 0);
 
-        let healthRecordsText = '\n\nHEALTH RECORDS:';
-        
-        // Process each category
-        Object.entries(recordsByType).forEach(([type, records]) => {
-          healthRecordsText += `\n\n${type.toUpperCase()}:`;
-          records.forEach(record => {
-            healthRecordsText += `\n- ${record.title} (${new Date(record.created_at).toLocaleDateString()})`;
-            
-            // Include structured data if available
-            if (record.data && typeof record.data === 'object') {
-              try {
-                const dataStr = JSON.stringify(record.data, null, 2);
-                if (dataStr !== '{}' && dataStr !== 'null') {
-                  healthRecordsText += `\n  Data: ${dataStr}`;
-                }
-              } catch (e) {
-                console.log('Error parsing record data:', e);
-              }
-            }
-            
-            // Note file attachments
-            if (record.file_url) {
-              healthRecordsText += '\n  Note: Contains file attachment';
-            }
-          });
-        });
-
-        patientContext += healthRecordsText;
-
-        // Separate health forms context for specific prompting
-        const healthForms = healthRecords.filter(r => 
-          ['symptom_tracker', 'medication_log', 'vital_signs', 'mood_tracker', 'pain_tracker', 'sleep_tracker'].includes(r.record_type)
+      // Process summarized records with strategic priority
+      if (healthRecordSummaries?.length) {
+        const alwaysSummaries = healthRecordSummaries.filter(r => 
+          r.health_record_summaries[0]?.priority_level === 'always'
         );
-        
-        if (healthForms.length > 0) {
-          healthFormsContext = '\n\nHEALTH FORMS DATA:';
-          healthForms.forEach(form => {
-            healthFormsContext += `\n- ${form.title}: ${form.data ? JSON.stringify(form.data) : 'No data'}`;
+        const conditionalSummaries = healthRecordSummaries.filter(r => 
+          r.health_record_summaries[0]?.priority_level === 'conditional'
+        );
+        const normalSummaries = healthRecordSummaries.filter(r => 
+          r.health_record_summaries[0]?.priority_level === 'normal'
+        );
+
+        // Always include high-priority summaries
+        if (alwaysSummaries.length > 0) {
+          healthRecordsText += '\n\nALWAYS-REFERENCE DATA:';
+          alwaysSummaries.forEach(record => {
+            const summary = record.health_record_summaries[0];
+            healthRecordsText += `\n- ${record.title} (${record.record_type}): ${summary.summary_text}`;
           });
         }
+
+        // Include conditional data based on subscription
+        if (shouldIncludeConditional && conditionalSummaries.length > 0) {
+          healthRecordsText += '\n\nCONDITIONAL-REFERENCE DATA:';
+          conditionalSummaries.forEach(record => {
+            const summary = record.health_record_summaries[0];
+            healthRecordsText += `\n- ${record.title} (${record.record_type}): ${summary.summary_text}`;
+          });
+        }
+
+        // Include limited normal summaries
+        if (normalSummaries.length > 0) {
+          healthRecordsText += '\n\nADDITIONAL HEALTH DATA (limited):';
+          normalSummaries.slice(0, 3).forEach(record => {
+            const summary = record.health_record_summaries[0];
+            healthRecordsText += `\n- ${record.title}: ${summary.summary_text}`;
+          });
+          
+          if (normalSummaries.length > 3) {
+            healthRecordsText += `\n  ... and ${normalSummaries.length - 3} more records available`;
+          }
+        }
+      } else if (allHealthRecords?.length) {
+        // Fallback to full records if no summaries available
+        healthRecordsText += '\n\nLIMITED HEALTH RECORDS (no summaries available):';
+        allHealthRecords.slice(0, 5).forEach(record => {
+          healthRecordsText += `\n- ${record.title} (${record.record_type}) - ${new Date(record.created_at).toLocaleDateString()}`;
+          if (record.data) {
+            const dataStr = JSON.stringify(record.data).substring(0, 100);
+            healthRecordsText += `\n  Brief: ${dataStr}${dataStr.length >= 100 ? '...' : ''}`;
+          }
+        });
+        
+        if (allHealthRecords.length > 5) {
+          healthRecordsText += `\n  ... and ${allHealthRecords.length - 5} more records available`;
+        }
       } else {
-        patientContext += '\n\nHEALTH RECORDS: No health records available';
+        healthRecordsText += '\n\nNo health records available';
+      }
+
+      patientContext += healthRecordsText;
+
+      // Build health forms context strategically
+      const healthForms = allHealthRecords?.filter(r => 
+        ['symptom_tracker', 'medication_log', 'vital_signs', 'mood_tracker', 'pain_tracker', 'sleep_tracker'].includes(r.record_type)
+      ) || [];
+      
+      if (healthForms.length > 0) {
+        healthFormsContext = '\n\nHEALTH FORMS DATA:';
+        healthForms.slice(0, 3).forEach(form => {
+          healthFormsContext += `\n- ${form.title}: ${form.data ? JSON.stringify(form.data).substring(0, 200) : 'No data'}`;
+        });
+        
+        if (healthForms.length > 3) {
+          healthFormsContext += `\n  ... and ${healthForms.length - 3} more forms available`;
+        }
       }
 
       if (currentDiagnoses.length > 0) {
         patientContext += `\n\nCURRENT PROBABLE DIAGNOSES: ${currentDiagnoses.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}% confidence - ${d.reasoning})`).join(', ')}`;
       } else {
         patientContext += '\n\nCURRENT PROBABLE DIAGNOSES: None yet';
+      }
+    }
+
+    // Build doctor notes context
+    let doctorNotesContext = '';
+    if (doctorNotes?.length) {
+      const patternNotes = doctorNotes.filter(n => n.note_type === 'pattern').slice(0, 3);
+      const concernNotes = doctorNotes.filter(n => n.note_type === 'concern').slice(0, 3);
+      const preferenceNotes = doctorNotes.filter(n => n.note_type === 'preference').slice(0, 2);
+      const insightNotes = doctorNotes.filter(n => n.note_type === 'insight').slice(0, 3);
+
+      doctorNotesContext = '\n\nDOCTOR NOTES (AI Memory):';
+      
+      if (patternNotes.length > 0) {
+        doctorNotesContext += '\n\nHealth Patterns:';
+        patternNotes.forEach(note => {
+          doctorNotesContext += `\n- ${note.title}: ${note.content}`;
+        });
+      }
+      
+      if (concernNotes.length > 0) {
+        doctorNotesContext += '\n\nOngoing Concerns:';
+        concernNotes.forEach(note => {
+          doctorNotesContext += `\n- ${note.title}: ${note.content}`;
+        });
+      }
+      
+      if (preferenceNotes.length > 0) {
+        doctorNotesContext += '\n\nUser Preferences:';
+        preferenceNotes.forEach(note => {
+          doctorNotesContext += `\n- ${note.title}: ${note.content}`;
+        });
+      }
+      
+      if (insightNotes.length > 0) {
+        doctorNotesContext += '\n\nKey Insights:';
+        insightNotes.forEach(note => {
+          doctorNotesContext += `\n- ${note.title}: ${note.content}`;
+        });
       }
     }
 
@@ -195,7 +314,8 @@ PATIENT PROFILE:
 
 AI SETTINGS:
 - Memory: ${memoryEnabled ? 'Enabled' : 'Disabled'}
-- Personalization Level: ${personalizationLevel}${memoryContext}
+- Personalization Level: ${personalizationLevel}
+- Subscription Tier: ${subscriptionTier}${memoryContext}${doctorNotesContext}
 
 ${patientContext}${healthFormsContext}
 
