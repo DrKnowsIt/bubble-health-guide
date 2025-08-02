@@ -113,14 +113,29 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               FAQ
             </Link>
             <div className="border-t border-border pt-4 space-y-2">
-              <Button variant="outline" size="sm" className="w-full btn-outline" onClick={onSignIn}>
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
-              <Button size="sm" className="w-full btn-primary" onClick={onSignUp}>
-                <User className="h-4 w-4 mr-2" />
-                Get Started
-              </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full btn-outline" 
+              onClick={() => {
+                setIsMenuOpen(false);
+                onSignIn();
+              }}
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Sign In
+            </Button>
+            <Button 
+              size="sm" 
+              className="w-full btn-primary" 
+              onClick={() => {
+                setIsMenuOpen(false);
+                onSignUp();
+              }}
+            >
+              <User className="h-4 w-4 mr-2" />
+              Get Started
+            </Button>
             </div>
           </div>
         </div>

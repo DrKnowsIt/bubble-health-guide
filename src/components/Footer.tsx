@@ -26,21 +26,22 @@ export const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Product</h3>
                <ul className="space-y-3 text-sm">
-                 <li>
-                   <Link 
-                     to="/#features" 
-                     className="text-muted-foreground hover:text-primary transition-smooth"
-                     onClick={(e) => {
-                       const currentPath = window.location.pathname;
-                       if (currentPath === '/') {
-                         e.preventDefault();
-                         document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                       }
-                     }}
-                   >
-                     Features
-                   </Link>
-                 </li>
+                  <li>
+                    <Link 
+                      to="/#features" 
+                      className="text-muted-foreground hover:text-primary transition-smooth"
+                      onClick={(e) => {
+                        const currentPath = window.location.pathname;
+                        const isMobile = window.innerWidth < 768;
+                        if (currentPath === '/' && !isMobile) {
+                          e.preventDefault();
+                          document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
+                    >
+                      Features
+                    </Link>
+                  </li>
                  <li>
                    <Link to="/pricing" className="text-muted-foreground hover:text-primary transition-smooth">
                      Pricing
@@ -68,16 +69,16 @@ export const Footer = () => {
                      Medical Disclaimers
                    </Link>
                  </li>
-                 <li>
-                   <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary transition-smooth">
-                     Privacy Policy
-                   </Link>
-                 </li>
-                 <li>
-                   <Link to="/terms-of-service" className="text-muted-foreground hover:text-primary transition-smooth">
-                     Terms of Service
-                   </Link>
-                 </li>
+                  <li>
+                    <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-smooth">
+                      Privacy Policy
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/terms" className="text-muted-foreground hover:text-primary transition-smooth">
+                      Terms of Service
+                    </Link>
+                  </li>
                </ul>
             </div>
 
