@@ -65,6 +65,13 @@ export const navItems = [
     protected: false,
   },
   {
+    title: "Privacy Policy (Redirect)",
+    to: "/privacy-policy",
+    icon: <Shield className="h-4 w-4" />,
+    page: <PrivacyPolicy />,
+    protected: false,
+  },
+  {
     title: "Terms of Service",
     to: "/terms",
     icon: <FileText className="h-4 w-4" />,
