@@ -42,7 +42,7 @@ const recordTypes = [
   { value: 'medical_history', label: 'Medical History', icon: Heart },
   { value: 'workout', label: 'Workout Routine', icon: Activity },
   { value: 'diet', label: 'Diet Plan', icon: Utensils },
-  { value: 'dna', label: 'DNA Analysis', icon: Dna },
+  { value: 'dna_genetics', label: 'DNA Analysis', icon: Dna },
 ];
 
 interface HealthRecordsProps {

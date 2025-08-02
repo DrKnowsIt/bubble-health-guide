@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileText, AlertCircle, CheckCircle2, Download, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -16,8 +16,36 @@ interface DNAUploadProps {
 export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadComplete }) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [existingDNARecords, setExistingDNARecords] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Load existing DNA records
+  const loadExistingDNARecords = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('health_records')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('record_type', 'dna_genetics')
+        .eq('patient_id', selectedPatient?.id || null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setExistingDNARecords(data || []);
+    } catch (error: any) {
+      console.error('Error loading DNA records:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadExistingDNARecords();
+  }, [user, selectedPatient]);
 
   const validateDNAFile = (file: File): boolean => {
     const validExtensions = ['.txt', '.csv', '.tsv'];
@@ -68,7 +96,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
         .insert({
           user_id: user?.id,
           patient_id: selectedPatient?.id || null,
-          record_type: 'dna',
+          record_type: 'dna_genetics',
           title: `DNA Analysis - ${file.name}`,
           data: {
             filename: file.name,
@@ -87,6 +115,8 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
         description: `Successfully uploaded ${file.name}`,
       });
 
+      // Refresh existing records and notify parent
+      loadExistingDNARecords();
       onUploadComplete?.();
     } catch (error: any) {
       toast({
@@ -192,6 +222,42 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
             </div>
           </div>
         </div>
+
+        {/* Existing DNA Records */}
+        {existingDNARecords.length > 0 && (
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Existing DNA Files ({existingDNARecords.length})
+            </h4>
+            <div className="space-y-2">
+              {existingDNARecords.map((record) => (
+                <div key={record.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">{record.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {record.data?.source && `Source: ${record.data.source} • `}
+                        Uploaded: {new Date(record.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  {record.file_url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(record.file_url, '_blank')}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

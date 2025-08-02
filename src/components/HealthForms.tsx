@@ -448,11 +448,20 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
       case 'file':
         return (
-          <Input
-            type="file"
-            onChange={(e) => handleInputChange(field.name, e.target.files?.[0] || null)}
-            accept=".txt,.csv,.vcf,.raw"
-          />
+          <div className="space-y-3">
+            <Input
+              type="file"
+              onChange={(e) => handleInputChange(field.name, e.target.files?.[0] || null)}
+              accept=".txt,.csv,.vcf,.raw"
+            />
+            {/* Show existing DNA files for DNA genetics form */}
+            {field.name === 'dna_file' && (
+              <div className="text-xs text-muted-foreground">
+                <p>📁 This will be saved to your Health Records → DNA Analysis section</p>
+                <p>Any existing DNA files will be visible there after upload</p>
+              </div>
+            )}
+          </div>
         );
 
       default:
