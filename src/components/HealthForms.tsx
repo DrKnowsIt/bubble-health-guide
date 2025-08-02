@@ -51,7 +51,6 @@ const healthForms: HealthForm[] = [
     fields: [
       { name: 'age', label: 'Age', type: 'number', required: true, placeholder: '30' },
       { name: 'birth_sex', label: 'Birth Sex', type: 'select', options: ['Male', 'Female', 'Intersex'], required: true },
-      { name: 'current_gender', label: 'Current Gender Identity', type: 'select', options: ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] },
       { name: 'race_ethnicity', label: 'Race/Ethnicity', type: 'textarea', placeholder: 'Describe your racial/ethnic background (e.g., African American, Hispanic/Latino, Asian, European, Native American, Mixed, etc.)', required: true },
       { name: 'height', label: 'Height (inches)', type: 'number', required: true, placeholder: '70' },
       { name: 'current_weight', label: 'Current Weight (lbs)', type: 'number', required: true, placeholder: '150' },
@@ -59,7 +58,8 @@ const healthForms: HealthForm[] = [
       { name: 'occupation', label: 'Occupation', type: 'text', placeholder: 'Your current job/occupation' },
       { name: 'stress_level', label: 'Current Stress Level', type: 'select', options: ['Very Low', 'Low', 'Moderate', 'High', 'Very High'], required: true },
       { name: 'sleep_hours', label: 'Average Hours of Sleep', type: 'number', placeholder: '7.5' },
-      { name: 'sleep_quality', label: 'Sleep Quality', type: 'select', options: ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'], required: true }
+      { name: 'sleep_quality', label: 'Sleep Quality', type: 'select', options: ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'], required: true },
+      { name: 'current_gender', label: 'Current Gender Identity', type: 'select', options: ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] }
     ]
   },
   {
