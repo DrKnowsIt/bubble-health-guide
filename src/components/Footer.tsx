@@ -1,4 +1,5 @@
 import { Stethoscope, Heart, Shield, Mail, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 export const Footer = () => {
   return <footer className="bg-muted/50 border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -24,72 +25,83 @@ export const Footer = () => {
             {/* Product */}
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Product</h3>
-              <ul className="space-y-3 text-sm">
-                <li>
-                  <a href="#features" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#pricing" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#chat" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Try DrKnowsIt
-                  </a>
-                </li>
-                <li>
-                  
-                </li>
-              </ul>
+               <ul className="space-y-3 text-sm">
+                 <li>
+                   <Link 
+                     to="/#features" 
+                     className="text-muted-foreground hover:text-primary transition-smooth"
+                     onClick={(e) => {
+                       const currentPath = window.location.pathname;
+                       if (currentPath === '/') {
+                         e.preventDefault();
+                         document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                       }
+                     }}
+                   >
+                     Features
+                   </Link>
+                 </li>
+                 <li>
+                   <Link to="/pricing" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Pricing
+                   </Link>
+                 </li>
+                 <li>
+                   <Link to="/" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Try DrKnowsIt
+                   </Link>
+                 </li>
+               </ul>
             </div>
 
             {/* Support */}
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Support</h3>
-              <ul className="space-y-3 text-sm">
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Medical Disclaimers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-smooth">
-                    Terms of Service
-                  </a>
-                </li>
-              </ul>
+               <ul className="space-y-3 text-sm">
+                 <li>
+                   <Link to="/faq" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Help Center
+                   </Link>
+                 </li>
+                 <li>
+                   <Link to="/medical-disclaimer" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Medical Disclaimers
+                   </Link>
+                 </li>
+                 <li>
+                   <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Privacy Policy
+                   </Link>
+                 </li>
+                 <li>
+                   <Link to="/terms-of-service" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Terms of Service
+                   </Link>
+                 </li>
+               </ul>
             </div>
 
             {/* Contact */}
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Contact</h3>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-center space-x-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <span>support@drknowit.com</span>
-                </li>
-                <li className="flex items-center space-x-2 text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>919-616-6125</span>
-                </li>
-                <li className="flex items-center space-x-2 text-muted-foreground">
-                  <Shield className="h-4 w-4" />
-                  <span>Enterprise Security</span>
-                </li>
-              </ul>
+               <ul className="space-y-3 text-sm">
+                 <li className="flex items-center space-x-2">
+                   <Mail className="h-4 w-4 text-muted-foreground" />
+                   <a href="mailto:support@drknowit.com" className="text-muted-foreground hover:text-primary transition-smooth">
+                     support@drknowit.com
+                   </a>
+                 </li>
+                 <li className="flex items-center space-x-2">
+                   <Phone className="h-4 w-4 text-muted-foreground" />
+                   <a href="tel:+19196166125" className="text-muted-foreground hover:text-primary transition-smooth">
+                     919-616-6125
+                   </a>
+                 </li>
+                 <li className="flex items-center space-x-2 text-muted-foreground">
+                   <Shield className="h-4 w-4" />
+                   <span>Enterprise Security</span>
+                 </li>
+               </ul>
             </div>
           </div>
         </div>
