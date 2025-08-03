@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, History, Users, Brain, ChevronDown } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, History, Users, Brain, ChevronDown, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
@@ -16,6 +16,8 @@ import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
 import { SubscriptionGate } from './SubscriptionGate';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { ChatMessage } from './ChatMessage';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -52,6 +54,7 @@ export const TabletChatInterface = ({
   const [showHistory, setShowHistory] = useState(false);
   const [showAssessment, setShowAssessment] = useState(false);
   const [activeAssessmentTab, setActiveAssessmentTab] = useState('diagnoses');
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -61,6 +64,19 @@ export const TabletChatInterface = ({
   } = useVoiceRecording({
     onTranscription: (text) => setInputValue(text)
   });
+
+  const { uploadImage, isUploading } = useImageUpload({
+    onImageUploaded: (imageUrl) => {
+      setPendingImageUrl(imageUrl);
+    }
+  });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadImage(file);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -334,6 +350,30 @@ export const TabletChatInterface = ({
                         />
                       </div>
                       <div className="flex gap-3">
+                        <label htmlFor="image-upload-tablet" className="cursor-pointer">
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            disabled={!selectedUser || isUploading}
+                            className="h-12 w-12 p-0"
+                            asChild
+                          >
+                            <span>
+                              {isUploading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5" />
+                              )}
+                            </span>
+                          </Button>
+                        </label>
+                        <input
+                          id="image-upload-tablet"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
                         <Button
                           variant={isRecording ? "destructive" : "outline"}
                           size="lg"
@@ -349,7 +389,7 @@ export const TabletChatInterface = ({
                         </Button>
                         <Button 
                           onClick={handleSendMessage}
-                          disabled={!inputValue.trim() || isTyping || !selectedUser}
+                          disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
                           size="lg"
                           className="h-12 w-12 p-0"
                         >
