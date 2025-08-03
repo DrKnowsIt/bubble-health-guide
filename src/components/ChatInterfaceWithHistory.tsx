@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Plus, Lock, History, ImagePlus, X, Loader2 } from "lucide-react";
+import { Send, Bot, User, Plus, Lock, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
-import { useImageUpload } from "@/hooks/useImageUpload";
 import { useNavigate } from "react-router-dom";
 
 interface ChatInterfaceWithHistoryProps {
@@ -32,15 +31,8 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
 
   // Auto-scroll to bottom when messages change
-  const { uploadImage, isUploading } = useImageUpload({
-    onImageUploaded: (imageUrl) => {
-      setPendingImageUrl(imageUrl);
-    }
-  });
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -54,6 +46,9 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     return message.length > 50 ? message.substring(0, 50) + '...' : message;
   };
 
+    // Update the handleSendMessage function in ChatInterfaceWithHistory.tsx
+  // This is the most critical fix - ensuring conversation creation properly updates state
+  
   const handleSendMessage = async () => {
     if ((!inputValue.trim() && !pendingImageUrl)) return;
     
@@ -61,103 +56,98 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     if (!user || !subscribed) {
       return;
     }
-
+  
     const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
-    const imageUrl = pendingImageUrl;
-
+  
+    // Create conversation if it doesn't exist
+    let conversationId = currentConversation;
+    
+    if (!conversationId) {
+      const title = generateConversationTitle(messageContent);
+      
+      // CRITICAL FIX: Await the conversation creation
+      conversationId = await createConversation(title, selectedUser?.id || null);
+      
+      if (!conversationId) {
+        toast({
+          title: "Error",
+          description: "Failed to create conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // CRITICAL FIX: Force immediate conversation list refresh
+      await fetchConversations();
+    }
+  
+    // Add user message to UI immediately
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}-user`,
       type: 'user',
       content: messageContent,
       timestamp: new Date(),
-      image_url: imageUrl
+      image_url: pendingImageUrl || undefined
     };
-
-    // Add user message to UI immediately
+  
+    // Update messages with functional update to avoid stale closure
     setMessages(prev => [...prev, userMessage]);
     
-    // If user is authenticated and no current conversation, create one FIRST
-    let conversationId = currentConversation;
-    if (user && !currentConversation) {
-      const title = generateConversationTitle(inputValue);
-      conversationId = await createConversation(title, null);
-      
-      if (!conversationId) {
-        console.error('Failed to create conversation');
-        return;
-      }
-    }
-
+    // Clear input immediately for better UX
     setInputValue('');
     setPendingImageUrl(null);
     setIsTyping(true);
-
-    // Save user message if authenticated
-    if (user && conversationId) {
-      await saveMessage(conversationId, 'user', messageContent, imageUrl);
-    }
-
-    // Call onSendMessage callback after conversation is created and message is saved
-    onSendMessage?.(messageContent);
-
+  
     try {
-      // Prepare conversation history for context (exclude welcome message if present)
-      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      // Save user message to database
+      await saveMessage(conversationId, 'user', messageContent, pendingImageUrl || undefined);
       
+      // Call the onSendMessage callback if provided
+      if (onSendMessage) {
+        onSendMessage(messageContent);
+      }
+  
+      // Get AI response
       const { data, error } = await supabase.functions.invoke('grok-chat', {
-        body: {
+        body: { 
           message: messageContent,
-          conversation_history: conversationHistory,
+          conversation_history: messages.filter(m => m.id !== 'welcome'),
+          patient_id: selectedUser?.id,
           user_id: user.id,
           conversation_id: conversationId,
-          image_url: imageUrl
+          image_url: pendingImageUrl || undefined
         }
       });
-
-      if (error) {
-        throw error;
-      }
-
+  
+      if (error) throw error;
+  
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `msg-${Date.now()}-ai`,
         type: 'ai',
-        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
+        content: data.response || 'I apologize, but I am unable to process your request at the moment.',
         timestamp: new Date()
       };
-      
+  
+      // Update messages with functional update
       setMessages(prev => [...prev, aiMessage]);
       
-      // Save AI message if authenticated
-      if (user && conversationId) {
-        await saveMessage(conversationId, 'ai', aiMessage.content);
-      }
-    } catch (error: any) {
-      console.error('Error calling Grok AI:', error);
+      // Save AI response
+      await saveMessage(conversationId, 'ai', aiMessage.content);
       
-      // Enhanced error handling with specific error types
-      let errorContent = 'I apologize, but I encountered an error while processing your request.';
+      // CRITICAL FIX: Force another conversation list refresh after messages are saved
+      // This ensures the sidebar shows the updated timestamp
+      await fetchConversations();
       
-      if (error.message?.includes('network') || error.message?.includes('timeout')) {
-        errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
-      } else if (error.message?.includes('rate limit')) {
-        errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
-      } else if (error.message?.includes('unauthorized')) {
-        errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
-      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
       
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: errorContent + ' You can try asking your question again.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      
-      // Save error message if authenticated
-      if (user && conversationId) {
-        await saveMessage(conversationId, 'ai', errorMessage.content);
-      }
+      // Remove user message on error
+      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
     } finally {
       setIsTyping(false);
     }
@@ -167,13 +157,6 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      uploadImage(file);
     }
   };
 
@@ -312,77 +295,28 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="shrink-0 border-t border-border p-4 space-y-3">
-        {pendingImageUrl && (
-          <div className="p-2 border rounded-lg bg-muted/50">
-            <div className="flex items-center gap-2 mb-2">
-              <ImagePlus className="h-4 w-4" />
-              <span className="text-sm font-medium">Image attached</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPendingImageUrl(null)}
-                className="h-6 w-6 p-0 ml-auto"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            <img 
-              src={pendingImageUrl} 
-              alt="Pending upload" 
-              className="max-w-full max-h-32 rounded object-cover"
+      <div className="shrink-0 border-t border-border p-4">
+        <div className="flex space-x-2">
+          <div className="flex-1">
+            <Input
+              placeholder={subscribed ? "Describe your symptoms to prepare questions for your doctor..." : "Subscribe to start organizing your health questions..."}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className={`text-base border-0 bg-muted focus:ring-2 focus:ring-primary ${!subscribed ? 'opacity-50' : ''}`}
+              disabled={!subscribed}
             />
           </div>
-        )}
-        
-        <div className="relative">
-          <Input
-            placeholder={subscribed ? "Describe your symptoms to prepare questions for your doctor..." : "Subscribe to start organizing your health questions..."}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className={`text-base border-2 bg-muted focus:ring-2 focus:ring-primary pr-28 ${!subscribed ? 'opacity-50' : ''}`}
-            disabled={!subscribed}
-          />
-          
-          {/* Buttons positioned inside the input */}
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-            <label htmlFor="image-upload-history" className="cursor-pointer">
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!subscribed || isUploading}
-                className="h-7 w-7 p-0 hover:bg-muted-foreground/10"
-                asChild
-              >
-                <span>
-                  {isUploading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <ImagePlus className="h-3 w-3" />
-                  )}
-                </span>
-              </Button>
-            </label>
-            <input
-              id="image-upload-history"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            <Button 
-              onClick={handleSendMessage}
-              disabled={(!inputValue.trim() && !pendingImageUrl) || !subscribed}
-              size="sm"
-              className={`h-7 w-7 p-0 ${!subscribed ? 'opacity-50' : ''}`}
-            >
-              <Send className="h-3 w-3" />
-            </Button>
-          </div>
+          <Button 
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || !subscribed}
+            size="sm"
+            className={`px-3 ${!subscribed ? 'opacity-50' : ''}`}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-        
-        <div className="text-center text-xs text-muted-foreground">
+        <div className="mt-2 text-center text-xs text-muted-foreground">
           {subscribed 
             ? "Premium AI health assistant - unlimited conversations"
             : "Subscribe to unlock unlimited AI health conversations and history"
