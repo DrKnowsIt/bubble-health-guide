@@ -335,50 +335,53 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
           </div>
         )}
         
-        <div className="flex space-x-2">
-          <div className="flex-1">
-            <Input
-              placeholder={subscribed ? "Describe your symptoms to prepare questions for your doctor..." : "Subscribe to start organizing your health questions..."}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className={`text-base border-0 bg-muted focus:ring-2 focus:ring-primary ${!subscribed ? 'opacity-50' : ''}`}
-              disabled={!subscribed}
-            />
-          </div>
-          <label htmlFor="image-upload-history" className="cursor-pointer">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!subscribed || isUploading}
-              className="px-3"
-              asChild
-            >
-              <span>
-                {isUploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ImagePlus className="h-4 w-4" />
-                )}
-              </span>
-            </Button>
-          </label>
-          <input
-            id="image-upload-history"
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
+        <div className="relative">
+          <Input
+            placeholder={subscribed ? "Describe your symptoms to prepare questions for your doctor..." : "Subscribe to start organizing your health questions..."}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className={`text-base border-2 bg-muted focus:ring-2 focus:ring-primary pr-28 ${!subscribed ? 'opacity-50' : ''}`}
+            disabled={!subscribed}
           />
-          <Button 
-            onClick={handleSendMessage}
-            disabled={(!inputValue.trim() && !pendingImageUrl) || !subscribed}
-            size="sm"
-            className={`px-3 ${!subscribed ? 'opacity-50' : ''}`}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          
+          {/* Buttons positioned inside the input */}
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+            <label htmlFor="image-upload-history" className="cursor-pointer">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!subscribed || isUploading}
+                className="h-7 w-7 p-0 hover:bg-muted-foreground/10"
+                asChild
+              >
+                <span>
+                  {isUploading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <ImagePlus className="h-3 w-3" />
+                  )}
+                </span>
+              </Button>
+            </label>
+            <input
+              id="image-upload-history"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={(!inputValue.trim() && !pendingImageUrl) || !subscribed}
+              size="sm"
+              className={`h-7 w-7 p-0 ${!subscribed ? 'opacity-50' : ''}`}
+            >
+              <Send className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
+        
         <div className="text-center text-xs text-muted-foreground">
           {subscribed 
             ? "Premium AI health assistant - unlimited conversations"

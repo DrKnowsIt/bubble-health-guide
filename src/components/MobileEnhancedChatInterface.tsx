@@ -363,24 +363,24 @@ export const MobileEnhancedChatInterface = ({
                 </div>
               )}
               
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <Textarea
-                    placeholder="Describe your symptoms or ask a health question..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors"
-                    disabled={!selectedUser}
-                  />
-                </div>
-                <div className="flex gap-1">
+              <div className="relative">
+                <Textarea
+                  placeholder="Describe your symptoms or ask a health question..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
+                  disabled={!selectedUser}
+                />
+                
+                {/* Buttons positioned inside the textarea */}
+                <div className="absolute right-2 bottom-2 flex gap-1">
                   <label htmlFor="image-upload" className="cursor-pointer">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       disabled={!selectedUser || isUploading}
-                      className="h-10 w-10 p-0"
+                      className="h-8 w-8 p-0 hover:bg-muted"
                       asChild
                     >
                       <span>
@@ -400,11 +400,11 @@ export const MobileEnhancedChatInterface = ({
                     className="hidden"
                   />
                   <Button
-                    variant={isRecording ? "destructive" : "outline"}
+                    variant={isRecording ? "destructive" : "ghost"}
                     size="sm"
                     onClick={toggleRecording}
                     disabled={!selectedUser || isProcessing}
-                    className="h-10 w-10 p-0"
+                    className="h-8 w-8 p-0 hover:bg-muted"
                   >
                     {isRecording ? (
                       <MicOff className="h-4 w-4" />
@@ -416,7 +416,7 @@ export const MobileEnhancedChatInterface = ({
                     onClick={handleSendMessage}
                     disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
                     size="sm"
-                    className="h-10 w-10 p-0"
+                    className="h-8 w-8 p-0"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

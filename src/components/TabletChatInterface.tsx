@@ -338,31 +338,31 @@ export const TabletChatInterface = ({
 
                   {/* Input Area */}
                   <div className="border-t bg-background/95 backdrop-blur p-6">
-                    <div className="flex gap-4 items-end">
-                      <div className="flex-1">
-                        <Textarea
-                          placeholder="Describe your symptoms or ask a health question..."
-                          value={inputValue}
-                          onChange={(e) => setInputValue(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          className="min-h-[3.5rem] max-h-40 resize-none border-2 focus:border-primary/50 transition-colors text-base"
-                          disabled={!selectedUser}
-                        />
-                      </div>
-                      <div className="flex gap-3">
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Describe your symptoms or ask a health question..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        className="min-h-[3.5rem] max-h-40 resize-none border-2 focus:border-primary/50 transition-colors text-base pr-40"
+                        disabled={!selectedUser}
+                      />
+                      
+                      {/* Buttons positioned inside the textarea */}
+                      <div className="absolute right-3 bottom-3 flex gap-2">
                         <label htmlFor="image-upload-tablet" className="cursor-pointer">
                           <Button
-                            variant="outline"
-                            size="lg"
+                            variant="ghost"
+                            size="sm"
                             disabled={!selectedUser || isUploading}
-                            className="h-12 w-12 p-0"
+                            className="h-9 w-9 p-0 hover:bg-muted"
                             asChild
                           >
                             <span>
                               {isUploading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                <ImagePlus className="h-5 w-5" />
+                                <ImagePlus className="h-4 w-4" />
                               )}
                             </span>
                           </Button>
@@ -375,25 +375,25 @@ export const TabletChatInterface = ({
                           className="hidden"
                         />
                         <Button
-                          variant={isRecording ? "destructive" : "outline"}
-                          size="lg"
+                          variant={isRecording ? "destructive" : "ghost"}
+                          size="sm"
                           onClick={toggleRecording}
                           disabled={!selectedUser || isProcessing}
-                          className="h-12 w-12 p-0"
+                          className="h-9 w-9 p-0 hover:bg-muted"
                         >
                           {isRecording ? (
-                            <MicOff className="h-5 w-5" />
+                            <MicOff className="h-4 w-4" />
                           ) : (
-                            <Mic className="h-5 w-5" />
+                            <Mic className="h-4 w-4" />
                           )}
                         </Button>
                         <Button 
                           onClick={handleSendMessage}
                           disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
-                          size="lg"
-                          className="h-12 w-12 p-0"
+                          size="sm"
+                          className="h-9 w-9 p-0"
                         >
-                          <Send className="h-5 w-5" />
+                          <Send className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
