@@ -9,18 +9,16 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
 import { useNavigate } from "react-router-dom";
-import { useUsers } from "@/hooks/useUsers";
-import { toast } from "@/hooks/use-toast";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
   onShowHistory?: () => void;
+  onConversationCreated?: () => void; 
 }
 
 export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
   const { subscribed, loading: subscriptionLoading } = useSubscription();
-  const { selectedUser } = useUsers();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
@@ -29,8 +27,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     setMessages,
     createConversation,
     saveMessage,
-    startNewConversation,
-    fetchConversations
+    startNewConversation
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
