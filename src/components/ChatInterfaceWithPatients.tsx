@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, Users } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, Users, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
@@ -15,6 +15,8 @@ import { TierStatus } from './TierStatus';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { MobileChatInterface } from './MobileChatInterface';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { ChatMessage } from './ChatMessage';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -44,6 +46,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -53,6 +56,19 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   } = useVoiceRecording({
     onTranscription: (text) => setInputValue(text)
   });
+
+  const { uploadImage, isUploading } = useImageUpload({
+    onImageUploaded: (imageUrl) => {
+      setPendingImageUrl(imageUrl);
+    }
+  });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadImage(file);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -303,26 +319,53 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="min-h-[50px] max-h-[120px] resize-none pr-12"
+                    className="min-h-[50px] max-h-[120px] resize-none pr-20"
                     disabled={!selectedUser}
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute bottom-2 right-2 h-8 w-8 p-0"
-                    onClick={toggleRecording}
-                    disabled={!selectedUser || isProcessing}
-                  >
-                    {isRecording ? (
-                      <MicOff className="h-4 w-4 text-red-500" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
-                  </Button>
+                  {/* Buttons positioned inside the textarea */}
+                  <div className="absolute bottom-2 right-2 flex gap-1">
+                    <label htmlFor="image-upload-patients" className="cursor-pointer">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!selectedUser || isUploading}
+                        className="h-7 w-7 p-0 hover:bg-muted"
+                        asChild
+                      >
+                        <span>
+                          {isUploading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-3 w-3" />
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    <input
+                      id="image-upload-patients"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 hover:bg-muted"
+                      onClick={toggleRecording}
+                      disabled={!selectedUser || isProcessing}
+                    >
+                      {isRecording ? (
+                        <MicOff className="h-3 w-3 text-red-500" />
+                      ) : (
+                        <Mic className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isTyping || !selectedUser}
+                  disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
                   className="h-[50px] px-6"
                 >
                   <Send className="h-4 w-4" />
