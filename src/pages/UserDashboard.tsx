@@ -4,6 +4,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUsers } from '@/hooks/useUsers';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsTablet } from '@/hooks/use-tablet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,6 +24,7 @@ import { FeatureDiscovery } from '@/components/FeatureDiscovery';
 import { MobileEnhancedChatInterface } from '@/components/MobileEnhancedChatInterface';
 import { MobileEnhancedHealthTab } from '@/components/MobileEnhancedHealthTab';
 import { MobileEnhancedOverviewTab } from '@/components/MobileEnhancedOverviewTab';
+import { TabletChatInterface } from '@/components/TabletChatInterface';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
@@ -49,6 +51,7 @@ export default function UserDashboard() {
     loading
   } = useHealthStats();
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   
   const formatLastActivity = (timestamp: string | null) => {
     if (!timestamp) return "No activity";
@@ -150,6 +153,33 @@ export default function UserDashboard() {
                 </TabsTrigger>
               </TabsList>
             </div>
+          ) : isTablet ? (
+            // Tablet: Enhanced bottom navigation with larger touch targets
+            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-auto">
+              <TabsList className="w-full grid grid-cols-3 h-20 bg-muted/50">
+                <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
+                  <div className="relative">
+                    <MessageSquare className="h-6 w-6" />
+                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
+                  </div>
+                  <span className="text-sm font-medium">AI Chat</span>
+                </TabsTrigger>
+                <TabsTrigger value="health" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
+                  <div className="relative">
+                    <Heart className="h-6 w-6" />
+                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
+                  </div>
+                  <span className="text-sm font-medium">Health</span>
+                </TabsTrigger>
+                <TabsTrigger value="overview" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
+                  <div className="relative">
+                    <Activity className="h-6 w-6" />
+                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
+                  </div>
+                  <span className="text-sm font-medium">Overview</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
           ) : (
             // Desktop: Top navigation
             <div className="px-4 pt-6">
@@ -180,10 +210,12 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 pb-6")}>
+          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
+              ) : isTablet ? (
+                <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
                 <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
                   <div className="space-y-4">
