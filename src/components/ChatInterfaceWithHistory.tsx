@@ -26,7 +26,8 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     setMessages,
     createConversation,
     saveMessage,
-    startNewConversation
+    startNewConversation,
+    fetchConversations
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
@@ -46,108 +47,105 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     return message.length > 50 ? message.substring(0, 50) + '...' : message;
   };
 
-    // Update the handleSendMessage function in ChatInterfaceWithHistory.tsx
-  // This is the most critical fix - ensuring conversation creation properly updates state
-  
   const handleSendMessage = async () => {
-    if ((!inputValue.trim() && !pendingImageUrl)) return;
+    if (!inputValue.trim()) return;
     
     // Check if user is logged in and has subscription
     if (!user || !subscribed) {
       return;
     }
-  
-    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
-  
-    // Create conversation if it doesn't exist
-    let conversationId = currentConversation;
-    
-    if (!conversationId) {
-      const title = generateConversationTitle(messageContent);
-      
-      // CRITICAL FIX: Await the conversation creation
-      conversationId = await createConversation(title, selectedUser?.id || null);
-      
-      if (!conversationId) {
-        toast({
-          title: "Error",
-          description: "Failed to create conversation",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // CRITICAL FIX: Force immediate conversation list refresh
-      await fetchConversations();
-    }
-  
-    // Add user message to UI immediately
+
     const userMessage: Message = {
-      id: `msg-${Date.now()}-user`,
+      id: Date.now().toString(),
       type: 'user',
-      content: messageContent,
-      timestamp: new Date(),
-      image_url: pendingImageUrl || undefined
+      content: inputValue,
+      timestamp: new Date()
     };
-  
-    // Update messages with functional update to avoid stale closure
+
+    // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
     
-    // Clear input immediately for better UX
-    setInputValue('');
-    setPendingImageUrl(null);
-    setIsTyping(true);
-  
-    try {
-      // Save user message to database
-      await saveMessage(conversationId, 'user', messageContent, pendingImageUrl || undefined);
+    // If user is authenticated and no current conversation, create one FIRST
+    let conversationId = currentConversation;
+    if (user && !currentConversation) {
+      const title = generateConversationTitle(inputValue);
+      conversationId = await createConversation(title, null);
       
-      // Call the onSendMessage callback if provided
-      if (onSendMessage) {
-        onSendMessage(messageContent);
+      if (!conversationId) {
+        console.error('Failed to create conversation');
+        return;
       }
-  
-      // Get AI response
+    }
+
+    const currentInput = inputValue;
+    setInputValue('');
+    setIsTyping(true);
+
+    // Save user message if authenticated
+    if (user && conversationId) {
+      await saveMessage(conversationId, 'user', inputValue);
+    }
+
+    // Call onSendMessage callback after conversation is created and message is saved
+    onSendMessage?.(currentInput);
+
+    try {
+      // Prepare conversation history for context (exclude welcome message if present)
+      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
-        body: { 
-          message: messageContent,
-          conversation_history: messages.filter(m => m.id !== 'welcome'),
-          patient_id: selectedUser?.id,
+        body: {
+          message: currentInput,
+          conversation_history: conversationHistory,
           user_id: user.id,
-          conversation_id: conversationId,
-          image_url: pendingImageUrl || undefined
+          conversation_id: conversationId
         }
       });
-  
-      if (error) throw error;
-  
+
+      if (error) {
+        throw error;
+      }
+
       const aiMessage: Message = {
-        id: `msg-${Date.now()}-ai`,
+        id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: data.response || 'I apologize, but I am unable to process your request at the moment.',
+        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
         timestamp: new Date()
       };
-  
-      // Update messages with functional update
+      
       setMessages(prev => [...prev, aiMessage]);
       
-      // Save AI response
-      await saveMessage(conversationId, 'ai', aiMessage.content);
+      // Save AI message if authenticated
+      if (user && conversationId) {
+        await saveMessage(conversationId, 'ai', aiMessage.content);
+      }
+    } catch (error: any) {
+      console.error('Error calling Grok AI:', error);
       
-      // CRITICAL FIX: Force another conversation list refresh after messages are saved
-      // This ensures the sidebar shows the updated timestamp
-      await fetchConversations();
+      // Enhanced error handling with specific error types
+      let errorContent = 'I apologize, but I encountered an error while processing your request.';
       
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
+      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
+      } else if (error.message?.includes('rate limit')) {
+        errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
+      } else if (error.message?.includes('unauthorized')) {
+        errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
+      }
       
-      // Remove user message on error
-      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: errorContent + ' You can try asking your question again.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // Save error message if authenticated
+      if (user && conversationId) {
+        await saveMessage(conversationId, 'ai', errorMessage.content);
+      }
     } finally {
       setIsTyping(false);
     }
