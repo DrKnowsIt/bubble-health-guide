@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Plus, Lock, History } from "lucide-react";
+import { Send, Bot, User, Plus, Lock, History, ImagePlus, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import { useNavigate } from "react-router-dom";
 
 interface ChatInterfaceWithHistoryProps {
@@ -31,8 +32,15 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
 
   // Auto-scroll to bottom when messages change
+  const { uploadImage, isUploading } = useImageUpload({
+    onImageUploaded: (imageUrl) => {
+      setPendingImageUrl(imageUrl);
+    }
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -47,18 +55,22 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if ((!inputValue.trim() && !pendingImageUrl)) return;
     
     // Check if user is logged in and has subscription
     if (!user || !subscribed) {
       return;
     }
 
+    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
+    const imageUrl = pendingImageUrl;
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue,
-      timestamp: new Date()
+      content: messageContent,
+      timestamp: new Date(),
+      image_url: imageUrl
     };
 
     // Add user message to UI immediately
@@ -76,17 +88,17 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       }
     }
 
-    const currentInput = inputValue;
     setInputValue('');
+    setPendingImageUrl(null);
     setIsTyping(true);
 
     // Save user message if authenticated
     if (user && conversationId) {
-      await saveMessage(conversationId, 'user', inputValue);
+      await saveMessage(conversationId, 'user', messageContent, imageUrl);
     }
 
     // Call onSendMessage callback after conversation is created and message is saved
-    onSendMessage?.(currentInput);
+    onSendMessage?.(messageContent);
 
     try {
       // Prepare conversation history for context (exclude welcome message if present)
@@ -94,10 +106,11 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: {
-          message: currentInput,
+          message: messageContent,
           conversation_history: conversationHistory,
           user_id: user.id,
-          conversation_id: conversationId
+          conversation_id: conversationId,
+          image_url: imageUrl
         }
       });
 
@@ -154,6 +167,13 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadImage(file);
     }
   };
 
@@ -292,7 +312,29 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="shrink-0 border-t border-border p-4">
+      <div className="shrink-0 border-t border-border p-4 space-y-3">
+        {pendingImageUrl && (
+          <div className="p-2 border rounded-lg bg-muted/50">
+            <div className="flex items-center gap-2 mb-2">
+              <ImagePlus className="h-4 w-4" />
+              <span className="text-sm font-medium">Image attached</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPendingImageUrl(null)}
+                className="h-6 w-6 p-0 ml-auto"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <img 
+              src={pendingImageUrl} 
+              alt="Pending upload" 
+              className="max-w-full max-h-32 rounded object-cover"
+            />
+          </div>
+        )}
+        
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
@@ -304,16 +346,40 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
               disabled={!subscribed}
             />
           </div>
+          <label htmlFor="image-upload-history" className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!subscribed || isUploading}
+              className="px-3"
+              asChild
+            >
+              <span>
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+              </span>
+            </Button>
+          </label>
+          <input
+            id="image-upload-history"
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
           <Button 
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || !subscribed}
+            disabled={(!inputValue.trim() && !pendingImageUrl) || !subscribed}
             size="sm"
             className={`px-3 ${!subscribed ? 'opacity-50' : ''}`}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <div className="mt-2 text-center text-xs text-muted-foreground">
+        <div className="text-center text-xs text-muted-foreground">
           {subscribed 
             ? "Premium AI health assistant - unlimited conversations"
             : "Subscribe to unlock unlimited AI health conversations and history"

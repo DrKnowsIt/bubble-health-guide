@@ -9,6 +9,7 @@ export interface Message {
   type: 'user' | 'ai';
   content: string;
   timestamp: Date;
+  image_url?: string;
 }
 
 export interface Conversation {
@@ -71,7 +72,8 @@ export const useConversations = () => {
         id: msg.id,
         type: msg.type as 'user' | 'ai',
         content: msg.content,
-        timestamp: new Date(msg.created_at)
+        timestamp: new Date(msg.created_at),
+        image_url: msg.image_url
       }));
       
       setMessages(formattedMessages);
@@ -127,14 +129,15 @@ export const useConversations = () => {
     }
   };
 
-  const saveMessage = async (conversationId: string, type: 'user' | 'ai', content: string) => {
+  const saveMessage = async (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => {
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           type,
-          content
+          content,
+          image_url: imageUrl
         });
 
       if (error) throw error;

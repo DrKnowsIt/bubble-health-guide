@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
@@ -15,6 +15,8 @@ import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
 import { SubscriptionGate } from './SubscriptionGate';
+import { ChatMessage } from './ChatMessage';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -52,6 +54,7 @@ export const MobileEnhancedChatInterface = ({
   const [showPatientSelector, setShowPatientSelector] = useState(false);
   const [showDiagnoses, setShowDiagnoses] = useState(false);
   const [patientSelectorCollapsed, setPatientSelectorCollapsed] = useState(true);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -60,6 +63,12 @@ export const MobileEnhancedChatInterface = ({
     toggleRecording
   } = useVoiceRecording({
     onTranscription: (text) => setInputValue(text)
+  });
+
+  const { uploadImage, isUploading } = useImageUpload({
+    onImageUploaded: (imageUrl) => {
+      setPendingImageUrl(imageUrl);
+    }
   });
 
   const scrollToBottom = () => {
@@ -71,18 +80,22 @@ export const MobileEnhancedChatInterface = ({
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !selectedUser) return;
+    if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
+
+    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
+    const imageUrl = pendingImageUrl;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}-${Math.random()}`,
       type: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date()
+      content: messageContent,
+      timestamp: new Date(),
+      image_url: imageUrl
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue.trim();
     setInputValue('');
+    setPendingImageUrl(null);
     setIsTyping(true);
 
     try {
@@ -90,11 +103,12 @@ export const MobileEnhancedChatInterface = ({
       
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: { 
-          message: currentInput,
+          message: messageContent,
           conversation_history: conversationHistory,
           patient_id: selectedUser?.id,
           user_id: user.id,
-          conversation_id: currentConversation 
+          conversation_id: currentConversation,
+          image_url: imageUrl
         }
       });
 
@@ -124,6 +138,13 @@ export const MobileEnhancedChatInterface = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadImage(file);
     }
   };
 
@@ -295,43 +316,9 @@ export const MobileEnhancedChatInterface = ({
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`flex max-w-[80%] gap-3 ${
-                        message.type === 'user' ? "flex-row-reverse" : "flex-row"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
-                          message.type === 'user' 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {message.type === 'user' ? (
-                          <UserIcon className="h-4 w-4" />
-                        ) : (
-                          <Bot className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div
-                        className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden shadow-sm ${
-                          message.type === 'user'
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-foreground"
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                          {message.content}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                 {messages.map((message) => (
+                   <ChatMessage key={message.id} message={message} />
+                 ))}
 
                 {isTyping && (
                   <div className="flex justify-start">
@@ -354,18 +341,65 @@ export const MobileEnhancedChatInterface = ({
 
               {/* Enhanced Input Area */}
               <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
-                <div className="flex gap-3 items-end">
-                  <div className="flex-1">
-                    <Textarea
-                      placeholder="Describe your symptoms or ask a health question..."
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors"
-                      disabled={!selectedUser}
-                    />
+              {pendingImageUrl && (
+                <div className="mb-3 p-2 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ImagePlus className="h-4 w-4" />
+                    <span className="text-sm font-medium">Image attached</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingImageUrl(null)}
+                      className="h-6 w-6 p-0 ml-auto"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <img 
+                    src={pendingImageUrl} 
+                    alt="Pending upload" 
+                    className="max-w-full max-h-32 rounded object-cover"
+                  />
+                </div>
+              )}
+              
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Textarea
+                    placeholder="Describe your symptoms or ask a health question..."
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors"
+                    disabled={!selectedUser}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-1">
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!selectedUser || isUploading}
+                        className="h-10 w-10 p-0 transition-all"
+                        asChild
+                      >
+                        <span>
+                          {isUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-4 w-4" />
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
                     <Button
                       variant={isRecording ? "destructive" : "outline"}
                       size="sm"
@@ -379,16 +413,17 @@ export const MobileEnhancedChatInterface = ({
                         <Mic className="h-4 w-4" />
                       )}
                     </Button>
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={!inputValue.trim() || isTyping || !selectedUser}
-                      size="sm"
-                      className="h-10 w-10 p-0 transition-all"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
                   </div>
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
+                    size="sm"
+                    className="h-10 w-10 p-0 transition-all"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
+              </div>
                 
                 {isProcessing && (
                   <div className="flex items-center justify-center text-sm text-muted-foreground">

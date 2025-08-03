@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history = [], patient_id, user_id, conversation_id } = await req.json();
+    const { message, conversation_history = [], patient_id, user_id, conversation_id, image_url } = await req.json();
 
     if (!message) {
       return new Response(
@@ -382,11 +382,31 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
         role: msg.type === 'user' ? 'user' : 'assistant',
         content: msg.content
       })),
-      // Add current message
-      {
-        role: 'user',
-        content: message
-      }
+      // Add current message with optional image
+      (() => {
+        const userMessage: any = {
+          role: 'user',
+          content: message
+        };
+
+        // Add image if provided
+        if (image_url) {
+          userMessage.content = [
+            {
+              type: "text",
+              text: message
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: image_url
+              }
+            }
+          ];
+        }
+
+        return userMessage;
+      })()
     ];
 
     console.log('Sending request to Grok API with', messages.length, 'messages');
