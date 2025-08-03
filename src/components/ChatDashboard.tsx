@@ -1,6 +1,3 @@
-// Updated ChatDashboard component with proper conversation management
-// File: src/components/ChatDashboard.tsx
-
 import { useState, useEffect, useCallback } from 'react';
 import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory';
 import { ConversationSidebar } from '@/components/ConversationSidebar';
@@ -30,88 +27,102 @@ export const ChatDashboard = () => {
     messages, 
     startNewConversation,
     selectConversation,
-    deleteConversation,
-    fetchConversations
+    deleteConversation
   } = useConversations();
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
-  const [showHistory, setShowHistory] = useState(true); // Default to showing history
+  const [showHistory, setShowHistory] = useState(false);
   
   // Debug logging for state tracking
   const logDebug = useCallback((action: string, data?: any) => {
-    console.log(`[ChatDashboard] ${action}:`, data);
+    console.log(`[ChatDashboard Debug] ${action}:`, data);
   }, []);
-
-  // Handle message sending
-  const handleSendMessage = useCallback(async (message: string) => {
-    logDebug('Sending message', { message, currentConversation });
-    
-    // Ensure history sidebar is visible when sending first message
-    if (!currentConversation && conversations.length === 0) {
-      setShowHistory(true);
-    }
-  }, [currentConversation, conversations.length, logDebug]);
-
-  // Effect to fetch diagnoses when conversation changes
+  
+  // Track dependency changes
   useEffect(() => {
-    const fetchDiagnoses = async () => {
-      if (!selectedUser || !currentConversation) {
-        setDiagnoses([]);
-        return;
-      }
+    logDebug('Conversations updated', { 
+      count: conversations.length, 
+      current: currentConversation
+    });
+  }, [conversations, currentConversation, logDebug]);
 
-      try {
-        const { data, error } = await supabase
-          .from('probable_diagnoses')
-          .select('*')
-          .eq('conversation_id', currentConversation)
-          .eq('patient_id', selectedUser.id)
-          .order('updated_at', { ascending: false });
-
-        if (error) throw error;
-        
-        logDebug('Diagnoses fetched', { count: data?.length || 0 });
-        setDiagnoses(data || []);
-      } catch (error) {
-        console.error('Error fetching diagnoses:', error);
-      }
-    };
-
-    fetchDiagnoses();
-
-    // Set up real-time subscription
-    if (currentConversation && selectedUser) {
-      const channel = supabase
-        .channel(`diagnoses-${currentConversation}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'probable_diagnoses',
-            filter: `conversation_id=eq.${currentConversation}`
-          },
-          () => {
-            logDebug('Diagnoses updated via subscription');
-            fetchDiagnoses();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+  // Load diagnoses for current conversation and patient
+  useEffect(() => {
+    logDebug('Diagnoses dependency changed', {
+      currentConversation,
+      userId: selectedUser?.id,
+      messagesLength: messages.length
+    });
+    
+    if (currentConversation && selectedUser?.id && messages.length > 0) {
+      loadDiagnosesForConversation();
+    } else {
+      setDiagnoses([]);
     }
-  }, [currentConversation, selectedUser, logDebug]);
+  }, [currentConversation, selectedUser?.id, messages.length, logDebug]);
 
-  // Handle subscription prompt
-  if (!subscribed) {
+  const loadDiagnosesForConversation = async () => {
+    try {
+      // Load existing diagnoses from database
+      const { data, error } = await supabase
+        .from('conversation_diagnoses')
+        .select('*')
+        .eq('conversation_id', currentConversation)
+        .eq('patient_id', selectedUser?.id)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedDiagnoses: Diagnosis[] = (data || []).map(item => ({
+        diagnosis: item.diagnosis,
+        confidence: item.confidence,
+        reasoning: item.reasoning,
+        updated_at: item.updated_at
+      }));
+
+      setDiagnoses(formattedDiagnoses);
+    } catch (error) {
+      console.error('Error loading diagnoses:', error);
+    }
+  };
+
+  const generateDiagnoses = async () => {
+    if (!currentConversation || !selectedUser?.id || messages.length === 0) {
+      return;
+    }
+
+    try {
+      // Call the generate-diagnosis edge function
+      const { data, error } = await supabase.functions.invoke('generate-diagnosis', {
+        body: {
+          conversation_id: currentConversation,
+          patient_id: selectedUser.id,
+          messages: messages
+        }
+      });
+
+      if (error) throw error;
+
+      // Reload diagnoses from database
+      await loadDiagnosesForConversation();
+    } catch (error) {
+      console.error('Error generating diagnoses:', error);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    // After sending a message and getting AI response, generate diagnoses
+    setTimeout(async () => {
+      await generateDiagnoses();
+    }, 3000); // Wait for AI response to be processed and saved
+  };
+
+  // Show subscription gate if not subscribed
+  if (user && !subscribed) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="max-w-md">
-          <PlanSelectionCard
-            onSelectPlan={(tier) => createCheckoutSession(tier)}
-            description="Choose the plan that fits your needs:"
-          />
+      <div className="h-full flex items-center justify-center p-8">
+        <div className="max-w-4xl w-full">
+          <PlanSelectionCard description="Unlock AI health consultations, user management, and diagnostic insights. Choose the plan that fits your needs:" />
         </div>
       </div>
     );
@@ -144,6 +155,7 @@ export const ChatDashboard = () => {
           <ChatInterfaceWithHistory 
             onSendMessage={handleSendMessage}
             onShowHistory={() => setShowHistory(!showHistory)}
+            onConversationCreated={fetchConversations} 
           />
         </div>
 
