@@ -9,6 +9,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
 import { useNavigate } from "react-router-dom";
+import { useUsers } from "@/hooks/useUsers";
+import { toast } from "@/hooks/use-toast";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
@@ -18,6 +20,7 @@ interface ChatInterfaceWithHistoryProps {
 export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
   const { subscribed, loading: subscriptionLoading } = useSubscription();
+  const { selectedUser } = useUsers();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
@@ -48,86 +51,113 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   };
 
   const handleSendMessage = async () => {
-    if ((!inputValue.trim() && !pendingImageUrl)) return;
+    if (!inputValue.trim()) return;
     
     // Check if user is logged in and has subscription
     if (!user || !subscribed) {
       return;
     }
-  
-    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
-  
-    // Create conversation if it doesn't exist
-    let conversationId = currentConversation;
-    
-    if (!conversationId) {
-      const title = generateConversationTitle(messageContent);
-      conversationId = await createConversation(title, selectedUser?.id || null);
-      
-      if (!conversationId) {
-        toast({
-          title: "Error",
-          description: "Failed to create conversation",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      await fetchConversations();
-    }
-  
-    // Add user message to UI
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: messageContent,
-      timestamp: new Date(),
-      image_url: pendingImageUrl || undefined
+      content: inputValue,
+      timestamp: new Date()
     };
-  
+
+    // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setPendingImageUrl(null);
-    setIsTyping(true);
-  
-    try {
-      // Save user message
-      await saveMessage(conversationId, 'user', messageContent, pendingImageUrl || undefined);
+    
+    // If user is authenticated and no current conversation, create one FIRST
+    let conversationId = currentConversation;
+    if (user && !currentConversation) {
+      const title = generateConversationTitle(inputValue);
+      conversationId = await createConversation(title, null);
       
-      // Call the onSendMessage callback if provided
-      if (onSendMessage) {
-        onSendMessage(messageContent);
+      if (!conversationId) {
+        console.error('Failed to create conversation');
+        return;
       }
-  
-      // Get AI response
+    }
+
+    const currentInput = inputValue;
+    setInputValue('');
+    setIsTyping(true);
+
+    // Save user message if authenticated
+    if (user && conversationId) {
+      await saveMessage(conversationId, 'user', inputValue);
+    }
+
+    // Call onSendMessage callback after conversation is created and message is saved
+    onSendMessage?.(currentInput);
+
+    try {
+      // Prepare conversation history for context (exclude welcome message if present)
+      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
-        body: { 
-          message: messageContent,
-          conversation_history: messages.filter(m => m.id !== 'welcome'),
-          patient_id: selectedUser?.id,
+        body: {
+          message: currentInput,
+          conversation_history: conversationHistory,
           user_id: user.id,
-          conversation_id: conversationId,
-          image_url: pendingImageUrl || undefined
+          conversation_id: conversationId
         }
       });
-  
-      if (error) throw error;
-  
+
+      if (error) {
+        throw error;
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: data.response || 'I apologize, but I am unable to process your request at the moment.',
+        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
         timestamp: new Date()
       };
-  
-      setMessages(prev => [...prev, aiMessage]);
-      await saveMessage(conversationId, 'ai', aiMessage.content);
       
-    } catch (error) {
-      console.error('Error sending message:', error);
-      // Error handling code...
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // Save AI message if authenticated
+      if (user && conversationId) {
+        await saveMessage(conversationId, 'ai', aiMessage.content);
+      }
+    } catch (error: any) {
+      console.error('Error calling Grok AI:', error);
+      
+      // Enhanced error handling with specific error types
+      let errorContent = 'I apologize, but I encountered an error while processing your request.';
+      
+      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
+      } else if (error.message?.includes('rate limit')) {
+        errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
+      } else if (error.message?.includes('unauthorized')) {
+        errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
+      }
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: errorContent + ' You can try asking your question again.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // Save error message if authenticated
+      if (user && conversationId) {
+        await saveMessage(conversationId, 'ai', errorMessage.content);
+      }
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
