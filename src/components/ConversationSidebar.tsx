@@ -1,3 +1,6 @@
+// Updated ConversationSidebar component with better empty state handling
+// File: src/components/ConversationSidebar.tsx
+
 import { MessageSquare, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,7 +30,7 @@ export const ConversationSidebar = ({
   }
 
   return (
-    <div className="w-80 border-r border-border bg-card">
+    <div className="w-80 h-full border-r border-border bg-card flex flex-col">
       <div className="p-4 border-b border-border">
         <Button 
           onClick={onStartNewConversation}
@@ -39,48 +42,51 @@ export const ConversationSidebar = ({
         </Button>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100vh-200px)]">
+      <ScrollArea className="flex-1">
         <div className="p-2">
           {conversations.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No conversations yet
+            <div className="text-center py-8 px-4">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground mb-3">
+                No chat history yet
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Start a conversation to see it appear here
               </p>
             </div>
           ) : (
-            <div className="space-y-1">
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className={cn(
-                    "group flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
-                    currentConversation === conversation.id && "bg-muted"
-                  )}
+            conversations.map((conversation) => (
+              <div key={conversation.id} className="relative group mb-2">
+                <Button
+                  variant={currentConversation === conversation.id ? "secondary" : "ghost"}
+                  className="w-full justify-start text-left p-3 pr-10"
                   onClick={() => onSelectConversation(conversation.id)}
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {conversation.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(conversation.updated_at), 'MMM d, yyyy')}
-                    </p>
+                  <div className="flex items-start space-x-3 w-full min-w-0">
+                    <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {conversation.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(conversation.updated_at), 'MMM d, h:mm a')}
+                      </p>
+                    </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-destructive hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteConversation(conversation.id);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteConversation(conversation.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))
           )}
         </div>
       </ScrollArea>
