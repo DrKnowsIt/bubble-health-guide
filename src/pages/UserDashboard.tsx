@@ -20,6 +20,9 @@ import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { FeatureDiscovery } from '@/components/FeatureDiscovery';
+import { MobileEnhancedChatInterface } from '@/components/MobileEnhancedChatInterface';
+import { MobileEnhancedHealthTab } from '@/components/MobileEnhancedHealthTab';
+import { MobileEnhancedOverviewTab } from '@/components/MobileEnhancedOverviewTab';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
@@ -179,16 +182,14 @@ export default function UserDashboard() {
           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
-              <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
-                <div className="space-y-4">
-                  {/* Contextual Patient Selector */}
-                  <ContextualUserSelector users={users} selectedUser={selectedUser} onUserSelect={setSelectedUser} hasAccess={hasAccess('basic')} title="Chat with AI" description="Select a user to have personalized conversations" />
-                  
-                  {isMobile ? (
-                    <div className="flex flex-col h-full">
-                      <ChatInterfaceWithUsers isMobile={true} selectedUser={selectedUser} />
-                    </div>
-                  ) : (
+              {isMobile ? (
+                <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
+              ) : (
+                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
+                  <div className="space-y-4">
+                    {/* Contextual Patient Selector */}
+                    <ContextualUserSelector users={users} selectedUser={selectedUser} onUserSelect={setSelectedUser} hasAccess={hasAccess('basic')} title="Chat with AI" description="Select a user to have personalized conversations" />
+                    
                     <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
                       <div className="mb-4 flex-shrink-0">
                         <h2 className="text-lg font-semibold">AI Health Assistant</h2>
@@ -198,61 +199,17 @@ export default function UserDashboard() {
                         <ChatInterfaceWithUsers selectedUser={selectedUser} />
                       </div>
                     </div>
-                  )}
-                </div>
-              </SubscriptionGate>
+                  </div>
+                </SubscriptionGate>
+              )}
             </TabsContent>
 
             <TabsContent value="health" className="h-full mt-0 pt-4">
-              <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                <SubscriptionGate requiredTier="basic" feature="Health" description="Store and manage your health records and forms with a Basic or Pro subscription.">
-                  {isMobile ? (
-                    <Tabs defaultValue="records" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="records" className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Records
-                        </TabsTrigger>
-                        <TabsTrigger value="forms" className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Forms
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="records" className="mt-0">
-                        <div className="space-y-4">
-                          <div className="bg-background/50 p-4 rounded-lg border">
-                            <h3 className="font-semibold mb-2">Health Records</h3>
-                            <p className="text-sm text-muted-foreground mb-4">
-                              Select a user to view their health records
-                            </p>
-                            <UserDropdown
-                              users={users}
-                              selectedUser={selectedUser}
-                              onUserSelect={setSelectedUser}
-                              open={dropdownOpen}
-                              onOpenChange={setDropdownOpen}
-                            />
-                          </div>
-                          <HealthRecords selectedPatient={selectedUser} />
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="forms" className="mt-0">
-                        <div className="space-y-4">
-                          <ContextualUserSelector 
-                            users={users} 
-                            selectedUser={selectedUser} 
-                            onUserSelect={setSelectedUser} 
-                            hasAccess={hasAccess('basic')} 
-                            title="Health Forms" 
-                            description="Select a user to fill out their health forms" 
-                          />
-                          <HealthForms selectedPatient={selectedUser} onFormSubmit={() => setActiveTab('health')} />
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  ) : (
+              {isMobile ? (
+                <MobileEnhancedHealthTab onTabChange={setActiveTab} />
+              ) : (
+                <div className="h-full overflow-y-auto">
+                  <SubscriptionGate requiredTier="basic" feature="Health" description="Store and manage your health records and forms with a Basic or Pro subscription.">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="space-y-2">
@@ -283,114 +240,17 @@ export default function UserDashboard() {
                         <HealthForms selectedPatient={selectedUser} onFormSubmit={() => setActiveTab('health')} />
                       </div>
                     </div>
-                  )}
-                </SubscriptionGate>
-              </div>
+                  </SubscriptionGate>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="overview" className="h-full mt-0 pt-4">
-              <div className={cn("h-full overflow-y-auto", isMobile ? "p-4" : "")}>
-                <SubscriptionGate requiredTier="basic" feature="Overview" description="View your health analytics, quick actions, and settings with a Basic or Pro subscription.">
-                  {isMobile ? (
-                    <div className="space-y-6">
-                      {/* Mobile Stats Cards */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-                          <CardContent className="p-4 text-center">
-                            <FileText className="h-6 w-6 text-primary mx-auto mb-2" />
-                            <div className="text-xl font-bold">{loading ? "..." : totalRecords}</div>
-                            <p className="text-xs text-muted-foreground">Records</p>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-                          <CardContent className="p-4 text-center">
-                            <MessageSquare className="h-6 w-6 text-secondary mx-auto mb-2" />
-                            <div className="text-xl font-bold">{loading ? "..." : totalConversations}</div>
-                            <p className="text-xs text-muted-foreground">Chats</p>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      {/* Last Activity Card */}
-                      <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Last Activity</p>
-                            <p className="text-2xl font-bold">{loading ? "..." : formatLastActivity(lastActivityTime)}</p>
-                            <p className="text-xs text-muted-foreground">ago</p>
-                          </div>
-                          <Calendar className="h-8 w-8 text-accent" />
-                        </CardContent>
-                      </Card>
-
-                      {/* Quick Actions */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">Quick Actions</CardTitle>
-                          <CardDescription>
-                            Start using DrKnowsIt's features
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <Button 
-                            variant="outline" 
-                            className="w-full h-auto p-4 justify-start bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 hover:bg-primary/20" 
-                            onClick={() => setActiveTab('health')}
-                          >
-                            <Upload className="h-5 w-5 mr-3 text-primary" />
-                            <div className="text-left">
-                              <div className="font-medium">Upload Records</div>
-                              <div className="text-sm text-muted-foreground">Add health documents</div>
-                            </div>
-                          </Button>
-
-                          <Button 
-                            variant="outline" 
-                            className="w-full h-auto p-4 justify-start bg-gradient-to-r from-secondary/5 to-secondary/10 border-secondary/20 hover:bg-secondary/20" 
-                            onClick={() => setActiveTab('health')}
-                          >
-                            <Calendar className="h-5 w-5 mr-3 text-secondary" />
-                            <div className="text-left">
-                              <div className="font-medium">Health Forms</div>
-                              <div className="text-sm text-muted-foreground">Complete structured forms</div>
-                            </div>
-                          </Button>
-
-                          <Button 
-                            variant="outline" 
-                            className="w-full h-auto p-4 justify-start bg-gradient-to-r from-accent/5 to-accent/10 border-accent/20 hover:bg-accent/20" 
-                            onClick={() => setActiveTab('chat')}
-                          >
-                            <MessageSquare className="h-5 w-5 mr-3 text-accent" />
-                            <div className="text-left">
-                              <div className="font-medium">Chat with AI</div>
-                              <div className="text-sm text-muted-foreground">Ask health questions</div>
-                            </div>
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      {/* AI Settings for Mobile */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <Brain className="h-5 w-5" />
-                            AI Settings
-                          </CardTitle>
-                          <CardDescription>
-                            Customize your AI experience
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <AISettings />
-                        </CardContent>
-                      </Card>
-
-                      {/* Feature Discovery */}
-                      <FeatureDiscovery />
-                    </div>
-                  ) : (
+              {isMobile ? (
+                <MobileEnhancedOverviewTab onTabChange={setActiveTab} />
+              ) : (
+                <div className="h-full overflow-y-auto">
+                  <SubscriptionGate requiredTier="basic" feature="Overview" description="View your health analytics, quick actions, and settings with a Basic or Pro subscription.">
                     <div className="space-y-6">
                       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                         <Card>
@@ -481,9 +341,9 @@ export default function UserDashboard() {
                       {/* Feature Discovery */}
                       <FeatureDiscovery />
                     </div>
-                  )}
-                </SubscriptionGate>
-              </div>
+                  </SubscriptionGate>
+                </div>
+              )}
             </TabsContent>
           </div>
         </Tabs>
