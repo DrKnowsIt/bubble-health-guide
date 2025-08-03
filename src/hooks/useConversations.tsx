@@ -1,3 +1,6 @@
+// Update the useConversations hook to include real-time subscriptions
+// File: src/hooks/useConversations.tsx
+
 import { useState, useEffect, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -148,6 +151,9 @@ export const useConversations = () => {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
 
+      // Fetch updated conversations to reflect the change
+      await fetchConversations();
+
     } catch (error) {
       console.error('Error saving message:', error);
     }
@@ -245,6 +251,62 @@ export const useConversations = () => {
     }
   }, [user, fetchConversations]);
 
+  // NEW: Set up real-time subscription for conversation changes
+  useEffect(() => {
+    if (!user) return;
+
+    logDebug('Setting up real-time subscription for conversations');
+
+    const channel = supabase
+      .channel('conversations-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          logDebug('Real-time conversation update received', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Add new conversation to the list
+            flushSync(() => {
+              setConversations(prev => {
+                // Check if conversation already exists to avoid duplicates
+                if (!prev.find(conv => conv.id === payload.new.id)) {
+                  return [payload.new as Conversation, ...prev];
+                }
+                return prev;
+              });
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing conversation
+            flushSync(() => {
+              setConversations(prev => 
+                prev.map(conv => 
+                  conv.id === payload.new.id ? payload.new as Conversation : conv
+                ).sort((a, b) => 
+                  new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+                )
+              );
+            });
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted conversation
+            flushSync(() => {
+              setConversations(prev => prev.filter(conv => conv.id !== payload.old.id));
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      logDebug('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   return {
     conversations,
