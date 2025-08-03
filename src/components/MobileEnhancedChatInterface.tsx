@@ -363,7 +363,7 @@ export const MobileEnhancedChatInterface = ({
                 </div>
               )}
               
-              <div className="flex gap-3 items-end">
+              <div className="flex gap-2 items-end">
                 <div className="flex-1">
                   <Textarea
                     placeholder="Describe your symptoms or ask a health question..."
@@ -374,51 +374,49 @@ export const MobileEnhancedChatInterface = ({
                     disabled={!selectedUser}
                   />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-1">
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!selectedUser || isUploading}
-                        className="h-10 w-10 p-0 transition-all"
-                        asChild
-                      >
-                        <span>
-                          {isUploading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ImagePlus className="h-4 w-4" />
-                          )}
-                        </span>
-                      </Button>
-                    </label>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+                <div className="flex gap-1">
+                  <label htmlFor="image-upload" className="cursor-pointer">
                     <Button
-                      variant={isRecording ? "destructive" : "outline"}
+                      variant="outline"
                       size="sm"
-                      onClick={toggleRecording}
-                      disabled={!selectedUser || isProcessing}
-                      className="h-10 w-10 p-0 transition-all"
+                      disabled={!selectedUser || isUploading}
+                      className="h-10 w-10 p-0"
+                      asChild
                     >
-                      {isRecording ? (
-                        <MicOff className="h-4 w-4" />
-                      ) : (
-                        <Mic className="h-4 w-4" />
-                      )}
+                      <span>
+                        {isUploading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ImagePlus className="h-4 w-4" />
+                        )}
+                      </span>
                     </Button>
-                  </div>
+                  </label>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant={isRecording ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleRecording}
+                    disabled={!selectedUser || isProcessing}
+                    className="h-10 w-10 p-0"
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Button 
                     onClick={handleSendMessage}
                     disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
                     size="sm"
-                    className="h-10 w-10 p-0 transition-all"
+                    className="h-10 w-10 p-0"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
