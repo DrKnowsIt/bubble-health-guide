@@ -48,113 +48,86 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if ((!inputValue.trim() && !pendingImageUrl)) return;
     
     // Check if user is logged in and has subscription
     if (!user || !subscribed) {
       return;
     }
-
+  
+    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
+  
+    // Create conversation if it doesn't exist
+    let conversationId = currentConversation;
+    
+    if (!conversationId) {
+      const title = generateConversationTitle(messageContent);
+      conversationId = await createConversation(title, selectedUser?.id || null);
+      
+      if (!conversationId) {
+        toast({
+          title: "Error",
+          description: "Failed to create conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      await fetchConversations();
+    }
+  
+    // Add user message to UI
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue,
-      timestamp: new Date()
+      content: messageContent,
+      timestamp: new Date(),
+      image_url: pendingImageUrl || undefined
     };
-
-    // Add user message to UI immediately
+  
     setMessages(prev => [...prev, userMessage]);
-    
-    // If user is authenticated and no current conversation, create one FIRST
-    let conversationId = currentConversation;
-    if (user && !currentConversation) {
-      const title = generateConversationTitle(inputValue);
-      conversationId = await createConversation(title, null);
-      
-      if (!conversationId) {
-        console.error('Failed to create conversation');
-        return;
-      }
-    }
-
-    const currentInput = inputValue;
     setInputValue('');
+    setPendingImageUrl(null);
     setIsTyping(true);
-
-    // Save user message if authenticated
-    if (user && conversationId) {
-      await saveMessage(conversationId, 'user', inputValue);
-    }
-
-    // Call onSendMessage callback after conversation is created and message is saved
-    onSendMessage?.(currentInput);
-
+  
     try {
-      // Prepare conversation history for context (exclude welcome message if present)
-      const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      // Save user message
+      await saveMessage(conversationId, 'user', messageContent, pendingImageUrl || undefined);
       
+      // Call the onSendMessage callback if provided
+      if (onSendMessage) {
+        onSendMessage(messageContent);
+      }
+  
+      // Get AI response
       const { data, error } = await supabase.functions.invoke('grok-chat', {
-        body: {
-          message: currentInput,
-          conversation_history: conversationHistory,
+        body: { 
+          message: messageContent,
+          conversation_history: messages.filter(m => m.id !== 'welcome'),
+          patient_id: selectedUser?.id,
           user_id: user.id,
-          conversation_id: conversationId
+          conversation_id: conversationId,
+          image_url: pendingImageUrl || undefined
         }
       });
-
-      if (error) {
-        throw error;
-      }
-
+  
+      if (error) throw error;
+  
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: data.response || 'I apologize, but I was unable to generate a response. Please try again.',
+        content: data.response || 'I apologize, but I am unable to process your request at the moment.',
         timestamp: new Date()
       };
-      
+  
       setMessages(prev => [...prev, aiMessage]);
+      await saveMessage(conversationId, 'ai', aiMessage.content);
       
-      // Save AI message if authenticated
-      if (user && conversationId) {
-        await saveMessage(conversationId, 'ai', aiMessage.content);
-      }
-    } catch (error: any) {
-      console.error('Error calling Grok AI:', error);
-      
-      // Enhanced error handling with specific error types
-      let errorContent = 'I apologize, but I encountered an error while processing your request.';
-      
-      if (error.message?.includes('network') || error.message?.includes('timeout')) {
-        errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
-      } else if (error.message?.includes('rate limit')) {
-        errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
-      } else if (error.message?.includes('unauthorized')) {
-        errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
-      }
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: errorContent + ' You can try asking your question again.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      
-      // Save error message if authenticated
-      if (user && conversationId) {
-        await saveMessage(conversationId, 'ai', errorMessage.content);
-      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Error handling code...
     } finally {
       setIsTyping(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
     }
   };
 
