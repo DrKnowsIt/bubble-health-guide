@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
-import { ChatInterfaceWithUsers } from '@/components/ChatInterfaceWithPatients';
+import { ConsolidatedChatDashboard } from '@/components/ConsolidatedChatDashboard';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -228,7 +228,7 @@ export default function UserDashboard() {
                         <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
                       </div>
                       <div className="flex-1 min-h-0">
-                        <ChatInterfaceWithUsers selectedUser={selectedUser} />
+                        <ConsolidatedChatDashboard />
                       </div>
                     </div>
                   </div>
