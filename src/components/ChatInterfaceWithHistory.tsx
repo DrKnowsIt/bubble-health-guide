@@ -9,15 +9,20 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoConversation } from "@/components/DemoConversation";
 import { useNavigate } from "react-router-dom";
+import { useUsers } from "@/hooks/useUsers";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatInterfaceWithHistoryProps {
   onSendMessage?: (message: string) => void;
   onShowHistory?: () => void;
+  onConversationCreated?: () => void;
 }
 
-export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatInterfaceWithHistoryProps) => {
+export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConversationCreated }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
   const { subscribed, loading: subscriptionLoading } = useSubscription();
+  const { selectedUser } = useUsers();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
@@ -47,7 +52,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
   };
 
   const handleSendMessage = async () => {
-    if ((!inputValue.trim() && !pendingImageUrl)) return;
+    if (!inputValue.trim()) return;
     
     if (!user || !subscribed) {
       return;
@@ -70,21 +75,16 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory }: ChatI
       conversationId = await createConversation(title, null);
       
       if (!conversationId) {
-        const title = generateConversationTitle(messageContent);
-        conversationId = await createConversation(title, selectedUser?.id || null);
-        
-        if (!conversationId) {
-          toast({
-            title: "Error",
-            description: "Failed to create conversation",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        if (onConversationCreated) {
-          onConversationCreated();
-        }
+        toast({
+          title: "Error",
+          description: "Failed to create conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (onConversationCreated) {
+        onConversationCreated();
       }
     }
 

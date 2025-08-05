@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory';
 import { ConversationSidebar } from '@/components/ConversationSidebar';
 import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
+import { ConsolidatedChatDashboard } from '@/components/ConsolidatedChatDashboard';
 import { useConversations } from '@/hooks/useConversations';
 import { useUsers } from '@/hooks/useUsers';
 import { UserSelector } from '@/components/UserSelector';
@@ -136,39 +137,9 @@ export const ChatDashboard = () => {
         <UserSelector />
       </div>
 
-      {/* Main Chat Layout */}
-      <div className={`flex-1 flex gap-4 min-h-0 ${!subscribed ? 'opacity-60' : ''}`}>
-        {/* Conversation History Sidebar - Left */}
-        <div className={`${showHistory ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden shrink-0 ${!subscribed ? 'pointer-events-none' : ''}`}>
-          <ConversationSidebar 
-            conversations={conversations}
-            currentConversation={currentConversation}
-            onSelectConversation={selectConversation}
-            onStartNewConversation={startNewConversation}
-            onDeleteConversation={deleteConversation}
-            isAuthenticated={!!user}
-          />
-        </div>
-
-        {/* Main Chat Interface - Center */}
-        <div className="flex-1 min-w-0">
-          <ChatInterfaceWithHistory 
-            onSendMessage={handleSendMessage}
-            onShowHistory={() => setShowHistory(!showHistory)}
-            onConversationCreated={fetchConversations} 
-          />
-        </div>
-
-        {/* Diagnosis Panel - Right - Only show when there's an active conversation with messages */}
-        {selectedUser && currentConversation && messages.length > 1 && diagnoses.length > 0 && (
-          <div className="w-80 shrink-0">
-            <ProbableDiagnoses 
-              diagnoses={diagnoses}
-              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-              patientId={selectedUser.id}
-            />
-          </div>
-        )}
+      {/* Consolidated Chat Layout */}
+      <div className={`flex-1 min-h-0 ${!subscribed ? 'opacity-60' : ''}`}>
+        <ConsolidatedChatDashboard onSendMessage={handleSendMessage} />
       </div>
     </div>
   );
