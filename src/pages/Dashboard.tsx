@@ -1,121 +1,262 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, 
-  User, 
-  Settings, 
-  FileText, 
   Heart, 
-  Mic, 
-  Download,
-  Edit,
-  Calendar,
   Activity,
-  Shield,
-  CreditCard,
-  LogOut,
-  Menu,
-  X,
-  Lock,
-  Badge
+  Lock
 } from "lucide-react";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { ChatDashboard } from "@/components/ChatDashboard";
+import { ChatGPTInterface } from "@/components/ChatGPTInterface";
 import { HealthProfile } from "@/components/HealthProfile";
-import { UserSettings } from "@/components/UserSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { TierStatus } from "@/components/TierStatus";
+import { useUsers } from "@/hooks/useUsers";
+import { SubscriptionGate } from "@/components/SubscriptionGate";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, Upload, MessageSquare } from "lucide-react";
+import { useHealthStats } from "@/hooks/useHealthStats";
+import { ContextualUserSelector } from "@/components/ContextualPatientSelector";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("chat");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
   const { user } = useAuth();
-  const { subscribed, subscription_tier, loading } = useSubscription();
-
-  const sidebarItems = [
-    { id: "chat", label: "Chat with DrKnowItAll", icon: MessageCircle, requiresSubscription: true },
-    { id: "health", label: "Health Profile", icon: Heart, requiresSubscription: true },
-    { id: "settings", label: "Account Settings", icon: Settings, requiresSubscription: false },
-  ];
+  const { subscribed, subscription_tier } = useSubscription();
+  const { users, selectedUser, setSelectedUser } = useUsers();
+  const { totalRecords, totalConversations, lastActivityTime } = useHealthStats();
 
   if (!user) {
     return <div>Loading...</div>;
   }
 
-  const userForHeader = {
-    name: user.user_metadata?.first_name && user.user_metadata?.last_name 
-      ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-      : user.email?.split('@')[0] || 'User',
-    email: user.email || '',
-    subscription: subscription_tier === 'pro' ? 'Pro Plan' : subscription_tier === 'basic' ? 'Basic Plan' : 'No Subscription'
+  // Check if user has access to a specific tier
+  const hasAccess = (requiredTier: string | null) => {
+    if (!requiredTier) return true;
+    if (!subscribed || !subscription_tier) return false;
+    if (requiredTier === 'basic') {
+      return subscription_tier === 'basic' || subscription_tier === 'pro';
+    }
+    if (requiredTier === 'pro') {
+      return subscription_tier === 'pro';
+    }
+    return false;
+  };
+
+  const formatLastActivity = (timestamp: string | null) => {
+    if (!timestamp) return "No activity";
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return "Just now";
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <DashboardHeader />
       
-      <div className="flex h-[calc(100vh-5rem)]">
-        {/* Sidebar */}
-        <div className={`
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 fixed md:static inset-y-20 left-0 z-40 w-64 
-          bg-card border-r border-border transition-transform duration-300 ease-out
-        `}>
-          <div className="p-6">
-            <div className="space-y-2">
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`
-                    w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-smooth
-                    ${activeTab === item.id 
-                      ? 'bg-primary text-primary-foreground shadow-bubble' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }
-                    ${item.requiresSubscription && !subscribed ? 'opacity-50' : ''}
-                  `}
-                  disabled={item.requiresSubscription && !subscribed}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                  {item.requiresSubscription && !subscribed && (
-                    <Lock className="h-3 w-3 ml-auto" />
+      <div className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          {/* Tab Navigation */}
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container max-w-7xl mx-auto">
+              <TabsList className="h-auto bg-transparent border-0 p-0">
+                <TabsTrigger 
+                  value="chat" 
+                  className={cn(
+                    "flex items-center gap-2 relative rounded-none border-b-2 border-transparent",
+                    "data-[state=active]:border-primary data-[state=active]:bg-transparent",
+                    "px-4 py-3",
+                    !hasAccess('basic') && "opacity-50"
                   )}
-                </button>
-              ))}
-            </div>
-
-            {/* Subscription Status */}
-            <div className="mt-8 space-y-4">
-              <TierStatus showUpgradeButton={true} />
+                >
+                  <div className="relative">
+                    <MessageCircle className="h-4 w-4" />
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                  </div>
+                  AI Chat
+                </TabsTrigger>
+                
+                <TabsTrigger 
+                  value="health" 
+                  className={cn(
+                    "flex items-center gap-2 relative rounded-none border-b-2 border-transparent",
+                    "data-[state=active]:border-primary data-[state=active]:bg-transparent",
+                    "px-4 py-3",
+                    !hasAccess('basic') && "opacity-50"
+                  )}
+                >
+                  <div className="relative">
+                    <Heart className="h-4 w-4" />
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                  </div>
+                  Health
+                </TabsTrigger>
+                
+                <TabsTrigger 
+                  value="overview" 
+                  className={cn(
+                    "flex items-center gap-2 relative rounded-none border-b-2 border-transparent",
+                    "data-[state=active]:border-primary data-[state=active]:bg-transparent",
+                    "px-4 py-3",
+                    !hasAccess('basic') && "opacity-50"
+                  )}
+                >
+                  <div className="relative">
+                    <Activity className="h-4 w-4" />
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                  </div>
+                  Overview
+                </TabsTrigger>
+              </TabsList>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div 
-            className="md:hidden fixed inset-0 z-30 bg-background/80 backdrop-blur"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
+          {/* Tab Content */}
+          <div className="flex-1 container max-w-7xl mx-auto p-6">
+            <TabsContent value="chat" className="h-full mt-0">
+              <SubscriptionGate 
+                requiredTier="basic" 
+                feature="AI Chat" 
+                description="Start conversations with our AI health assistant using a Basic or Pro subscription."
+              >
+                <div className="space-y-4 h-full flex flex-col">
+                  {/* User Selector */}
+                  <ContextualUserSelector 
+                    users={users} 
+                    selectedUser={selectedUser} 
+                    onUserSelect={setSelectedUser} 
+                    hasAccess={hasAccess('basic')} 
+                    title="Chat with AI" 
+                    description="Select a user to have personalized conversations" 
+                  />
+                  
+                  {/* Chat Interface */}
+                  <div className="flex-1 min-h-0">
+                    <div className="h-full flex flex-col">
+                      <div className="mb-4 flex-shrink-0">
+                        <h2 className="text-lg font-semibold">AI Health Assistant</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Chat with DrKnowsIt for personalized health guidance and medical insights.
+                        </p>
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <ChatGPTInterface />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </SubscriptionGate>
+            </TabsContent>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 p-6 flex flex-col min-h-0">
-            {activeTab === "chat" && <ChatDashboard />}
-            {activeTab === "health" && <HealthProfile />}
-            {activeTab === "settings" && <UserSettings />}
+            <TabsContent value="health" className="h-full mt-0">
+              <SubscriptionGate 
+                requiredTier="basic" 
+                feature="Health Management" 
+                description="Store and manage your health records and forms with a Basic or Pro subscription."
+              >
+                <HealthProfile />
+              </SubscriptionGate>
+            </TabsContent>
+
+            <TabsContent value="overview" className="h-full mt-0">
+              <SubscriptionGate 
+                requiredTier="basic" 
+                feature="Overview Dashboard" 
+                description="View your health analytics and insights with a Basic or Pro subscription."
+              >
+                <div className="space-y-6">
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium">Total Records</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{totalRecords}</div>
+                        <p className="text-xs text-muted-foreground">Health records stored</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium">Conversations</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{totalConversations}</div>
+                        <p className="text-xs text-muted-foreground">AI chat sessions</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium">Last Activity</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">
+                          {lastActivityTime ? formatLastActivity(lastActivityTime) : "..."}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Ago</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Quick Actions</CardTitle>
+                      <CardDescription>
+                        Common tasks to help you get the most out of DrKnowsIt
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <Button 
+                        variant="outline" 
+                        className="h-auto p-4 flex-col items-start" 
+                        onClick={() => setActiveTab('health')}
+                      >
+                        <Calendar className="h-5 w-5 mb-2" />
+                        <span className="font-medium">Complete Health Forms</span>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Fill out structured forms for comprehensive health data
+                        </span>
+                      </Button>
+
+                      <Button 
+                        variant="outline" 
+                        className="h-auto p-4 flex-col items-start" 
+                        onClick={() => setActiveTab('health')}
+                      >
+                        <Upload className="h-5 w-5 mb-2" />
+                        <span className="font-medium">Upload Health Records</span>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Add medical history, lab results, or other health documents
+                        </span>
+                      </Button>
+
+                      <Button 
+                        variant="outline" 
+                        className="h-auto p-4 flex-col items-start" 
+                        onClick={() => setActiveTab('chat')}
+                      >
+                        <MessageSquare className="h-5 w-5 mb-2" />
+                        <span className="font-medium">Start AI Chat</span>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Ask questions and get personalized health guidance
+                        </span>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </SubscriptionGate>
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
       </div>
     </div>
   );
