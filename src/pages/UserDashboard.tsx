@@ -194,7 +194,7 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
+          <div className={cn("flex-1", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
