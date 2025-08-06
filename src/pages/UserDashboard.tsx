@@ -107,7 +107,7 @@ export default function UserDashboard() {
       <DashboardHeader />
 
       {/* Main Content */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-[calc(100vh-80px)]">
           {/* Tab Navigation */}
           {isMobile ? (
@@ -213,7 +213,7 @@ export default function UserDashboard() {
                       description="Select a user to have personalized conversations" 
                     />
                     
-                    <div className="h-full flex flex-col min-h-0">
+                    <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
                       <div className="mb-4 flex-shrink-0">
                         <h2 className="text-lg font-semibold">AI Health Assistant</h2>
                         <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
