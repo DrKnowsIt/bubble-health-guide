@@ -10,7 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
-import { ChatGPTInterface } from '@/components/ChatGPTInterface';
+import { ChatInterfaceWithHistory } from '@/components/ChatGPTInterfacewithhistory';
+import { ConversationHistory } from '@/components/ConversationHistory';
+import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
+import { useConversations } from '@/hooks/useConversations'; // Hook for chat state
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -107,7 +110,7 @@ export default function UserDashboard() {
       <DashboardHeader />
 
       {/* Main Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-[calc(100vh-80px)]">
           {/* Tab Navigation */}
           {isMobile ? (
