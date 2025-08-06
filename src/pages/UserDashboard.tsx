@@ -194,7 +194,7 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
+          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
             <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
@@ -213,7 +213,7 @@ export default function UserDashboard() {
                       description="Select a user to have personalized conversations" 
                     />
                     
-                    <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
+                    <div className="h-full flex flex-col min-h-0">
                       <div className="mb-4 flex-shrink-0">
                         <h2 className="text-lg font-semibold">AI Health Assistant</h2>
                         <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
