@@ -10,10 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
-import { ChatInterfaceWithHistory } from '@/components/ChatGPTInterfacewithhistory';
-import { ConversationHistory } from '@/components/ConversationHistory';
-import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
-import { useConversations } from '@/hooks/useConversations'; // Hook for chat state
+import { ChatGPTInterface } from '@/components/ChatGPTInterface';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -39,6 +36,16 @@ export default function UserDashboard() {
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
+  const { 
+    currentConversation, 
+    selectConversation, 
+    startNewConversation,
+    diagnoses 
+  } = useConversations();
+
+  const handleNewConversation = () => {
+    startNewConversation(selectedUser?.id || null);
+  };
   
   const formatLastActivity = (timestamp: string | null) => {
     if (!timestamp) return "No activity";
