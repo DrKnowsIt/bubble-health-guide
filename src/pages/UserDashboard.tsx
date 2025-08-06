@@ -36,16 +36,6 @@ export default function UserDashboard() {
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const { 
-    currentConversation, 
-    selectConversation, 
-    startNewConversation,
-    diagnoses 
-  } = useConversations();
-
-  const handleNewConversation = () => {
-    startNewConversation(selectedUser?.id || null);
-  };
   
   const formatLastActivity = (timestamp: string | null) => {
     if (!timestamp) return "No activity";
@@ -211,27 +201,47 @@ export default function UserDashboard() {
               ) : isTablet ? (
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
-                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
-                  <div className="space-y-4">
-                    {/* Contextual Patient Selector */}
-                    <ContextualUserSelector 
-                      users={users} 
-                      selectedUser={selectedUser} 
-                      onUserSelect={setSelectedUser} 
-                      hasAccess={hasAccess('basic')} 
-                      title="Chat with AI" 
-                      description="Select a user to have personalized conversations" 
-                    />
+                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="...">
+                  <div className="grid grid-cols-[320px_1fr_320px] gap-6 h-full min-h-[calc(100vh-160px)]">
                     
-                    <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
-                      <div className="mb-4 flex-shrink-0">
-                        <h2 className="text-lg font-semibold">AI Health Assistant</h2>
-                        <p className="text-sm text-muted-foreground">Chat with DrKnowsIt for personalized health guidance and medical insights.</p>
-                      </div>
-                      <div className="flex-1 min-h-0">
-                        <ChatGPTInterface />
-                      </div>
+                    {/* Column 1: Chat History */}
+                    <div className="bg-card border rounded-lg h-full">
+                      <ConversationHistory
+                        selectedPatientId={selectedUser?.id}
+                        onConversationSelect={selectConversation}
+                        onNewConversation={handleNewConversation}
+                        activeConversationId={currentConversation}
+                      />
                     </div>
+                
+                    {/* Column 2: Main Chat Interface */}
+                    <div className="bg-card border rounded-lg h-full flex flex-col">
+                      <ChatInterfaceWithHistory />
+                    </div>
+                
+                    {/* Column 3: Probable Diagnoses */}
+                    <div className="bg-card border rounded-lg h-full">
+                      {selectedUser && diagnoses.length > 0 ? (
+                        <ProbableDiagnoses
+                          diagnoses={diagnoses.map(d => ({
+                            diagnosis: d.diagnosis,
+                            confidence: d.confidence,
+                            reasoning: d.reasoning,
+                            updated_at: d.updated_at
+                          }))}
+                          patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
+                          patientId={selectedUser.id}
+                        />
+                      ) : (
+                        <div className="p-6 text-center text-muted-foreground">
+                          <p className="font-semibold">Probable Diagnoses</p>
+                          <p className="text-sm mt-2">
+                            {selectedUser ? "No diagnoses generated for this conversation yet. They will appear here as you chat with the AI." : "Select a patient to see potential diagnoses."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                
                   </div>
                 </SubscriptionGate>
               )}
