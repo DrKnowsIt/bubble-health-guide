@@ -28,28 +28,12 @@ import { TabletChatInterface } from '@/components/TabletChatInterface';
 import { cn } from '@/lib/utils';
 
 export default function UserDashboard() {
-  const {
-    user,
-    signOut
-  } = useAuth();
-  const {
-    subscribed,
-    subscription_tier,
-    createCheckoutSession
-  } = useSubscription();
-  const {
-    users,
-    selectedUser,
-    setSelectedUser
-  } = useUsers();
+  const { user, signOut } = useAuth();
+  const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
+  const { users, selectedUser, setSelectedUser } = useUsers();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const {
-    totalRecords,
-    totalConversations,
-    lastActivityTime,
-    loading
-  } = useHealthStats();
+  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   
@@ -181,7 +165,7 @@ export default function UserDashboard() {
               </TabsList>
             </div>
           ) : (
-            // Desktop: Top navigation
+            // Desktop: Top navigation - FIXED THIS SECTION
             <div className="px-4 pt-6">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chat" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}>
@@ -220,7 +204,14 @@ export default function UserDashboard() {
                 <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
                   <div className="space-y-4">
                     {/* Contextual Patient Selector */}
-                    <ContextualUserSelector users={users} selectedUser={selectedUser} onUserSelect={setSelectedUser} hasAccess={hasAccess('basic')} title="Chat with AI" description="Select a user to have personalized conversations" />
+                    <ContextualUserSelector 
+                      users={users} 
+                      selectedUser={selectedUser} 
+                      onUserSelect={setSelectedUser} 
+                      hasAccess={hasAccess('basic')} 
+                      title="Chat with AI" 
+                      description="Select a user to have personalized conversations" 
+                    />
                     
                     <div className="h-full flex flex-col min-h-[calc(100vh-280px)]">
                       <div className="mb-4 flex-shrink-0">
@@ -240,40 +231,31 @@ export default function UserDashboard() {
               {isMobile ? (
                 <MobileEnhancedHealthTab onTabChange={setActiveTab} />
               ) : (
-                <div className="h-full overflow-y-auto">
-                  <SubscriptionGate requiredTier="basic" feature="Health" description="Store and manage your health records and forms with a Basic or Pro subscription.">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <h3 className="text-lg font-semibold">Health Records</h3>
-                          <p className="text-sm text-muted-foreground">Select a user to view their health records</p>
-                          <div className="max-w-xs">
-                            <UserDropdown
-                              users={users}
-                              selectedUser={selectedUser}
-                              onUserSelect={setSelectedUser}
-                              open={dropdownOpen}
-                              onOpenChange={setDropdownOpen}
-                            />
-                          </div>
-                        </div>
-                        <HealthRecords selectedPatient={selectedUser} />
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <ContextualUserSelector 
-                          users={users} 
-                          selectedUser={selectedUser} 
-                          onUserSelect={setSelectedUser} 
-                          hasAccess={hasAccess('basic')} 
-                          title="Health Forms" 
-                          description="Select a user to fill out their health forms" 
-                        />
-                        <HealthForms selectedPatient={selectedUser} onFormSubmit={() => setActiveTab('health')} />
-                      </div>
-                    </div>
-                  </SubscriptionGate>
-                </div>
+                <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
+                  <div className="space-y-6">
+                    <ContextualUserSelector 
+                      users={users} 
+                      selectedUser={selectedUser} 
+                      onUserSelect={setSelectedUser} 
+                      hasAccess={hasAccess('basic')} 
+                      title="Health Records" 
+                      description="Select a user to manage health records" 
+                    />
+                    
+                    <Tabs defaultValue="records" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="records">Health Records</TabsTrigger>
+                        <TabsTrigger value="forms">Health Forms</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="records" className="mt-4">
+                        <HealthRecords />
+                      </TabsContent>
+                      <TabsContent value="forms" className="mt-4">
+                        <HealthForms />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </SubscriptionGate>
               )}
             </TabsContent>
 
@@ -371,7 +353,7 @@ export default function UserDashboard() {
                       </div>
 
                       {/* Feature Discovery */}
-                      <FeatureDiscovery />
+                      <FeatureDiscovery onNavigateToTab={setActiveTab} />
                     </div>
                   </SubscriptionGate>
                 </div>
