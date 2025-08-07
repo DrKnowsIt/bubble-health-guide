@@ -91,7 +91,7 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       {/* Subscription Alert */}
       {!subscribed && (
         <div className="bg-primary/10 border-b border-primary/20 p-3">
@@ -195,17 +195,15 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "px-4 pb-6")}>
-            <TabsContent value="chat" className="h-full mt-0 pt-4">
+          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
+            <TabsContent value="chat" className="h-full mt-0">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : isTablet ? (
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
-                <div className="h-full max-w-7xl mx-auto">
-                  <div className="h-full flex flex-col">
-                    <ChatGPTInterface />
-                  </div>
+                <div className="h-full">
+                  <ChatGPTInterface />
                 </div>
               )}
             </TabsContent>

@@ -414,11 +414,10 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
           </div>
         </header>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <div className="max-w-4xl mx-auto p-4">
-              <div className="space-y-4">
+        {/* Messages Area - Scrollable container */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="space-y-4">
                 {messages.length === 0 && (
                   <div className="text-center py-8">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white mx-auto mb-4">
@@ -494,15 +493,14 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
                   </div>
                 )}
                 
-                <div ref={messagesEndRef} />
-              </div>
+              <div ref={messagesEndRef} />
             </div>
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="border-t border-border p-4">
-          <div className="max-w-4xl mx-auto">
+        {/* Input Area - Fixed at bottom */}
+        <div className="border-t border-border bg-background">
+          <div className="max-w-4xl mx-auto p-4">
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
@@ -522,6 +520,10 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
               >
                 <Send className="h-4 w-4" />
               </Button>
+            </div>
+            {/* Warning disclaimer */}
+            <div className="mt-2 text-xs text-center text-muted-foreground">
+              DrKnowsIt can make mistakes. Consider checking important information with healthcare professionals.
             </div>
           </div>
         </div>
@@ -551,9 +553,9 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
 export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
   return (
     <SidebarProvider>
-      <div className="flex h-full w-full">
+      <div className="flex h-full w-full overflow-hidden">
         <ChatSidebar />
-        <main className="flex-1 h-full">
+        <main className="flex-1 h-full overflow-hidden">
           <ChatInterface onSendMessage={onSendMessage} />
         </main>
       </div>
