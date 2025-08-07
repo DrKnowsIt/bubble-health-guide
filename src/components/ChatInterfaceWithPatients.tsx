@@ -14,7 +14,7 @@ import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
-import { MobileChatInterface } from './MobileChatInterface';
+import { MobileEnhancedChatInterface } from './MobileEnhancedChatInterface';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { ChatMessage } from './ChatMessage';
 import { toast } from '@/hooks/use-toast';
@@ -206,7 +206,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   // Mobile layout - Use new simplified interface
   if (isMobile) {
     return (
-      <MobileChatInterface 
+      <MobileEnhancedChatInterface 
         selectedUser={selectedUser}
         onUserSelect={handleUserSelect}
       />

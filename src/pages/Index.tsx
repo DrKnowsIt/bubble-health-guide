@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
-import { SimpleChatInterface } from "@/components/SimpleChatInterface";
+import { ChatGPTInterface } from "@/components/ChatGPTInterface";
 // Using the uploaded Dr. Knowsit mascot image
 const Index = () => {
   const {
@@ -74,7 +74,7 @@ const Index = () => {
                       <ChatInterfaceWithHistory />
                     </div>
                   </div> : <div className="h-full overflow-hidden">
-                    <SimpleChatInterface onShowHistory={user ? () => setShowHistory(true) : undefined} />
+                    <ChatGPTInterface />
                   </div>}
               </div>
             </div>

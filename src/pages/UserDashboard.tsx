@@ -12,9 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/ChatGPTInterface';
-import { ConversationHistory } from '@/components/ConversationHistory';
-import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory';
-import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -35,10 +32,8 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
-  const { conversations, currentConversation, selectConversation, startNewConversation } = useConversations();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [diagnoses, setDiagnoses] = useState<any[]>([]);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -207,49 +202,11 @@ export default function UserDashboard() {
               ) : isTablet ? (
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
-                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="...">
-                  <div className="grid grid-cols-[320px_1fr_320px] gap-6 h-full min-h-[calc(100vh-160px)]">
-                    
-                    {/* Column 1: Chat History */}
-                    <div className="bg-card border rounded-lg h-full">
-                      <ConversationHistory
-                        selectedPatientId={selectedUser?.id}
-                        onConversationSelect={selectConversation}
-                        onNewConversation={startNewConversation}
-                        activeConversationId={currentConversation}
-                      />
-                    </div>
-                
-                    {/* Column 2: Main Chat Interface */}
-                    <div className="bg-card border rounded-lg h-full flex flex-col">
-                      <ChatInterfaceWithHistory />
-                    </div>
-                
-                    {/* Column 3: Probable Diagnoses */}
-                    <div className="bg-card border rounded-lg h-full">
-                      {selectedUser && diagnoses.length > 0 ? (
-                        <ProbableDiagnoses
-                          diagnoses={diagnoses.map(d => ({
-                            diagnosis: d.diagnosis,
-                            confidence: d.confidence,
-                            reasoning: d.reasoning,
-                            updated_at: d.updated_at
-                          }))}
-                          patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-                          patientId={selectedUser.id}
-                        />
-                      ) : (
-                        <div className="p-6 text-center text-muted-foreground">
-                          <p className="font-semibold">Probable Diagnoses</p>
-                          <p className="text-sm mt-2">
-                            {selectedUser ? "No diagnoses generated for this conversation yet. They will appear here as you chat with the AI." : "Select a patient to see potential diagnoses."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                
+                <div className="h-full max-w-7xl mx-auto">
+                  <div className="h-full flex flex-col">
+                    <ChatGPTInterface />
                   </div>
-                </SubscriptionGate>
+                </div>
               )}
             </TabsContent>
 
