@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUsers } from '@/hooks/useUsers';
 import { useHealthStats } from '@/hooks/useHealthStats';
+import { useConversations } from '@/hooks/useConversations';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsTablet } from '@/hooks/use-tablet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/ChatGPTInterface';
+import { ConversationHistory } from '@/components/ConversationHistory';
+import { ChatInterfaceWithHistory } from '@/components/ChatInterfaceWithHistory';
+import { ProbableDiagnoses } from '@/components/ProbableDiagnoses';
 import { HealthRecords } from '@/components/HealthRecords';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
@@ -31,8 +35,10 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
+  const { conversations, currentConversation, selectConversation, startNewConversation } = useConversations();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [diagnoses, setDiagnoses] = useState<any[]>([]);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -209,7 +215,7 @@ export default function UserDashboard() {
                       <ConversationHistory
                         selectedPatientId={selectedUser?.id}
                         onConversationSelect={selectConversation}
-                        onNewConversation={handleNewConversation}
+                        onNewConversation={startNewConversation}
                         activeConversationId={currentConversation}
                       />
                     </div>
