@@ -109,7 +109,7 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
             // Mobile: Simplified 3-tab bottom navigation
@@ -195,8 +195,8 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
-            <TabsContent value="chat" className="h-full mt-0">
+          <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
+            <TabsContent value="chat" className="h-full mt-0 flex min-h-0">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : isTablet ? (
