@@ -30,7 +30,7 @@ export const ConversationSidebar = ({
   }
 
   return (
-    <div className="w-80 h-full border-r border-border bg-card flex flex-col">
+    <div className="w-80 h-screen border-r border-border bg-card flex flex-col overflow-hidden">
       <div className="p-4 border-b border-border">
         <Button 
           onClick={onStartNewConversation}
