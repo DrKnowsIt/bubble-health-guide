@@ -202,7 +202,7 @@ export default function UserDashboard() {
               ) : isTablet ? (
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
-                <div className="h-full">
+                <div className="h-full flex min-h-0">
                   <ChatGPTInterface />
                 </div>
               )}
