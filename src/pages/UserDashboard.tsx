@@ -91,7 +91,7 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background overflow-hidden flex flex-col">
       {/* Subscription Alert */}
       {!subscribed && (
         <div className="bg-primary/10 border-b border-primary/20 p-3">
@@ -109,7 +109,7 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-[calc(100vh-80px)]">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
           {/* Tab Navigation */}
           {isMobile ? (
             // Mobile: Simplified 3-tab bottom navigation

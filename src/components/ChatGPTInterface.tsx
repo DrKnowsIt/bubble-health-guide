@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Plus, MessageCircle, Trash2 } from "lucide-react";
+import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,20 +10,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUsers } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { ProbableDiagnoses } from "@/components/ProbableDiagnoses";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -48,121 +37,14 @@ const examplePrompts = [
   "I'm experiencing back pain"
 ];
 
-function ChatSidebar() {
-  const { state } = useSidebar();
-  const {
-    conversations,
-    currentConversation,
-    startNewConversation,
-    selectConversation,
-    deleteConversation
-  } = useConversations();
 
-  const handleDeleteConversation = async (conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await deleteConversation(conversationId);
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-    }
-  };
-
-  const isCollapsed = state === "collapsed";
-
-  return (
-    <Sidebar collapsible="icon" className="h-full">
-      <SidebarContent className="h-full">
-        <SidebarGroup className="h-full">
-          <SidebarGroupLabel className="flex items-center justify-between px-3 py-2 border-b">
-            {!isCollapsed && (
-              <>
-                <span className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  Chat History
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={startNewConversation}
-                  className="h-6 w-6 p-0"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </>
-            )}
-            {isCollapsed && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={startNewConversation}
-                className="h-6 w-6 p-0 mx-auto"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            )}
-          </SidebarGroupLabel>
-
-          <SidebarGroupContent className="flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto">
-              <SidebarMenu className="p-2">
-                {conversations.length === 0 && !isCollapsed ? (
-                  <div className="text-center text-muted-foreground text-sm p-4">
-                    <p>No conversations yet</p>
-                    <p className="mt-1 text-xs">Start chatting below</p>
-                  </div>
-                ) : (
-                  conversations.map((conversation) => (
-                    <SidebarMenuItem key={conversation.id} className="mb-1">
-                      <SidebarMenuButton
-                        isActive={currentConversation === conversation.id}
-                        onClick={() => selectConversation(conversation.id)}
-                        className="group relative w-full justify-start text-left"
-                      >
-                        <MessageCircle className="mr-2 h-4 w-4 flex-shrink-0" />
-                        {!isCollapsed && (
-                          <>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate text-sm">{conversation.title}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(conversation.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 flex-shrink-0"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))
-                )}
-              </SidebarMenu>
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
-}
-
-function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
+function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; } }) {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { selectedUser } = useUsers();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const {
-    currentConversation,
-    messages,
-    setMessages,
-    createConversation,
-    saveMessage,
-  } = useConversations();
+  const { currentConversation, messages, setMessages, createConversation, saveMessage } = conversation;
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -400,11 +282,10 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
   return (
     <div className="flex h-full">
       {/* Main Chat Area */}
-      <div className="flex flex-col flex-1 h-full">
+      <div className="flex flex-col flex-1 h-full min-h-0">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-3">
-            <SidebarTrigger />
             <h1 className="text-lg font-semibold">DrKnowsIt</h1>
             {selectedUser && (
               <span className="text-sm text-muted-foreground">
@@ -551,14 +432,31 @@ function ChatInterface({ onSendMessage }: ChatGPTInterfaceProps) {
 }
 
 export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
+  const { user } = useAuth();
+  const conv = useConversations();
+
   return (
-    <SidebarProvider>
-      <div className="flex h-full w-full overflow-hidden">
-        <ChatSidebar />
-        <main className="flex-1 h-full overflow-hidden">
-          <ChatInterface onSendMessage={onSendMessage} />
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="flex h-full w-full overflow-hidden">
+      <ConversationSidebar 
+        conversations={conv.conversations}
+        currentConversation={conv.currentConversation}
+        onSelectConversation={conv.selectConversation}
+        onStartNewConversation={conv.startNewConversation}
+        onDeleteConversation={conv.deleteConversation}
+        isAuthenticated={!!user}
+      />
+      <main className="flex-1 h-full overflow-hidden">
+        <ChatInterface 
+          onSendMessage={onSendMessage} 
+          conversation={{
+            currentConversation: conv.currentConversation,
+            messages: conv.messages,
+            setMessages: conv.setMessages,
+            createConversation: conv.createConversation,
+            saveMessage: conv.saveMessage,
+          }}
+        />
+      </main>
+    </div>
   );
 };
