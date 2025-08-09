@@ -436,7 +436,7 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
   const conv = useConversations();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-full w-full min-h-0 overflow-hidden">
       <ConversationSidebar 
         conversations={conv.conversations}
         currentConversation={conv.currentConversation}
