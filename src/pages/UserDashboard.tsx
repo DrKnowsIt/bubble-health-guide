@@ -91,7 +91,7 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden flex flex-col">
+    <div className="h-screen bg-background overflow-hidden flex flex-col">
       {/* Subscription Alert */}
       {!subscribed && (
         <div className="bg-primary/10 border-b border-primary/20 p-3">

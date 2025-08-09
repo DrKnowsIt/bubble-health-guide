@@ -445,7 +445,7 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
         onDeleteConversation={conv.deleteConversation}
         isAuthenticated={!!user}
       />
-      <main className="flex-1 h-full overflow-hidden">
+      <main className="flex-1 h-full min-h-0 overflow-hidden">
         <ChatInterface 
           onSendMessage={onSendMessage} 
           conversation={{
