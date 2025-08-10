@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ThumbsUp, ThumbsDown, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 interface Diagnosis {
   diagnosis: string;
@@ -166,7 +166,7 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
                       <div className="flex items-center space-x-1 mobile-text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>
-                          {format(new Date(diagnosis.updated_at), 'MMM d, yyyy')}
+                          {(() => { const d = new Date(diagnosis.updated_at); return isValid(d) ? format(d, 'MMM d, yyyy') : '—'; })()}
                         </span>
                       </div>
                       
