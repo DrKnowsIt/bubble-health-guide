@@ -125,6 +125,47 @@ export type Database = {
           },
         ]
       }
+      conversation_memory: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          memory: Json
+          patient_id: string
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          memory?: Json
+          patient_id: string
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          memory?: Json
+          patient_id?: string
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_memory_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string

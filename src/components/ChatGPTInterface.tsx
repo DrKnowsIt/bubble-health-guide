@@ -121,22 +121,29 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
   const extractDiagnosesFromResponse = (response: string): { cleanResponse: string; extractedDiagnoses: any[] } => {
     try {
-      // Look for JSON-like structures in the response
-      const jsonRegex = /\[[\s\S]*?\]/g;
-      const matches = response.match(jsonRegex);
-      
+      // Remove any inline JSON blocks that look like analysis payloads
+      const objectRegex = /\{[\s\S]*?\}/g;
+      let clean = response;
+      const matches = response.match(objectRegex);
       if (matches) {
-        for (const match of matches) {
+        for (const m of matches) {
+          if (m.toLowerCase().includes('diagnoses') || m.toLowerCase().includes('suggested_forms')) {
+            clean = clean.replace(m, '').trim();
+          }
+        }
+      }
+
+      // Legacy support: extract diagnoses arrays if present (but don't show them)
+      const jsonArrayRegex = /\[[\s\S]*?\]/g;
+      const arrMatches = response.match(jsonArrayRegex);
+      if (arrMatches) {
+        for (const match of arrMatches) {
           try {
             const parsed = JSON.parse(match);
             if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].diagnosis) {
-              // Remove the JSON from the response
-              const cleanResponse = response.replace(match, '').trim();
-              return { cleanResponse, extractedDiagnoses: parsed };
+              return { cleanResponse: clean, extractedDiagnoses: parsed };
             }
-          } catch (e) {
-            // Continue looking for other JSON structures
-          }
+          } catch (_) {}
         }
       }
     } catch (error) {
@@ -235,16 +242,20 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
 
-      // Handle diagnoses update if returned from API or extracted
-      if (data.diagnoses && data.diagnoses.length > 0) {
-        setDiagnoses(data.diagnoses);
-      } else if (extractedDiagnoses.length > 0) {
-        setDiagnoses(extractedDiagnoses);
-      } else {
-        // Generate diagnoses after a delay to allow message processing
-        setTimeout(() => {
-          generateDiagnoses();
-        }, 1000);
+      // Trigger background analysis to update diagnoses and memory
+      if (conversationId && selectedUser?.id) {
+        try {
+          await supabase.functions.invoke('analyze-conversation', {
+            body: {
+              conversation_id: conversationId,
+              patient_id: selectedUser.id,
+              user_id: user.id,
+            },
+          });
+          await loadDiagnosesForConversation();
+        } catch (e) {
+          console.error('Error analyzing conversation:', e);
+        }
       }
     } catch (error: any) {
       console.error('Error calling Grok AI:', error);
