@@ -38,13 +38,13 @@ const examplePrompts = [
 ];
 
 
-function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; } }) {
+function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { selectedUser } = useUsers();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { currentConversation, messages, setMessages, createConversation, saveMessage } = conversation;
+  const { currentConversation, messages, setMessages, createConversation, saveMessage, updateConversationTitleIfPlaceholder } = conversation;
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -187,6 +187,11 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     // Save user message if authenticated
     if (user && conversationId) {
       await saveMessage(conversationId, 'user', textToSend);
+    }
+
+    // Update title if this is a placeholder conversation
+    if (conversationId) {
+      await updateConversationTitleIfPlaceholder(conversationId, generateConversationTitle(textToSend));
     }
 
     // Call onSendMessage callback
@@ -434,6 +439,16 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
   const { user } = useAuth();
   const conv = useConversations();
+  const { selectedUser } = useUsers();
+
+  const handleStartNewConversation = async () => {
+    // Reset UI then create a placeholder conversation and select it
+    conv.startNewConversation();
+    const newId = await conv.createConversation("New Visit", selectedUser?.id || null);
+    if (newId) {
+      conv.selectConversation(newId);
+    }
+  };
 
   return (
     <div className="flex h-full w-full min-h-0 overflow-hidden">
@@ -441,7 +456,7 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
         conversations={conv.conversations}
         currentConversation={conv.currentConversation}
         onSelectConversation={conv.selectConversation}
-        onStartNewConversation={conv.startNewConversation}
+        onStartNewConversation={handleStartNewConversation}
         onDeleteConversation={conv.deleteConversation}
         isAuthenticated={!!user}
       />
@@ -454,6 +469,7 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
             setMessages: conv.setMessages,
             createConversation: conv.createConversation,
             saveMessage: conv.saveMessage,
+            updateConversationTitleIfPlaceholder: conv.updateConversationTitleIfPlaceholder,
           }}
         />
       </main>

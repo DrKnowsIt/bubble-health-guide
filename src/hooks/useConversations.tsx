@@ -159,6 +159,34 @@ export const useConversations = () => {
     }
   };
 
+  // Update conversation title, optionally only if it's the placeholder
+  const updateConversationTitle = async (conversationId: string, newTitle: string, onlyIfPlaceholder = false) => {
+    try {
+      const target = conversations.find(c => c.id === conversationId);
+      if (!target) return;
+      if (onlyIfPlaceholder && target.title && target.title !== 'New Visit') return;
+
+      const nowIso = new Date().toISOString();
+      const { error } = await supabase
+        .from('conversations')
+        .update({ title: newTitle, updated_at: nowIso })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      // Optimistically update local state
+      flushSync(() => {
+        setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, title: newTitle, updated_at: nowIso } : c));
+      });
+    } catch (e) {
+      console.error('Error updating conversation title:', e);
+    }
+  };
+
+  const updateConversationTitleIfPlaceholder = async (conversationId: string, newTitle: string) => {
+    return updateConversationTitle(conversationId, newTitle, true);
+  };
+
   const startNewConversation = () => {
     logDebug('Starting new conversation');
     
@@ -319,6 +347,7 @@ export const useConversations = () => {
     startNewConversation,
     selectConversation,
     fetchConversations,
-    deleteConversation
+    deleteConversation,
+    updateConversationTitleIfPlaceholder,
   };
 };
