@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useUsers } from './useUsers';
 import { toast } from '@/hooks/use-toast';
 
 export interface Message {
@@ -24,6 +25,7 @@ export interface Conversation {
 
 export const useConversations = () => {
   const { user } = useAuth();
+  const { selectedUser } = useUsers();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,14 +37,18 @@ export const useConversations = () => {
   };
 
   const fetchConversations = useCallback(async () => {
-    if (!user) return;
+    if (!user || !selectedUser?.id) {
+      flushSync(() => setConversations([]));
+      return;
+    }
     
-    logDebug('Fetching conversations for user', user.id);
+    logDebug('Fetching conversations for user/patient', { userId: user.id, patientId: selectedUser.id });
     
     try {
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
+        .eq('patient_id', selectedUser.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -58,7 +64,7 @@ export const useConversations = () => {
       console.error('Error fetching conversations:', error);
       logDebug('Error fetching conversations', error);
     }
-  }, [user]);
+  }, [user, selectedUser?.id]);
 
   const fetchMessages = async (conversationId: string) => {
     try {
@@ -262,12 +268,11 @@ export const useConversations = () => {
     }
   };
 
-  // Effect for initial load and user changes
+  // Effect for initial load and when user or selected patient changes
   useEffect(() => {
-    if (user) {
-      logDebug('User changed, fetching conversations');
-      fetchConversations();
-      if (!currentConversation) {
+    if (!user || !selectedUser?.id) {
+      flushSync(() => {
+        setConversations([]);
         setCurrentConversation(null);
         setMessages([{
           id: 'welcome',
@@ -275,13 +280,17 @@ export const useConversations = () => {
           content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
           timestamp: new Date()
         }]);
-      }
+      });
+      return;
     }
-  }, [user, fetchConversations]);
+
+    logDebug('User or patient changed, fetching conversations', { userId: user.id, patientId: selectedUser.id });
+    fetchConversations();
+  }, [user, selectedUser?.id, fetchConversations]);
 
   // NEW: Set up real-time subscription for conversation changes
   useEffect(() => {
-    if (!user) return;
+    if (!user || !selectedUser?.id) return;
 
     logDebug('Setting up real-time subscription for conversations');
 
@@ -298,11 +307,14 @@ export const useConversations = () => {
         (payload) => {
           logDebug('Real-time conversation update received', payload);
           
+          const newRow: any = payload.new;
+          const oldRow: any = payload.old;
+
           if (payload.eventType === 'INSERT') {
+            if (newRow?.patient_id !== selectedUser.id) return; // ignore other patients
             // Add new conversation to the list
             flushSync(() => {
               setConversations(prev => {
-                // Check if conversation already exists to avoid duplicates
                 if (!prev.find(conv => conv.id === payload.new.id)) {
                   return [payload.new as Conversation, ...prev];
                 }
@@ -310,6 +322,7 @@ export const useConversations = () => {
               });
             });
           } else if (payload.eventType === 'UPDATE') {
+            if (newRow?.patient_id !== selectedUser.id) return; // ignore other patients
             // Update existing conversation
             flushSync(() => {
               setConversations(prev => 
@@ -323,7 +336,7 @@ export const useConversations = () => {
           } else if (payload.eventType === 'DELETE') {
             // Remove deleted conversation
             flushSync(() => {
-              setConversations(prev => prev.filter(conv => conv.id !== payload.old.id));
+              setConversations(prev => prev.filter(conv => conv.id !== oldRow?.id));
             });
           }
         }
@@ -334,7 +347,7 @@ export const useConversations = () => {
       logDebug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, selectedUser?.id]);
 
   return {
     conversations,

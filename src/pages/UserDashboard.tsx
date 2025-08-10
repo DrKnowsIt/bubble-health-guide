@@ -107,6 +107,22 @@ export default function UserDashboard() {
       {/* Modern Dashboard Header */}
       <DashboardHeader />
 
+      {/* Family Member Selector */}
+      <div className="border-b border-border bg-background/95">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">For</span>
+          <div className="w-64">
+            <UserDropdown
+              users={users}
+              selectedUser={selectedUser}
+              onUserSelect={setSelectedUser}
+              open={dropdownOpen}
+              onOpenChange={setDropdownOpen}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-0">
