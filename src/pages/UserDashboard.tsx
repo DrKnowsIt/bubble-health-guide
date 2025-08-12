@@ -229,7 +229,8 @@ export default function UserDashboard() {
                 <MobileEnhancedHealthTab onTabChange={setActiveTab} />
               ) : (
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
-                  <div className="space-y-6">
+                  <div className="h-full overflow-y-auto">
+                    <div className="space-y-6">
                     <ContextualUserSelector 
                       users={users} 
                       selectedUser={selectedUser} 
@@ -251,6 +252,7 @@ export default function UserDashboard() {
                         <HealthForms />
                       </TabsContent>
                     </Tabs>
+                  </div>
                   </div>
                 </SubscriptionGate>
               )}

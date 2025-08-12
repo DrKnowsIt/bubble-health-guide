@@ -35,7 +35,7 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
 
   return (
     <SubscriptionGate requiredTier="basic" feature="Health Management" description="Store and manage your health records and forms with a Basic or Pro subscription.">
-      <div className="h-full flex flex-col bg-background">
+      <div className="h-full min-h-0 flex flex-col bg-background">
         {/* Patient Selection Header */}
         <div className="p-4 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
           <div className="flex items-center justify-between">
@@ -95,8 +95,8 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
         </div>
 
         {/* Nested Health Tabs */}
-        <div className="flex-1 px-4 pb-4">
-          <Tabs value={activeHealthTab} onValueChange={setActiveHealthTab} className="h-full flex flex-col">
+        <div className="flex-1 min-h-0 px-4 pb-4">
+          <Tabs value={activeHealthTab} onValueChange={setActiveHealthTab} className="h-full min-h-0 flex flex-col">
             <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
