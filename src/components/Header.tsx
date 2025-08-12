@@ -93,7 +93,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-muted transition-smooth focus:outline-none focus:ring-2 focus:ring-ring">
                     <Avatar className="h-6 w-6">
-                      <AvatarFallback>{initials}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary text-[10px]">{initials}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium">{displayName}</span>
                   </button>
@@ -185,11 +185,15 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             <div className="border-t border-border pt-4 space-y-2">
               {user ? (
                 <div className="space-y-2">
-                  <div className="px-3">
-                    <div className="text-xs text-muted-foreground">Signed in as</div>
-                    <div className="text-sm font-medium">{displayName}</div>
-                    <div className="text-xs text-muted-foreground">{user?.email}</div>
-                  </div>
+                    <div className="px-3 flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{displayName}</span>
+                        <span className="text-xs text-muted-foreground">{user?.email}</span>
+                      </div>
+                    </div>
                   <Link
                     to="/dashboard"
                     onClick={() => setIsMenuOpen(false)}
