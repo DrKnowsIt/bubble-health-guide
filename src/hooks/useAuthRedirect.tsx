@@ -11,12 +11,9 @@ export const useAuthRedirect = () => {
     // Don't redirect while loading
     if (loading) return;
 
-    // Don't redirect if on auth, settings, or pricing pages
-    if (location.pathname === '/auth' || location.pathname === '/settings' || location.pathname === '/pricing') return;
-
-    // If user is authenticated and not already on dashboard, redirect to dashboard
-    if (user && location.pathname !== '/dashboard') {
-      console.log('Auth redirect: User authenticated, redirecting to dashboard from:', location.pathname);
+    // Allow browsing marketing pages; only redirect away from the auth page
+    if (user && location.pathname === '/auth') {
+      console.log('Auth redirect: User authenticated, redirecting from auth to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate, location.pathname]);

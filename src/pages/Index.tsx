@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -26,11 +26,6 @@ const Index = () => {
     selectConversation,
     deleteConversation
   } = useConversations();
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
   const openAuth = (mode: 'signin' | 'signup') => {
     navigate('/auth', {
       state: {

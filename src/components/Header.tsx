@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Stethoscope, Menu, X, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   onSignIn: () => void;
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -71,14 +73,22 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="outline" size="sm" className="btn-outline" onClick={onSignIn}>
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
-            <Button size="sm" className="btn-primary" onClick={onSignUp}>
-              <User className="h-4 w-4 mr-2" />
-              Get Started
-            </Button>
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="btn-primary">Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="btn-outline" onClick={onSignIn}>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+                <Button size="sm" className="btn-primary" onClick={onSignUp}>
+                  <User className="h-4 w-4 mr-2" />
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -99,6 +109,20 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
         >
           <div className="pb-4 pt-2 space-y-2">
             <Link
+              to="/#features"
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Features
+            </Link>
+            <Link
+              to="/#how-it-works"
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              How It Works
+            </Link>
+            <Link
               to="/pricing"
               className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
               onClick={() => setIsMenuOpen(false)}
@@ -113,29 +137,42 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               FAQ
             </Link>
             <div className="border-t border-border pt-4 space-y-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full btn-outline" 
-              onClick={() => {
-                setIsMenuOpen(false);
-                onSignIn();
-              }}
-            >
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
-            <Button 
-              size="sm" 
-              className="w-full btn-primary" 
-              onClick={() => {
-                setIsMenuOpen(false);
-                onSignUp();
-              }}
-            >
-              <User className="h-4 w-4 mr-2" />
-              Get Started
-            </Button>
+            {user ? (
+              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                <Button 
+                  size="sm" 
+                  className="w-full btn-primary"
+                >
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full btn-outline" 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onSignIn();
+                  }}
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full btn-primary" 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onSignUp();
+                  }}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Get Started
+                </Button>
+              </>
+            )}
             </div>
           </div>
         </div>
