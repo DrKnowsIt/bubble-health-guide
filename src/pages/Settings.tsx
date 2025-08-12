@@ -243,7 +243,6 @@ const Settings = () => {
                         Control how your health data is shared with third parties
                       </div>
                     </div>
-                    <Switch />
                   </div>
                   
                   <Separator />
