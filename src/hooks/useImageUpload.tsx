@@ -48,11 +48,15 @@ export const useImageUpload = ({ onImageUploaded }: UseImageUploadProps) => {
         throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('chat-images')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
 
-      onImageUploaded(publicUrl);
+      if (signedError || !signedData?.signedUrl) {
+        throw signedError || new Error('Failed to generate signed URL');
+      }
+
+      onImageUploaded(signedData.signedUrl);
 
       toast({
         title: "Image uploaded",
