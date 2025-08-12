@@ -333,7 +333,6 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     try {
       // Prepare conversation history for context
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
-      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: {
           message: currentInput,
@@ -349,11 +348,11 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       }
 
       let responseContent = data.response || 'I apologize, but I was unable to generate a response. Please try again.';
-      
+
       // Extract diagnoses from response and sanitize visible text
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
       const sanitized = sanitizeVisibleText(cleanResponse);
-      
+
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
@@ -364,37 +363,21 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
         content: sanitized,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, aiMessage]);
-      
+
       // Save AI message if authenticated
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
-
-      // Trigger background analysis to update diagnoses and memory
-      if (conversationId && selectedUser?.id) {
-        try {
-          await supabase.functions.invoke('analyze-conversation', {
-            body: {
-              conversation_id: conversationId,
-              patient_id: selectedUser.id,
-              user_id: user.id,
-            },
-          });
-          await loadDiagnosesForConversation();
-        } catch (e) {
-          console.error('Error analyzing conversation:', e);
-        }
-      }
     } catch (error: any) {
-      console.error('Error calling Grok AI:', error);
+      console.error('Grok chat failed:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
-      
+
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
-      
+
       if (error.message?.includes('network') || error.message?.includes('timeout')) {
         errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
       } else if (error.message?.includes('rate limit')) {
@@ -402,22 +385,38 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       } else if (error.message?.includes('unauthorized')) {
         errorContent = 'Your session may have expired. Please try refreshing the page or logging in again.';
       }
-      
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
         content: errorContent + ' You can try asking your question again.',
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, errorMessage]);
-      
+
       // Save error message if authenticated
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', errorMessage.content);
       }
     } finally {
       setIsTyping(false);
+    }
+
+    // Fire-and-forget background analysis (non-blocking)
+    if (conversationId && selectedUser?.id) {
+      try {
+        await supabase.functions.invoke('analyze-conversation', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            user_id: user.id,
+          },
+        });
+        await loadDiagnosesForConversation();
+      } catch (e) {
+        console.error('Analyze conversation failed (non-blocking):', e);
+      }
     }
   };
 
