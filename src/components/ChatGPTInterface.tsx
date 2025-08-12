@@ -51,7 +51,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const pendingImageDescRef = useRef<string>('');
+  
 
   // Stale reply guard
   const requestSeqRef = useRef(0);
@@ -227,6 +227,24 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     }
   };
 
+  const describeImageWithAI = async (signedUrl: string) => {
+    try {
+      const conversationHistory = messages.filter(msg => msg.id !== 'welcome').slice(-10);
+      const { data, error } = await supabase.functions.invoke('describe-image', {
+        body: {
+          image_url: signedUrl,
+          conversation_history: conversationHistory
+        }
+      });
+      if (error) throw error;
+      const desc = (data?.description || 'Uploaded image').toString();
+      return desc;
+    } catch (err) {
+      console.error('Error describing image:', err);
+      return 'Uploaded image';
+    }
+  };
+
   const handleSendMessage = async (messageText?: string, imageUrl?: string) => {
     const textToSend = messageText || inputValue;
     if (!textToSend.trim() && !imageUrl) return;
@@ -294,9 +312,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
           conversation_history: conversationHistory,
           user_id: user.id,
           conversation_id: conversationId,
-          patient_id: selectedUser?.id, // Pass patient context
-          image_url: imageUrl,
-          image_description: imageUrl ? currentInput : undefined
+          patient_id: selectedUser?.id // Pass patient context
         }
       });
 
@@ -401,28 +417,26 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-    const desc = window.prompt('Add a short description for this image (for AI reference):') || 'User uploaded image';
-    pendingImageDescRef.current = desc.trim();
     const result = await uploadImageToHealthRecords(file);
     if (result?.path && result?.signedUrl) {
+      const aiDesc = await describeImageWithAI(result.signedUrl);
       try {
         await supabase.from('health_records').insert({
           user_id: user.id,
           patient_id: selectedUser.id,
           record_type: 'image',
-          title: pendingImageDescRef.current || 'Uploaded image',
+          title: aiDesc || 'Uploaded image',
           file_url: result.path,
           category: 'imaging',
           tags: ['chat-upload'],
-          metadata: { conversation_id: currentConversation || null, source: 'chat' }
+          metadata: { conversation_id: currentConversation || null, source: 'chat', ai_description: aiDesc }
         });
       } catch (err) {
         console.error('Error saving health record:', err);
       }
-      await handleSendMessage(pendingImageDescRef.current, result.signedUrl);
+      await handleSendMessage(aiDesc, result.signedUrl);
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
-    pendingImageDescRef.current = '';
   };
 
   return (
