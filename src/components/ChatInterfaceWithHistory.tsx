@@ -34,6 +34,11 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
     startNewConversation
   } = useConversations();
   
+  // Stale reply guard
+  const requestSeqRef = useRef(0);
+  const convAtRef = useRef<string | null>(currentConversation);
+
+  
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
@@ -45,6 +50,13 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Invalidate in-flight requests when conversation changes
+  useEffect(() => {
+    convAtRef.current = currentConversation;
+    requestSeqRef.current += 1;
+    setIsTyping(false);
+  }, [currentConversation]);
 
   const generateConversationTitle = (message: string) => {
     // Generate a title from the first user message (truncate if too long)
@@ -90,6 +102,11 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
 
     const currentInput = inputValue;
     setInputValue('');
+
+    // Mark this request and capture conversation at send time
+    const reqId = ++requestSeqRef.current;
+    const convoAtSend = conversationId || null;
+
     setIsTyping(true);
 
     // Save user message if authenticated
@@ -127,6 +144,10 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
         .replace(/,\s+\./g, '.')
         .trim();
 
+      // Guard against stale responses
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -142,6 +163,9 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
       }
     } catch (error: any) {
       console.error('Error calling Grok AI:', error);
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       
       // Enhanced error handling with specific error types
       let errorContent = 'I apologize, but I encountered an error while processing your request.';

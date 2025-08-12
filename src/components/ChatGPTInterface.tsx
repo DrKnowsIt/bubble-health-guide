@@ -50,6 +50,10 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   const [isTyping, setIsTyping] = useState(false);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
 
+  // Stale reply guard
+  const requestSeqRef = useRef(0);
+  const convAtRef = useRef<string | null>(currentConversation);
+
   // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,6 +62,13 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Invalidate in-flight requests when conversation changes
+  useEffect(() => {
+    convAtRef.current = currentConversation;
+    requestSeqRef.current += 1; // bump sequence to mark previous requests as stale
+    setIsTyping(false);
+  }, [currentConversation]);
 
   // Load diagnoses when conversation or patient changes
   useEffect(() => {
@@ -213,6 +224,11 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
     const currentInput = textToSend;
     if (!messageText) setInputValue(''); // Only clear if using input field
+    
+    // Mark this request and capture conversation at send time
+    const reqId = ++requestSeqRef.current;
+    const convoAtSend = conversationId || null;
+    
     setIsTyping(true);
 
     // Save user message if authenticated
@@ -252,6 +268,10 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
       
       // Use clean response for chat message
+      // Guard against stale responses
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -283,6 +303,9 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       }
     } catch (error: any) {
       console.error('Error calling Grok AI:', error);
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
       

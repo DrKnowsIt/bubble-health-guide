@@ -57,6 +57,11 @@ export const TabletChatInterface = ({
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Stale reply guard
+  const requestSeqRef = useRef(0);
+  const convAtRef = useRef<string | null>(currentConversation);
+
+
   const {
     isRecording,
     isProcessing,
@@ -86,6 +91,13 @@ export const TabletChatInterface = ({
     scrollToBottom();
   }, [messages]);
 
+  // Invalidate in-flight requests when conversation changes
+  useEffect(() => {
+    convAtRef.current = currentConversation;
+    requestSeqRef.current += 1;
+    setIsTyping(false);
+  }, [currentConversation]);
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !selectedUser) return;
 
@@ -99,6 +111,11 @@ export const TabletChatInterface = ({
     setMessages(prev => [...prev, userMessage]);
     const currentInput = inputValue.trim();
     setInputValue('');
+
+    // Mark this request and capture conversation at send time
+    const reqId = ++requestSeqRef.current;
+    const convoAtSend = currentConversation || null;
+
     setIsTyping(true);
 
     try {
@@ -126,6 +143,10 @@ export const TabletChatInterface = ({
         .replace(/,\s+\./g, '.')
         .trim();
 
+      // Guard against stale responses
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
@@ -136,6 +157,9 @@ export const TabletChatInterface = ({
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+        return;
+      }
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
