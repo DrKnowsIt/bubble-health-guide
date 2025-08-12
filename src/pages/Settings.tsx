@@ -17,52 +17,65 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AlphaTesterPanel } from "@/components/AlphaTesterPanel";
-
 const Settings = () => {
-  const { user, signOut } = useAuth();
-  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
-  const { isAlphaTester } = useAlphaTester();
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    subscribed,
+    subscription_tier,
+    openCustomerPortal
+  } = useSubscription();
+  const {
+    isAlphaTester
+  } = useAlphaTester();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
   if (!user) {
     return <div>Loading...</div>;
   }
-
   const handleDeleteAccount = async () => {
     try {
-      const { error } = await supabase.functions.invoke('delete-account');
+      const {
+        error
+      } = await supabase.functions.invoke('delete-account');
       if (error) throw error;
-      
+
       // Sign out after successful deletion
       await signOut();
     } catch (error) {
       console.error('Error deleting account:', error);
     }
   };
-
   const getTierDisplay = () => {
-    if (!subscribed || !subscription_tier) return { text: 'Free Plan', variant: 'secondary' as const };
-    if (subscription_tier === 'pro') return { text: 'Pro Plan', variant: 'default' as const };
-    if (subscription_tier === 'basic') return { text: 'Basic Plan', variant: 'outline' as const };
-    return { text: 'Free Plan', variant: 'secondary' as const };
+    if (!subscribed || !subscription_tier) return {
+      text: 'Free Plan',
+      variant: 'secondary' as const
+    };
+    if (subscription_tier === 'pro') return {
+      text: 'Pro Plan',
+      variant: 'default' as const
+    };
+    if (subscription_tier === 'basic') return {
+      text: 'Basic Plan',
+      variant: 'outline' as const
+    };
+    return {
+      text: 'Free Plan',
+      variant: 'secondary' as const
+    };
   };
-
   const tierInfo = getTierDisplay();
-
-  return (
-    <ProtectedRoute>
+  return <ProtectedRoute>
       <div className="min-h-screen bg-background">
         <DashboardHeader />
         
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header Section */}
           <div className="flex items-center gap-4 mb-8">
-            <Link 
-              to="/dashboard" 
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Link>
@@ -79,24 +92,17 @@ const Settings = () => {
           </div>
 
           {/* Only show subscription alert for subscription-related features */}
-          {!subscribed && activeTab === "subscription" && (
-            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 text-center mb-6">
+          {!subscribed && activeTab === "subscription" && <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 text-center mb-6">
               <div className="flex items-center justify-center gap-2 text-warning mb-2">
                 <Lock className="h-4 w-4" />
                 <span className="text-sm font-medium">
                   Subscribe to manage your subscription and access premium features
                 </span>
               </div>
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={() => navigate('/pricing')}
-                className="h-6 px-2 text-xs"
-              >
+              <Button size="sm" variant="outline" onClick={() => navigate('/pricing')} className="h-6 px-2 text-xs">
                 View Plans
               </Button>
-            </div>
-          )}
+            </div>}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
@@ -133,30 +139,18 @@ const Settings = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">Display Name</Label>
-                      <Input 
-                        id="name" 
-                        value={user.user_metadata?.first_name || user.email?.split('@')[0] || 'User'} 
-                        placeholder="Enter your display name"
-                      />
+                      <Input id="name" value={user.user_metadata?.first_name || user.email?.split('@')[0] || 'User'} placeholder="Enter your display name" />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
-                      <Input 
-                        id="firstName" 
-                        value={user.user_metadata?.first_name || ''} 
-                        placeholder="Enter your first name"
-                      />
+                      <Input id="firstName" value={user.user_metadata?.first_name || ''} placeholder="Enter your first name" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name</Label>
-                      <Input 
-                        id="lastName" 
-                        value={user.user_metadata?.last_name || ''} 
-                        placeholder="Enter your last name"
-                      />
+                      <Input id="lastName" value={user.user_metadata?.last_name || ''} placeholder="Enter your last name" />
                     </div>
                   </div>
 
@@ -193,31 +187,16 @@ const Settings = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {subscribed && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => openCustomerPortal()}
-                        className="h-auto p-4 flex flex-col items-start gap-2"
-                      >
+                    {subscribed && <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
                         <span className="font-medium">Manage Subscription</span>
                         <span className="text-xs text-muted-foreground">Update billing, cancel, or change plan</span>
-                      </Button>
-                    )}
-                    {!subscribed && (
-                      <Button 
-                        onClick={() => navigate('/pricing')}
-                        className="h-auto p-4 flex flex-col items-start gap-2"
-                      >
+                      </Button>}
+                    {!subscribed && <Button onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
                         <span className="font-medium">Subscribe Now</span>
                         <span className="text-xs text-muted-foreground">Unlock premium features</span>
-                      </Button>
-                    )}
+                      </Button>}
                     
-                    <Button 
-                      variant="outline"
-                      onClick={() => navigate('/pricing')}
-                      className="h-auto p-4 flex flex-col items-start gap-2"
-                    >
+                    <Button variant="outline" onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
                       <span className="font-medium">View All Plans</span>
                       <span className="text-xs text-muted-foreground">Compare features and pricing</span>
                     </Button>
@@ -236,14 +215,7 @@ const Settings = () => {
                   <CardTitle>Privacy & Security</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label className="text-base font-medium">Data Sharing</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Control how your health data is shared with third parties
-                      </div>
-                    </div>
-                  </div>
+                  
                   
                   <Separator />
                   
@@ -361,11 +333,7 @@ const Settings = () => {
                     Permanently delete your account and all associated data. This action cannot be undone.
                   </p>
                 </div>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-2"
-                >
+                <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />
                   Delete Account
                 </Button>
@@ -390,11 +358,7 @@ const Settings = () => {
                 <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleDeleteAccount}
-                  className="flex items-center gap-2"
-                >
+                <Button variant="destructive" onClick={handleDeleteAccount} className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />
                   Delete Account
                 </Button>
@@ -403,8 +367,6 @@ const Settings = () => {
           </Dialog>
         </div>
       </div>
-    </ProtectedRoute>
-  );
+    </ProtectedRoute>;
 };
-
 export default Settings;
