@@ -277,15 +277,6 @@ const Settings = () => {
 
                   <Separator />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label className="text-base font-medium">Marketing Communications</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Receive updates about new features and promotions
-                      </div>
-                    </div>
-                    <Switch />
-                  </div>
 
                   <Separator />
                   
