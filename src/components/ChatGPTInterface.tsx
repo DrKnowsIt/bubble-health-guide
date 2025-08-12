@@ -477,12 +477,8 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
   const { selectedUser } = useUsers();
 
   const handleStartNewConversation = async () => {
-    // Reset UI then create a placeholder conversation and select it
+    // Reset UI to empty state with examples; defer DB creation until first message
     conv.startNewConversation();
-    const newId = await conv.createConversation("New Visit", selectedUser?.id || null);
-    if (newId) {
-      conv.selectConversation(newId);
-    }
   };
 
   return (

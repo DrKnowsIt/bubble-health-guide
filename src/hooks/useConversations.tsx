@@ -198,12 +198,7 @@ export const useConversations = () => {
     
     flushSync(() => {
       setCurrentConversation(null);
-      setMessages([{
-        id: 'welcome',
-        type: 'ai',
-        content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
-        timestamp: new Date()
-      }]);
+      setMessages([]);
     });
   };
 
@@ -240,15 +235,10 @@ export const useConversations = () => {
       flushSync(() => {
         setConversations(prev => prev.filter(conv => conv.id !== conversationId));
         
-        // If we deleted the current conversation, start a new one
+        // If we deleted the current conversation, reset to empty state
         if (currentConversation === conversationId) {
           setCurrentConversation(null);
-          setMessages([{
-            id: 'welcome',
-            type: 'ai',
-            content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
-            timestamp: new Date()
-          }]);
+          setMessages([]);
         }
       });
 
@@ -274,12 +264,7 @@ export const useConversations = () => {
       flushSync(() => {
         setConversations([]);
         setCurrentConversation(null);
-        setMessages([{
-          id: 'welcome',
-          type: 'ai',
-          content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
-          timestamp: new Date()
-        }]);
+        setMessages([]);
       });
       return;
     }
