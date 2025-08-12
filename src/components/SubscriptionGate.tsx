@@ -49,8 +49,10 @@ export const SubscriptionGate = ({
   }
 
   return (
-    <PlanSelectionCard 
-      description={description || `${feature} requires a subscription to access. Choose a plan that fits your needs:`}
-    />
+    <div className="h-full overflow-y-auto p-4">
+      <PlanSelectionCard 
+        description={description || `${feature} requires a subscription to access. Choose a plan that fits your needs:`}
+      />
+    </div>
   );
 };
