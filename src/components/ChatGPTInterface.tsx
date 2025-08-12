@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversations, Message } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,6 +49,9 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingImageDescRef = useRef<string>('');
 
   // Stale reply guard
   const requestSeqRef = useRef(0);
@@ -188,19 +191,56 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     }
   };
 
-  const handleSendMessage = async (messageText?: string) => {
+  const uploadImageToHealthRecords = async (file: File): Promise<{ path: string; signedUrl: string } | null> => {
+    try {
+      setIsUploading(true);
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Unsupported file", description: "Please upload an image file.", variant: "destructive" });
+        return null;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Max size is 5MB.", variant: "destructive" });
+        return null;
+      }
+      if (!user || !selectedUser?.id) {
+        toast({ title: "Select a patient", description: "Please select a patient before uploading an image.", variant: "destructive" });
+        return null;
+      }
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}.${ext}`;
+      const path = `${user.id}/${selectedUser.id}/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('health-records').upload(path, file, { contentType: file.type });
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast({ title: "Upload failed", description: "Could not upload image.", variant: "destructive" });
+        return null;
+      }
+      const { data: signed, error: signError } = await supabase.storage.from('health-records').createSignedUrl(path, 3600);
+      if (signError || !signed?.signedUrl) {
+        console.error('Signing error:', signError);
+        toast({ title: "Error", description: "Could not create image link.", variant: "destructive" });
+        return null;
+      }
+      return { path, signedUrl: signed.signedUrl };
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSendMessage = async (messageText?: string, imageUrl?: string) => {
     const textToSend = messageText || inputValue;
-    if (!textToSend.trim()) return;
+    if (!textToSend.trim() && !imageUrl) return;
     
     if (!user || !subscribed) {
       return;
     }
-
+  
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
       content: textToSend,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ...(imageUrl ? { image_url: imageUrl } : {})
     };
 
     // Add user message to UI immediately
@@ -233,7 +273,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
     // Save user message if authenticated
     if (user && conversationId) {
-      await saveMessage(conversationId, 'user', textToSend);
+      await saveMessage(conversationId, 'user', textToSend, imageUrl || undefined);
     }
 
     // Update title if this is a placeholder conversation
@@ -254,7 +294,9 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
           conversation_history: conversationHistory,
           user_id: user.id,
           conversation_id: conversationId,
-          patient_id: selectedUser?.id // Pass patient context
+          patient_id: selectedUser?.id, // Pass patient context
+          image_url: imageUrl,
+          image_description: imageUrl ? currentInput : undefined
         }
       });
 
@@ -340,6 +382,47 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleImageButtonClick = () => {
+    if (!subscribed) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!user || !selectedUser?.id) {
+      toast({
+        title: "Select a patient",
+        description: "Please select a patient before uploading an image.",
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    const desc = window.prompt('Add a short description for this image (for AI reference):') || 'User uploaded image';
+    pendingImageDescRef.current = desc.trim();
+    const result = await uploadImageToHealthRecords(file);
+    if (result?.path && result?.signedUrl) {
+      try {
+        await supabase.from('health_records').insert({
+          user_id: user.id,
+          patient_id: selectedUser.id,
+          record_type: 'image',
+          title: pendingImageDescRef.current || 'Uploaded image',
+          file_url: result.path,
+          category: 'imaging',
+          tags: ['chat-upload'],
+          metadata: { conversation_id: currentConversation || null, source: 'chat' }
+        });
+      } catch (err) {
+        console.error('Error saving health record:', err);
+      }
+      await handleSendMessage(pendingImageDescRef.current, result.signedUrl);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    pendingImageDescRef.current = '';
   };
 
   return (
@@ -456,6 +539,26 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
                   disabled={!subscribed}
                 />
               </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              <Button
+                onClick={handleImageButtonClick}
+                disabled={!subscribed || isUploading}
+                size="lg"
+                variant="outline"
+                className="rounded-xl px-3"
+                aria-label="Upload image for analysis"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
+
               <Button 
                 onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim() || !subscribed}
