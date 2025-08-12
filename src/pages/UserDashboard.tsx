@@ -18,7 +18,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -64,6 +64,7 @@ export default function UserDashboard() {
   };
 
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleAddFamilyClick = () => {
     if (!subscribed || subscription_tier !== 'pro') {
@@ -71,8 +72,8 @@ export default function UserDashboard() {
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',
         action: (
-          <ToastAction altText="View plans" asChild>
-            <Link to="/pricing">View plans</Link>
+          <ToastAction altText="View plans" onClick={() => navigate('/pricing')}>
+            View plans
           </ToastAction>
         ),
       });
