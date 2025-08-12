@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.generate-diagnosis]
 verify_jwt = true
+
+[functions.patient-report-agent]
+verify_jwt = true
