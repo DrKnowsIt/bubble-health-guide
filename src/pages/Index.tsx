@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
+import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
 import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory";
@@ -34,7 +35,7 @@ const Index = () => {
     });
   };
   return <div className="min-h-screen bg-background">
-      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
+      {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
         {isMobile ?
       // Mobile: Clean, simple chat interface with better spacing

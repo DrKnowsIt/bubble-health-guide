@@ -66,6 +66,14 @@ export const DashboardHeader = ({
           </div>
         </div>
 
+        {/* Marketing Navigation (visible when signed in) */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/#features" className="text-sm text-muted-foreground hover:text-foreground">Features</Link>
+          <Link to="/#how-it-works" className="text-sm text-muted-foreground hover:text-foreground">How It Works</Link>
+          <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</Link>
+          <Link to="/faq" className="text-sm text-muted-foreground hover:text-foreground">FAQ</Link>
+        </nav>
+
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Tier Badge - Hidden on mobile */}

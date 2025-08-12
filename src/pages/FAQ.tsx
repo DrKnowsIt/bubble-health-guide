@@ -1,14 +1,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/Header";
+import { DashboardHeader } from "@/components/DashboardHeader";
 import { Footer } from "@/components/Footer";
 import { AuthModal } from "@/components/AuthModal";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 const FAQ = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const { user } = useAuth();
 
   const openAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
@@ -17,7 +20,7 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
+      {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       
       {/* Back to Home Link */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText, ArrowLeft } from "lucide-react";
 import { Header } from "@/components/Header";
+import { DashboardHeader } from "@/components/DashboardHeader";
 import { Footer } from "@/components/Footer";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -115,7 +116,7 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
+      {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       
       {/* Back to Home Link */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
