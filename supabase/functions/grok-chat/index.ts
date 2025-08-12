@@ -51,14 +51,28 @@ serve(async (req) => {
     }
     const user_id = userData.user.id;
 
-    // Get user subscription tier
+    // Get user subscription tier and status
     const { data: subscription } = await supabase
       .from('subscribers')
-      .select('subscription_tier')
+      .select('subscription_tier, subscribed')
       .eq('user_id', user_id)
       .single();
 
     const subscriptionTier = subscription?.subscription_tier || 'basic';
+    const isSubscribed = subscription?.subscribed === true;
+    const isPro = isSubscribed && subscriptionTier === 'pro';
+
+    // Enforce: Free/basic users cannot chat with the AI (MVP rule)
+    if (!isPro) {
+      console.log('grok-chat access denied (requires Pro):', { user_id, subscriptionTier, isSubscribed });
+      return new Response(
+        JSON.stringify({
+          error: 'Chatting with the AI requires a Pro subscription.',
+          code: 'subscription_required'
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get strategic referencing data
     const { data: dataPriorities } = await supabase
@@ -177,7 +191,7 @@ PATIENT PROFILE:
       const alwaysPriorities = (dataPriorities || []).filter(p => p.priority_level === 'always');
       const conditionalPriorities = (dataPriorities || []).filter(p => p.priority_level === 'conditional');
       
-      // Check if we should include conditional data
+      // Check if we should include conditional data (Pro includes all)
       const shouldIncludeConditional = subscriptionTier === 'pro' || 
         (subscriptionTier === 'basic' && conditionalPriorities.length > 0);
 
@@ -328,55 +342,40 @@ ${patientContext}${healthFormsContext}
 
 CORE INSTRUCTIONS:
 - Keep responses SHORT (1-3 sentences) unless asked to expand or clarify
-- Help organize symptoms systematically to prepare for doctor visits
-- Work through symptoms methodically using available patient data and health forms
-- Reference health records and forms data when relevant to current conversation
-- Suggest relevant health forms based on conversation context
-- Provide possible conditions to discuss with their doctor, with confidence scores
+- Ask ONE targeted follow-up question at a time to raise confidence in or rule out possibilities
+- Iteratively increase confidence in the most likely possibilities; if confidence for a possibility declines below 0.3, gracefully move on to the next
+- If multiple possibilities remain low-confidence after reasonable questions, say this might be unusual and recommend consulting their doctor
+- Offer safe, evidence-informed holistic methods or lifestyle tips that match the user's data and symptoms when appropriate
+- Reference health records and forms when relevant, but DO NOT mention form names like 'symptom_tracker' or 'sleep_tracker' in the visible chat
+- Provide possible conditions to discuss with their doctor, with confidence scores, but keep that data out of the visible chat area
 - ALWAYS emphasize these are possibilities to bring up with their doctor, not diagnoses
-- Remind users that only doctors can provide actual diagnoses and treatment`;
+- Remind users that only doctors can provide actual diagnoses and treatment
 
-    // Add personalization based on level
-    if (personalizationLevel === 'high') {
-      systemPrompt += `
-- Use highly personalized responses based on patient history and previous conversations
-- Reference specific past symptoms, concerns, and health patterns
-- Provide detailed contextual insights`;
-    } else if (personalizationLevel === 'medium') {
-      systemPrompt += `
-- Use moderately personalized responses with some context from patient history
-- Reference relevant past information when helpful`;
-    } else {
-      systemPrompt += `
-- Provide general health guidance with minimal personalization
-- Focus on current symptoms and immediate preparation needs`;
-    }
-
-    systemPrompt += `
+PERSONALIZATION:
+- High: Use specific past symptoms and patterns when helpful
+- Medium: Use context when relevant without overfitting
+- Low: Keep guidance general and focused on current symptoms
 
 RESPONSE FORMAT:
-- Give brief, focused answers unless complexity requires detail
-- Ask ONE targeted follow-up question at a time
-- Suggest specific health forms when relevant to symptoms discussed
-- Be empathetic but professional
-
-PREPARATION APPROACH:
-1. Organize symptoms against patient's existing data and health records
-2. Consider health forms data for patterns and trends
-3. Ask clarifying questions to help them describe symptoms better  
-4. Consider possible conditions based on symptom patterns to discuss with doctor
-5. Assign confidence scores for which possibilities are most worth discussing
-6. Always recommend consulting their doctor for proper diagnosis and treatment
-
-Format your suggestions as questions/topics to bring up with their doctor. If you identify potential conditions to discuss, return them in this JSON format within your response:
+- Visible chat: brief, empathetic, professional, NO raw JSON, NO form names
+- After the visible reply, append a machine-readable JSON object ONLY (no preamble) for the client to parse:
 {
   "diagnoses": [
     {"diagnosis": "condition name to ask doctor about", "confidence": 0.75, "reasoning": "why this is worth discussing with your doctor"}
   ],
   "suggested_forms": ["symptom_tracker", "vital_signs", "medication_log", "mood_tracker", "pain_tracker", "sleep_tracker"]
 }
+- Do not describe or mention this JSON in the visible text
 
-Always end responses with: "These are suggestions to discuss with your doctor, who can provide proper diagnosis and treatment."`;
+PREPARATION APPROACH:
+1. Organize symptoms against patient's existing data and health records
+2. Consider health forms data for patterns and trends
+3. Ask clarifying questions to help them describe symptoms better  
+4. Consider possible conditions based on symptom patterns to discuss with doctor
+5. Assign confidence scores and try to increase confidence through focused questions
+6. Always recommend consulting their doctor for proper diagnosis and treatment
+
+Always end visible responses with: "These are suggestions to discuss with your doctor, who can provide proper diagnosis and treatment."`;
 
     // Build messages array with effective conversation history
     const messages = [
@@ -465,15 +464,15 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
         const diagnosisData = JSON.parse(jsonMatch[0]);
         if (diagnosisData.diagnoses) {
           // Merge with existing diagnoses, keeping top 5 by confidence
-          const newDiagnoses = diagnosisData.diagnoses.map(d => ({
+          const newDiagnoses = diagnosisData.diagnoses.map((d: any) => ({
             ...d,
             updated_at: new Date().toISOString()
           }));
           
           // Combine and deduplicate
           const combined = [...currentDiagnoses];
-          newDiagnoses.forEach(newDiag => {
-            const existing = combined.findIndex(d => d.diagnosis === newDiag.diagnosis);
+          newDiagnoses.forEach((newDiag: any) => {
+            const existing = combined.findIndex((d: any) => d.diagnosis === newDiag.diagnosis);
             if (existing >= 0) {
               combined[existing] = newDiag; // Update existing
             } else {
@@ -483,7 +482,7 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
           
           // Sort by confidence and keep top 5
           updatedDiagnoses = combined
-            .sort((a, b) => b.confidence - a.confidence)
+            .sort((a: any, b: any) => b.confidence - a.confidence)
             .slice(0, 5);
 
           // Update patient record
@@ -499,7 +498,7 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
 
     return new Response(
       JSON.stringify({ 
-        response: aiResponse,
+        response: aiResponse.replace(/\{[\s\S]*"diagnoses"[\s\S]*\}/, '').trim(),
         model: 'grok-3-mini-fast',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
@@ -512,7 +511,7 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message 
+        details: (error as Error).message 
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

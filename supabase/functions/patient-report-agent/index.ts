@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
@@ -138,9 +139,11 @@ serve(async (req) => {
 
     const systemPrompt = `You are an AI medical analyst agent that prepares a structured patient health report based on available records and notes. 
 - Do NOT provide medical diagnosis; provide possibilities to discuss with a doctor. 
+- Start the summary with basic stats if available: sex/gender, age, height, weight.
 - Return STRICT JSON with keys: report_summary (string), diagnoses (array of {diagnosis, confidence (0-1), reasoning}).`;
 
-    const userPrompt = `Analyze this patient data and produce an updated concise report and possibilities to discuss with their doctor. Focus on unusual patterns or concerning trends.\n\nDATA:\n${JSON.stringify(context)}`;
+    const userPrompt = `Analyze this patient data and produce an updated concise report and possibilities to discuss with their doctor. Focus on unusual patterns or concerning trends. Include basic stats up front when available (gender/sex, age, height, weight).
+\n\nDATA:\n${JSON.stringify(context)}`;
 
     const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
