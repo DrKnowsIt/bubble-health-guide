@@ -18,6 +18,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 
+import { useNavigate } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -40,6 +41,7 @@ export default function UserDashboard() {
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
+  const navigate = useNavigate();
   
   const formatLastActivity = (timestamp: string | null) => {
     if (!timestamp) return "No activity";
@@ -69,7 +71,7 @@ export default function UserDashboard() {
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',
         action: (
-          <ToastAction altText="View plans" onClick={() => window.location.assign('/pricing')}>
+          <ToastAction altText="View plans" onClick={() => navigate('/pricing')}>
             View plans
           </ToastAction>
         ),
