@@ -183,42 +183,65 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
               FAQ
             </Link>
             <div className="border-t border-border pt-4 space-y-2">
-            {user ? (
-              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                <Button 
-                  size="sm" 
-                  className="w-full btn-primary"
-                >
-                  Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full btn-outline" 
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onSignIn();
-                  }}
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full btn-primary" 
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onSignUp();
-                  }}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Get Started
-                </Button>
-              </>
-            )}
+              {user ? (
+                <div className="space-y-2">
+                  <div className="px-3">
+                    <div className="text-xs text-muted-foreground">Signed in as</div>
+                    <div className="text-sm font-medium">{displayName}</div>
+                    <div className="text-xs text-muted-foreground">{user?.email}</div>
+                  </div>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    className="block w-full text-left px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      signOut();
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full btn-outline" 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onSignIn();
+                    }}
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="w-full btn-primary" 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onSignUp();
+                    }}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Get Started
+                  </Button>
+                </>
+              )}
+
             </div>
           </div>
         </div>

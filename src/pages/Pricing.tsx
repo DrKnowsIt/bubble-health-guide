@@ -26,31 +26,23 @@ const Pricing = () => {
       openAuth('signup');
       return;
     }
-    
+
     const planType = planName.toLowerCase() as 'basic' | 'pro';
-    
-    if (subscribed && subscription_tier === planType) {
-      // Already subscribed to this plan - open customer portal
-      try {
+
+    try {
+      if (subscribed) {
+        // Manage existing subscription in portal (also used for switching plans)
         await openCustomerPortal();
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to open customer portal. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      // Start subscription for the selected plan
-      try {
+      } else {
+        // Start new subscription for the selected plan
         await createCheckoutSession(planType);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to start checkout process. Please try again.",
-          variant: "destructive",
-        });
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   const plans = [
@@ -192,11 +184,14 @@ const Pricing = () => {
                 <Button 
                   variant={plan.buttonVariant}
                   className={`w-full ${plan.buttonVariant === 'default' ? 'btn-primary' : 'btn-outline'}`}
+                  disabled={Boolean(user && subscribed && plan.name.toLowerCase() === subscription_tier)}
                   onClick={() => handlePlanAction(plan.name)}
                 >
-                  {user && plan.name.toLowerCase() === subscription_tier 
-                    ? "Manage Subscription" 
-                    : `Choose ${plan.name}`}
+                  {!user
+                    ? `Get Started`
+                    : subscribed
+                      ? (plan.name.toLowerCase() === subscription_tier ? 'Current Plan' : 'Change Plan')
+                      : `Choose ${plan.name}`}
                 </Button>
               </CardContent>
             </Card>
@@ -215,8 +210,26 @@ const Pricing = () => {
           <p className="text-lg text-muted-foreground mb-8">
             Choose your plan and start getting personalized health guidance today.
           </p>
-          <Button size="lg" className="btn-primary text-lg px-8 py-4" onClick={() => openAuth('signup')}>
-            Get Started Now
+          <Button 
+            size="lg" 
+            className="btn-primary text-lg px-8 py-4" 
+            onClick={async () => {
+              if (!user) {
+                openAuth('signup');
+                return;
+              }
+              try {
+                if (subscribed) {
+                  await openCustomerPortal();
+                } else {
+                  await createCheckoutSession('pro');
+                }
+              } catch (error) {
+                toast({ title: 'Error', description: 'Please try again.', variant: 'destructive' });
+              }
+            }}
+          >
+            {!user ? 'Get Started Now' : subscribed ? 'Manage Subscription' : 'Start Pro'}
           </Button>
         </div>
       </div>
