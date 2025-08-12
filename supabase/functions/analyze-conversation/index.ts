@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { conversation_id, patient_id, user_id } = await req.json();
+    const { conversation_id, patient_id } = await req.json();
 
-    if (!conversation_id || !patient_id || !user_id) {
+    if (!conversation_id || !patient_id) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -24,14 +24,44 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     const { createClient } = await import(
       "https://esm.sh/@supabase/supabase-js@2.45.4"
     );
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    // Fetch latest 50 messages for context
+    // Use anon client with the caller's JWT to enforce RLS
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace("Bearer ", "");
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false },
+    });
+
+    // Verify authenticated user
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user?.id) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authUserId = userData.user.id;
+    // Verify conversation ownership via RLS
+    const { data: conv, error: convErr } = await supabase
+      .from("conversations")
+      .select("id, patient_id")
+      .eq("id", conversation_id)
+      .maybeSingle();
+
+    if (convErr || !conv) {
+      return new Response(JSON.stringify({ error: "Conversation not found or access denied" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch latest 50 messages for context (RLS enforced)
     const { data: msgs, error: msgErr } = await supabase
       .from("messages")
       .select("type, content, created_at")
@@ -41,7 +71,7 @@ serve(async (req) => {
 
     if (msgErr) throw msgErr;
 
-    // Fetch existing memory (or create if missing)
+    // Fetch existing memory (or create if missing) for this conversation and user
     const { data: memRows } = await supabase
       .from("conversation_memory")
       .select("id, memory")
@@ -101,7 +131,7 @@ serve(async (req) => {
       parsed = {};
     }
 
-    // Upsert memory
+    // Upsert memory (RLS ensures only owner can write)
     const newMemory = { ...(memory || {}), ...(parsed.memory_update || {}) };
 
     if (memRows?.id) {
@@ -113,26 +143,25 @@ serve(async (req) => {
       await supabase.from("conversation_memory").insert({
         conversation_id,
         patient_id,
-        user_id,
+        user_id: authUserId,
         memory: newMemory,
       });
     }
 
-    // Replace diagnoses for this conversation/patient
+    // Replace diagnoses for this conversation/patient (RLS enforced)
     if (Array.isArray(parsed.diagnoses)) {
       await supabase
         .from("conversation_diagnoses")
         .delete()
         .eq("conversation_id", conversation_id)
-        .eq("patient_id", patient_id)
-        .eq("user_id", user_id);
+        .eq("patient_id", patient_id);
 
       const rows = parsed.diagnoses
         .filter((d) => d && d.diagnosis)
         .map((d) => ({
           conversation_id,
           patient_id,
-          user_id,
+          user_id: authUserId,
           diagnosis: d.diagnosis,
           confidence: typeof d.confidence === "number" ? d.confidence : null,
           reasoning: d.reasoning || null,

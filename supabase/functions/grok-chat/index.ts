@@ -14,18 +14,11 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history = [], patient_id, user_id, conversation_id, image_url } = await req.json();
+    const { message, conversation_history = [], patient_id, conversation_id, image_url } = await req.json();
 
     if (!message) {
       return new Response(
         JSON.stringify({ error: 'Message is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!user_id) {
-      return new Response(
-        JSON.stringify({ error: 'User ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -38,10 +31,25 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with caller's JWT (RLS enforced)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false }
+    });
+
+    // Verify user from token
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user?.id) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const user_id = userData.user.id;
 
     // Get user subscription tier
     const { data: subscription } = await supabase
@@ -104,14 +112,13 @@ serve(async (req) => {
     let healthFormsContext = '';
     let currentDiagnoses = [];
     
-    if (patient_id && user_id) {
-      // Verify patient belongs to user
+    if (patient_id) {
+      // Verify patient belongs to user via RLS (row will only exist if owned)
       const { data: patient } = await supabase
         .from('patients')
         .select('*')
         .eq('id', patient_id)
-        .eq('user_id', user_id)
-        .single();
+        .maybeSingle();
 
       if (!patient) {
         return new Response(
@@ -483,8 +490,7 @@ Always end responses with: "These are suggestions to discuss with your doctor, w
           await supabase
             .from('patients')
             .update({ probable_diagnoses: updatedDiagnoses })
-            .eq('id', patient_id)
-            .eq('user_id', user_id);
+            .eq('id', patient_id);
         }
       }
     } catch (error) {
