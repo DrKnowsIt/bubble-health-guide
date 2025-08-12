@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from "https://esm.sh/stripe@14.21.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,7 +51,68 @@ serve(async (req) => {
       )
     }
 
-    console.log('Deleting account for user:', user.id)
+    console.log('Preparing to cancel Stripe subscriptions and delete account for user:', user.id)
+
+    // Attempt to cancel any active Stripe subscriptions before deleting data
+    try {
+      const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
+      if (stripeSecret) {
+        const stripe = new Stripe(stripeSecret, { apiVersion: '2023-10-16' } as any);
+        console.log('Looking up Stripe customer for:', user.email);
+
+        // Find customer by email
+        let customerId: string | null = null;
+        if (user.email) {
+          const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+          if (customers.data.length > 0) {
+            customerId = customers.data[0].id;
+            console.log('Found Stripe customer:', customerId);
+          } else {
+            console.log('No Stripe customer found for user.');
+          }
+        }
+
+        if (customerId) {
+          // List all subscriptions and cancel non-canceled ones
+          const subs = await stripe.subscriptions.list({ customer: customerId, limit: 100 });
+          if (subs.data.length > 0) {
+            console.log(`Found ${subs.data.length} Stripe subscription(s). Cancelling...`);
+          }
+          for (const s of subs.data) {
+            if (s.status !== 'canceled') {
+              try {
+                await stripe.subscriptions.cancel(s.id);
+                console.log('Canceled subscription:', s.id);
+              } catch (cancelErr) {
+                console.error('Failed to cancel subscription:', s.id, cancelErr);
+              }
+            }
+          }
+
+          // Best-effort: update subscribers record if table exists
+          try {
+            await supabaseAdmin
+              .from('subscribers')
+              .upsert({
+                email: user.email,
+                user_id: user.id,
+                stripe_customer_id: customerId,
+                subscribed: false,
+                subscription_tier: null,
+                subscription_end: null,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'email' });
+          } catch (dbErr) {
+            console.warn('Could not update subscribers table (may not exist):', dbErr);
+          }
+        }
+      } else {
+        console.warn('STRIPE_SECRET_KEY not configured; skipping subscription cancellation.');
+      }
+    } catch (stripeErr) {
+      console.error('Error attempting to cancel Stripe subscriptions:', stripeErr);
+      // Continue with account deletion even if cancellation fails
+    }
 
     // Delete user data from our custom tables first
     // Delete health records
