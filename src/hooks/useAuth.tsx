@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        // Do NOT set loading=false here (prevents premature redirects on INITIAL_SESSION)
       }
     );
 
