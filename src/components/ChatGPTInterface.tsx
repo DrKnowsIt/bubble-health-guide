@@ -121,36 +121,60 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
   const extractDiagnosesFromResponse = (response: string): { cleanResponse: string; extractedDiagnoses: any[] } => {
     try {
-      // Remove any inline JSON blocks that look like analysis payloads
+      // Find any inline JSON objects/arrays and strip diagnosis payloads from the chat text
       const objectRegex = /\{[\s\S]*?\}/g;
+      const arrayRegex = /\[[\s\S]*?\]/g;
+
       let clean = response;
-      const matches = response.match(objectRegex);
-      if (matches) {
-        for (const m of matches) {
-          if (m.toLowerCase().includes('diagnoses') || m.toLowerCase().includes('suggested_forms')) {
-            clean = clean.replace(m, '').trim();
+      const extracted: any[] = [];
+
+      // Helper to try-parse JSON safely
+      const tryParse = (text: string) => {
+        try { return JSON.parse(text); } catch { return undefined; }
+      };
+
+      // 1) Remove objects that clearly look like diagnosis entries or analysis bundles
+      const objectMatches = response.match(objectRegex) || [];
+      for (const m of objectMatches) {
+        const lower = m.toLowerCase();
+        const parsed = tryParse(m);
+
+        // a) Analysis bundle containing keys like diagnoses/suggested_forms
+        if (lower.includes('diagnoses') || lower.includes('suggested_forms')) {
+          clean = clean.replace(m, '').trim();
+          // Try to take diagnoses from the bundle
+          if (parsed && Array.isArray(parsed.diagnoses)) {
+            extracted.push(...parsed.diagnoses);
           }
+          continue;
+        }
+
+        // b) Single diagnosis object { diagnosis, confidence, reasoning? }
+        if (parsed && typeof parsed === 'object' && 'diagnosis' in parsed && 'confidence' in parsed) {
+          clean = clean.replace(m, '').trim();
+          extracted.push(parsed);
+          continue;
         }
       }
 
-      // Legacy support: extract diagnoses arrays if present (but don't show them)
-      const jsonArrayRegex = /\[[\s\S]*?\]/g;
-      const arrMatches = response.match(jsonArrayRegex);
-      if (arrMatches) {
-        for (const match of arrMatches) {
-          try {
-            const parsed = JSON.parse(match);
-            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].diagnosis) {
-              return { cleanResponse: clean, extractedDiagnoses: parsed };
-            }
-          } catch (_) {}
+      // 2) Legacy: arrays containing diagnosis objects
+      const arrayMatches = response.match(arrayRegex) || [];
+      for (const a of arrayMatches) {
+        const parsed = tryParse(a);
+        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object' && 'diagnosis' in parsed[0]) {
+          clean = clean.replace(a, '').trim();
+          extracted.push(...parsed);
         }
       }
+
+      // 3) Cleanup leftover punctuation from removed JSON (dangling commas, brackets)
+      clean = clean.replace(/\s{2,}/g, ' ').replace(/\s+,/g, ',').replace(/,\s+\./g, '.').replace(/\[\s*\]/g, '').replace(/\s*\]\s*,?/g, ' ').replace(/\s*\}\s*,?/g, ' ').trim();
+
+      return { cleanResponse: clean, extractedDiagnoses: extracted };
     } catch (error) {
       console.error('Error extracting diagnoses:', error);
+      return { cleanResponse: response, extractedDiagnoses: [] };
     }
-    
-    return { cleanResponse: response, extractedDiagnoses: [] };
   };
 
   const handleSendMessage = async (messageText?: string) => {
