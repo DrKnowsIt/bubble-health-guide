@@ -50,6 +50,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   const [isTyping, setIsTyping] = useState(false);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<{ path: string; signedUrl: string; desc: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
 
@@ -191,6 +192,13 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     }
   };
 
+  const sanitizeVisibleText = (text: string) => {
+    // Remove lines that appear to list possible diagnoses in visible chat
+    const lines = text.split(/\n+/);
+    const filtered = lines.filter(l => !/^(possible|potential|probable)\s+(diagnos|condition)/i.test(l.trim()) && !/diagnos(e|is|es)/i.test(l.trim()));
+    return filtered.join('\n').trim();
+  };
+
   const uploadImageToHealthRecords = async (file: File): Promise<{ path: string; signedUrl: string } | null> => {
     try {
       setIsUploading(true);
@@ -245,14 +253,35 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     }
   };
 
-  const handleSendMessage = async (messageText?: string, imageUrl?: string) => {
-    const textToSend = messageText || inputValue;
-    if (!textToSend.trim() && !imageUrl) return;
+  const handleSendMessage = async (messageText?: string, explicitImageUrl?: string) => {
+    const baseText = (messageText ?? inputValue).trim();
+    const textToSend = baseText || (pendingAttachment ? `I just attached an image: ${pendingAttachment.desc}` : '');
+    if (!textToSend && !explicitImageUrl && !pendingAttachment) return;
     
     if (!user || !subscribed) {
       return;
     }
   
+    // If we have a pending attachment, ensure it's recorded before sending
+    let imageUrl = explicitImageUrl;
+    if (pendingAttachment && !imageUrl) {
+      try {
+        await supabase.from('health_records').insert({
+          user_id: user!.id,
+          patient_id: selectedUser!.id,
+          record_type: 'image',
+          title: pendingAttachment.desc || 'Uploaded image',
+          file_url: pendingAttachment.path,
+          category: 'imaging',
+          tags: ['chat-upload'],
+          metadata: { conversation_id: currentConversation || null, source: 'chat', ai_description: pendingAttachment.desc }
+        });
+        imageUrl = pendingAttachment.signedUrl;
+      } catch (err) {
+        console.error('Error saving health record:', err);
+      }
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -260,9 +289,6 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       timestamp: new Date(),
       ...(imageUrl ? { image_url: imageUrl } : {})
     };
-
-    // Add user message to UI immediately
-    setMessages(prev => [...prev, userMessage]);
     
     // If user is authenticated and no current conversation, create one FIRST
     let conversationId = currentConversation;
@@ -280,8 +306,10 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       }
     }
 
+    // conversation already ensured above
+
+
     const currentInput = textToSend;
-    if (!messageText) setInputValue(''); // Only clear if using input field
     
     // Mark this request and capture conversation at send time
     const reqId = ++requestSeqRef.current;
@@ -312,7 +340,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
           conversation_history: conversationHistory,
           user_id: user.id,
           conversation_id: conversationId,
-          patient_id: selectedUser?.id // Pass patient context
+          patient_id: selectedUser?.id
         }
       });
 
@@ -322,10 +350,10 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
       let responseContent = data.response || 'I apologize, but I was unable to generate a response. Please try again.';
       
-      // Extract diagnoses from response
+      // Extract diagnoses from response and sanitize visible text
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
+      const sanitized = sanitizeVisibleText(cleanResponse);
       
-      // Use clean response for chat message
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
@@ -333,7 +361,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: cleanResponse,
+        content: sanitized,
         timestamp: new Date()
       };
       
@@ -420,21 +448,8 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     const result = await uploadImageToHealthRecords(file);
     if (result?.path && result?.signedUrl) {
       const aiDesc = await describeImageWithAI(result.signedUrl);
-      try {
-        await supabase.from('health_records').insert({
-          user_id: user.id,
-          patient_id: selectedUser.id,
-          record_type: 'image',
-          title: aiDesc || 'Uploaded image',
-          file_url: result.path,
-          category: 'imaging',
-          tags: ['chat-upload'],
-          metadata: { conversation_id: currentConversation || null, source: 'chat', ai_description: aiDesc }
-        });
-      } catch (err) {
-        console.error('Error saving health record:', err);
-      }
-      await handleSendMessage(aiDesc, result.signedUrl);
+      setPendingAttachment({ path: result.path, signedUrl: result.signedUrl, desc: aiDesc });
+      toast({ title: "Image ready to send", description: aiDesc });
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -542,6 +557,19 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
           <div className="max-w-4xl mx-auto p-4">
+            {pendingAttachment && (
+              <div className="mb-3 flex items-center gap-3 border border-border rounded-xl p-2 bg-muted/30">
+                <div className="relative">
+                  <img src={pendingAttachment.signedUrl} alt="Pending image attachment" className="h-16 w-16 rounded-lg object-cover" />
+                </div>
+                <div className="flex-1 text-sm text-foreground truncate">
+                  {pendingAttachment.desc}
+                </div>
+                <Button variant="ghost" size="icon" aria-label="Remove attachment" onClick={() => setPendingAttachment(null)}>
+                  ×
+                </Button>
+              </div>
+            )}
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
@@ -575,7 +603,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
               <Button 
                 onClick={() => handleSendMessage()}
-                disabled={!inputValue.trim() || !subscribed}
+                disabled={(!inputValue.trim() && !pendingAttachment) || !subscribed}
                 size="lg"
                 className="rounded-xl px-4"
               >
