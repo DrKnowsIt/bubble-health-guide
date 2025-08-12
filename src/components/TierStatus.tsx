@@ -48,7 +48,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           ${isPro 
             ? 'bg-orange-100 text-orange-700 border-orange-200' 
             : isBasic
-            ? 'bg-teal-100 text-teal-700 border-teal-200'
+            ? 'bg-[hsl(var(--primary-light))] text-[hsl(var(--primary))] border-[hsl(var(--primary-light))]'
             : 'bg-red-100 text-red-700 border-red-200'
           }
         `}

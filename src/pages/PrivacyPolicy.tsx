@@ -102,8 +102,8 @@ const PrivacyPolicy = () => {
               <CardTitle>Data Research and Pattern Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-teal-50 border border-teal-200 p-4 rounded-lg mb-4">
-                <p className="text-teal-800 font-medium">
+              <div className="bg-[hsl(var(--primary-light))] border border-[hsl(var(--primary-light))] p-4 rounded-lg mb-4">
+                <p className="text-[hsl(var(--primary))] font-medium">
                   🔬 We collect anonymized health data to discover medical patterns that traditional 
                   research and individual doctors may not be able to identify.
                 </p>

@@ -125,19 +125,19 @@ export const DemoConversation = () => {
 
           {/* Initial Assessment - Mobile optimized sizing */}
           <div className="w-full lg:w-80 lg:shrink-0 mt-2 lg:mt-0 max-w-full">
-            <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 dark:from-teal-950/20 dark:to-cyan-950/20 dark:border-teal-800 h-fit">
+            <Card className="bg-[hsl(var(--primary-light))] border-[hsl(var(--primary-light))] dark:bg-background/20 dark:border-[hsl(var(--primary))] h-fit">
               <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
-                <CardTitle className="flex items-center gap-2 text-teal-900 dark:text-teal-100 mobile-text-base lg:text-lg">
+                <CardTitle className="flex items-center gap-2 text-[hsl(var(--primary))] mobile-text-base lg:text-lg">
                   <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5" />
                   Initial Assessment
                 </CardTitle>
-                <p className="mobile-text-xs lg:text-sm text-teal-700 dark:text-teal-300">
+                <p className="mobile-text-xs lg:text-sm text-[hsl(var(--primary) / 0.85)]">
                   Based on limited information, these conditions require further evaluation:
                 </p>
               </CardHeader>
               <CardContent className="space-y-2 lg:space-y-3 p-3 lg:p-6 pt-0">&gt;
                 {probableDiagnoses.map((diagnosis, index) => (
-                  <div key={index} className="flex items-start justify-between p-2 lg:p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-teal-100 dark:border-teal-800 gap-2">
+                  <div key={index} className="flex items-start justify-between p-2 lg:p-3 bg-white/60 dark:bg-gray-800/40 rounded-lg border border-[hsl(var(--primary-light))] dark:border-[hsl(var(--primary))] gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start lg:items-center gap-1 lg:gap-2 mb-1 flex-wrap">
                         <h4 className="font-medium text-gray-900 dark:text-gray-100 mobile-text-xs lg:text-base break-words leading-tight">
@@ -152,7 +152,7 @@ export const DemoConversation = () => {
                       </p>
                     </div>
                     <div className="text-right ml-1 lg:ml-3 flex-shrink-0">
-                      <div className="mobile-text-base lg:text-lg font-bold text-teal-600 dark:text-teal-400">
+                      <div className="mobile-text-base lg:text-lg font-bold text-[hsl(var(--primary))]">
                         {diagnosis.probability}
                       </div>
                       <div className="mobile-text-xs text-gray-500 dark:text-gray-400">
