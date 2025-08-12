@@ -45,9 +45,23 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profileData?.alpha_tester) {
-      throw new Error("User is not an alpha tester");
+      logStep("User not an alpha tester", { profileError: profileError?.message });
+      return new Response(JSON.stringify({ error: "Forbidden: not an alpha tester" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
     logStep("Alpha tester verified");
+
+    // Explicit allowlist for testers
+    const allowedTesters = ["alancreator90@gmail.com"];
+    if (!allowedTesters.includes(user.email.toLowerCase())) {
+      logStep("User not in allowlist", { email: user.email });
+      return new Response(JSON.stringify({ error: "Forbidden: not authorized tester" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
 
     const { email, subscribed, subscription_tier, subscription_end } = await req.json();
     

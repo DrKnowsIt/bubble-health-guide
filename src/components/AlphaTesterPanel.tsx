@@ -36,8 +36,8 @@ export const AlphaTesterPanel = () => {
 
       const config = tierConfig[selectedTier as keyof typeof tierConfig];
       
-      // Use the service role to update subscription status directly
-      const { error } = await supabase.functions.invoke('alpha-tier-switch', {
+      // Call secure edge function to update subscription status
+      const { data, error } = await supabase.functions.invoke('alpha-tier-switch', {
         body: { 
           email: user.email,
           subscribed: config.subscribed,
@@ -47,7 +47,11 @@ export const AlphaTesterPanel = () => {
       });
 
       if (error) {
-        throw error;
+        throw new Error(error.message || 'Request failed');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       // Refresh subscription status
@@ -59,9 +63,10 @@ export const AlphaTesterPanel = () => {
       });
     } catch (error) {
       console.error('Error switching tier:', error);
+      const message = (error as any)?.message || 'Failed to switch subscription tier';
       toast({
         title: "Error switching tier",
-        description: "Failed to switch subscription tier",
+        description: message,
         variant: "destructive",
       });
     } finally {

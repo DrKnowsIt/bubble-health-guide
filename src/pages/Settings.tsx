@@ -226,7 +226,7 @@ const Settings = () => {
               </Card>
 
               {/* Alpha Tester Panel - Only visible to alpha testers */}
-              {isAlphaTester && <AlphaTesterPanel />}
+              {isAlphaTester && user?.email?.toLowerCase() === "alancreator90@gmail.com" && <AlphaTesterPanel />}
             </TabsContent>
 
             {/* Privacy Tab */}
