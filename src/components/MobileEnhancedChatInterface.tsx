@@ -45,7 +45,9 @@ export const MobileEnhancedChatInterface = ({
     currentConversation,
     selectConversation,
     createConversation,
-    saveMessage 
+    saveMessage,
+    updateConversationTitleIfPlaceholder,
+    startNewConversation 
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
@@ -96,7 +98,7 @@ export const MobileEnhancedChatInterface = ({
     if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
 
     const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
-    const imageUrl = pendingImageUrl;
+    const imageUrl = pendingImageUrl || undefined;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}-${Math.random()}`,
@@ -110,22 +112,36 @@ export const MobileEnhancedChatInterface = ({
     setInputValue('');
     setPendingImageUrl(null);
 
+    // Ensure conversation exists
+    let conversationId = currentConversation;
+    if (!conversationId) {
+      const title = messageContent.length > 50 ? messageContent.slice(0, 50) + '...' : messageContent;
+      conversationId = await createConversation(title, selectedUser.id);
+      if (!conversationId) {
+        toast({ title: 'Error', description: 'Failed to create conversation', variant: 'destructive' });
+        return;
+      }
+    }
+
+    // Save user message
+    await saveMessage(conversationId, 'user', messageContent, imageUrl);
+    await updateConversationTitleIfPlaceholder(conversationId, messageContent.length > 50 ? messageContent.slice(0, 50) + '...' : messageContent);
+
     // Mark this request and capture conversation at send time
     const reqId = ++requestSeqRef.current;
-    const convoAtSend = currentConversation || null;
+    const convoAtSend = conversationId || null;
 
     setIsTyping(true);
 
     try {
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
-      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: { 
           message: messageContent,
           conversation_history: conversationHistory,
-          patient_id: selectedUser?.id,
+          patient_id: selectedUser.id,
           user_id: user.id,
-          conversation_id: currentConversation,
+          conversation_id: conversationId,
           image_url: imageUrl
         }
       });
@@ -146,6 +162,7 @@ export const MobileEnhancedChatInterface = ({
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
@@ -154,16 +171,16 @@ export const MobileEnhancedChatInterface = ({
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+      await saveMessage(conversationId, 'ai', aiMessage.content);
+    } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
+      const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
+        ? 'This feature requires a Pro subscription. Please upgrade to continue.'
+        : 'Failed to send message. Please try again.';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
     } finally {
       setIsTyping(false);
     }
@@ -199,26 +216,9 @@ export const MobileEnhancedChatInterface = ({
 
   const handleNewConversation = async () => {
     if (!selectedUser) return;
-    
-    try {
-      const newConversationId = await createConversation(
-        `Chat with ${selectedUser.first_name}`, 
-        selectedUser.id
-      );
-      
-      if (newConversationId) {
-        await selectConversation(newConversationId);
-      }
-      
-      setShowHistory(false);
-    } catch (error) {
-      console.error('Error creating new conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new conversation. Please try again.",
-        variant: "destructive"
-      });
-    }
+    // Reset to a fresh state; actual conversation will be created on first message
+    startNewConversation();
+    setShowHistory(false);
   };
 
   const hasAccess = (requiredTier: string) => {
@@ -241,7 +241,7 @@ export const MobileEnhancedChatInterface = ({
   }
 
   return (
-    <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant using a Basic or Pro subscription.">
+    <SubscriptionGate requiredTier="pro" feature="AI Chat" description="Start conversations with our AI health assistant with a Pro subscription.">
       <div className="h-full flex flex-col bg-background">
         {/* Collapsible Patient Selector */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">

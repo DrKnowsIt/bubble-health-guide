@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { useSubscription } from '@/hooks/useSubscription';
 import { UserSelector } from './UserSelector';
 import { ProbableDiagnoses } from './ProbableDiagnoses';
 import { TierStatus } from './TierStatus';
@@ -29,6 +30,7 @@ interface ChatInterfaceWithUsersProps {
 export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, selectedUser: propSelectedUser }: ChatInterfaceWithUsersProps) => {
   const { user } = useAuth();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsers();
+  const { subscribed } = useSubscription();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -39,7 +41,9 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     currentConversation,
     selectConversation,
     createConversation,
-    saveMessage 
+    saveMessage,
+    startNewConversation,
+    updateConversationTitleIfPlaceholder 
   } = useConversations();
   
   const [inputValue, setInputValue] = useState('');
@@ -91,36 +95,55 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   }, [currentConversation]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !selectedUser) return;
+    if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
+
+    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
+    const imageUrl = pendingImageUrl || undefined;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}-${Math.random()}`,
       type: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date()
+      content: messageContent,
+      timestamp: new Date(),
+      image_url: imageUrl
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue.trim();
+    const currentInput = messageContent;
     setInputValue('');
+    setPendingImageUrl(null);
+
+    // Ensure conversation exists
+    let conversationId = currentConversation;
+    if (!conversationId) {
+      const title = messageContent.length > 50 ? messageContent.slice(0, 50) + '...' : messageContent;
+      conversationId = await createConversation(title, selectedUser.id);
+      if (!conversationId) {
+        toast({ title: 'Error', description: 'Failed to create conversation', variant: 'destructive' });
+        return;
+      }
+    }
+
+    // Save user message
+    await saveMessage(conversationId, 'user', messageContent, imageUrl);
+    await updateConversationTitleIfPlaceholder(conversationId, messageContent.length > 50 ? messageContent.slice(0, 50) + '...' : messageContent);
 
     // Mark this request and capture conversation at send time
     const reqId = ++requestSeqRef.current;
-    const convoAtSend = currentConversation || null;
+    const convoAtSend = conversationId || null;
 
     setIsTyping(true);
 
     try {
-      // Call AI service here
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
-      
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: { 
           message: currentInput,
           conversation_history: conversationHistory,
-          patient_id: selectedUser?.id,
+          patient_id: selectedUser.id,
           user_id: user.id,
-          conversation_id: currentConversation 
+          conversation_id: conversationId,
+          image_url: imageUrl
         }
       });
 
@@ -148,17 +171,17 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      await saveMessage(conversationId, 'ai', aiMessage.content);
       onSendMessage?.(currentInput);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
+      const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
+        ? 'This feature requires a Pro subscription. Please upgrade to continue.'
+        : 'Failed to send message. Please try again.';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
     } finally {
       setIsTyping(false);
     }
@@ -187,26 +210,9 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
 
   const handleNewConversation = async () => {
     if (!selectedUser) return;
-    
-    try {
-      const newConversationId = await createConversation(
-        `Chat with ${selectedUser.first_name}`, 
-        selectedUser.id
-      );
-      
-      if (newConversationId) {
-        await selectConversation(newConversationId);
-      }
-      
-      setActiveTab('chat');
-    } catch (error) {
-      console.error('Error creating new conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new conversation. Please try again.",
-        variant: "destructive"
-      });
-    }
+    // Reset to a fresh state; actual conversation will be created on first message
+    startNewConversation();
+    setActiveTab('chat');
   };
 
   const handleUserSelect = (user: User | null) => {
@@ -354,7 +360,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="min-h-[50px] max-h-[120px] resize-none pr-20"
-                    disabled={!selectedUser}
+                    disabled={!selectedUser || !subscribed}
                   />
                   {/* Buttons positioned inside the textarea */}
                   <div className="absolute bottom-2 right-2 flex gap-1">
@@ -399,7 +405,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                 </div>
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
+                  disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !subscribed}
                   className="h-[50px] px-6"
                 >
                   <Send className="h-4 w-4" />

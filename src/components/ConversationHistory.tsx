@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Calendar, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useConversations } from '@/hooks/useConversations';
 
 interface Conversation {
   id: string;
@@ -30,6 +31,7 @@ export const ConversationHistory = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { deleteConversation: hookDeleteConversation } = useConversations();
 
   useEffect(() => {
     if (selectedPatientId && user?.id) {
@@ -84,13 +86,7 @@ export const ConversationHistory = ({
   const deleteConversation = async (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { error } = await supabase
-        .from('conversations')
-        .delete()
-        .eq('id', conversationId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
+      await hookDeleteConversation(conversationId);
       setConversations(prev => prev.filter(c => c.id !== conversationId));
     } catch (error) {
       console.error('Error deleting conversation:', error);
