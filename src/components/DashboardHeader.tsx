@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 interface DashboardHeaderProps {
   className?: string;
@@ -21,6 +21,9 @@ export const DashboardHeader = ({
     subscription_tier,
     subscribed
   } = useSubscription();
+  const location = useLocation();
+  const onDashboard = location.pathname.startsWith('/dashboard');
+
   const handleLogout = async () => {
     await signOut();
   };
@@ -56,7 +59,7 @@ export const DashboardHeader = ({
   return <header className={cn("sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80", className)}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Brand Section */}
-        <div className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
@@ -64,7 +67,7 @@ export const DashboardHeader = ({
             <h1 className="text-lg font-semibold text-foreground">DrKnowsIt</h1>
             <p className="text-xs text-muted-foreground">Dashboard</p>
           </div>
-        </div>
+        </Link>
 
         {/* Marketing Navigation (visible when signed in) */}
         <nav className="hidden md:flex items-center gap-6">
@@ -81,9 +84,14 @@ export const DashboardHeader = ({
             {tierInfo.text}
           </Badge>
 
-          {/* Notifications */}
-          
+          {/* Go to Dashboard - only when not already on dashboard */}
+          {!onDashboard && (
+            <Button asChild size="sm" className="hidden md:inline-flex">
+              <Link to="/dashboard">Go to Dashboard</Link>
+            </Button>
+          )}
 
+          {/* Notifications */}
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -125,6 +133,12 @@ export const DashboardHeader = ({
                 </Badge>
               </div>
               <DropdownMenuSeparator className="md:hidden" />
+              <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
+                <Link to="/dashboard">
+                  <User className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
                 <Link to="/settings">
                   <Settings className="h-4 w-4" />
