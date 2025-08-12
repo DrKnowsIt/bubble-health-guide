@@ -27,6 +27,9 @@ import { MobileEnhancedHealthTab } from '@/components/MobileEnhancedHealthTab';
 import { MobileEnhancedOverviewTab } from '@/components/MobileEnhancedOverviewTab';
 import { TabletChatInterface } from '@/components/TabletChatInterface';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth();
@@ -56,6 +59,24 @@ export default function UserDashboard() {
     } catch (error) {
       console.error('Error upgrading subscription:', error);
     }
+  };
+
+  const { toast } = useToast();
+
+  const handleAddFamilyClick = () => {
+    if (!subscribed || subscription_tier !== 'pro') {
+      toast({
+        title: 'Pro plan required',
+        description: 'Adding family members is a Pro feature.',
+        action: (
+          <ToastAction altText="View plans" onClick={() => window.location.assign('/pricing')}>
+            View plans
+          </ToastAction>
+        ),
+      });
+      return;
+    }
+    // TODO: Implement add family member flow
   };
 
   // Tab configuration with subscription requirements
@@ -120,6 +141,22 @@ export default function UserDashboard() {
               onOpenChange={setDropdownOpen}
             />
           </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleAddFamilyClick}
+                aria-label="Add family member"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add family member
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
