@@ -104,11 +104,10 @@ export const useUsers = () => {
   // Get user limit based on subscription
   const getUserLimit = () => {
     if (!subscribed || !subscription_tier) return 0;
-    if (subscription_tier === 'basic') return 2;
+    if (subscription_tier === 'basic') return 1;
     if (subscription_tier === 'pro') return 10;
     return 0;
   };
-
   // Check if user can add more users
   const canAddUser = () => {
     const limit = getUserLimit();

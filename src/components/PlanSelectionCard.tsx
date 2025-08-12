@@ -15,10 +15,10 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
       name: "Basic",
       price: "$25",
       period: "per month",
-      description: "Essential AI health questions with up to 2 users and 4 core health forms",
+      description: "Essential AI health guidance for a single user with 4 core health forms",
       features: [
         "Answer basic health questions",
-        "Manage up to 2 users",
+        "Manage 1 user",
         "4 essential health forms",
         "General wellness information",
         "Basic conversation history",
