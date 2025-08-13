@@ -344,9 +344,9 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
 
   return (
     <SubscriptionGate 
-      requiredTier="pro" 
-      feature="Health Records Management"
-      description="Health Records allow you to store and organize medical history, lab results, and health documents for comprehensive tracking."
+      requiredTier="basic" 
+      feature="Health Records"
+      description="Manage your health records and documents. Available on Basic and Pro plans."
     >
       <div className="space-y-6">
         <Card>
@@ -593,10 +593,12 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
         </Card>
         
         {/* DNA Upload Section */}
-        <DNAUpload 
-          selectedPatient={selectedPatient} 
-          onUploadComplete={loadRecords}
-        />
+        <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data for advanced analysis — available on Pro.">
+          <DNAUpload 
+            selectedPatient={selectedPatient} 
+            onUploadComplete={loadRecords}
+          />
+        </SubscriptionGate>
       </div>
     </SubscriptionGate>
   );

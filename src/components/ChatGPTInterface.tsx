@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ProbableDiagnoses } from "@/components/ProbableDiagnoses";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { ToastAction } from "@/components/ui/toast";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -40,7 +41,7 @@ const examplePrompts = [
 
 function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
   const { user } = useAuth();
-  const { subscribed } = useSubscription();
+  const { subscribed, createCheckoutSession } = useSubscription();
   const { selectedUser } = useUsers();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -378,7 +379,18 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
 
-      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+      if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
+        errorContent = 'AI Chat is a Pro feature. Upgrade to continue.';
+        toast({
+          title: 'Pro plan required',
+          description: 'AI Chat requires a Pro subscription.',
+          action: (
+            <ToastAction altText="Upgrade" onClick={() => createCheckoutSession('pro')}>
+              Upgrade to Pro
+            </ToastAction>
+          ),
+        });
+      } else if (error.message?.includes('network') || error.message?.includes('timeout')) {
         errorContent = 'I\'m having trouble connecting to the server. Please check your internet connection and try again.';
       } else if (error.message?.includes('rate limit')) {
         errorContent = 'I\'m receiving too many requests right now. Please wait a moment and try again.';
