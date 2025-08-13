@@ -309,6 +309,10 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
     // conversation already ensured above
 
+    // Immediately reflect user's message in UI and clear input/attachment
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue('');
+    if (pendingAttachment) setPendingAttachment(null);
 
     const currentInput = textToSend;
     
@@ -334,10 +338,11 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     try {
       // Prepare conversation history for context
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
+      const historyWithUser = [...conversationHistory, userMessage];
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: {
           message: currentInput,
-          conversation_history: conversationHistory,
+          conversation_history: historyWithUser,
           user_id: user.id,
           conversation_id: conversationId,
           patient_id: selectedUser?.id
@@ -432,7 +437,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -587,7 +592,7 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
                   placeholder={subscribed ? "Message DrKnowsIt..." : "Subscribe to start chatting..."}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   className="text-base border-2 border-border bg-background focus:border-primary rounded-xl px-4 py-3 h-auto"
                   disabled={!subscribed}
                 />
