@@ -194,10 +194,15 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   };
 
   const sanitizeVisibleText = (text: string) => {
-    // Remove lines that appear to list possible diagnoses in visible chat
+    // Only remove explicit diagnosis section headings like "Possible diagnoses:"
     const lines = text.split(/\n+/);
-    const filtered = lines.filter(l => !/^(possible|potential|probable)\s+(diagnos|condition)/i.test(l.trim()) && !/diagnos(e|is|es)/i.test(l.trim()));
-    return filtered.join('\n').trim();
+    const filtered = lines.filter(l => !/^\s*(possible|potential|probable)\s+diagnoses?:/i.test(l.trim()));
+    const result = filtered.join('\n').trim();
+    if (!result) {
+      console.debug('sanitizeVisibleText produced empty result; returning original text.');
+      return text;
+    }
+    return result;
   };
 
   const uploadImageToHealthRecords = async (file: File): Promise<{ path: string; signedUrl: string } | null> => {
@@ -357,7 +362,34 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
 
       // Extract diagnoses from response and sanitize visible text
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
-      const sanitized = sanitizeVisibleText(cleanResponse);
+      let sanitized = sanitizeVisibleText(cleanResponse);
+      if (!sanitized) {
+        console.debug('sanitizeVisibleText emptied content; falling back to cleanResponse');
+        sanitized = cleanResponse;
+      }
+
+      // Prefer diagnoses returned by the server; otherwise use ones extracted from the response
+      if (conversationId && user && selectedUser?.id) {
+        const mapToDiagnosis = (d: any): Diagnosis => ({
+          id: d.id || `${Date.now()}-${Math.random()}`,
+          conversation_id: conversationId || '',
+          patient_id: selectedUser.id,
+          user_id: user.id,
+          diagnosis: d.diagnosis || d.name || '',
+          confidence: typeof d.confidence === 'number' ? d.confidence : (typeof d.confidence_score === 'number' ? d.confidence_score : 0),
+          reasoning: d.reasoning || d.explanation || '',
+          created_at: d.created_at || new Date().toISOString(),
+          updated_at: d.updated_at || new Date().toISOString(),
+        });
+
+        if (Array.isArray((data as any)?.updated_diagnoses) && (data as any).updated_diagnoses.length > 0) {
+          console.debug('Using updated_diagnoses from server to update sidebar.');
+          setDiagnoses(((data as any).updated_diagnoses as any[]).map(mapToDiagnosis));
+        } else if (extractedDiagnoses.length > 0) {
+          console.debug('Using extractedDiagnoses from AI response to update sidebar.');
+          setDiagnoses(extractedDiagnoses.map(mapToDiagnosis));
+        }
+      }
 
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
