@@ -22,9 +22,11 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useHealthStats } from '@/hooks/useHealthStats';
+import { useUsers } from '@/hooks/useUsers';
 import { AISettings } from './AISettings';
 import { FeatureDiscovery } from './FeatureDiscovery';
 import { SubscriptionGate } from './SubscriptionGate';
+import { PatientMemoryOverview } from './PatientMemoryOverview';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -36,6 +38,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
+  const { selectedUser } = useUsers();
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
 
@@ -160,6 +163,12 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
             <Calendar className="h-8 w-8 text-accent" />
           </CardContent>
         </Card>
+
+        {/* Patient Memory Overview */}
+        <PatientMemoryOverview 
+          patientId={selectedUser?.id} 
+          patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : undefined}
+        />
 
         {/* Quick Actions */}
         <Card>
