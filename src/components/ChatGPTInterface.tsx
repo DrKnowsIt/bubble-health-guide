@@ -183,8 +183,49 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
         }
       }
 
-      // 3) Cleanup leftover punctuation from removed JSON (dangling commas, brackets)
-      clean = clean.replace(/\s{2,}/g, ' ').replace(/\s+,/g, ',').replace(/,\s+\./g, '.').replace(/\[\s*\]/g, '').replace(/\s*\]\s*,?/g, ' ').replace(/\s*\}\s*,?/g, ' ').trim();
+      // 3) Aggressively remove incomplete JSON structures that contain diagnosis keywords
+      const incompleteJsonPatterns = [
+        /\{\s*"diagnoses?":\s*\[([^\]]*)?$/gm,  // { "diagnoses": [ (incomplete)
+        /\{\s*"diagnoses?":\s*\[.*?\]?\s*[,}]?\s*$/gm,  // { "diagnoses": [...] } or partial
+        /"diagnoses?":\s*\[([^\]]*)?$/gm,       // "diagnoses": [ (incomplete)
+        /\{\s*"[^"]*diagnos[^"]*":/gm,          // Any object with diagnosis key
+        /\[\s*\{\s*"[^"]*diagnos[^"]*":/gm,     // Array starting with diagnosis object
+      ];
+
+      for (const pattern of incompleteJsonPatterns) {
+        const matches = clean.match(pattern);
+        if (matches) {
+          console.debug('Removing incomplete JSON pattern:', matches);
+          clean = clean.replace(pattern, '').trim();
+        }
+      }
+
+      // 4) Remove any remaining lines that look like JSON fragments with diagnosis keywords
+      const lines = clean.split('\n');
+      const filteredLines = lines.filter(line => {
+        const trimmed = line.trim();
+        // Remove lines that contain diagnosis-related JSON patterns
+        const hasDiagnosisJson = /["']?diagnos(e|es|is)["']?\s*:/.test(trimmed) || 
+                                /\{\s*["']?diagnos/.test(trimmed) ||
+                                /["']?diagnos[^"']*["']?\s*:\s*\[/.test(trimmed);
+        if (hasDiagnosisJson) {
+          console.debug('Removing line with diagnosis JSON pattern:', trimmed);
+          return false;
+        }
+        return true;
+      });
+      clean = filteredLines.join('\n');
+
+      // 5) Final cleanup of leftover punctuation from removed JSON
+      clean = clean.replace(/\s{2,}/g, ' ')
+                   .replace(/\s+,/g, ',')
+                   .replace(/,\s+\./g, '.')
+                   .replace(/\[\s*\]/g, '')
+                   .replace(/\s*\]\s*,?/g, ' ')
+                   .replace(/\s*\}\s*,?/g, ' ')
+                   .replace(/\{\s*$/g, '')  // Remove orphaned opening braces
+                   .replace(/^\s*[\}\]]/g, '')  // Remove orphaned closing braces/brackets
+                   .trim();
 
       return { cleanResponse: clean, extractedDiagnoses: extracted };
     } catch (error) {
