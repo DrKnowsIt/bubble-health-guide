@@ -496,9 +496,30 @@ Always end visible responses with: "These are suggestions to discuss with your d
       console.log('No diagnosis data to extract:', error);
     }
 
+    // More precise regex to only remove JSON objects at the end of responses
+    let cleanedResponse = aiResponse;
+    
+    // Look for diagnosis JSON at the end of the response
+    const diagnosisJsonMatch = aiResponse.match(/\n\s*\{[^}]*"diagnoses"[^}]*\}[^}]*\}\s*$/);
+    if (diagnosisJsonMatch) {
+      cleanedResponse = aiResponse.replace(diagnosisJsonMatch[0], '').trim();
+    } else {
+      // Fallback: look for any JSON block that contains "diagnoses" but only at line boundaries
+      const fallbackMatch = aiResponse.match(/\n\s*\{[\s\S]*?"diagnoses"[\s\S]*?\}\s*$/);
+      if (fallbackMatch) {
+        cleanedResponse = aiResponse.replace(fallbackMatch[0], '').trim();
+      }
+    }
+    
+    // Safety check: if cleaning resulted in very short response, use original
+    if (cleanedResponse.length < 20 && aiResponse.length > 50) {
+      console.log('Cleaning resulted in too short response, using original');
+      cleanedResponse = aiResponse;
+    }
+
     return new Response(
       JSON.stringify({ 
-        response: aiResponse.replace(/\{[\s\S]*"diagnoses"[\s\S]*\}/, '').trim(),
+        response: cleanedResponse,
         model: 'grok-3-mini-fast',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
