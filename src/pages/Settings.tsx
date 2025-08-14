@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -16,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { AlphaTesterPanel } from "@/components/AlphaTesterPanel";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const {
@@ -26,18 +27,22 @@ const Settings = () => {
   const {
     subscribed,
     subscription_tier,
-    openCustomerPortal
+    openCustomerPortal,
+    refreshSubscription
   } = useSubscription();
   const {
     isAlphaTester,
     activateTesterMode,
     toggleTesterMode
   } = useAlphaTester();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [testerCode, setTesterCode] = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<string>('');
+  const [tierLoading, setTierLoading] = useState(false);
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -67,6 +72,70 @@ const Settings = () => {
 
   const handleToggleTesterMode = async (enabled: boolean) => {
     await toggleTesterMode(enabled);
+  };
+
+  const handleTierSwitch = async () => {
+    if (!selectedTier || !user?.email) return;
+
+    setTierLoading(true);
+    try {
+      const tierConfig = {
+        unpaid: { subscribed: false, tier: null, end: null },
+        basic: { 
+          subscribed: true, 
+          tier: 'basic',
+          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+        },
+        pro: { 
+          subscribed: true, 
+          tier: 'pro',
+          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+        }
+      };
+
+      const config = tierConfig[selectedTier as keyof typeof tierConfig];
+      
+      // Call secure edge function to update subscription status
+      const { data, error } = await supabase.functions.invoke('alpha-tier-switch', {
+        body: { 
+          email: user.email,
+          subscribed: config.subscribed,
+          subscription_tier: config.tier,
+          subscription_end: config.end
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Request failed');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Refresh subscription status
+      await refreshSubscription();
+      
+      toast({
+        title: "Tier switched successfully",
+        description: `Switched to ${selectedTier} tier`,
+      });
+    } catch (error) {
+      console.error('Error switching tier:', error);
+      const message = (error as any)?.message || 'Failed to switch subscription tier';
+      toast({
+        title: "Error switching tier",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setTierLoading(false);
+    }
+  };
+
+  const getCurrentTierDisplay = () => {
+    if (!subscribed) return 'Unpaid';
+    return subscription_tier || 'Unknown';
   };
 
   const getTierDisplay = () => {
@@ -229,7 +298,7 @@ const Settings = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
                             <Label className="text-base font-medium">Tester Mode</Label>
@@ -242,10 +311,58 @@ const Settings = () => {
                             onCheckedChange={handleToggleTesterMode}
                           />
                         </div>
+
+                        <Separator />
+
+                        {/* Tier Switching Section */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-base font-medium">Subscription Testing</Label>
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                              Alpha
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <Label className="text-sm font-medium">Current Tier</Label>
+                              <div className="text-sm text-muted-foreground">
+                                Current subscription status for testing
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="font-medium">
+                              {getCurrentTierDisplay()}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Switch to Tier</Label>
+                            <Select value={selectedTier} onValueChange={setSelectedTier}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a tier to switch to" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unpaid">Unpaid</SelectItem>
+                                <SelectItem value="basic">Basic</SelectItem>
+                                <SelectItem value="pro">Pro</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <Button 
+                            onClick={handleTierSwitch} 
+                            disabled={!selectedTier || tierLoading}
+                            className="w-full"
+                          >
+                            {tierLoading ? 'Switching...' : 'Switch Tier'}
+                          </Button>
+                        </div>
+
                         <div className="p-3 bg-muted/30 rounded-lg">
                           <p className="text-sm text-muted-foreground">
                             <strong>Tester privileges:</strong> Access to subscription tier switching, 
-                            early feature previews, and testing tools in the Subscription tab.
+                            early feature previews, and testing tools. Use tier switching to test 
+                            different subscription features.
                           </p>
                         </div>
                       </div>
@@ -296,9 +413,6 @@ const Settings = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Alpha Tester Panel - Only visible to alpha testers */}
-              {isAlphaTester && <AlphaTesterPanel />}
             </TabsContent>
 
             {/* Privacy Tab */}
