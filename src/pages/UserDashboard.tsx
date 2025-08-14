@@ -273,14 +273,6 @@ export default function UserDashboard() {
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
                   <div className="h-full overflow-y-auto">
                     <div className="space-y-6">
-                    <ContextualUserSelector 
-                      users={users} 
-                      selectedUser={selectedUser} 
-                      onUserSelect={setSelectedUser} 
-                      hasAccess={hasAccess('basic')} 
-                      title="Health Records" 
-                      description="Select a user to manage health records" 
-                    />
                     
                     <Tabs defaultValue="records" className="w-full">
                       <TabsList className="grid w-full grid-cols-2">
