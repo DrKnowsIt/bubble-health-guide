@@ -234,8 +234,7 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
         </div>
       )}
       {/* Chat Header with New Conversation Button */}
-      <div className="shrink-0 border-b border-border p-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Chat with DrKnowsIt</h2>
+      <div className="shrink-0 border-b border-border p-4 flex justify-end items-center">
         {user && (
           <div className="flex items-center gap-2">
             {onShowHistory && (
