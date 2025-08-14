@@ -547,17 +547,6 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
     <div className="flex h-full">
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1 h-full min-h-0">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-border px-4 py-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold">DrKnowsIt</h1>
-            {selectedUser && (
-              <span className="text-sm text-muted-foreground">
-                - {selectedUser.first_name} {selectedUser.last_name}
-              </span>
-            )}
-          </div>
-        </header>
 
         {/* Messages Area - Scrollable container */}
         <div className="flex-1 overflow-y-auto">
