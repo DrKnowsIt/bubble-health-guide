@@ -23,9 +23,10 @@ export interface Conversation {
   updated_at: string;
 }
 
-export const useConversations = () => {
+export const useConversations = (propSelectedUser?: any) => {
   const { user } = useAuth();
-  const { selectedUser } = useUsers();
+  const { selectedUser: hookSelectedUser } = useUsers();
+  const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);

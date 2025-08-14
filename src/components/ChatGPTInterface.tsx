@@ -719,9 +719,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
 export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser }: ChatGPTInterfaceProps) => {
   const { user } = useAuth();
-  const conv = useConversations();
   const { selectedUser: hookSelectedUser } = useUsers();
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
+  const conv = useConversations(selectedUser);
 
   const handleStartNewConversation = async () => {
     // Reset UI to empty state with examples; defer DB creation until first message
