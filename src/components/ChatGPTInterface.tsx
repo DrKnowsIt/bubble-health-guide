@@ -16,6 +16,7 @@ import { ToastAction } from "@/components/ui/toast";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
+  selectedUser?: any;
 }
 
 interface Diagnosis {
@@ -39,10 +40,9 @@ const examplePrompts = [
 ];
 
 
-function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
+function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
   const { user } = useAuth();
   const { subscribed, createCheckoutSession } = useSubscription();
-  const { selectedUser } = useUsers();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentConversation, messages, setMessages, createConversation, saveMessage, updateConversationTitleIfPlaceholder } = conversation;
@@ -717,10 +717,11 @@ function ChatInterface({ onSendMessage, conversation }: ChatGPTInterfaceProps & 
   );
 }
 
-export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
+export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser }: ChatGPTInterfaceProps) => {
   const { user } = useAuth();
   const conv = useConversations();
-  const { selectedUser } = useUsers();
+  const { selectedUser: hookSelectedUser } = useUsers();
+  const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
 
   const handleStartNewConversation = async () => {
     // Reset UI to empty state with examples; defer DB creation until first message
@@ -739,7 +740,8 @@ export const ChatGPTInterface = ({ onSendMessage }: ChatGPTInterfaceProps) => {
       />
       <main className="flex-1 h-full min-h-0 overflow-hidden">
         <ChatInterface 
-          onSendMessage={onSendMessage} 
+          onSendMessage={onSendMessage}
+          selectedUser={selectedUser}
           conversation={{
             currentConversation: conv.currentConversation,
             messages: conv.messages,

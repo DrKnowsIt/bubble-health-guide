@@ -262,7 +262,7 @@ export default function UserDashboard() {
               ) : (
                 <div className="h-full flex min-h-0">
                   <SubscriptionGate requiredTier="pro" feature="AI Chat" description="AI Chat is available on the Pro plan. Upgrade to continue.">
-                    <ChatGPTInterface />
+                    <ChatGPTInterface selectedUser={selectedUser} />
                   </SubscriptionGate>
                 </div>
               )}
