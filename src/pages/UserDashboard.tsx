@@ -261,7 +261,7 @@ export default function UserDashboard() {
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
                 <div className="h-full flex min-h-0">
-                  <SubscriptionGate requiredTier="pro" feature="AI Chat" description="AI Chat is available on the Pro plan. Upgrade to continue.">
+                  <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Basic or Pro subscription.">
                     <ChatGPTInterface selectedUser={selectedUser} />
                   </SubscriptionGate>
                 </div>
