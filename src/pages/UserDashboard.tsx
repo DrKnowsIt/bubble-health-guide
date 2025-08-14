@@ -17,6 +17,7 @@ import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
+import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
 
 import { useNavigate } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
@@ -38,6 +39,7 @@ export default function UserDashboard() {
   const { users, selectedUser, setSelectedUser } = useUsers();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -79,7 +81,7 @@ export default function UserDashboard() {
       });
       return;
     }
-    // TODO: Implement add family member flow
+    setAddFamilyDialogOpen(true);
   };
 
   // Tab configuration with subscription requirements
@@ -395,6 +397,12 @@ export default function UserDashboard() {
           </div>
         </Tabs>
       </div>
+
+      {/* Add Family Member Dialog */}
+      <AddFamilyMemberDialog 
+        open={addFamilyDialogOpen} 
+        onOpenChange={setAddFamilyDialogOpen} 
+      />
     </div>
   );
 }
