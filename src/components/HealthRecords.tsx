@@ -561,14 +561,37 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                               {record.file_url && (
                                 <div className="flex items-center gap-2 mt-2">
                                   <Download className="h-4 w-4" />
-                                  <a
-                                    href={record.file_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-primary hover:underline"
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        const { data, error } = await supabase.storage
+                                          .from('health-records')
+                                          .createSignedUrl(record.file_url, 3600);
+                                        
+                                        if (error || !data?.signedUrl) {
+                                          toast({
+                                            title: "Download failed",
+                                            description: "Could not generate download link",
+                                            variant: "destructive",
+                                          });
+                                          return;
+                                        }
+                                        
+                                        // Open the signed URL in a new tab
+                                        window.open(data.signedUrl, '_blank');
+                                      } catch (err) {
+                                        console.error('Download error:', err);
+                                        toast({
+                                          title: "Download failed",
+                                          description: "An error occurred while downloading the file",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                    className="text-sm text-primary hover:underline cursor-pointer bg-transparent border-none p-0"
                                   >
                                     Download attached file
-                                  </a>
+                                  </button>
                                 </div>
                               )}
                             </div>
