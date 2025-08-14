@@ -1,8 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Crown, Zap, Loader2 } from 'lucide-react';
+import { Crown, Zap, Loader2, Settings, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 interface TierStatusProps {
   showUpgradeButton?: boolean;
@@ -10,17 +12,31 @@ interface TierStatusProps {
 }
 
 export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierStatusProps) => {
-  const { subscribed, subscription_tier, loading, createCheckoutSession } = useSubscription();
+  const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
 
   const handleUpgrade = async () => {
     try {
-      // Always upgrade to Pro if they're not Pro
-      const targetPlan = subscription_tier === 'pro' ? 'pro' : 'pro';
-      await createCheckoutSession(targetPlan);
+      if (subscribed) {
+        await openCustomerPortal();
+      } else {
+        await createCheckoutSession('pro');
+      }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to start checkout process. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      await openCustomerPortal();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open subscription management. Please try again.",
         variant: "destructive",
       });
     }
@@ -40,45 +56,83 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
   const isUnsubscribed = !subscribed;
 
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
-      <Badge 
-        variant="secondary" 
-        className={`
-          flex items-center space-x-1
-          ${isPro 
-            ? 'bg-orange-100 text-orange-700 border-orange-200' 
-            : isBasic
-            ? 'bg-[hsl(var(--primary-light))] text-[hsl(var(--primary))] border-[hsl(var(--primary-light))]'
-            : 'bg-red-100 text-red-700 border-red-200'
-          }
-        `}
-      >
-        {isPro ? (
-          <>
-            <Crown className="h-3 w-3" />
-            <span>Pro</span>
-          </>
-        ) : isBasic ? (
-          <>
-            <Zap className="h-3 w-3" />
-            <span>Basic</span>
-          </>
-        ) : (
-          <>
-            <Zap className="h-3 w-3" />
-            <span>No Subscription</span>
-          </>
-        )}
-      </Badge>
-      
+    <div className={`flex items-center ${className}`}>
+      {/* Enhanced Interactive Tier Badge with Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className={`
+              flex items-center space-x-2 h-8 px-3 rounded-full transition-all hover:scale-105
+              ${isPro 
+                ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 hover:from-orange-200 hover:to-orange-300 border border-orange-300' 
+                : isBasic
+                ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 hover:from-blue-200 hover:to-blue-300 border border-blue-300'
+                : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 border border-gray-300'
+              }
+            `}
+          >
+            {isPro ? (
+              <>
+                <Crown className="h-3 w-3" />
+                <span className="font-medium">Pro</span>
+              </>
+            ) : isBasic ? (
+              <>
+                <Zap className="h-3 w-3" />
+                <span className="font-medium">Basic</span>
+              </>
+            ) : (
+              <>
+                <Zap className="h-3 w-3" />
+                <span className="font-medium">Free</span>
+              </>
+            )}
+            <ChevronDown className="h-3 w-3 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <div className="p-2 border-b">
+            <p className="text-sm font-medium">
+              {isPro ? 'Pro Plan' : isBasic ? 'Basic Plan' : 'Free Tier'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isPro ? 'All features unlocked' : isBasic ? 'Essential features' : 'Limited features'}
+            </p>
+          </div>
+          
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link to="/pricing" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Manage Subscription
+            </Link>
+          </DropdownMenuItem>
+          
+          {!isPro && (
+            <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
+              <Crown className="h-4 w-4 mr-2" />
+              {isBasic ? 'Upgrade to Pro' : 'Subscribe to Pro'}
+            </DropdownMenuItem>
+          )}
+          
+          {subscribed && (
+            <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
+              <Settings className="h-4 w-4 mr-2" />
+              Billing Portal
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Quick Upgrade Button - Only for non-Pro users */}
       {!isPro && showUpgradeButton && (
         <Button
           size="sm"
-          variant="outline"
+          variant="default"
           onClick={handleUpgrade}
-          className="h-7 px-3 text-xs"
+          className="ml-2 h-7 px-3 text-xs btn-primary"
         >
-          {isBasic ? 'Upgrade to Pro' : isUnsubscribed ? 'Subscribe Now' : 'Subscribe'}
+          {isBasic ? 'Upgrade' : 'Subscribe'}
         </Button>
       )}
     </div>

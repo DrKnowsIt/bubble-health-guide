@@ -70,10 +70,7 @@ export const DashboardHeader = ({
           </div>
         </Link>
 
-        {/* Subscription Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground">Subscription</Link>
-        </nav>
+        {/* No separate subscription navigation - integrated into TierStatus */}
 
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
