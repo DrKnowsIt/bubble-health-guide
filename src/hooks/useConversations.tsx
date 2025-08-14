@@ -37,19 +37,28 @@ export const useConversations = () => {
   };
 
   const fetchConversations = useCallback(async () => {
-    if (!user || !selectedUser?.id) {
+    if (!user) {
       flushSync(() => setConversations([]));
       return;
     }
     
-    logDebug('Fetching conversations for user/patient', { userId: user.id, patientId: selectedUser.id });
+    logDebug('Fetching conversations for user/patient', { userId: user.id, patientId: selectedUser?.id });
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('conversations')
         .select('*')
-        .eq('patient_id', selectedUser.id)
-        .order('updated_at', { ascending: false });
+        .eq('user_id', user.id);
+      
+      // Filter by patient_id if a specific user is selected
+      if (selectedUser?.id) {
+        query = query.eq('patient_id', selectedUser.id);
+      } else {
+        // When no specific user is selected, show conversations without patient_id (account owner's conversations)
+        query = query.is('patient_id', null);
+      }
+      
+      const { data, error } = await query.order('updated_at', { ascending: false });
 
       if (error) throw error;
       
@@ -262,8 +271,8 @@ export const useConversations = () => {
 
   // Effect for initial load and when user or selected patient changes
   useEffect(() => {
-    if (!user || !selectedUser?.id) {
-      logDebug('No user or selected patient, clearing all state');
+    if (!user) {
+      logDebug('No user, clearing all state');
       flushSync(() => {
         setConversations([]);
         setCurrentConversation(null);
@@ -274,7 +283,7 @@ export const useConversations = () => {
 
     logDebug('User or patient changed, resetting state and fetching conversations', { 
       userId: user.id, 
-      patientId: selectedUser.id,
+      patientId: selectedUser?.id,
       previousConversationCount: conversations.length 
     });
     
@@ -291,7 +300,7 @@ export const useConversations = () => {
 
   // NEW: Set up real-time subscription for conversation changes
   useEffect(() => {
-    if (!user || !selectedUser?.id) return;
+    if (!user) return;
 
     logDebug('Setting up real-time subscription for conversations');
 
@@ -312,7 +321,12 @@ export const useConversations = () => {
           const oldRow: any = payload.old;
 
           if (payload.eventType === 'INSERT') {
-            if (newRow?.patient_id !== selectedUser.id) return; // ignore other patients
+            // Check if this conversation belongs to the current patient context
+            const belongsToCurrentPatient = selectedUser?.id ? 
+              newRow?.patient_id === selectedUser.id : 
+              newRow?.patient_id === null;
+            if (!belongsToCurrentPatient) return;
+            
             // Add new conversation to the list
             flushSync(() => {
               setConversations(prev => {
@@ -323,7 +337,11 @@ export const useConversations = () => {
               });
             });
           } else if (payload.eventType === 'UPDATE') {
-            if (newRow?.patient_id !== selectedUser.id) return; // ignore other patients
+            // Check if this conversation belongs to the current patient context
+            const belongsToCurrentPatient = selectedUser?.id ? 
+              newRow?.patient_id === selectedUser.id : 
+              newRow?.patient_id === null;
+            if (!belongsToCurrentPatient) return;
             // Update existing conversation
             flushSync(() => {
               setConversations(prev => 
