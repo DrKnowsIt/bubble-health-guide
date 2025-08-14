@@ -90,7 +90,7 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
         )}
       </CardHeader>
       <CardContent className="relative">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">{/* Changed from md:grid-cols-2 to lg:grid-cols-2 for more consistent behavior */}
           {plans.map((plan) => (
             <Card 
               key={plan.name}
