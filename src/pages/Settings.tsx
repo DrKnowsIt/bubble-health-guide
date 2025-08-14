@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
+import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
@@ -17,6 +17,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AlphaTesterPanel } from "@/components/AlphaTesterPanel";
+
 const Settings = () => {
   const {
     user,
@@ -28,11 +29,15 @@ const Settings = () => {
     openCustomerPortal
   } = useSubscription();
   const {
-    isAlphaTester
+    isAlphaTester,
+    activateTesterMode,
+    toggleTesterMode
   } = useAlphaTester();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [testerCode, setTesterCode] = useState("");
+  const [codeLoading, setCodeLoading] = useState(false);
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -49,6 +54,21 @@ const Settings = () => {
       console.error('Error deleting account:', error);
     }
   };
+  const handleActivateTesterMode = async () => {
+    if (!testerCode.trim()) return;
+    
+    setCodeLoading(true);
+    const success = await activateTesterMode(testerCode);
+    if (success) {
+      setTesterCode("");
+    }
+    setCodeLoading(false);
+  };
+
+  const handleToggleTesterMode = async (enabled: boolean) => {
+    await toggleTesterMode(enabled);
+  };
+
   const getTierDisplay = () => {
     if (!subscribed || !subscription_tier) return {
       text: 'Free Plan',
@@ -205,20 +225,89 @@ const Settings = () => {
               </Card>
 
               {/* Alpha Tester Panel - Only visible to alpha testers */}
-              {isAlphaTester && user?.email?.toLowerCase() === "alancreator90@gmail.com" && <AlphaTesterPanel />}
+              {isAlphaTester && <AlphaTesterPanel />}
             </TabsContent>
 
             {/* Privacy Tab */}
             <TabsContent value="privacy" className="space-y-6">
+              {/* Tester Access Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Code className="h-5 w-5" />
+                    Tester Access
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-base font-medium">Current Status</Label>
+                        <div className="text-sm text-muted-foreground">
+                          {isAlphaTester ? "Alpha tester mode is active" : "Alpha tester mode is inactive"}
+                        </div>
+                      </div>
+                      <Badge variant={isAlphaTester ? "default" : "secondary"}>
+                        {isAlphaTester ? "Active Tester" : "Not a Tester"}
+                      </Badge>
+                    </div>
+
+                    {!isAlphaTester ? (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="testerCode">Enter Tester Code</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="testerCode"
+                              type="password"
+                              placeholder="Enter your tester activation code"
+                              value={testerCode}
+                              onChange={(e) => setTesterCode(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleActivateTesterMode()}
+                            />
+                            <Button 
+                              onClick={handleActivateTesterMode}
+                              disabled={!testerCode.trim() || codeLoading}
+                            >
+                              {codeLoading ? "Activating..." : "Activate"}
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Contact the administrator to get your tester activation code
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <Label className="text-base font-medium">Tester Mode</Label>
+                            <div className="text-sm text-muted-foreground">
+                              Enable or disable alpha testing features
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={isAlphaTester} 
+                            onCheckedChange={handleToggleTesterMode}
+                          />
+                        </div>
+                        <div className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Tester privileges:</strong> Access to subscription tier switching, 
+                            early feature previews, and testing tools in the Subscription tab.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Privacy & Security</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  
-                  
-                  <Separator />
-                  
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <Label className="text-base font-medium">Analytics & Usage Data</Label>
