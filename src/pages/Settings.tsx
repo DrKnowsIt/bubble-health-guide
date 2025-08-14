@@ -180,56 +180,7 @@ const Settings = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            {/* Subscription Tab */}
-            <TabsContent value="subscription" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Subscription Management</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">Current Plan</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {subscribed ? `Active ${tierInfo.text}` : 'No active subscription'}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant={tierInfo.variant}>
-                      {tierInfo.text}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {subscribed && <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
-                        <span className="font-medium">Manage Subscription</span>
-                        <span className="text-xs text-muted-foreground">Update billing, cancel, or change plan</span>
-                      </Button>}
-                    {!subscribed && <Button onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
-                        <span className="font-medium">Subscribe Now</span>
-                        <span className="text-xs text-muted-foreground">Unlock premium features</span>
-                      </Button>}
-                    
-                    <Button variant="outline" onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
-                      <span className="font-medium">View All Plans</span>
-                      <span className="text-xs text-muted-foreground">Compare features and pricing</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Alpha Tester Panel - Only visible to alpha testers */}
-              {isAlphaTester && <AlphaTesterPanel />}
-            </TabsContent>
-
-            {/* Privacy Tab */}
-            <TabsContent value="privacy" className="space-y-6">
               {/* Tester Access Section */}
               <Card>
                 <CardHeader>
@@ -302,7 +253,56 @@ const Settings = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
 
+            {/* Subscription Tab */}
+            <TabsContent value="subscription" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Subscription Management</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <CreditCard className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Current Plan</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {subscribed ? `Active ${tierInfo.text}` : 'No active subscription'}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={tierInfo.variant}>
+                      {tierInfo.text}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {subscribed && <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
+                        <span className="font-medium">Manage Subscription</span>
+                        <span className="text-xs text-muted-foreground">Update billing, cancel, or change plan</span>
+                      </Button>}
+                    {!subscribed && <Button onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
+                        <span className="font-medium">Subscribe Now</span>
+                        <span className="text-xs text-muted-foreground">Unlock premium features</span>
+                      </Button>}
+                    
+                    <Button variant="outline" onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
+                      <span className="font-medium">View All Plans</span>
+                      <span className="text-xs text-muted-foreground">Compare features and pricing</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Alpha Tester Panel - Only visible to alpha testers */}
+              {isAlphaTester && <AlphaTesterPanel />}
+            </TabsContent>
+
+            {/* Privacy Tab */}
+            <TabsContent value="privacy" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Privacy & Security</CardTitle>
