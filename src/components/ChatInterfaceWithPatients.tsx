@@ -216,11 +216,19 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   };
 
   const handleUserSelect = (user: User | null) => {
+    console.log('[ChatInterface] User selection changed:', user ? `${user.first_name} ${user.last_name} (${user.id})` : 'null');
+    
+    // Force conversation reset when switching users to avoid context mixing
+    startNewConversation();
+    
+    // Clear any pending requests to prevent stale responses
+    requestSeqRef.current += 1;
+    setIsTyping(false);
+    
+    // Set the new user
     setSelectedUser(user);
-    if (user) {
-      // Create or switch to conversation for this user
-      handleNewConversation();
-    }
+    
+    console.log('[ChatInterface] Conversation reset completed for user switch');
   };
 
   if (usersLoading) {

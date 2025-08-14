@@ -194,12 +194,14 @@ export const useConversations = () => {
   };
 
   const startNewConversation = () => {
-    logDebug('Starting new conversation');
+    logDebug('Starting new conversation - clearing all conversation state');
     
     flushSync(() => {
       setCurrentConversation(null);
       setMessages([]);
     });
+    
+    logDebug('New conversation state set - conversation and messages cleared');
   };
 
   const selectConversation = (conversationId: string) => {

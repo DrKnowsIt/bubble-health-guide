@@ -134,7 +134,26 @@ serve(async (req) => {
     }
 
     // Use database conversation history if available, otherwise fall back to provided history
-    const effectiveHistory = dbConversationHistory.length > 0 ? dbConversationHistory : conversation_history;
+    let effectiveHistory = dbConversationHistory.length > 0 ? dbConversationHistory : conversation_history;
+    
+    // Patient context validation - filter history that doesn't match current patient
+    if (patient_id && effectiveHistory.length > 0) {
+      // Check if any messages in history reference a different patient
+      const historyPatientMismatch = effectiveHistory.some(msg => {
+        if (msg.type === 'ai' && msg.content.toLowerCase().includes('hi ')) {
+          // Look for greetings that mention a different name
+          const currentPatientName = patient ? `${patient.first_name} ${patient.last_name}` : '';
+          return currentPatientName && !msg.content.toLowerCase().includes(currentPatientName.toLowerCase());
+        }
+        return false;
+      });
+      
+      if (historyPatientMismatch) {
+        console.log('🚨 Patient context mismatch detected - clearing conversation history to prevent confusion');
+        effectiveHistory = [];
+      }
+    }
+    
     console.log('Effective history messages:', effectiveHistory.length, 'messages');
     if (effectiveHistory.length > 0) {
       console.log('Sample messages:', effectiveHistory.slice(-2).map(m => ({ type: m.type, content: m.content.substring(0, 100) + '...' })));
@@ -195,7 +214,8 @@ serve(async (req) => {
         ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null;
 
-      console.log('Patient selected:', patient.first_name, patient.last_name, 'ID:', patient.id);
+      console.log('🎯 Patient selected:', patient.first_name, patient.last_name, 'ID:', patient.id);
+      console.log('📝 Patient context being used for AI response generation');
       
       patientContext = `
 PATIENT PROFILE:
