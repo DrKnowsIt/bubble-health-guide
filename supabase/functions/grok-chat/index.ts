@@ -447,7 +447,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-3-mini-fast',
+        model: 'grok-beta',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -458,12 +458,28 @@ Always end visible responses with: "These are suggestions to discuss with your d
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Grok API error:', response.status, errorText);
+      
+      // Enhanced error handling with specific error messages
+      let userFriendlyMessage = 'I encountered an error while processing your request. You can try asking your question again.';
+      
+      if (response.status === 401) {
+        userFriendlyMessage = 'Authentication error with AI service. Please contact support.';
+        console.error('Grok API authentication failed - check API key');
+      } else if (response.status === 429) {
+        userFriendlyMessage = 'AI service is busy. Please wait a moment and try again.';
+      } else if (response.status === 400) {
+        userFriendlyMessage = 'I had trouble understanding your request. Could you rephrase your question?';
+        console.error('Grok API bad request:', errorText);
+      } else if (response.status >= 500) {
+        userFriendlyMessage = 'AI service is temporarily unavailable. Please try again in a few minutes.';
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to get response from Grok AI',
-          details: errorText 
+          error: userFriendlyMessage,
+          technical_details: errorText 
         }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -620,7 +636,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
     return new Response(
       JSON.stringify({ 
         response: cleanedResponse,
-        model: 'grok-3-mini-fast',
+        model: 'grok-beta',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
       }),
