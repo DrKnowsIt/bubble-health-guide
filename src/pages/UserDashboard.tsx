@@ -254,17 +254,15 @@ export default function UserDashboard() {
 
           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
-            <TabsContent value="chat" className="h-full mt-0 flex min-h-0">
+            <TabsContent value="chat" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : isTablet ? (
                 <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
               ) : (
-                <div className="h-full flex min-h-0">
-                  <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Basic or Pro subscription.">
-                    <ChatGPTInterface selectedUser={selectedUser} />
-                  </SubscriptionGate>
-                </div>
+                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Basic or Pro subscription.">
+                  <ChatGPTInterface selectedUser={selectedUser} />
+                </SubscriptionGate>
               )}
             </TabsContent>
 
