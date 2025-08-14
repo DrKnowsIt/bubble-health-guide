@@ -2,13 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Crown, Zap } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "@/hooks/use-toast";
 
 interface PlanSelectionCardProps {
   description?: string;
 }
 
 export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
-  const { createCheckoutSession } = useSubscription();
+  const { createCheckoutSession, subscribed, subscription_tier, openCustomerPortal } = useSubscription();
 
   const plans = [
     {
@@ -49,12 +50,34 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
     }
   ];
 
-  const handleUpgrade = async (tier: 'basic' | 'pro') => {
+  const handlePlanAction = async (tier: 'basic' | 'pro') => {
     try {
-      await createCheckoutSession(tier);
+      if (subscribed) {
+        // Open customer portal for plan changes
+        await openCustomerPortal();
+      } else {
+        // Create new subscription
+        await createCheckoutSession(tier);
+      }
     } catch (error) {
-      console.error('Error upgrading subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process subscription. Please try again.",
+        variant: "destructive",
+      });
     }
+  };
+
+  const getButtonText = (planTier: 'basic' | 'pro') => {
+    if (!subscribed) return `Choose ${planTier === 'basic' ? 'Basic' : 'Pro'}`;
+    if (subscription_tier === planTier) return 'Current Plan';
+    if (subscription_tier === 'basic' && planTier === 'pro') return 'Upgrade';
+    if (subscription_tier === 'pro' && planTier === 'basic') return 'Downgrade';
+    return 'Change Plan';
+  };
+
+  const isCurrentPlan = (planTier: 'basic' | 'pro') => {
+    return subscribed && subscription_tier === planTier;
   };
 
   return (
@@ -111,11 +134,12 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
                 </ul>
                 
                 <Button 
-                  onClick={() => handleUpgrade(plan.tier)}
-                  className={`w-full ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
-                  variant={plan.popular ? 'default' : 'outline'}
+                  onClick={() => handlePlanAction(plan.tier)}
+                  className={`w-full ${plan.popular && !isCurrentPlan(plan.tier) ? 'btn-primary' : 'btn-outline'}`}
+                  variant={isCurrentPlan(plan.tier) ? 'secondary' : plan.popular ? 'default' : 'outline'}
+                  disabled={isCurrentPlan(plan.tier)}
                 >
-                  Choose {plan.name}
+                  {getButtonText(plan.tier)}
                 </Button>
               </CardContent>
             </Card>

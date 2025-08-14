@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { TierStatus } from "@/components/TierStatus";
 interface DashboardHeaderProps {
   className?: string;
 }
@@ -69,20 +70,15 @@ export const DashboardHeader = ({
           </div>
         </Link>
 
-        {/* Marketing Navigation (visible when signed in) */}
+        {/* Subscription Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/#features" className="text-sm text-muted-foreground hover:text-foreground">Features</Link>
-          <Link to="/#how-it-works" className="text-sm text-muted-foreground hover:text-foreground">How It Works</Link>
-          <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</Link>
-          <Link to="/faq" className="text-sm text-muted-foreground hover:text-foreground">FAQ</Link>
+          <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground">Subscription</Link>
         </nav>
 
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Tier Badge - Hidden on mobile */}
-          <Badge variant={tierInfo.variant} className="hidden md:inline-flex">
-            {tierInfo.text}
-          </Badge>
+          {/* Enhanced Tier Status */}
+          <TierStatus showUpgradeButton={true} className="hidden md:flex" />
 
           {/* Go to Dashboard - only when not already on dashboard */}
           {!onDashboard && (
@@ -128,9 +124,7 @@ export const DashboardHeader = ({
               </div>
               <DropdownMenuSeparator className="md:hidden" />
               <div className="p-2 md:hidden">
-                <Badge variant={tierInfo.variant} className="text-xs">
-                  {tierInfo.text} Plan
-                </Badge>
+                <TierStatus showUpgradeButton={true} className="text-xs" />
               </div>
               <DropdownMenuSeparator className="md:hidden" />
               <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">

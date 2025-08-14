@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { Footer } from "@/components/Footer";
 import { AuthModal } from "@/components/AuthModal";
+import { SubscriptionManagement } from "@/components/SubscriptionManagement";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
@@ -114,9 +115,46 @@ const Pricing = () => {
     }
   ];
 
+  // If user is logged in, show subscription management instead of marketing pricing
+  if (user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardHeader />
+        
+        {/* Back to Dashboard Link */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <Link to="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-smooth">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
+        </div>
+
+        {/* Subscription Management Header */}
+        <div className="py-12 text-center">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">
+              Subscription Management
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Manage your subscription, billing, and access to premium features.
+            </p>
+          </div>
+        </div>
+
+        {/* Subscription Management Content */}
+        <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+          <SubscriptionManagement />
+        </div>
+        
+        <Footer />
+      </div>
+    );
+  }
+
+  // Marketing pricing page for non-authenticated users
   return (
     <div className="min-h-screen bg-background">
-      {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
+      <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />
       
       {/* Back to Home Link */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
