@@ -49,6 +49,31 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // If conversation_id is provided, verify it belongs to the current patient
+    if (conversation_id && patient_id) {
+      const { data: convData, error: convErr } = await supabase
+        .from('conversations')
+        .select('patient_id, user_id')
+        .eq('id', conversation_id)
+        .single();
+
+      if (convErr || !convData || convData.patient_id !== patient_id || convData.user_id !== userData.user.id) {
+        console.log('🚨 Conversation validation failed:', {
+          conversationId: conversation_id,
+          expectedPatientId: patient_id,
+          actualPatientId: convData?.patient_id,
+          expectedUserId: userData.user.id,
+          actualUserId: convData?.user_id,
+          error: convErr
+        });
+        return new Response(
+          JSON.stringify({ error: 'Invalid conversation context' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+    
     const user_id = userData.user.id;
 
     // Get user subscription tier and status

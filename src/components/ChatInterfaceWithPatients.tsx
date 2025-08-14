@@ -228,17 +228,27 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   const handleUserSelect = (user: User | null) => {
     console.log('[ChatInterface] User selection changed:', user ? `${user.first_name} ${user.last_name} (${user.id})` : 'null');
     
+    // Immediately clear all conversation-related state to prevent cross-user contamination
+    setMessages([]);
+    setInputValue('');
+    setPendingImageUrl(null);
+    
     // Force conversation reset when switching users to avoid context mixing
     startNewConversation();
     
     // Clear any pending requests to prevent stale responses
     requestSeqRef.current += 1;
+    convAtRef.current = null;
     setIsTyping(false);
     
-    // Set the new user
+    // Set the new user which will trigger useConversations to fetch new data
     setSelectedUser(user);
     
-    console.log('[ChatInterface] Conversation reset completed for user switch');
+    console.log('[ChatInterface] Complete state reset for user switch:', {
+      newUser: user ? `${user.first_name} ${user.last_name}` : 'none',
+      messagesCleared: true,
+      conversationReset: true
+    });
   };
 
   if (usersLoading) {
@@ -311,41 +321,10 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
               ) : (
                 <>
                   {messages.map((message) => (
-                    <div
+                    <ChatMessage
                       key={message.id}
-                      className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`flex max-w-[80%] space-x-3 ${
-                          message.type === 'user' ? "flex-row-reverse space-x-reverse" : "flex-row"
-                        }`}
-                      >
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
-                            message.type === 'user' 
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {message.type === 'user' ? (
-                            <UserIcon className="h-5 w-5" />
-                          ) : (
-                            <Bot className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div
-                          className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden ${
-                            message.type === 'user'
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {message.content}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                      message={message}
+                    />
                   ))}
 
                   {isTyping && (

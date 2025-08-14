@@ -263,6 +263,7 @@ export const useConversations = () => {
   // Effect for initial load and when user or selected patient changes
   useEffect(() => {
     if (!user || !selectedUser?.id) {
+      logDebug('No user or selected patient, clearing all state');
       flushSync(() => {
         setConversations([]);
         setCurrentConversation(null);
@@ -271,20 +272,20 @@ export const useConversations = () => {
       return;
     }
 
-    logDebug('User or patient changed, fetching conversations', { userId: user.id, patientId: selectedUser.id });
+    logDebug('User or patient changed, resetting state and fetching conversations', { 
+      userId: user.id, 
+      patientId: selectedUser.id,
+      previousConversationCount: conversations.length 
+    });
     
-    // Clear current conversation if it doesn't belong to the new patient
-    if (currentConversation) {
-      const belongsToNewPatient = conversations.some(c => c.id === currentConversation);
-      if (!belongsToNewPatient) {
-        logDebug('Current conversation does not belong to new patient, clearing it');
-        flushSync(() => {
-          setCurrentConversation(null);
-          setMessages([]);
-        });
-      }
-    }
+    // Immediately clear all state when switching patients to prevent cross-contamination
+    flushSync(() => {
+      setCurrentConversation(null);
+      setMessages([]);
+      setConversations([]); // Clear conversations first to ensure clean slate
+    });
     
+    // Fetch fresh conversations for the new patient
     fetchConversations();
   }, [user, selectedUser?.id, fetchConversations]);
 
