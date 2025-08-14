@@ -42,7 +42,11 @@ export const useConversations = () => {
       return;
     }
     
-    logDebug('Fetching conversations for user/patient', { userId: user.id, patientId: selectedUser?.id });
+    console.log(`🔍 [Conversations Debug] Fetching conversations for user/patient`, { 
+      userId: user.id, 
+      patientId: selectedUser?.id,
+      hasSelectedUser: !!selectedUser 
+    });
     
     try {
       let query = supabase
@@ -62,7 +66,10 @@ export const useConversations = () => {
 
       if (error) throw error;
       
-      logDebug('Conversations fetched', { count: data?.length || 0 });
+      console.log(`📊 [Conversations Debug] Conversations fetched`, { 
+        count: data?.length || 0,
+        conversations: data?.map(c => ({ id: c.id, title: c.title, patient_id: c.patient_id })) || []
+      });
       
       // Use flushSync to ensure immediate state update
       flushSync(() => {
@@ -281,9 +288,10 @@ export const useConversations = () => {
       return;
     }
 
-    logDebug('User or patient changed, resetting state and fetching conversations', { 
+    console.log(`👤 [Conversations Debug] User or patient changed, resetting state and fetching conversations`, { 
       userId: user.id, 
       patientId: selectedUser?.id,
+      patientName: selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Account Owner',
       previousConversationCount: conversations.length 
     });
     
