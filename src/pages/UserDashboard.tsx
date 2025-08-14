@@ -69,7 +69,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
 
   const handleAddFamilyClick = () => {
-    if (!subscribed || subscription_tier !== 'pro') {
+    if (!subscribed || subscription_tier === 'basic') {
       toast({
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',

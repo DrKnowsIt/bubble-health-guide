@@ -14,7 +14,7 @@ interface AddFamilyMemberDialogProps {
 }
 
 export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDialogProps) => {
-  const { createUser, users, canAddUser, getUserLimit } = useUsers();
+  const { createUser, users, canAddUser, getUserLimit, refreshUsers } = useUsers();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -54,6 +54,9 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
         ...formData,
         is_primary: false
       });
+
+      // Refresh users list to show the new family member
+      await refreshUsers();
 
       toast({
         title: "Family member added",
