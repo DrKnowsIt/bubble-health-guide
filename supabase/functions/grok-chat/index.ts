@@ -135,6 +135,10 @@ serve(async (req) => {
 
     // Use database conversation history if available, otherwise fall back to provided history
     const effectiveHistory = dbConversationHistory.length > 0 ? dbConversationHistory : conversation_history;
+    console.log('Effective history messages:', effectiveHistory.length, 'messages');
+    if (effectiveHistory.length > 0) {
+      console.log('Sample messages:', effectiveHistory.slice(-2).map(m => ({ type: m.type, content: m.content.substring(0, 100) + '...' })));
+    }
 
     // Fetch patient data and health records if patient_id is provided
     let patientContext = '';
@@ -191,6 +195,8 @@ serve(async (req) => {
         ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null;
 
+      console.log('Patient selected:', patient.first_name, patient.last_name, 'ID:', patient.id);
+      
       patientContext = `
 PATIENT PROFILE:
 - Name: ${patient.first_name} ${patient.last_name}
@@ -447,7 +453,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-3-mini',
+        model: 'grok-4-0709',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -636,7 +642,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
     return new Response(
       JSON.stringify({ 
         response: cleanedResponse,
-        model: 'grok-3-mini',
+        model: 'grok-4-0709',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
       }),
