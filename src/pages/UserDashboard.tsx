@@ -136,7 +136,7 @@ export default function UserDashboard() {
       {/* Family Member Selector */}
       <div className="border-b border-border bg-background/95">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">For</span>
+          <span className="text-sm text-muted-foreground">User</span>
           <div className="w-64">
             <UserDropdown
               users={users}
