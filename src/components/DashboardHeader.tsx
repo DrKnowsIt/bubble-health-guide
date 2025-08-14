@@ -77,12 +77,7 @@ export const DashboardHeader = ({
           {/* Enhanced Tier Status */}
           <TierStatus showUpgradeButton={true} className="hidden md:flex" />
 
-          {/* Go to Dashboard - only when not already on dashboard */}
-          {!onDashboard && (
-            <Button asChild size="sm" className="hidden md:inline-flex">
-              <Link to="/dashboard">Go to Dashboard</Link>
-            </Button>
-          )}
+          {/* Navigation handled by page-specific back buttons */}
 
           {/* Notifications */}
           {/* User Menu */}
@@ -124,12 +119,14 @@ export const DashboardHeader = ({
                 <TierStatus showUpgradeButton={true} className="text-xs" />
               </div>
               <DropdownMenuSeparator className="md:hidden" />
-              <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
-                <Link to="/dashboard">
-                  <User className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </DropdownMenuItem>
+              {!onDashboard && (
+                <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
+                  <Link to="/dashboard">
+                    <User className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
                 <Link to="/settings">
                   <Settings className="h-4 w-4" />
