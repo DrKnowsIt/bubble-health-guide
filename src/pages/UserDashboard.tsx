@@ -40,7 +40,7 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
-  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
+  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   
@@ -282,7 +282,7 @@ export default function UserDashboard() {
                         <TabsTrigger value="forms">Health Forms</TabsTrigger>
                       </TabsList>
                       <TabsContent value="records" className="mt-4">
-                        <HealthRecords />
+                        <HealthRecords selectedPatient={selectedUser} />
                       </TabsContent>
                       <TabsContent value="forms" className="mt-4">
                         <HealthForms />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePatients } from '@/hooks/usePatients';
+import { useUsers } from '@/hooks/useUsers';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ interface HealthRecordsProps {
 export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRecordsProps) => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
-  const { patients, selectedPatient: hookSelectedPatient } = usePatients();
+  const { users, selectedUser: hookSelectedPatient } = useUsers();
   
   // Use prop patient if provided, otherwise use hook patient
   const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;
@@ -371,7 +371,7 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
               </div>
               <Button 
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                disabled={!selectedPatient && patients.length > 0}
+                        disabled={!selectedPatient && users.length > 0}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
@@ -379,7 +379,7 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
             </div>
           </CardHeader>
           <CardContent>
-            {!selectedPatient && patients.length > 0 && (
+            {!selectedPatient && users.length > 0 && (
               <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <p className="text-orange-800 text-sm">
                   ⚠️ Please select a patient from the dropdown above to view and manage their health records.
@@ -408,7 +408,7 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                           <SelectItem value="none">
                             <span className="text-muted-foreground">No specific patient (general record)</span>
                           </SelectItem>
-                          {patients.map((patient) => (
+                          {users.map((patient) => (
                             <SelectItem key={patient.id} value={patient.id}>
                               <div className="flex items-center gap-2">
                                 <span>{patient.first_name} {patient.last_name}</span>
@@ -527,7 +527,7 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                   </p>
                   <Button 
                     onClick={() => setShowCreateForm(true)}
-                    disabled={!selectedPatient && patients.length > 0}
+                    disabled={!selectedPatient && users.length > 0}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Record

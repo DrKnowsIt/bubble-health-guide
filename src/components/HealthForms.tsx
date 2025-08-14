@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { usePatients } from '@/hooks/usePatients';
+import { useUsers } from '@/hooks/useUsers';
 import { UploadProgressDialog } from '@/components/UploadProgressDialog';
 import { FormProgress } from '@/components/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
@@ -264,7 +264,7 @@ interface HealthFormsProps {
 
 export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient }: HealthFormsProps) => {
   const { user } = useAuth();
-  const { patients, selectedPatient: hookSelectedPatient } = usePatients();
+  const { users, selectedUser: hookSelectedPatient } = useUsers();
   const { subscribed, subscription_tier } = useSubscription();
   
   // Use prop patient if provided, otherwise use hook patient
@@ -629,7 +629,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                   <SelectItem value="none">
                     <span className="text-muted-foreground">No specific patient (general form)</span>
                   </SelectItem>
-                  {patients.map((patient) => (
+                  {users.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
                       <div className="flex items-center gap-2">
                         <span>{patient.first_name} {patient.last_name}</span>
@@ -682,7 +682,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   }
 
   // Show user selection guide if no users exist
-  if (patients.length === 0) {
+  if (users.length === 0) {
     return (
       <UserSelectionGuide 
         hasUsers={false}
@@ -694,7 +694,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   }
 
   // Show empty state if no patient selected but patients exist
-  if (!selectedPatient && patients.length > 0) {
+  if (!selectedPatient && users.length > 0) {
     return (
       <EmptyStateMessage 
         icon={<FileText className="h-6 w-6" />}
@@ -741,9 +741,9 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 {availableForms.map((form) => (
                   <Card 
                     key={form.id} 
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && patients.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
                     onClick={() => {
-                      if (selectedPatient || patients.length === 0) {
+                      if (selectedPatient || users.length === 0) {
                         setSelectedForm(form);
                       }
                     }}

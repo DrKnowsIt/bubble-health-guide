@@ -9,7 +9,14 @@ interface HealthStats {
   loading: boolean;
 }
 
-export const useHealthStats = (): HealthStats => {
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  // Add other user properties as needed
+}
+
+export const useHealthStats = (selectedUser?: User | null): HealthStats => {
   const { user } = useAuth();
   const [stats, setStats] = useState<HealthStats>({
     totalRecords: 0,
@@ -31,27 +38,43 @@ export const useHealthStats = (): HealthStats => {
 
     const fetchStats = async () => {
       try {
-        // Get health records count
-        const { count: recordsCount, error: recordsError } = await supabase
+        // Build health records query - filter by patient if selected
+        let recordsQuery = supabase
           .from('health_records')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
+        
+        if (selectedUser?.id) {
+          recordsQuery = recordsQuery.eq('patient_id', selectedUser.id);
+        }
 
+        const { count: recordsCount, error: recordsError } = await recordsQuery;
         if (recordsError) throw recordsError;
 
-        // Get conversations count
-        const { count: conversationsCount, error: conversationsError } = await supabase
+        // Build conversations query - filter by patient if selected
+        let conversationsQuery = supabase
           .from('conversations')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
+          
+        if (selectedUser?.id) {
+          conversationsQuery = conversationsQuery.eq('patient_id', selectedUser.id);
+        }
 
+        const { count: conversationsCount, error: conversationsError } = await conversationsQuery;
         if (conversationsError) throw conversationsError;
 
-        // Get last activity from conversations
-        const { data: lastConversation, error: lastActivityError } = await supabase
+        // Get last activity from conversations - filter by patient if selected
+        let lastActivityQuery = supabase
           .from('conversations')
           .select('updated_at')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id);
+          
+        if (selectedUser?.id) {
+          lastActivityQuery = lastActivityQuery.eq('patient_id', selectedUser.id);
+        }
+        
+        const { data: lastConversation, error: lastActivityError } = await lastActivityQuery
           .order('updated_at', { ascending: false })
           .limit(1)
           .single();
@@ -78,7 +101,7 @@ export const useHealthStats = (): HealthStats => {
     };
 
     fetchStats();
-  }, [user]);
+  }, [user, selectedUser?.id]);
 
   return stats;
 };
