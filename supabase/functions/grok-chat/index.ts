@@ -99,7 +99,7 @@ serve(async (req) => {
     const memoryEnabled = aiSettings?.memory_enabled ?? true;
     const personalizationLevel = aiSettings?.personalization_level ?? 'medium';
 
-    // Fetch conversation history from database if memory is enabled and conversation_id is provided
+    // Smart conversation history management
     let dbConversationHistory = [];
     if (memoryEnabled && conversation_id) {
       const { data: messages } = await supabase
@@ -107,14 +107,29 @@ serve(async (req) => {
         .select('type, content, created_at')
         .eq('conversation_id', conversation_id)
         .order('created_at', { ascending: true })
-        .limit(20); // Last 20 messages for context
+        .limit(15); // Optimized: fewer messages for better performance
 
       if (messages) {
-        dbConversationHistory = messages.map(msg => ({
-          type: msg.type,
-          content: msg.content,
-          timestamp: msg.created_at
-        }));
+        // Keep only relevant context (last 10 messages + any containing diagnoses)
+        const recentMessages = messages.slice(-10);
+        const diagnosisMessages = messages.filter(msg => 
+          msg.content.includes('diagnosis') || msg.content.includes('condition') || msg.content.includes('confidence')
+        ).slice(-3);
+        
+        const uniqueMessages = [...recentMessages];
+        diagnosisMessages.forEach(diagMsg => {
+          if (!uniqueMessages.find(m => m.created_at === diagMsg.created_at)) {
+            uniqueMessages.push(diagMsg);
+          }
+        });
+        
+        dbConversationHistory = uniqueMessages
+          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          .map(msg => ({
+            type: msg.type,
+            content: msg.content,
+            timestamp: msg.created_at
+          }));
       }
     }
 
@@ -356,24 +371,32 @@ PERSONALIZATION:
 - Medium: Use context when relevant without overfitting
 - Low: Keep guidance general and focused on current symptoms
 
+CONFIDENCE SCORING INSTRUCTIONS:
+- Base confidence on evidence strength: symptom clarity (0.1-0.3), duration/pattern (0.1-0.2), severity (0.1-0.2), health record correlation (0.1-0.3), medical literature alignment (0.1-0.2)
+- Start with baseline confidence, then adjust based on new information
+- Increase confidence when: symptoms are specific and well-described, patterns emerge over time, health records support the diagnosis, multiple related symptoms present
+- Decrease confidence when: symptoms are vague, contradictory information appears, lack of supporting evidence, better alternative explanations exist
+- Remove diagnoses below 0.3 confidence after 2-3 conversation turns
+- Maximum confidence should rarely exceed 0.85 without professional assessment
+
 RESPONSE FORMAT:
-- Visible chat: brief, empathetic, professional, NO raw JSON, NO form names
-- After the visible reply, append a machine-readable JSON object ONLY (no preamble) for the client to parse:
+- Visible chat: brief, empathetic, professional, NO raw JSON, NO form names, NO mention of confidence scores
+- CRITICAL: End your visible response with a clear boundary marker: "---DIAGNOSIS_DATA---"
+- After the boundary, provide ONLY the JSON object (no other text):
 {
   "diagnoses": [
-    {"diagnosis": "condition name to ask doctor about", "confidence": 0.75, "reasoning": "why this is worth discussing with your doctor"}
+    {"diagnosis": "condition name", "confidence": [calculated_score], "reasoning": "evidence-based justification"}
   ],
   "suggested_forms": ["symptom_tracker", "vital_signs", "medication_log", "mood_tracker", "pain_tracker", "sleep_tracker"]
 }
-- Do not describe or mention this JSON in the visible text
 
 PREPARATION APPROACH:
-1. Organize symptoms against patient's existing data and health records
-2. Consider health forms data for patterns and trends
-3. Ask clarifying questions to help them describe symptoms better  
-4. Consider possible conditions based on symptom patterns to discuss with doctor
-5. Assign confidence scores and try to increase confidence through focused questions
-6. Always recommend consulting their doctor for proper diagnosis and treatment
+1. Analyze symptom quality and calculate initial confidence scores
+2. Cross-reference with patient's health records and forms data  
+3. Ask targeted questions to strengthen or weaken specific possibilities
+4. Dynamically adjust confidence based on responses and evidence
+5. Prioritize possibilities above 0.5 confidence for follow-up questions
+6. Remove low-confidence possibilities gracefully after reasonable investigation
 
 Always end visible responses with: "These are suggestions to discuss with your doctor, who can provide proper diagnosis and treatment."`;
 
@@ -456,65 +479,142 @@ Always end visible responses with: "These are suggestions to discuss with your d
       );
     }
 
-    // Extract and update probable diagnoses if present
+    // Enhanced JSON extraction and response cleaning
     let updatedDiagnoses = null;
+    let cleanedResponse = aiResponse;
+    
     try {
-      const jsonMatch = aiResponse.match(/\{[\s\S]*"diagnoses"[\s\S]*\}/);
-      if (jsonMatch && patient_id) {
-        const diagnosisData = JSON.parse(jsonMatch[0]);
-        if (diagnosisData.diagnoses) {
-          // Merge with existing diagnoses, keeping top 5 by confidence
-          const newDiagnoses = diagnosisData.diagnoses.map((d: any) => ({
-            ...d,
-            updated_at: new Date().toISOString()
-          }));
-          
-          // Combine and deduplicate
-          const combined = [...currentDiagnoses];
-          newDiagnoses.forEach((newDiag: any) => {
-            const existing = combined.findIndex((d: any) => d.diagnosis === newDiag.diagnosis);
-            if (existing >= 0) {
-              combined[existing] = newDiag; // Update existing
-            } else {
-              combined.push(newDiag); // Add new
-            }
-          });
-          
-          // Sort by confidence and keep top 5
-          updatedDiagnoses = combined
-            .sort((a: any, b: any) => b.confidence - a.confidence)
-            .slice(0, 5);
+      // Look for the boundary marker first
+      const boundaryIndex = aiResponse.indexOf('---DIAGNOSIS_DATA---');
+      
+      if (boundaryIndex !== -1) {
+        // Split at boundary: everything before is user-facing text
+        cleanedResponse = aiResponse.substring(0, boundaryIndex).trim();
+        const jsonPart = aiResponse.substring(boundaryIndex + 20).trim(); // Skip boundary marker
+        
+        try {
+          const diagnosisData = JSON.parse(jsonPart);
+          if (diagnosisData.diagnoses && patient_id) {
+            // Process diagnoses with confidence validation
+            const validatedDiagnoses = diagnosisData.diagnoses
+              .filter((d: any) => d.confidence >= 0.3) // Filter out low confidence
+              .map((d: any) => ({
+                ...d,
+                confidence: Math.min(Math.max(d.confidence, 0.3), 0.85), // Clamp confidence
+                updated_at: new Date().toISOString()
+              }));
+            
+            // Intelligent diagnosis merging
+            const combined = [...currentDiagnoses];
+            validatedDiagnoses.forEach((newDiag: any) => {
+              const existing = combined.findIndex((d: any) => 
+                d.diagnosis.toLowerCase() === newDiag.diagnosis.toLowerCase()
+              );
+              if (existing >= 0) {
+                // Update with higher confidence or more recent reasoning
+                if (newDiag.confidence > combined[existing].confidence || 
+                    newDiag.reasoning.length > combined[existing].reasoning.length) {
+                  combined[existing] = newDiag;
+                }
+              } else {
+                combined.push(newDiag);
+              }
+            });
+            
+            // Sort by confidence, remove stale low-confidence entries
+            const now = new Date();
+            updatedDiagnoses = combined
+              .filter((d: any) => {
+                const age = (now.getTime() - new Date(d.updated_at || now).getTime()) / (1000 * 60 * 60 * 24);
+                return d.confidence >= 0.3 || age < 1; // Keep recent entries even if low confidence
+              })
+              .sort((a: any, b: any) => b.confidence - a.confidence)
+              .slice(0, 5);
 
-          // Update patient record
-          await supabase
-            .from('patients')
-            .update({ probable_diagnoses: updatedDiagnoses })
-            .eq('id', patient_id);
+            // Update patient record
+            await supabase
+              .from('patients')
+              .update({ probable_diagnoses: updatedDiagnoses })
+              .eq('id', patient_id);
+          }
+        } catch (parseError) {
+          console.log('Failed to parse diagnosis JSON:', parseError);
+        }
+      } else {
+        // Fallback: try multiple JSON extraction methods
+        const extractionMethods = [
+          /---\s*\{[\s\S]*?"diagnoses"[\s\S]*?\}\s*$/,  // After triple dash
+          /\n\s*\{[\s\S]*?"diagnoses"[\s\S]*?\}\s*$/,   // End of line JSON
+          /\{[\s\S]*?"diagnoses"[\s\S]*?\}(?=\s*$)/,    // JSON at very end
+        ];
+        
+        for (const regex of extractionMethods) {
+          const match = aiResponse.match(regex);
+          if (match) {
+            try {
+              const jsonStr = match[0].replace(/^[^\{]*/, ''); // Remove any prefix
+              const diagnosisData = JSON.parse(jsonStr);
+              
+              if (diagnosisData.diagnoses && patient_id) {
+                cleanedResponse = aiResponse.replace(match[0], '').trim();
+                // Process diagnoses (same logic as above)
+                const validatedDiagnoses = diagnosisData.diagnoses
+                  .filter((d: any) => d.confidence >= 0.3)
+                  .map((d: any) => ({
+                    ...d,
+                    confidence: Math.min(Math.max(d.confidence, 0.3), 0.85),
+                    updated_at: new Date().toISOString()
+                  }));
+                
+                const combined = [...currentDiagnoses];
+                validatedDiagnoses.forEach((newDiag: any) => {
+                  const existing = combined.findIndex((d: any) => 
+                    d.diagnosis.toLowerCase() === newDiag.diagnosis.toLowerCase()
+                  );
+                  if (existing >= 0) {
+                    if (newDiag.confidence > combined[existing].confidence) {
+                      combined[existing] = newDiag;
+                    }
+                  } else {
+                    combined.push(newDiag);
+                  }
+                });
+                
+                updatedDiagnoses = combined
+                  .filter((d: any) => d.confidence >= 0.3)
+                  .sort((a: any, b: any) => b.confidence - a.confidence)
+                  .slice(0, 5);
+
+                await supabase
+                  .from('patients')
+                  .update({ probable_diagnoses: updatedDiagnoses })
+                  .eq('id', patient_id);
+                break;
+              }
+            } catch (e) {
+              continue; // Try next method
+            }
+          }
         }
       }
     } catch (error) {
-      console.log('No diagnosis data to extract:', error);
-    }
-
-    // More precise regex to only remove JSON objects at the end of responses
-    let cleanedResponse = aiResponse;
-    
-    // Look for diagnosis JSON at the end of the response
-    const diagnosisJsonMatch = aiResponse.match(/\n\s*\{[^}]*"diagnoses"[^}]*\}[^}]*\}\s*$/);
-    if (diagnosisJsonMatch) {
-      cleanedResponse = aiResponse.replace(diagnosisJsonMatch[0], '').trim();
-    } else {
-      // Fallback: look for any JSON block that contains "diagnoses" but only at line boundaries
-      const fallbackMatch = aiResponse.match(/\n\s*\{[\s\S]*?"diagnoses"[\s\S]*?\}\s*$/);
-      if (fallbackMatch) {
-        cleanedResponse = aiResponse.replace(fallbackMatch[0], '').trim();
-      }
+      console.log('Error in diagnosis extraction:', error);
     }
     
-    // Safety check: if cleaning resulted in very short response, use original
-    if (cleanedResponse.length < 20 && aiResponse.length > 50) {
-      console.log('Cleaning resulted in too short response, using original');
-      cleanedResponse = aiResponse;
+    // Final cleanup: remove any remaining JSON fragments
+    cleanedResponse = cleanedResponse
+      .replace(/\{[\s\S]*?"diagnoses"[\s\S]*?\}/g, '')
+      .replace(/---DIAGNOSIS_DATA---[\s\S]*$/g, '')
+      .replace(/^\s*[\{\[][\s\S]*$/gm, '') // Remove lines starting with { or [
+      .trim();
+    
+    // Safety check: ensure we have meaningful content
+    if (cleanedResponse.length < 10 && aiResponse.length > 50) {
+      console.log('Over-cleaning detected, using fallback');
+      // Extract just the first paragraph or sentence
+      const sentences = aiResponse.split(/[.!?]+/);
+      cleanedResponse = sentences.slice(0, 2).join('. ').trim();
+      if (cleanedResponse && !cleanedResponse.endsWith('.')) cleanedResponse += '.';
     }
 
     return new Response(
