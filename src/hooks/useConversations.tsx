@@ -272,6 +272,19 @@ export const useConversations = () => {
     }
 
     logDebug('User or patient changed, fetching conversations', { userId: user.id, patientId: selectedUser.id });
+    
+    // Clear current conversation if it doesn't belong to the new patient
+    if (currentConversation) {
+      const belongsToNewPatient = conversations.some(c => c.id === currentConversation);
+      if (!belongsToNewPatient) {
+        logDebug('Current conversation does not belong to new patient, clearing it');
+        flushSync(() => {
+          setCurrentConversation(null);
+          setMessages([]);
+        });
+      }
+    }
+    
     fetchConversations();
   }, [user, selectedUser?.id, fetchConversations]);
 

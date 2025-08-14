@@ -35,6 +35,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
   const { 
+    conversations,
     messages, 
     loading: messagesLoading, 
     setMessages,
@@ -97,6 +98,15 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   const handleSendMessage = async () => {
     if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
 
+    // Validate conversation belongs to current patient
+    if (currentConversation) {
+      const currentConv = conversations.find(c => c.id === currentConversation);
+      if (!currentConv) {
+        console.log('[ChatInterface] Current conversation not found in conversations list, forcing new conversation');
+        startNewConversation();
+      }
+    }
+
     const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
     const imageUrl = pendingImageUrl || undefined;
 
@@ -113,7 +123,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     setInputValue('');
     setPendingImageUrl(null);
 
-    // Ensure conversation exists
+    // Ensure conversation exists and belongs to current patient
     let conversationId = currentConversation;
     if (!conversationId) {
       const title = messageContent.length > 50 ? messageContent.slice(0, 50) + '...' : messageContent;

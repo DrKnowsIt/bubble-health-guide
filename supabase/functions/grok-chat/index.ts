@@ -138,10 +138,23 @@ serve(async (req) => {
     
     // Patient context validation - filter history that doesn't match current patient
     if (patient_id && effectiveHistory.length > 0) {
-      // Check if any messages in history reference a different patient
+      // Check if conversation belongs to current patient by validating the conversation record
+      if (conversation_id) {
+        const { data: conversationData } = await supabase
+          .from('conversations')
+          .select('patient_id')
+          .eq('id', conversation_id)
+          .single();
+        
+        if (conversationData?.patient_id && conversationData.patient_id !== patient_id) {
+          console.log('🚨 Conversation belongs to different patient - clearing history to prevent context bleeding');
+          effectiveHistory = [];
+        }
+      }
+      
+      // Additional check: Look for greetings that mention a different name
       const historyPatientMismatch = effectiveHistory.some(msg => {
         if (msg.type === 'ai' && msg.content.toLowerCase().includes('hi ')) {
-          // Look for greetings that mention a different name
           const currentPatientName = patient ? `${patient.first_name} ${patient.last_name}` : '';
           return currentPatientName && !msg.content.toLowerCase().includes(currentPatientName.toLowerCase());
         }
@@ -149,7 +162,7 @@ serve(async (req) => {
       });
       
       if (historyPatientMismatch) {
-        console.log('🚨 Patient context mismatch detected - clearing conversation history to prevent confusion');
+        console.log('🚨 Patient name mismatch detected in conversation history - clearing to prevent confusion');
         effectiveHistory = [];
       }
     }
