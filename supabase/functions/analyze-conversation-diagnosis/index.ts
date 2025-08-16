@@ -73,11 +73,21 @@ serve(async (req) => {
       .eq('patient_id', patient_id)
       .order('updated_at', { ascending: false });
 
-    // Build conversation context for analysis
+    // Build conversation context for analysis - focus on the current conversation topic
     const conversationText = recent_messages
       .filter((msg: any) => msg.type === 'user')
       .map((msg: any) => msg.content)
       .join(' ');
+
+    console.log('Analyzing conversation text:', conversationText);
+
+    // Only proceed if we have meaningful user input
+    if (!conversationText.trim() || conversationText.length < 5) {
+      return new Response(
+        JSON.stringify({ success: true, diagnoses: [], message: 'Insufficient conversation data' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get patient context
     const patientAge = patient.date_of_birth 
@@ -90,24 +100,25 @@ Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
 Gender: ${patient.gender || 'Not specified'}
 Current probable diagnoses: ${existingDiagnoses?.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}%)`).join(', ') || 'None'}`;
 
-    const systemPrompt = `You are a medical analysis AI that generates structured diagnosis data based on conversation context. Analyze the conversation and provide potential diagnoses with confidence scores.
+    const systemPrompt = `You are a medical analysis AI that generates potential diagnoses based on conversation context. Only analyze symptoms that are clearly mentioned in the conversation.
 
 PATIENT CONTEXT:
 ${patientContext}
 
 ANALYSIS INSTRUCTIONS:
-- Generate 2-4 potential diagnoses based on the conversation
-- Base confidence on evidence strength and symptom specificity
-- Use confidence scale 0.3-0.85 (never below 0.3 or above 0.85)
-- Consider patient's age, gender, and existing diagnoses
-- Focus on most likely conditions that warrant medical discussion
-- Provide clear, evidence-based reasoning for each diagnosis
+- ONLY generate diagnoses for symptoms explicitly mentioned in the conversation
+- Do NOT generate diagnoses for unrelated conditions
+- Focus on the primary complaint mentioned by the user
+- Generate 2-3 potential diagnoses maximum
+- Base confidence on symptom specificity and medical likelihood
+- Use confidence scale 0.3-0.8 (be conservative)
+
+IMPORTANT: If the conversation mentions knee pain, only suggest knee-related conditions. If it mentions headache, only suggest headache-related conditions, etc.
 
 CONFIDENCE SCORING:
 - 0.3-0.4: Possible but needs more information
 - 0.5-0.6: Moderate likelihood based on symptoms
 - 0.7-0.8: Strong evidence supporting this possibility
-- 0.85: Very strong evidence (rare, only with clear symptoms)
 
 RESPONSE FORMAT (JSON only):
 {
@@ -120,7 +131,7 @@ RESPONSE FORMAT (JSON only):
   ]
 }
 
-Conversation to analyze: "${conversationText}"`;
+Current conversation: "${conversationText}"`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
