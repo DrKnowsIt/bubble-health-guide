@@ -230,11 +230,11 @@ export const TabletChatInterface = ({
 
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Pro subscription.">
-      <div className="h-full flex bg-background">
+      <div className="h-screen max-h-screen flex bg-background overflow-hidden">
         {/* Main Chat Area - Two Column Layout for Tablet */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Header with Patient Selection and Controls */}
-          <div className="border-b bg-background/95 backdrop-blur p-4 flex items-center justify-between">
+          <div className="border-b bg-background/95 backdrop-blur p-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -285,10 +285,10 @@ export const TabletChatInterface = ({
             </div>
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 flex">
+          {/* Chat Messages - Main content area */}
+          <div className="flex-1 flex min-h-0">
             {/* Messages Area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-0">
               {!selectedUser ? (
                 <div className="flex-1 flex items-center justify-center p-8">
                   <UserSelectionGuide
@@ -301,7 +301,7 @@ export const TabletChatInterface = ({
               ) : (
                 <>
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
                     {messages.map((message) => (
                       <div
                         key={message.id}
@@ -360,7 +360,7 @@ export const TabletChatInterface = ({
                   </div>
 
                   {/* Input Area */}
-                  <div className="border-t bg-background/95 backdrop-blur p-6">
+                  <div className="border-t bg-background/95 backdrop-blur p-6 flex-shrink-0">
                     <div className="relative">
                       <Textarea
                         placeholder="Describe your symptoms or ask a health question..."
@@ -432,15 +432,15 @@ export const TabletChatInterface = ({
               )}
             </div>
 
-            {/* Assessment Side Panel - Always visible */}
-            <div className="w-80 border-l bg-background overflow-y-auto">
-              <div className="p-4 border-b">
+            {/* Assessment Side Panel - Always visible with scroll */}
+            <div className="w-80 border-l bg-background flex flex-col min-h-0">
+              <div className="p-4 border-b flex-shrink-0">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Brain className="h-5 w-5 text-primary" />
                   Health Assessment
                 </h3>
               </div>
-              <div className="p-4">
+              <div className="flex-1 overflow-y-auto p-4">
                 <ProbableDiagnoses 
                   diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
                   patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
