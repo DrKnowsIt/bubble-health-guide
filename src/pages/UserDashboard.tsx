@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/ChatGPTInterface';
-import { HealthRecords } from '@/components/HealthRecords';
+import { DNAUpload } from '@/components/DNAUpload';
 import { HealthForms } from '@/components/HealthForms';
 import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
@@ -273,7 +273,16 @@ export default function UserDashboard() {
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
                   <div className="h-full overflow-y-auto">
                     <div className="space-y-6">
-                      <HealthForms />
+                      <div className="space-y-6">
+                        <HealthForms />
+                        
+                        <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data from companies like 23andMe or Ancestry for advanced genetic insights — available on Pro.">
+                          <DNAUpload 
+                            selectedPatient={selectedUser} 
+                            onUploadComplete={() => {}}
+                          />
+                        </SubscriptionGate>
+                      </div>
                   </div>
                   </div>
                 </SubscriptionGate>
