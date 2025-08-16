@@ -232,14 +232,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
       description="Manage your health records and documents. Available on Basic and Pro plans."
     >
       <div className="space-y-6">
-        
-        {/* DNA Upload Section */}
-        <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data for advanced analysis — available on Pro.">
-          <DNAUpload 
-            selectedPatient={selectedPatient} 
-            onUploadComplete={loadRecords}
-          />
-        </SubscriptionGate>
       </div>
     </SubscriptionGate>
   );
