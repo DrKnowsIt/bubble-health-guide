@@ -241,7 +241,7 @@ export const MobileEnhancedChatInterface = ({
   }
 
   return (
-    <SubscriptionGate requiredTier="pro" feature="AI Chat" description="Start conversations with our AI health assistant with a Pro subscription.">
+    <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Pro subscription.">
       <div className="h-full flex flex-col bg-background">
         {/* Collapsible Patient Selector */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">
