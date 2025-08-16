@@ -27,7 +27,8 @@ import {
   Upload,
   Calendar,
   Lock,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 
 interface HealthForm {
@@ -728,6 +729,17 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
               </span>
             )}
           </CardDescription>
+          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-4">
+            <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-800">Voluntary Participation</p>
+              <p className="text-blue-700 mt-1">
+                Completing these health forms is entirely voluntary. You may skip any questions or sections 
+                you're not comfortable answering. This information is used solely to provide personalized 
+                health insights and is not a substitute for professional medical advice.
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           

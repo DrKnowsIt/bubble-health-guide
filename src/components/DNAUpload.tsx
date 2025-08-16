@@ -64,7 +64,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       toast({
         variant: "destructive",
         title: "Invalid File Type",
-        description: "Please upload a .txt, .csv, or .tsv file from Ancestry or 23andMe.",
+        description: "Please upload a raw DNA data file (.txt, .csv, or .tsv) from 23andMe, Ancestry, or similar services.",
       });
       return false;
     }
@@ -229,16 +229,27 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          DNA File Upload
+          DNA File Upload (23andMe/Ancestry)
         </CardTitle>
         <CardDescription>
-          Upload your DNA data from Ancestry.com or 23andMe for health insights.
+          Upload your raw DNA data files from companies like 23andMe or Ancestry.com for personalized health insights.
           {selectedPatient && (
             <span className="block mt-1 text-sm">
               Uploading for: {selectedPatient.first_name} {selectedPatient.last_name}
             </span>
           )}
         </CardDescription>
+        <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mt-4">
+          <AlertCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium text-green-800">DNA Data Source & Voluntary Upload</p>
+            <p className="text-green-700 mt-1">
+              Only upload raw DNA data files from reputable companies like 23andMe, Ancestry.com, or similar services. 
+              Uploading your DNA data is completely voluntary and optional. Your genetic information is encrypted and 
+              secure, and you can delete it at any time.
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div
@@ -256,7 +267,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
               Drop your DNA file here or click to browse
             </p>
             <p className="text-sm text-muted-foreground">
-              Supports .txt, .csv, and .tsv files from Ancestry and 23andMe
+              Supports raw DNA data files (.txt, .csv, .tsv) from 23andMe, Ancestry.com, and similar services
             </p>
           </div>
           
@@ -285,10 +296,11 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
           <div className="flex items-start gap-3 text-sm">
             <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium">How to get your DNA file:</p>
+              <p className="font-medium">How to get your raw DNA data file:</p>
               <ul className="mt-1 space-y-1 text-muted-foreground">
-                <li>• <strong>Ancestry:</strong> Go to Settings → Privacy → Download your data</li>
                 <li>• <strong>23andMe:</strong> Go to Account → Download your data → Raw Data</li>
+                <li>• <strong>Ancestry:</strong> Go to Settings → Privacy → Download your data</li>
+                <li>• <strong>Other services:</strong> Look for "Raw DNA" or "Export genetic data" options</li>
               </ul>
             </div>
           </div>
@@ -296,8 +308,11 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
           <div className="flex items-start gap-3 text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium">Your data is secure:</p>
-              <p className="text-muted-foreground">Files are encrypted and only accessible by you.</p>
+              <p className="font-medium">Your genetic data is secure & voluntary:</p>
+              <p className="text-muted-foreground">
+                DNA uploads are completely optional. Files are encrypted, stored securely, and only accessible by you. 
+                You can delete your genetic data at any time.
+              </p>
             </div>
           </div>
         </div>

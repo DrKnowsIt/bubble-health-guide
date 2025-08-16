@@ -17,7 +17,6 @@ import { UploadProgressDialog } from '@/components/UploadProgressDialog';
 import { 
   Plus, 
   FileText, 
-  Upload, 
   Download, 
   Trash2, 
   Heart,
@@ -25,7 +24,8 @@ import {
   Dna,
   Utensils,
   Calendar,
-  User
+  User,
+  AlertTriangle
 } from 'lucide-react';
 
 interface HealthRecord {
@@ -73,7 +73,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
     record_type: '',
     title: '',
     data: '',
-    file: null as File | null,
     patient_id: 'none'
   });
 
@@ -137,99 +136,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
     }
   };
 
-  const validateFileSize = (file: File): boolean => {
-    // Hard limit at 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "File Too Large",
-        description: "Files must be under 10MB. Please compress your file or contact support for larger files.",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  const triggerAIAnalysis = async (healthRecordId: string, fileName: string, fileSize: number) => {
-    try {
-      setCurrentStep('analyzing');
-      setAnalysisProgress(10);
-
-      // Simulate analysis progress
-      const progressInterval = setInterval(() => {
-        setAnalysisProgress(prev => Math.min(prev + 15, 90));
-      }, 800);
-
-      const { data, error } = await supabase.functions.invoke('summarize-health-records', {
-        body: { 
-          health_record_id: healthRecordId,
-          force_regenerate: true 
-        }
-      });
-
-      clearInterval(progressInterval);
-      setAnalysisProgress(100);
-
-      if (error) throw error;
-
-      setAnalysisSummary(data?.summary || 'Analysis completed successfully.');
-      setCurrentStep('complete');
-    } catch (error: any) {
-      console.error('Analysis error:', error);
-      setAnalysisSummary('Analysis completed with limited results due to file size or format.');
-      setCurrentStep('complete');
-    }
-  };
-
-  const handleFileUpload = async (file: File): Promise<string | null> => {
-    if (!validateFileSize(file)) return null;
-
-    // Check if file is large (>5MB) for warning
-    const isLargeFile = file.size > 5 * 1024 * 1024;
-    
-    setCurrentFileName(file.name);
-    setCurrentFileSize(file.size);
-    setShowProgressDialog(true);
-    setCurrentStep('uploading');
-    setUploadProgress(0);
-    setAnalysisProgress(0);
-    setProgressError('');
-    setAnalysisSummary('');
-
-    try {
-      // Simulate upload progress
-      const uploadInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 12, 90));
-      }, 300);
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('health-records')
-        .upload(fileName, file);
-
-      clearInterval(uploadInterval);
-      setUploadProgress(100);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('health-records')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error: any) {
-      setCurrentStep('error');
-      setProgressError(error.message || "Failed to upload file.");
-      toast({
-        variant: "destructive",
-        title: "Upload Error",
-        description: "Failed to upload file.",
-      });
-      return null;
-    }
-  };
 
   const closeProgressDialog = () => {
     setShowProgressDialog(false);
@@ -245,17 +151,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
     setLoading(true);
 
     try {
-      let fileUrl = null;
-      let healthRecordId = null;
-      
-      if (formData.file) {
-        fileUrl = await handleFileUpload(formData.file);
-        if (!fileUrl) {
-          setLoading(false);
-          return;
-        }
-      }
-
       let parsedData = {};
       if (formData.data) {
         try {
@@ -265,40 +160,28 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
         }
       }
 
-      const { data: recordData, error } = await supabase
+      const { error } = await supabase
         .from('health_records')
         .insert({
           user_id: user?.id,
           patient_id: formData.patient_id === 'none' ? null : formData.patient_id || null,
           record_type: formData.record_type,
           title: formData.title,
-          data: {
-            ...parsedData,
-            isLargeFile: formData.file ? formData.file.size > 5 * 1024 * 1024 : false
-          },
-          file_url: fileUrl
-        })
-        .select('id')
-        .single();
+          data: parsedData,
+          file_url: null
+        });
 
       if (error) throw error;
-      healthRecordId = recordData?.id;
-
-      // Trigger AI analysis if file was uploaded
-      if (fileUrl && healthRecordId && formData.file) {
-        await triggerAIAnalysis(healthRecordId, formData.file.name, formData.file.size);
-      }
 
       toast({
         title: "Success",
-        description: fileUrl ? "Health record created and analyzed successfully." : "Health record created successfully.",
+        description: "Health record created successfully.",
       });
 
       setFormData({
         record_type: '',
         title: '',
         data: '',
-        file: null,
         patient_id: 'none'
       });
       setShowCreateForm(false);
@@ -364,8 +247,8 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                 </CardTitle>
                 <CardDescription>
                   {selectedPatient 
-                    ? `Manage ${selectedPatient.first_name}'s medical history, lab results, and health documents.`
-                    : "Select a patient to manage their medical history, lab results, and health documents."
+                    ? `Manage ${selectedPatient.first_name}'s medical history and health information.`
+                    : "Select a patient to manage their medical history and health information."
                   }
                 </CardDescription>
               </div>
@@ -391,6 +274,16 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle className="text-lg">Create New Health Record for {selectedPatient.first_name} {selectedPatient.last_name}</CardTitle>
+                  <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-800">Important Legal Notice</p>
+                      <p className="text-amber-700 mt-1">
+                        This health record system is for informational purposes only. File uploads are disabled for legal compliance. 
+                        Please consult with healthcare professionals for medical advice.
+                      </p>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={createRecord} className="space-y-4">
@@ -460,26 +353,18 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="data">Data (JSON or text)</Label>
+                      <Label htmlFor="data">Health Information (Text Only)</Label>
                       <Textarea
                         id="data"
                         value={formData.data}
                         onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                        placeholder="Enter health data as JSON or plain text"
+                        placeholder="Enter health information as text. File uploads are not available."
                         rows={4}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="file">Upload File (Optional)</Label>
-                      <Input
-                        id="file"
-                        type="file"
-                        onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt"
+                        required
                       />
                       <p className="text-xs text-muted-foreground">
-                        Supported formats: PDF, Images, Word documents, Text files (max 10MB)
+                        For legal compliance, only text-based health records are supported. 
+                        File uploads have been disabled.
                       </p>
                     </div>
 
@@ -496,19 +381,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
               </Card>
             )}
 
-            {/* Upload Progress Dialog */}
-            <UploadProgressDialog
-              open={showProgressDialog}
-              onClose={closeProgressDialog}
-              fileName={currentFileName}
-              uploadProgress={uploadProgress}
-              analysisProgress={analysisProgress}
-              currentStep={currentStep}
-              error={progressError}
-              summary={analysisSummary}
-              fileSize={currentFileSize}
-              isLargeFile={currentFileSize > 5 * 1024 * 1024}
-            />
 
             {/* Loading State */}
             {loading ? (
