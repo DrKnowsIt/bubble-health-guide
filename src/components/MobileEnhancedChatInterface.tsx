@@ -148,15 +148,7 @@ export const MobileEnhancedChatInterface = ({
 
       if (error) throw error;
 
-      const rawResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
-      const cleanResponse = rawResponse
-        .replace(/\{[\s\S]*?"diagnosis"[\s\S]*?\}/gi, '')
-        .replace(/\{[\s\S]*?"suggested_forms"[\s\S]*?\}/gi, '')
-        .replace(/\[[\s\S]*?\]/g, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/\s+,/g, ',')
-        .replace(/,\s+\./g, '.')
-        .trim();
+      const aiResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
 
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
@@ -166,12 +158,28 @@ export const MobileEnhancedChatInterface = ({
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
-        content: cleanResponse,
+        content: aiResponse,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
+
+      // Call separate diagnosis analysis (background)
+      const recentMessages = [...messages, 
+        { type: 'user', content: messageContent },
+        { type: 'ai', content: aiResponse }
+      ].slice(-6);
+
+      supabase.functions.invoke('analyze-conversation-diagnosis', {
+        body: {
+          conversation_id: conversationId,
+          patient_id: selectedUser.id,
+          recent_messages: recentMessages
+        }
+      }).catch(error => {
+        console.error('Error analyzing conversation for diagnosis:', error);
+      });
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
