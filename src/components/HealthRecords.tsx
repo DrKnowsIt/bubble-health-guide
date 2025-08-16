@@ -252,13 +252,6 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                   }
                 </CardDescription>
               </div>
-              <Button 
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                        disabled={!selectedPatient && users.length > 0}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Record
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -394,16 +387,9 @@ export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRe
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No Health Records</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start by adding your first health record to build your medical profile.
+                  <p className="text-muted-foreground">
+                    Health record creation has been disabled for legal compliance. Existing records are displayed here when available.
                   </p>
-                  <Button 
-                    onClick={() => setShowCreateForm(true)}
-                    disabled={!selectedPatient && users.length > 0}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Record
-                  </Button>
                 </div>
               ) : (
                 records.map((record) => {
