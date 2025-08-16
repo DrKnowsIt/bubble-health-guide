@@ -696,23 +696,21 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
       </div>
 
-      {/* Diagnoses Sidebar */}
-      {selectedUser && diagnoses.length > 0 && (
-        <div className="w-80 border-l border-border bg-background overflow-y-auto">
-          <div className="p-4">
-            <ProbableDiagnoses 
-              diagnoses={diagnoses.map(d => ({
-                diagnosis: d.diagnosis,
-                confidence: d.confidence,
-                reasoning: d.reasoning,
-                updated_at: d.updated_at
-              }))}
-              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-              patientId={selectedUser.id}
-            />
-          </div>
+      {/* Diagnoses Sidebar - Always visible */}
+      <div className="w-80 border-l border-border bg-background overflow-y-auto">
+        <div className="p-4">
+          <ProbableDiagnoses 
+            diagnoses={selectedUser && diagnoses ? diagnoses.map(d => ({
+              diagnosis: d.diagnosis,
+              confidence: d.confidence,
+              reasoning: d.reasoning,
+              updated_at: d.updated_at
+            })) : []}
+            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+            patientId={selectedUser?.id || ''}
+          />
         </div>
-      )}
+      </div>
     </div>
   );
 }
