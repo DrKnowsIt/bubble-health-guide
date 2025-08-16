@@ -87,12 +87,12 @@ serve(async (req) => {
     const isSubscribed = subscription?.subscribed === true;
     const isPro = isSubscribed && subscriptionTier === 'pro';
 
-    // Enforce: Free/basic users cannot chat with the AI (MVP rule)
-    if (!isPro) {
-      console.log('grok-chat access denied (requires Pro):', { user_id, subscriptionTier, isSubscribed });
+    // Allow both basic and pro users to access AI chat
+    if (!isSubscribed) {
+      console.log('grok-chat access denied (requires subscription):', { user_id, subscriptionTier, isSubscribed });
       return new Response(
         JSON.stringify({
-          error: 'Chatting with the AI requires a Pro subscription.',
+          error: 'AI chat requires an active subscription. Please upgrade to continue.',
           code: 'subscription_required'
         }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -511,7 +511,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-4-0709',
+        model: 'grok-beta',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -700,7 +700,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
     return new Response(
       JSON.stringify({ 
         response: cleanedResponse,
-        model: 'grok-4-0709',
+        model: 'grok-beta',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
       }),
