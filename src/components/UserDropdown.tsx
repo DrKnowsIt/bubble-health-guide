@@ -1,5 +1,6 @@
 import { Check, ChevronDown, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useIsTablet } from '@/hooks/use-tablet';
 import {
   Command,
   CommandEmpty,
@@ -33,6 +34,7 @@ export const UserDropdown = ({
   open,
   onOpenChange,
 }: UserDropdownProps) => {
+  const isTablet = useIsTablet();
   const getUserDisplayName = (user: User) => {
     const name = `${user.first_name} ${user.last_name}`;
     if (user.is_primary) {
@@ -57,12 +59,16 @@ export const UserDropdown = ({
           {selectedUser ? (
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <UserIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate mobile-text-sm">{getUserDisplayName(selectedUser)}</span>
+              {!isTablet && (
+                <span className="truncate mobile-text-sm">{getUserDisplayName(selectedUser)}</span>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <UserIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="text-muted-foreground mobile-text-sm">Select user...</span>
+              {!isTablet && (
+                <span className="text-muted-foreground mobile-text-sm">Select user...</span>
+              )}
             </div>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
