@@ -273,19 +273,7 @@ export default function UserDashboard() {
                 <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
                   <div className="h-full overflow-y-auto">
                     <div className="space-y-6">
-                    
-                    <Tabs defaultValue="records" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="records">Health Records</TabsTrigger>
-                        <TabsTrigger value="forms">Health Forms</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="records" className="mt-4">
-                        <HealthRecords selectedPatient={selectedUser} />
-                      </TabsContent>
-                      <TabsContent value="forms" className="mt-4">
-                        <HealthForms />
-                      </TabsContent>
-                    </Tabs>
+                      <HealthForms />
                   </div>
                   </div>
                 </SubscriptionGate>
