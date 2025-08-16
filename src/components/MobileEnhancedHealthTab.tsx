@@ -8,6 +8,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { useSubscription } from '@/hooks/useSubscription';
 import { HealthRecords } from './HealthRecords';
 import { HealthForms } from './HealthForms';
+import { HealthRecordHistoryTab } from './HealthRecordHistoryTab';
 import { UserDropdown } from './UserDropdown';
 import { SubscriptionGate } from './SubscriptionGate';
 import { cn } from '@/lib/utils';
@@ -97,7 +98,7 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
         {/* Nested Health Tabs */}
         <div className="flex-1 min-h-0 px-4 pb-4">
           <Tabs value={activeHealthTab} onValueChange={setActiveHealthTab} className="h-full min-h-0 flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className="grid w-full grid-cols-4 mb-4">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -109,6 +110,10 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
               <TabsTrigger value="forms" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span className="hidden sm:inline">Forms</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden sm:inline">History</span>
               </TabsTrigger>
             </TabsList>
 
@@ -207,6 +212,12 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
                       setActiveHealthTab('overview');
                     }} 
                   />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="history" className="mt-0 h-full">
+                <div className="h-full">
+                  <HealthRecordHistoryTab patientId={selectedUser?.id} />
                 </div>
               </TabsContent>
             </div>

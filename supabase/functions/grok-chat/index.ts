@@ -409,8 +409,16 @@ PATIENT PROFILE:
       memoryContext = '\n\nCONVERSATION MEMORY: Disabled by user preference';
     }
 
-    // Build comprehensive system prompt
+    // Build comprehensive system prompt with current date/time
+    const currentDateTime = new Date().toLocaleString('en-US', {
+      timeZone: 'UTC',
+      dateStyle: 'full',
+      timeStyle: 'long'
+    });
+    
     let systemPrompt = `You are DrKnowsIt, an AI health preparation assistant. You help users organize symptoms and prepare thoughtful questions for their healthcare providers. You do NOT diagnose - you help users prepare for medical consultations.
+
+CURRENT DATE & TIME: ${currentDateTime} (UTC)
 
 AI SETTINGS:
 - Memory: ${memoryEnabled ? 'Enabled' : 'Disabled'}

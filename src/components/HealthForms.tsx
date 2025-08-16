@@ -468,6 +468,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           metadata: {
             form_version: '1.0',
             completed_at: new Date().toISOString(),
+            last_modified: new Date().toISOString(),
             user_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
           }
         })
