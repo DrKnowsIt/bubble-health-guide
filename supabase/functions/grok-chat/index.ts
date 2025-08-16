@@ -511,7 +511,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-beta',
+        model: 'grok-2',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -700,7 +700,7 @@ Always end visible responses with: "These are suggestions to discuss with your d
     return new Response(
       JSON.stringify({ 
         response: cleanedResponse,
-        model: 'grok-beta',
+        model: 'grok-2',
         usage: data.usage,
         updated_diagnoses: updatedDiagnoses
       }),

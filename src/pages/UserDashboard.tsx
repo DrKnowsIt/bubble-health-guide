@@ -227,10 +227,10 @@ export default function UserDashboard() {
             // Desktop: Top navigation - FIXED THIS SECTION
             <div className="px-4 pt-6">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="chat" className={cn("flex items-center gap-2 relative", !hasAccess('pro') && "opacity-50")}> 
+                <TabsTrigger value="chat" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}> 
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
-                    {!hasAccess('pro') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
+                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
                   </div>
                   AI Chat
                 </TabsTrigger>
