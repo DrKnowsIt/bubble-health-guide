@@ -29,7 +29,7 @@ interface DiagnosisFeedback {
 
 export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: ProbableDiagnosesProps) => {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Always open by default
   const [userFeedback, setUserFeedback] = useState<Record<string, 'positive' | 'negative'>>({});
 
   useEffect(() => {
@@ -84,18 +84,7 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
     }
   };
 
-  if (!diagnoses || diagnoses.length === 0) {
-    return (
-      <Card className="border-dashed border-muted-foreground/30">
-        <CardContent className="p-6 text-center">
-          <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">
-            No discussion topics yet. Continue chatting to prepare questions for your doctor.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const isEmpty = !diagnoses || diagnoses.length === 0;
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.7) return 'text-emerald-600 bg-emerald-100';
@@ -110,16 +99,18 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
   };
 
   return (
-    <Card className="border-l-4 border-l-primary">
+    <Card className={`border-l-4 ${isEmpty ? 'border-l-muted-foreground/30 opacity-50' : 'border-l-primary'}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-6">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                <CardTitle className="mobile-text-sm sm:text-lg truncate">Topics to Discuss with Your Doctor</CardTitle>
-                <Badge variant="secondary" className="mobile-text-xs flex-shrink-0">
-                  {diagnoses.length}
+                <TrendingUp className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isEmpty ? 'text-muted-foreground' : 'text-primary'}`} />
+                <CardTitle className={`mobile-text-sm sm:text-lg truncate ${isEmpty ? 'text-muted-foreground' : ''}`}>
+                  Topics to Discuss with Your Doctor
+                </CardTitle>
+                <Badge variant="secondary" className={`mobile-text-xs flex-shrink-0 ${isEmpty ? 'bg-muted text-muted-foreground' : ''}`}>
+                  {diagnoses?.length || 0}
                 </Badge>
               </div>
               <Button variant="ghost" size="sm" className="flex-shrink-0">
@@ -127,15 +118,26 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
               </Button>
             </div>
             <p className="mobile-text-xs sm:text-sm text-muted-foreground text-left truncate">
-              Preparation topics for {patientName}'s doctor visit
+              {isEmpty ? 'No topics yet - continue chatting to generate discussion points' : `Preparation topics for ${patientName}'s doctor visit`}
             </p>
           </CardHeader>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
           <CardContent className="pt-0 p-3 sm:p-6">
-            <div className="space-y-3">
-              {diagnoses.map((diagnosis, index) => (
+            {isEmpty ? (
+              <div className="text-center py-8">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  No discussion topics yet
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Continue chatting to prepare questions for your doctor
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {diagnoses.map((diagnosis, index) => (
                 <div key={index} className="border rounded-lg p-3 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="font-medium text-foreground mobile-text-sm sm:text-base break-words leading-snug flex-1">
@@ -201,16 +203,17 @@ export const ProbableDiagnoses = ({ diagnoses, patientName, patientId }: Probabl
                 </div>
               ))}
 
-              <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <p className="mobile-text-xs text-muted-foreground">
-                     <strong>Important:</strong> These are AI-generated possibilities to help you prepare questions for your doctor. 
-                     Only healthcare professionals can provide proper diagnosis and treatment.
-                  </p>
+                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <p className="mobile-text-xs text-muted-foreground">
+                       <strong>Important:</strong> These are AI-generated possibilities to help you prepare questions for your doctor. 
+                       Only healthcare professionals can provide proper diagnosis and treatment.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Collapsible>

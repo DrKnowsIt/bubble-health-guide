@@ -412,22 +412,13 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
           </Card>
         </div>
 
-        {/* Right Sidebar - Probable Diagnoses */}
+        {/* Right Sidebar - Probable Diagnoses - Always visible */}
         <div className="w-80">
-          {selectedUser ? (
-            <ProbableDiagnoses 
-              diagnoses={selectedUser.probable_diagnoses || []}
-              patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-              patientId={selectedUser.id}
-            />
-          ) : (
-            <div className="p-6 bg-muted/30 rounded-lg">
-              <h3 className="font-medium mb-2">Probable Diagnoses</h3>
-              <p className="text-sm text-muted-foreground">
-                Select a user to view their probable diagnoses based on conversation history.
-              </p>
-            </div>
-          )}
+          <ProbableDiagnoses 
+            diagnoses={selectedUser?.probable_diagnoses || []}
+            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+            patientId={selectedUser?.id || ''}
+          />
         </div>
       </div>
     </div>
