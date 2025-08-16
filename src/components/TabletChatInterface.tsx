@@ -260,22 +260,6 @@ export const TabletChatInterface = ({
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Assessment Panel Toggle */}
-              {selectedUser && selectedUser.probable_diagnoses && selectedUser.probable_diagnoses.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAssessment(!showAssessment)}
-                  className="flex items-center gap-2"
-                >
-                  <Brain className="h-4 w-4" />
-                  Assessment
-                  <Badge variant="secondary" className="ml-1">
-                    {selectedUser.probable_diagnoses.length}
-                  </Badge>
-                </Button>
-              )}
-              
               {/* History Sheet */}
               <Sheet open={showHistory} onOpenChange={setShowHistory}>
                 <SheetTrigger asChild>
@@ -448,33 +432,22 @@ export const TabletChatInterface = ({
               )}
             </div>
 
-            {/* Assessment Side Panel - Slide in from right */}
-            {showAssessment && selectedUser && selectedUser.probable_diagnoses && selectedUser.probable_diagnoses.length > 0 && (
-              <div className="w-80 border-l bg-background/50 backdrop-blur animate-in slide-in-from-right-full">
-                <div className="p-4 border-b">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-primary" />
-                      Health Assessment
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowAssessment(false)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <ProbableDiagnoses 
-                    diagnoses={selectedUser.probable_diagnoses}
-                    patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-                    patientId={selectedUser.id}
-                  />
-                </div>
+            {/* Assessment Side Panel - Always visible */}
+            <div className="w-80 border-l bg-background overflow-y-auto">
+              <div className="p-4 border-b">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  Health Assessment
+                </h3>
               </div>
-            )}
+              <div className="p-4">
+                <ProbableDiagnoses 
+                  diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
+                  patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+                  patientId={selectedUser?.id || ''}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

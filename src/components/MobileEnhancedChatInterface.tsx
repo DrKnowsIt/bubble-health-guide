@@ -303,34 +303,16 @@ export const MobileEnhancedChatInterface = ({
                   onOpenChange={() => {}}
                 />
                 
-                {/* Expandable Diagnoses */}
-                {selectedUser && selectedUser.probable_diagnoses && selectedUser.probable_diagnoses.length > 0 && (
-                  <Drawer open={showDiagnoses} onOpenChange={setShowDiagnoses}>
-                    <DrawerTrigger asChild>
-                      <button className="w-full flex items-center justify-between p-3 bg-accent/5 border border-accent/20 rounded-lg text-left hover:bg-accent/10 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 bg-accent rounded-full"></div>
-                          <span className="text-sm font-medium text-accent">
-                            {selectedUser.probable_diagnoses.length} probable condition{selectedUser.probable_diagnoses.length > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 text-accent" />
-                      </button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>Probable Diagnoses</DrawerTitle>
-                      </DrawerHeader>
-                      <div className="px-4 pb-4">
-                        <ProbableDiagnoses 
-                          diagnoses={selectedUser.probable_diagnoses}
-                          patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
-                          patientId={selectedUser.id}
-                        />
-                      </div>
-                    </DrawerContent>
-                  </Drawer>
-                )}
+                {/* Topics to Discuss - Always visible */}
+                <div className="w-full">
+                  <div className="p-3 bg-background border rounded-lg">
+                    <ProbableDiagnoses 
+                      diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
+                      patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+                      patientId={selectedUser?.id || ''}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
