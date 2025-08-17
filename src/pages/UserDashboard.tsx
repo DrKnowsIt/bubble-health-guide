@@ -35,7 +35,7 @@ import { ToastAction } from '@/components/ui/toast';
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth();
-  const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
+  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -59,9 +59,9 @@ export default function UserDashboard() {
   
   const handleUpgrade = async () => {
     try {
-      await createCheckoutSession('pro');
+      await openCustomerPortal();
     } catch (error) {
-      console.error('Error upgrading subscription:', error);
+      console.error('Error opening customer portal:', error);
     }
   };
 
@@ -74,8 +74,8 @@ export default function UserDashboard() {
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',
         action: (
-          <ToastAction altText="View plans" onClick={() => navigate('/pricing')}>
-            View plans
+          <ToastAction altText="Subscribe" onClick={() => openCustomerPortal()}>
+            Subscribe
           </ToastAction>
         ),
       });
