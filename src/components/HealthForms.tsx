@@ -539,7 +539,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
-            rows={3}
+            rows={6}
+            className="min-h-[120px] max-h-[300px] resize-y overflow-y-auto"
           />
         );
 
