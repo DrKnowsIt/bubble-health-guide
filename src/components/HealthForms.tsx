@@ -38,7 +38,8 @@ import {
   Calendar,
   Lock,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 
 interface HealthForm {
@@ -636,6 +637,15 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   if (selectedForm) {
     return (
       <div className="space-y-6">
+        {/* Back Navigation */}
+        <div 
+          onClick={handleBackToForms}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-sm">Back to all forms</span>
+        </div>
+
         <FormProgress 
           currentStep={1}
           totalSteps={1}
@@ -656,9 +666,6 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                   Complete this form to help DrKnowItAll provide better health insights.
                 </CardDescription>
               </div>
-              <Button variant="outline" onClick={handleBackToForms}>
-                {hasUnsavedChanges ? "Back to Forms" : "Back to Forms"}
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -686,9 +693,6 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             <div className="flex gap-2 pt-4">
               <Button onClick={submitForm} disabled={loading}>
                 {loading ? 'Saving...' : 'Save Form'}
-              </Button>
-              <Button variant="outline" onClick={handleBackToForms}>
-                Cancel
               </Button>
             </div>
           </div>
