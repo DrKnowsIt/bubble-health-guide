@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code, Users, Bot } from "lucide-react";
+import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
@@ -18,8 +18,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
-import { UserManagement } from "@/components/UserManagement";
-import { AIIntelligenceSettings } from "@/components/AIIntelligenceSettings";
 
 const Settings = () => {
   const {
@@ -190,13 +188,13 @@ const Settings = () => {
                   Subscribe to manage your subscription and access premium features
                 </span>
               </div>
-              <Button size="sm" variant="outline" onClick={() => openCustomerPortal()} className="h-6 px-2 text-xs">
-                Upgrade
+              <Button size="sm" variant="outline" onClick={() => navigate('/pricing')} className="h-6 px-2 text-xs">
+                View Plans
               </Button>
             </div>}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -204,14 +202,6 @@ const Settings = () => {
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 Subscription
-              </TabsTrigger>
-              <TabsTrigger value="family" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Family
-              </TabsTrigger>
-              <TabsTrigger value="ai-intelligence" className="flex items-center gap-2">
-                <Bot className="h-4 w-4" />
-                AI Intelligence
               </TabsTrigger>
               <TabsTrigger value="privacy" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
@@ -411,28 +401,18 @@ const Settings = () => {
                         <span className="font-medium">Manage Subscription</span>
                         <span className="text-xs text-muted-foreground">Update billing, cancel, or change plan</span>
                       </Button>}
-                    {!subscribed && <Button onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
+                    {!subscribed && <Button onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
                         <span className="font-medium">Subscribe Now</span>
                         <span className="text-xs text-muted-foreground">Unlock premium features</span>
                       </Button>}
                     
-                    <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
+                    <Button variant="outline" onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
                       <span className="font-medium">View All Plans</span>
                       <span className="text-xs text-muted-foreground">Compare features and pricing</span>
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* Family Tab */}
-            <TabsContent value="family" className="space-y-6">
-              <UserManagement />
-            </TabsContent>
-
-            {/* AI Intelligence Tab */}
-            <TabsContent value="ai-intelligence" className="space-y-6">
-              <AIIntelligenceSettings />
             </TabsContent>
 
             {/* Privacy Tab */}

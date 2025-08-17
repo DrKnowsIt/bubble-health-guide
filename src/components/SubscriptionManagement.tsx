@@ -7,14 +7,17 @@ import { Crown, Zap, Calendar, CreditCard, Settings, ExternalLink } from "lucide
 import { toast } from "@/hooks/use-toast";
 
 export const SubscriptionManagement = () => {
-  const { subscribed, subscription_tier, subscription_end, loading, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, subscription_end, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePlanChange = async (planType: 'basic' | 'pro') => {
     setIsLoading(true);
     try {
-      // Always open customer portal for all subscription actions
-      await openCustomerPortal();
+      if (subscribed) {
+        await openCustomerPortal();
+      } else {
+        await createCheckoutSession(planType);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -232,9 +235,9 @@ export const SubscriptionManagement = () => {
               variant={subscription_tier === 'pro' ? 'secondary' : 'default'}
               className={`w-full ${subscription_tier !== 'pro' ? 'btn-primary' : ''}`}
               disabled={subscription_tier === 'pro' || isLoading}
-              onClick={handleManageSubscription}
+              onClick={() => handlePlanChange('pro')}
             >
-              {subscription_tier === 'pro' ? 'Current Plan' : 'Manage in Stripe'}
+              {subscription_tier === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
             </Button>
           </CardContent>
         </Card>

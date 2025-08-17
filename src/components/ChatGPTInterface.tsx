@@ -42,7 +42,7 @@ const examplePrompts = [
 
 function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
   const { user } = useAuth();
-  const { subscribed, openCustomerPortal } = useSubscription();
+  const { subscribed, createCheckoutSession } = useSubscription();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentConversation, messages, setMessages, createConversation, saveMessage, updateConversationTitleIfPlaceholder } = conversation;
@@ -307,25 +307,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (!textToSend && !explicitImageUrl && !pendingAttachment) return;
     
     if (!user || !subscribed) {
-      toast({
-        title: "Subscription required",
-        description: "Please subscribe to use the AI chat feature.",
-        action: (
-          <ToastAction altText="Subscribe" onClick={() => openCustomerPortal()}>
-            Subscribe
-          </ToastAction>
-        ),
-      });
-      return;
-    }
-
-    // Ensure a patient is selected
-    if (!selectedUser?.id) {
-      toast({
-        title: "Select a patient",
-        description: "Please select a patient before starting a conversation.",
-        variant: "destructive",
-      });
       return;
     }
   
@@ -483,7 +464,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           title: 'Pro plan required',
           description: 'AI Chat requires a Pro subscription.',
           action: (
-            <ToastAction altText="Upgrade" onClick={() => openCustomerPortal()}>
+            <ToastAction altText="Upgrade" onClick={() => createCheckoutSession('pro')}>
               Upgrade to Pro
             </ToastAction>
           ),
@@ -752,52 +733,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
 export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser }: ChatGPTInterfaceProps) => {
   const { user } = useAuth();
-  const { subscribed, openCustomerPortal } = useSubscription();
-  const { toast } = useToast();
   const { selectedUser: hookSelectedUser } = useUsers();
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
-  const conv = useConversations(selectedUser?.id);
+  const conv = useConversations(selectedUser);
 
   const handleStartNewConversation = async () => {
     // Reset UI to empty state with examples; defer DB creation until first message
     conv.startNewConversation();
   };
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold">Please sign in</h3>
-          <p className="text-muted-foreground">You need to be signed in to use the AI chat.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!subscribed) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold">Subscription Required</h3>
-          <p className="text-muted-foreground">Please subscribe to access the AI chat feature.</p>
-          <Button onClick={() => openCustomerPortal()}>
-            Subscribe Now
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!selectedUser?.id) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold">Select a Patient</h3>
-          <p className="text-muted-foreground">Please select a patient to start a conversation.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-full w-full min-h-0 overflow-hidden">
@@ -809,31 +752,20 @@ export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser
         onDeleteConversation={conv.deleteConversation}
         isAuthenticated={!!user}
       />
-      
-      <div className="flex-1 min-w-0 flex">
-        <div className="flex-1 min-w-0">
-          <ChatInterface 
-            onSendMessage={onSendMessage}
-            selectedUser={selectedUser}
-            conversation={{
-              currentConversation: conv.currentConversation,
-              messages: conv.messages,
-              setMessages: conv.setMessages,
-              createConversation: conv.createConversation,
-              saveMessage: conv.saveMessage,
-              updateConversationTitleIfPlaceholder: conv.updateConversationTitleIfPlaceholder,
-            }}
-          />
-        </div>
-        
-        <div className="w-80 border-l bg-muted/10 overflow-y-auto">
-          <ProbableDiagnoses 
-            diagnoses={[]}
-            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
-            patientId={selectedUser?.id || ''}
-          />
-        </div>
-      </div>
+      <main className="flex-1 h-full min-h-0 overflow-hidden">
+        <ChatInterface 
+          onSendMessage={onSendMessage}
+          selectedUser={selectedUser}
+          conversation={{
+            currentConversation: conv.currentConversation,
+            messages: conv.messages,
+            setMessages: conv.setMessages,
+            createConversation: conv.createConversation,
+            saveMessage: conv.saveMessage,
+            updateConversationTitleIfPlaceholder: conv.updateConversationTitleIfPlaceholder,
+          }}
+        />
+      </main>
     </div>
   );
 };

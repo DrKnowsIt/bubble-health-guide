@@ -15,8 +15,8 @@ import { Link } from "react-router-dom";
 const Pricing = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const { user, loading } = useAuth();
-  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
+  const { user } = useAuth();
+  const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
 
   const openAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
@@ -32,8 +32,13 @@ const Pricing = () => {
     const planType = planName.toLowerCase() as 'basic' | 'pro';
 
     try {
-      // Always open customer portal for all subscription actions
-      await openCustomerPortal();
+      if (subscribed) {
+        // Manage existing subscription in portal (also used for switching plans)
+        await openCustomerPortal();
+      } else {
+        // Start new subscription for the selected plan
+        await createCheckoutSession(planType);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -109,15 +114,6 @@ const Pricing = () => {
       description: "Optimized AI infrastructure delivers responses in seconds, not minutes"
     }
   ];
-
-  // Show loading state while auth is being determined
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   // If user is logged in, show subscription management instead of marketing pricing
   if (user) {
@@ -262,7 +258,11 @@ const Pricing = () => {
                 return;
               }
               try {
-                await openCustomerPortal();
+                if (subscribed) {
+                  await openCustomerPortal();
+                } else {
+                  await createCheckoutSession('pro');
+                }
               } catch (error) {
                 toast({ title: 'Error', description: 'Please try again.', variant: 'destructive' });
               }

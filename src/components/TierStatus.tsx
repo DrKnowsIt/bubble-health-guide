@@ -12,12 +12,15 @@ interface TierStatusProps {
 }
 
 export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierStatusProps) => {
-  const { subscribed, subscription_tier, loading, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
 
   const handleUpgrade = async () => {
     try {
-      // Always open customer portal for all subscription actions
-      await openCustomerPortal();
+      if (subscribed) {
+        await openCustomerPortal();
+      } else {
+        await createCheckoutSession('pro');
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -98,9 +101,11 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
             </p>
           </div>
           
-          <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
-            <Settings className="h-4 w-4 mr-2" />
-            Manage Subscription
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link to="/pricing" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Manage Subscription
+            </Link>
           </DropdownMenuItem>
           
           {!isPro && (
