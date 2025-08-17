@@ -235,9 +235,9 @@ export const SubscriptionManagement = () => {
               variant={subscription_tier === 'pro' ? 'secondary' : 'default'}
               className={`w-full ${subscription_tier !== 'pro' ? 'btn-primary' : ''}`}
               disabled={subscription_tier === 'pro' || isLoading}
-              onClick={() => handlePlanChange('pro')}
+              onClick={handleManageSubscription}
             >
-              {subscription_tier === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
+              {subscription_tier === 'pro' ? 'Current Plan' : 'Manage in Stripe'}
             </Button>
           </CardContent>
         </Card>
