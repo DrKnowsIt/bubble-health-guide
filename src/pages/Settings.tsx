@@ -188,8 +188,8 @@ const Settings = () => {
                   Subscribe to manage your subscription and access premium features
                 </span>
               </div>
-              <Button size="sm" variant="outline" onClick={() => openCustomerPortal()} className="h-6 px-2 text-xs">
-                Subscribe Now
+              <Button size="sm" variant="outline" onClick={() => navigate('/pricing')} className="h-6 px-2 text-xs">
+                View Plans
               </Button>
             </div>}
 
@@ -397,12 +397,16 @@ const Settings = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
-                        <span className="font-medium">{subscribed ? 'Manage Subscription' : 'Subscribe Now'}</span>
-                        <span className="text-xs text-muted-foreground">{subscribed ? 'Update billing, cancel, or change plan' : 'Unlock premium features'}</span>
-                      </Button>
+                    {subscribed && <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
+                        <span className="font-medium">Manage Subscription</span>
+                        <span className="text-xs text-muted-foreground">Update billing, cancel, or change plan</span>
+                      </Button>}
+                    {!subscribed && <Button onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
+                        <span className="font-medium">Subscribe Now</span>
+                        <span className="text-xs text-muted-foreground">Unlock premium features</span>
+                      </Button>}
                     
-                    <Button variant="outline" onClick={() => openCustomerPortal()} className="h-auto p-4 flex flex-col items-start gap-2">
+                    <Button variant="outline" onClick={() => navigate('/pricing')} className="h-auto p-4 flex flex-col items-start gap-2">
                       <span className="font-medium">View All Plans</span>
                       <span className="text-xs text-muted-foreground">Compare features and pricing</span>
                     </Button>
