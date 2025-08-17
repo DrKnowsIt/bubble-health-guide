@@ -24,6 +24,7 @@ export const AISettings = () => {
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [clearingMemory, setClearingMemory] = useState<string | null>(null);
   const [topDiagnosis, setTopDiagnosis] = useState<string>('');
   
   // Use the conversation memory hook for the selected user
@@ -171,44 +172,75 @@ export const AISettings = () => {
   }, [selectedUserId]);
 
 
-  const clearConversationHistory = async () => {
+  const clearUserMemory = async (userId: string, userName: string) => {
     if (!user) return;
     
+    setClearingMemory(userId);
     try {
-      // Delete all conversations and their messages
-      const { error: messagesError } = await supabase
-        .from('messages')
+      // Delete conversation memory for this specific user
+      const { error: memoryError } = await supabase
+        .from('conversation_memory')
         .delete()
-        .in('conversation_id', 
-          await supabase
-            .from('conversations')
-            .select('id')
-            .eq('user_id', user.id)
-            .then(({ data }) => data?.map(c => c.id) || [])
-        );
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
 
-      if (messagesError) throw messagesError;
+      if (memoryError) throw memoryError;
 
-      const { error: conversationsError } = await supabase
+      // Delete diagnoses for this specific user
+      const { error: diagnosesError } = await supabase
+        .from('conversation_diagnoses')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
+
+      if (diagnosesError) throw diagnosesError;
+
+      // Get conversations for this specific user
+      const { data: userConversations, error: conversationsQueryError } = await supabase
         .from('conversations')
-        .delete()
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
 
-      if (conversationsError) throw conversationsError;
+      if (conversationsQueryError) throw conversationsQueryError;
+
+      const conversationIds = userConversations?.map(c => c.id) || [];
+
+      if (conversationIds.length > 0) {
+        // Delete messages for this user's conversations
+        const { error: messagesError } = await supabase
+          .from('messages')
+          .delete()
+          .in('conversation_id', conversationIds);
+
+        if (messagesError) throw messagesError;
+
+        // Delete conversations for this specific user
+        const { error: conversationsError } = await supabase
+          .from('conversations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('patient_id', userId);
+
+        if (conversationsError) throw conversationsError;
+      }
 
       toast({
-        title: "Success",
-        description: "Conversation history cleared successfully.",
+        title: "Memory Cleared",
+        description: `All memory and conversation data for ${userName} has been permanently deleted.`,
       });
 
-      // Force refresh the page to update the UI
+      // Reset selected user and refresh
+      setSelectedUserId('');
       window.location.reload();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to clear conversation history.",
+        description: "Failed to clear user memory. Please try again.",
       });
+    } finally {
+      setClearingMemory(null);
     }
   };
 
@@ -334,40 +366,6 @@ export const AISettings = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            Memory Management
-          </CardTitle>
-          <CardDescription>
-            Manage your stored conversation history and AI memory.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-medium">Current Memory Status</h4>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Real conversation data is stored and tracked based on your actual usage.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-              <h4 className="font-medium text-destructive mb-2">Clear Conversation History</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                This will permanently delete all your conversation history with DrKnowItAll. This action cannot be undone.
-              </p>
-              <Button variant="destructive" onClick={clearConversationHistory}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear All History
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -491,16 +489,68 @@ export const AISettings = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>AI Knowledge Summary</Label>
-                <Button
-                  onClick={exportToPDF}
-                  size="sm"
-                  variant="outline"
-                  className="h-8"
-                  disabled={memoryLoading || !insights?.length}
-                >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={exportToPDF}
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    disabled={memoryLoading || !insights?.length}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                  {(() => {
+                    const selectedUser = users.find(u => u.id === selectedUserId);
+                    return selectedUser ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
+                            disabled={clearingMemory === selectedUser.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {clearingMemory === selectedUser.id ? "Clearing..." : "Clear Memory"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                              Clear Memory - Are You Sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                <strong>This action cannot be undone.</strong> This will permanently delete:
+                              </p>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                <li>All conversation history with <strong>{selectedUser.first_name} {selectedUser.last_name}</strong></li>
+                                <li>All AI memory and insights for this user</li>
+                                <li>All diagnoses and analysis data</li>
+                                <li>All chat messages and interactions</li>
+                              </ul>
+                              <p className="text-sm mt-3">
+                                The user profile and health records will remain intact. Only conversation data and AI memory will be cleared.
+                              </p>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => clearUserMemory(selectedUser.id, `${selectedUser.first_name} ${selectedUser.last_name}`)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Clear Memory
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : null;
+                  })()}
+                </div>
               </div>
               <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
                 {memoryLoading ? (
