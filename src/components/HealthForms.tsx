@@ -63,6 +63,16 @@ interface FormField {
 
 const healthForms: HealthForm[] = [
   {
+    id: 'general_health_notes',
+    title: 'General Health Notes',
+    icon: FileText,
+    category: 'personal',
+    color: 'bg-yellow-600',
+    fields: [
+      { name: 'general_notes', label: 'General Health Notes', type: 'textarea', placeholder: 'Any health-related information you want the AI to know - symptoms, blood work results, doctor observations, family history details, medication effects, or anything else relevant to your health that doesn\'t fit in other forms.' }
+    ]
+  },
+  {
     id: 'personal_demographics',
     title: 'Personal Background & Demographics',
     icon: Users,
@@ -268,16 +278,6 @@ const healthForms: HealthForm[] = [
       { name: 'concerning_changes', label: 'Recent Changes That Concern You', type: 'textarea', placeholder: 'Any new symptoms, changes in how you feel, or health concerns you have' },
       { name: 'family_observations', label: 'Family/Friends\' Observations', type: 'textarea', placeholder: 'Things family or friends have noticed about your health that you might miss' }
     ]
-  },
-  {
-    id: 'general_health_notes',
-    title: 'General Health Notes',
-    icon: FileText,
-    category: 'personal',
-    color: 'bg-emerald-600',
-    fields: [
-      { name: 'general_notes', label: 'General Health Notes', type: 'textarea', placeholder: 'Any health-related information you want the AI to know - symptoms, blood work results, doctor observations, family history details, medication effects, or anything else relevant to your health that doesn\'t fit in other forms.' }
-    ]
   }
 ];
 
@@ -310,11 +310,11 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   // Define forms available for basic tier
   const basicTierFormIds = [
+    'general_health_notes',
     'personal_demographics', 
     'medical_history', 
     'vital_signs_current', 
-    'patient_observations',
-    'general_health_notes'
+    'patient_observations'
   ];
 
   // Filter forms based on subscription tier
@@ -811,7 +811,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 {availableForms.map((form) => (
                   <Card 
                     key={form.id} 
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-emerald-500/50 shadow-emerald-500/10' : ''}`}
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
                     onClick={() => {
                       if (selectedPatient || users.length === 0) {
                         setSelectedForm(form);
@@ -828,7 +828,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                           <p className="text-sm text-muted-foreground mb-3">
                             {form.fields.length} fields to complete
                           </p>
-                          <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}>
+                          <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
                             Fill Out Form
                           </Button>
                         </div>
