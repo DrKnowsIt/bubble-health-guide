@@ -274,7 +274,7 @@ export default function UserDashboard() {
                   <div className="h-full overflow-y-auto">
                     <div className="space-y-6">
                       <div className="space-y-6">
-                        <HealthForms />
+                        <HealthForms selectedPatient={selectedUser} />
                         
                         <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data from companies like 23andMe or Ancestry for advanced genetic insights — available on Pro.">
                           <DNAUpload 

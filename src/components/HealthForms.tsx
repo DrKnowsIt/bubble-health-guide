@@ -614,37 +614,15 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-            {/* Patient Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="patient_selection">Assign to Patient</Label>
-              <Select
-                value={selectedPatient?.id || 'none'}
-                onValueChange={(value) => {
-                  // This would typically update the selected patient in the parent component
-                  // For now, we'll show which patient is selected
-                }}
-              >
-                <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Select a patient" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border z-50">
-                  <SelectItem value="none">
-                    <span className="text-muted-foreground">No specific patient (general form)</span>
-                  </SelectItem>
-                  {users.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{patient.first_name} {patient.last_name}</span>
-                        {patient.is_primary && <span className="text-xs text-muted-foreground">(Primary)</span>}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Choose which patient this health form will be saved for.
-              </p>
-            </div>
+            {/* Patient Info Display */}
+            {selectedPatient && (
+              <div className="p-3 bg-muted/50 rounded-lg border">
+                <p className="text-sm text-muted-foreground">
+                  Saving for: <span className="font-medium text-foreground">{selectedPatient.first_name} {selectedPatient.last_name}</span>
+                  {selectedPatient.is_primary && <span className="text-xs text-muted-foreground ml-2">(Primary)</span>}
+                </p>
+              </div>
+            )}
 
             {selectedForm.fields.map((field) => (
               <div key={field.name} className="space-y-2">
