@@ -35,7 +35,7 @@ import { ToastAction } from '@/components/ui/toast';
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth();
-  const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
+  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
   const [activeTab, setActiveTab] = useState('chat');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -59,7 +59,7 @@ export default function UserDashboard() {
   
   const handleUpgrade = async () => {
     try {
-      await createCheckoutSession('pro');
+      await openCustomerPortal();
     } catch (error) {
       console.error('Error upgrading subscription:', error);
     }

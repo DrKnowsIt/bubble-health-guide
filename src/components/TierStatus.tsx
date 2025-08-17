@@ -12,15 +12,12 @@ interface TierStatusProps {
 }
 
 export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierStatusProps) => {
-  const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, loading, openCustomerPortal } = useSubscription();
 
   const handleUpgrade = async () => {
     try {
-      if (subscribed) {
-        await openCustomerPortal();
-      } else {
-        await createCheckoutSession('pro');
-      }
+      // Always open customer portal for all subscription actions
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",

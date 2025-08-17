@@ -7,17 +7,14 @@ import { Crown, Zap, Calendar, CreditCard, Settings, ExternalLink } from "lucide
 import { toast } from "@/hooks/use-toast";
 
 export const SubscriptionManagement = () => {
-  const { subscribed, subscription_tier, subscription_end, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, subscription_end, loading, openCustomerPortal } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePlanChange = async (planType: 'basic' | 'pro') => {
     setIsLoading(true);
     try {
-      if (subscribed) {
-        await openCustomerPortal();
-      } else {
-        await createCheckoutSession(planType);
-      }
+      // Always open customer portal for all subscription actions
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",

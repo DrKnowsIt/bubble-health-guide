@@ -36,7 +36,7 @@ interface MobileEnhancedOverviewTabProps {
 
 export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOverviewTabProps) => {
   const { user, signOut } = useAuth();
-  const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const { selectedUser } = useUsers();
   const [settingsExpanded, setSettingsExpanded] = useState(false);
@@ -56,7 +56,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
 
   const handleUpgrade = async () => {
     try {
-      await createCheckoutSession('pro');
+      await openCustomerPortal();
     } catch (error) {
       console.error('Error upgrading subscription:', error);
     }

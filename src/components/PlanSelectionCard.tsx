@@ -9,7 +9,7 @@ interface PlanSelectionCardProps {
 }
 
 export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
-  const { createCheckoutSession, subscribed, subscription_tier, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
 
   const plans = [
     {
@@ -52,13 +52,8 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
 
   const handlePlanAction = async (tier: 'basic' | 'pro') => {
     try {
-      if (subscribed) {
-        // Open customer portal for plan changes
-        await openCustomerPortal();
-      } else {
-        // Create new subscription
-        await createCheckoutSession(tier);
-      }
+      // Always open customer portal for all subscription actions
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
