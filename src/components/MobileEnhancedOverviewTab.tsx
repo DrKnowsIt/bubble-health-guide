@@ -36,7 +36,7 @@ interface MobileEnhancedOverviewTabProps {
 
 export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOverviewTabProps) => {
   const { user, signOut } = useAuth();
-  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
   const { selectedUser } = useUsers();
   const [settingsExpanded, setSettingsExpanded] = useState(false);
@@ -56,9 +56,17 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
 
   const handleUpgrade = async () => {
     try {
+      await createCheckoutSession('pro');
+    } catch (error) {
+      console.error('Error upgrading subscription:', error);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
       await openCustomerPortal();
     } catch (error) {
-      console.error('Error opening subscription management:', error);
+      console.error('Error opening customer portal:', error);
     }
   };
 
@@ -93,7 +101,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={handleUpgrade}
+                    onClick={handleManageSubscription}
                     className="flex-1"
                   >
                     Manage Subscription
@@ -104,7 +112,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
                       onClick={handleUpgrade}
                       className="flex-1"
                     >
-                      Manage Subscription
+                      Upgrade to Pro
                     </Button>
                   )}
                 </div>
