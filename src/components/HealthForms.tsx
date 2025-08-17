@@ -287,10 +287,13 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   // Define forms available for basic tier
   const basicTierFormIds = [
-    'personal_demographics', 
-    'medical_history', 
-    'vital_signs_current', 
-    'patient_observations'
+    'general_health_notes',
+    'basic_health_info',
+    'current_symptoms',
+    'medical_history',
+    'medications_supplements',
+    'lifestyle_habits',
+    'diet_nutrition'
   ];
 
   // Filter forms based on subscription tier
