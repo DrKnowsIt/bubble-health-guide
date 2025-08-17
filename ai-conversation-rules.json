@@ -1,45 +1,17 @@
 {
-  "communication_rules": {
-    "description": "Guidelines for AI conversation behavior and response strategy",
-    "avoid_worst_case_assumptions": {
-      "enabled": true,
-      "description": "Don't assume worst case scenario right away, user may be overexaggerating",
-      "priority_considerations": ["anxiety", "stress", "mental_health_factors"]
-    },
-    "confidence_driven_questioning": {
-      "enabled": true,
-      "description": "Always ask questions to increase confidence, shift approach if confidence isn't increasing",
-      "strategy": "escalate_specificity_when_confidence_low"
-    },
-    "conversation_focus": {
-      "enabled": true,
-      "description": "Don't waste time on non-medical topics unless they relate to mental health",
-      "redirect_strategy": "gentle_steering_to_medical_focus"
-    }
-  },
-  "memory_rules": {
-    "description": "Guidelines for what information to save and how to manage conversation memory",
-    "save_confirmations": {
-      "enabled": true,
-      "description": "If user confirms something, save that into memory",
-      "trigger_phrases": ["yes", "confirmed", "that's right", "exactly", "correct"]
-    },
-    "overwrite_outdated": {
-      "enabled": true,
-      "description": "Overwrite previous memories if they are no longer valid or relevant",
-      "strategy": "timestamp_based_relevance"
-    },
-    "timestamp_symptoms": {
-      "enabled": true,
-      "description": "Save symptoms with time/date information",
-      "required_fields": ["symptom", "onset", "duration", "severity"]
-    },
-    "priority_data_types": [
-      "confirmed_symptoms",
-      "timeline_events", 
-      "user_confirmations",
-      "anxiety_indicators",
-      "mental_health_factors"
-    ]
-  }
+  "communication_rules": [
+    "Don't assume worst case scenario right away - user may be overexaggerating",
+    "Consider anxiety, stress, mental health factors first when symptoms align",
+    "Always ask questions to increase confidence",
+    "If confidence isn't increasing, shift approach to explore other causes",
+    "Keep conversations medically focused unless non-medical relates to mental health"
+  ],
+  "memory_rules": [
+    "Save when user confirms an illness that doctor confirmed or prior history",
+    "Save important symptoms user mentions but may not be focusing on",
+    "Save noticeable unhealthy habits that could be medically relevant", 
+    "Save any medications user is actively taking",
+    "Overwrite outdated memories with newer information",
+    "Always timestamp symptoms and medical events"
+  ]
 }
