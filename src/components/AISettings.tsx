@@ -11,8 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
 import { useConversationMemory } from '@/hooks/useConversationMemory';
-import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle } from 'lucide-react';
+import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle, FileDown } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import jsPDF from 'jspdf';
+import { toast as sonnerToast } from 'sonner';
 
 export const AISettings = () => {
   const { user } = useAuth();
@@ -22,6 +24,7 @@ export const AISettings = () => {
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [topDiagnosis, setTopDiagnosis] = useState<string>('');
   
   // Use the conversation memory hook for the selected user
   const { insights, loading: memoryLoading, getMemoryStats } = useConversationMemory(selectedUserId);
@@ -63,6 +66,73 @@ export const AISettings = () => {
 
     return knowledgeText;
   };
+
+  // Fetch top diagnosis for selected user
+  const fetchTopDiagnosis = async () => {
+    if (!selectedUserId || !user) return;
+    
+    try {
+      const { data: diagnoses, error } = await supabase
+        .from('conversation_diagnoses')
+        .select('diagnosis, confidence, created_at')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedUserId)
+        .order('confidence', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (diagnoses && diagnoses.length > 0) {
+        const topDx = diagnoses[0];
+        setTopDiagnosis(`${topDx.diagnosis} (${Math.round((topDx.confidence || 0) * 100)}% confidence)`);
+      } else {
+        setTopDiagnosis('No diagnoses available yet');
+      }
+    } catch (error) {
+      console.error('Error fetching top diagnosis:', error);
+      setTopDiagnosis('Error loading diagnosis');
+    }
+  };
+
+  // Export memory to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const selectedUser = users.find(u => u.id === selectedUserId);
+    const userName = selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Unknown User';
+    
+    // Title
+    doc.setFontSize(16);
+    doc.text(`AI Memory Report - ${userName}`, 20, 20);
+    
+    // Memory content
+    doc.setFontSize(10);
+    const memoryText = formatMemoryKnowledge();
+    const splitText = doc.splitTextToSize(memoryText, 170);
+    doc.text(splitText, 20, 40);
+    
+    // Top diagnosis at bottom
+    if (topDiagnosis) {
+      const yPosition = doc.internal.pageSize.height - 30;
+      doc.setFontSize(12);
+      doc.text('Top Diagnosis:', 20, yPosition - 10);
+      doc.setFontSize(10);
+      doc.text(topDiagnosis, 20, yPosition);
+    }
+    
+    // Save the PDF
+    doc.save(`${userName.replace(/\s+/g, '_')}_memory_report.pdf`);
+    sonnerToast.success('Memory report exported to PDF');
+  };
+
+  // Update top diagnosis when user changes
+  useEffect(() => {
+    if (selectedUserId) {
+      fetchTopDiagnosis();
+    } else {
+      setTopDiagnosis('');
+    }
+  }, [selectedUserId]);
 
 
   const clearConversationHistory = async () => {
@@ -383,8 +453,20 @@ export const AISettings = () => {
 
           {selectedUserId && (
             <div className="space-y-3">
-              <Label>AI Knowledge Summary</Label>
-              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px]">
+              <div className="flex items-center justify-between">
+                <Label>AI Knowledge Summary</Label>
+                <Button
+                  onClick={exportToPDF}
+                  size="sm"
+                  variant="outline"
+                  className="h-8"
+                  disabled={memoryLoading || !insights?.length}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+              </div>
+              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
                 {memoryLoading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="text-sm text-muted-foreground">Loading memory insights...</div>
@@ -394,6 +476,14 @@ export const AISettings = () => {
                     <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
                       {formatMemoryKnowledge()}
                     </pre>
+                    {topDiagnosis && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <div className="text-sm font-medium text-foreground mb-2">Top Diagnosis:</div>
+                        <div className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-md">
+                          {topDiagnosis}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
