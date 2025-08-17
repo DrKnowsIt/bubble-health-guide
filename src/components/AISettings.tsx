@@ -10,8 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
-import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle } from 'lucide-react';
+import { useConversationMemory } from '@/hooks/useConversationMemory';
+import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle, FileDown } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import jsPDF from 'jspdf';
+import { toast as sonnerToast } from 'sonner';
 
 export const AISettings = () => {
   const { user } = useAuth();
@@ -20,142 +23,227 @@ export const AISettings = () => {
   const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [userKnowledge, setUserKnowledge] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
+  const [clearingMemory, setClearingMemory] = useState<string | null>(null);
+  const [topDiagnosis, setTopDiagnosis] = useState<string>('');
+  
+  // Use the conversation memory hook for the selected user
+  const { insights, loading: memoryLoading, getMemoryStats } = useConversationMemory(selectedUserId);
 
+  // Format memory insights for display
+  const formatMemoryKnowledge = () => {
+    if (!insights || insights.length === 0) {
+      return 'No memory insights available for this user yet.';
+    }
+
+    const stats = getMemoryStats();
+    let knowledgeText = `Memory Insights: ${stats.totalInsights} total\n`;
+    knowledgeText += `Categories: ${Object.keys(stats.categories).join(', ')}\n\n`;
+
+    // Group insights by category
+    const groupedInsights = insights.reduce((acc, insight) => {
+      if (!acc[insight.category]) {
+        acc[insight.category] = [];
+      }
+      acc[insight.category].push(insight);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Display insights by category
+    Object.entries(groupedInsights).forEach(([category, categoryInsights]) => {
+      knowledgeText += `${category.toUpperCase()}:\n`;
+      categoryInsights.slice(0, 3).forEach(insight => {
+        const value = typeof insight.value === 'object' 
+          ? JSON.stringify(insight.value) 
+          : String(insight.value);
+        knowledgeText += `• ${insight.key}: ${value}\n`;
+      });
+      knowledgeText += '\n';
+    });
+
+    if (stats.lastMemoryUpdate) {
+      knowledgeText += `Last updated: ${stats.lastMemoryUpdate.toLocaleDateString()}`;
+    }
+
+    return knowledgeText;
+  };
+
+  // Fetch top diagnosis for selected user
+  const fetchTopDiagnosis = async () => {
+    if (!selectedUserId || !user) return;
+    
+    try {
+      const { data: diagnoses, error } = await supabase
+        .from('conversation_diagnoses')
+        .select('diagnosis, confidence, created_at')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedUserId)
+        .order('confidence', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (diagnoses && diagnoses.length > 0) {
+        const topDx = diagnoses[0];
+        setTopDiagnosis(`${topDx.diagnosis} (${Math.round((topDx.confidence || 0) * 100)}% confidence)`);
+      } else {
+        setTopDiagnosis('No diagnoses available yet');
+      }
+    } catch (error) {
+      console.error('Error fetching top diagnosis:', error);
+      setTopDiagnosis('Error loading diagnosis');
+    }
+  };
+
+  // Export memory to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const selectedUser = users.find(u => u.id === selectedUserId);
+    const userName = selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Unknown User';
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    // Official Header
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('DrKnowsIt', 20, 20);
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text('AI-Powered Health Assistant', 20, 28);
+    doc.text('www.drknowsit.com', 20, 35);
+    
+    // Divider line
+    doc.line(20, 40, 190, 40);
+    
+    // Report header
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('User Memory Report', 20, 50);
+    
+    // User and date info
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    doc.text(`User: ${userName}`, 20, 60);
+    doc.text(`Report Generated: ${currentDate}`, 20, 67);
+    doc.text(`Generated by: DrKnowsIt AI Memory System`, 20, 74);
+    
+    // Another divider
+    doc.line(20, 80, 190, 80);
+    
+    // Memory content
+    doc.setFontSize(10);
+    const memoryText = formatMemoryKnowledge();
+    const splitText = doc.splitTextToSize(memoryText, 170);
+    doc.text(splitText, 20, 90);
+    
+    // Top diagnosis at bottom
+    if (topDiagnosis) {
+      const yPosition = doc.internal.pageSize.height - 40;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Top Diagnosis:', 20, yPosition - 10);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(topDiagnosis, 20, yPosition);
+    }
+    
+    // Footer
+    const footerY = doc.internal.pageSize.height - 15;
+    doc.setFontSize(8);
+    doc.text('This report is generated by DrKnowsIt AI and should be reviewed by a healthcare professional.', 20, footerY);
+    
+    // Save the PDF
+    doc.save(`DrKnowsIt_${userName.replace(/\s+/g, '_')}_Memory_Report_${currentDate.replace(/\s+/g, '_')}.pdf`);
+    sonnerToast.success('Memory report exported to PDF');
+  };
+
+  // Update top diagnosis when user changes
   useEffect(() => {
     if (selectedUserId) {
-      loadUserKnowledge();
+      fetchTopDiagnosis();
+    } else {
+      setTopDiagnosis('');
     }
   }, [selectedUserId]);
 
 
-  const clearConversationHistory = async () => {
+  const clearUserMemory = async (userId: string, userName: string) => {
     if (!user) return;
     
+    setClearingMemory(userId);
     try {
-      // Delete all conversations and their messages
-      const { error: messagesError } = await supabase
-        .from('messages')
+      // Delete conversation memory for this specific user
+      const { error: memoryError } = await supabase
+        .from('conversation_memory')
         .delete()
-        .in('conversation_id', 
-          await supabase
-            .from('conversations')
-            .select('id')
-            .eq('user_id', user.id)
-            .then(({ data }) => data?.map(c => c.id) || [])
-        );
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
 
-      if (messagesError) throw messagesError;
+      if (memoryError) throw memoryError;
 
-      const { error: conversationsError } = await supabase
+      // Delete diagnoses for this specific user
+      const { error: diagnosesError } = await supabase
+        .from('conversation_diagnoses')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
+
+      if (diagnosesError) throw diagnosesError;
+
+      // Get conversations for this specific user
+      const { data: userConversations, error: conversationsQueryError } = await supabase
         .from('conversations')
-        .delete()
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('patient_id', userId);
 
-      if (conversationsError) throw conversationsError;
+      if (conversationsQueryError) throw conversationsQueryError;
+
+      const conversationIds = userConversations?.map(c => c.id) || [];
+
+      if (conversationIds.length > 0) {
+        // Delete messages for this user's conversations
+        const { error: messagesError } = await supabase
+          .from('messages')
+          .delete()
+          .in('conversation_id', conversationIds);
+
+        if (messagesError) throw messagesError;
+
+        // Delete conversations for this specific user
+        const { error: conversationsError } = await supabase
+          .from('conversations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('patient_id', userId);
+
+        if (conversationsError) throw conversationsError;
+      }
 
       toast({
-        title: "Success",
-        description: "Conversation history cleared successfully.",
+        title: "Memory Cleared",
+        description: `All memory and conversation data for ${userName} has been permanently deleted.`,
       });
 
-      // Force refresh the page to update the UI
+      // Reset selected user and refresh
+      setSelectedUserId('');
       window.location.reload();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to clear conversation history.",
+        description: "Failed to clear user memory. Please try again.",
       });
-    }
-  };
-
-  const loadUserKnowledge = async () => {
-    if (!selectedUserId || !user) return;
-    
-    setKnowledgeLoading(true);
-    try {
-      // Get conversations for this user
-      const { data: conversations, error: convError } = await supabase
-        .from('conversations')
-        .select('id, title')
-        .eq('user_id', user.id)
-        .eq('patient_id', selectedUserId)
-        .order('created_at', { ascending: false });
-
-      if (convError) throw convError;
-
-      // Get messages from these conversations to analyze what AI knows
-      if (conversations && conversations.length > 0) {
-        const conversationIds = conversations.map(c => c.id);
-        const { data: messages, error: msgError } = await supabase
-          .from('messages')
-          .select('content, type')
-          .in('conversation_id', conversationIds)
-          .eq('type', 'assistant')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (msgError) throw msgError;
-
-        // Analyze AI responses to extract learned information
-        const knowledge = analyzeUserKnowledge(messages || [], conversations);
-        setUserKnowledge(knowledge);
-      } else {
-        setUserKnowledge('No conversations found for this user yet.');
-      }
-    } catch (error: any) {
-      console.error('Error loading user knowledge:', error);
-      setUserKnowledge('Error loading user knowledge.');
     } finally {
-      setKnowledgeLoading(false);
+      setClearingMemory(null);
     }
   };
 
-  const analyzeUserKnowledge = (messages: any[], conversations: any[]) => {
-    if (messages.length === 0) {
-      return 'No AI knowledge available for this user yet.';
-    }
-
-    const conversationCount = conversations.length;
-    const messageCount = messages.length;
-    
-    // Extract common health-related patterns from AI responses
-    const healthKeywords = ['symptoms', 'medication', 'condition', 'treatment', 'diagnosis', 'pain', 'therapy'];
-    const mentionedTopics = new Set<string>();
-    
-    messages.forEach(msg => {
-      const content = msg.content.toLowerCase();
-      healthKeywords.forEach(keyword => {
-        if (content.includes(keyword)) {
-          mentionedTopics.add(keyword);
-        }
-      });
-    });
-
-    let knowledge = `**Conversation Summary:**\n`;
-    knowledge += `• ${conversationCount} conversation(s) with ${messageCount} AI responses\n`;
-    
-    if (mentionedTopics.size > 0) {
-      knowledge += `\n**Topics Discussed:**\n`;
-      Array.from(mentionedTopics).forEach(topic => {
-        knowledge += `• ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n`;
-      });
-    }
-    
-    knowledge += `\n**Recent Conversation Topics:**\n`;
-    conversations.slice(0, 5).forEach((conv, index) => {
-      knowledge += `• ${conv.title || `Conversation ${index + 1}`}\n`;
-    });
-
-    if (conversations.length === 0) {
-      knowledge = 'No conversations have been started for this user yet. Once you begin chatting with DrKnowsIt about this user, the AI will start learning and remembering information about their health profile, symptoms, medications, and preferences.';
-    }
-
-    return knowledge;
-  };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     setDeletingUserId(userId);
@@ -164,7 +252,6 @@ export const AISettings = () => {
       // Reset selected user if it was the deleted one
       if (selectedUserId === userId) {
         setSelectedUserId('');
-        setUserKnowledge('');
       }
       toast({
         title: "User Deleted",
@@ -279,40 +366,6 @@ export const AISettings = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            Memory Management
-          </CardTitle>
-          <CardDescription>
-            Manage your stored conversation history and AI memory.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-medium">Current Memory Status</h4>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Real conversation data is stored and tracked based on your actual usage.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-              <h4 className="font-medium text-destructive mb-2">Clear Conversation History</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                This will permanently delete all your conversation history with DrKnowItAll. This action cannot be undone.
-              </p>
-              <Button variant="destructive" onClick={clearConversationHistory}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear All History
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -434,17 +487,89 @@ export const AISettings = () => {
 
           {selectedUserId && (
             <div className="space-y-3">
-              <Label>AI Knowledge Summary</Label>
-              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px]">
-                {knowledgeLoading ? (
+              <div className="flex items-center justify-between">
+                <Label>AI Knowledge Summary</Label>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={exportToPDF}
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    disabled={memoryLoading || !insights?.length}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                  {(() => {
+                    const selectedUser = users.find(u => u.id === selectedUserId);
+                    return selectedUser ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
+                            disabled={clearingMemory === selectedUser.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {clearingMemory === selectedUser.id ? "Clearing..." : "Clear Memory"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                              Clear Memory - Are You Sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                <strong>This action cannot be undone.</strong> This will permanently delete:
+                              </p>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                <li>All conversation history with <strong>{selectedUser.first_name} {selectedUser.last_name}</strong></li>
+                                <li>All AI memory and insights for this user</li>
+                                <li>All diagnoses and analysis data</li>
+                                <li>All chat messages and interactions</li>
+                              </ul>
+                              <p className="text-sm mt-3">
+                                The user profile and health records will remain intact. Only conversation data and AI memory will be cleared.
+                              </p>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => clearUserMemory(selectedUser.id, `${selectedUser.first_name} ${selectedUser.last_name}`)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Clear Memory
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
+                {memoryLoading ? (
                   <div className="flex items-center justify-center h-32">
-                    <div className="text-sm text-muted-foreground">Loading user knowledge...</div>
+                    <div className="text-sm text-muted-foreground">Loading memory insights...</div>
                   </div>
                 ) : (
                   <div className="prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
-                      {userKnowledge || 'No knowledge available for this user yet.'}
+                      {formatMemoryKnowledge()}
                     </pre>
+                    {topDiagnosis && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <div className="text-sm font-medium text-foreground mb-2">Top Diagnosis:</div>
+                        <div className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-md">
+                          {topDiagnosis}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -18,6 +18,16 @@ import { FormProgress } from '@/components/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
 import { EmptyStateMessage } from '@/components/EmptyStateMessage';
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
   Users, 
   Activity, 
   Heart, 
@@ -28,7 +38,8 @@ import {
   Calendar,
   Lock,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 
 interface HealthForm {
@@ -37,6 +48,8 @@ interface HealthForm {
   icon: any;
   category: string;
   fields: FormField[];
+  color?: string;
+  subscription_required?: string;
 }
 
 interface FormField {
@@ -49,6 +62,16 @@ interface FormField {
 }
 
 const healthForms: HealthForm[] = [
+  {
+    id: 'general_health_notes',
+    title: 'General Health Notes',
+    icon: FileText,
+    category: 'personal',
+    color: 'bg-yellow-600',
+    fields: [
+      { name: 'general_notes', label: 'General Health Notes', type: 'textarea', placeholder: 'Any health-related information you want the AI to know - symptoms, blood work results, doctor observations, family history details, medication effects, or anything else relevant to your health that doesn\'t fit in other forms.' }
+    ]
+  },
   {
     id: 'personal_demographics',
     title: 'Personal Background & Demographics',
@@ -282,9 +305,12 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [analysisSummary, setAnalysisSummary] = useState<string>('');
   const [currentFileName, setCurrentFileName] = useState<string>('');
   const [currentFileSize, setCurrentFileSize] = useState<number>(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showBackConfirmation, setShowBackConfirmation] = useState(false);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
+    'general_health_notes',
     'personal_demographics', 
     'medical_history', 
     'vital_signs_current', 
@@ -324,6 +350,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   const handleInputChange = (name: string, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const validateFileSize = (file: File): boolean => {
@@ -490,6 +517,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
       setFormData({});
       setSelectedForm(null);
+      setHasUnsavedChanges(false);
       onFormSubmit?.();
     } catch (error: any) {
       toast({
@@ -500,6 +528,27 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBackToForms = () => {
+    if (hasUnsavedChanges) {
+      setShowBackConfirmation(true);
+    } else {
+      setSelectedForm(null);
+      setFormData({});
+    }
+  };
+
+  const handleSaveAndGoBack = async () => {
+    await submitForm();
+    setShowBackConfirmation(false);
+  };
+
+  const handleDiscardChanges = () => {
+    setFormData({});
+    setSelectedForm(null);
+    setHasUnsavedChanges(false);
+    setShowBackConfirmation(false);
   };
 
   const renderField = (field: FormField) => {
@@ -526,7 +575,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
-            rows={3}
+            rows={6}
+            className="min-h-[120px] max-h-[300px] resize-y overflow-y-auto"
           />
         );
 
@@ -587,6 +637,15 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   if (selectedForm) {
     return (
       <div className="space-y-6">
+        {/* Back Navigation */}
+        <div 
+          onClick={handleBackToForms}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-sm">Back to all forms</span>
+        </div>
+
         <FormProgress 
           currentStep={1}
           totalSteps={1}
@@ -607,44 +666,19 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                   Complete this form to help DrKnowItAll provide better health insights.
                 </CardDescription>
               </div>
-              <Button variant="outline" onClick={() => setSelectedForm(null)}>
-                Back to Forms
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-            {/* Patient Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="patient_selection">Assign to Patient</Label>
-              <Select
-                value={selectedPatient?.id || 'none'}
-                onValueChange={(value) => {
-                  // This would typically update the selected patient in the parent component
-                  // For now, we'll show which patient is selected
-                }}
-              >
-                <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Select a patient" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border z-50">
-                  <SelectItem value="none">
-                    <span className="text-muted-foreground">No specific patient (general form)</span>
-                  </SelectItem>
-                  {users.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{patient.first_name} {patient.last_name}</span>
-                        {patient.is_primary && <span className="text-xs text-muted-foreground">(Primary)</span>}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Choose which patient this health form will be saved for.
-              </p>
-            </div>
+            {/* Patient Info Display */}
+            {selectedPatient && (
+              <div className="p-3 bg-muted/50 rounded-lg border">
+                <p className="text-sm text-muted-foreground">
+                  Saving for: <span className="font-medium text-foreground">{selectedPatient.first_name} {selectedPatient.last_name}</span>
+                  {selectedPatient.is_primary && <span className="text-xs text-muted-foreground ml-2">(Primary)</span>}
+                </p>
+              </div>
+            )}
 
             {selectedForm.fields.map((field) => (
               <div key={field.name} className="space-y-2">
@@ -660,13 +694,36 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
               <Button onClick={submitForm} disabled={loading}>
                 {loading ? 'Saving...' : 'Save Form'}
               </Button>
-              <Button variant="outline" onClick={() => setSelectedForm(null)}>
-                Cancel
-              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Back Confirmation Dialog */}
+      <AlertDialog open={showBackConfirmation} onOpenChange={setShowBackConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes in this form. What would you like to do?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowBackConfirmation(false)}>
+              Stay on Form
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDiscardChanges}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Discard Changes
+            </AlertDialogAction>
+            <AlertDialogAction onClick={handleSaveAndGoBack}>
+              Save & Go Back
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     );
   }
@@ -754,7 +811,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 {availableForms.map((form) => (
                   <Card 
                     key={form.id} 
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
                     onClick={() => {
                       if (selectedPatient || users.length === 0) {
                         setSelectedForm(form);
@@ -763,13 +820,17 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                   >
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-3">
-                        <form.icon className="h-6 w-6 text-primary mt-1" />
+                        <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
+                          <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
+                        </div>
                         <div>
                           <h3 className="font-medium mb-2">{form.title}</h3>
                           <p className="text-sm text-muted-foreground mb-3">
                             {form.fields.length} fields to complete
                           </p>
-                          <Button size="sm">Fill Out Form</Button>
+                          <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
+                            Fill Out Form
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
