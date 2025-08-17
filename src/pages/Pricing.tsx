@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 const Pricing = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
 
   const openAuth = (mode: 'signin' | 'signup') => {
@@ -109,6 +109,15 @@ const Pricing = () => {
       description: "Optimized AI infrastructure delivers responses in seconds, not minutes"
     }
   ];
+
+  // Show loading state while auth is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // If user is logged in, show subscription management instead of marketing pricing
   if (user) {
