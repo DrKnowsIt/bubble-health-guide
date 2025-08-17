@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code } from "lucide-react";
+import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code, Users, Bot } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
@@ -18,6 +18,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
+import { UserManagement } from "@/components/UserManagement";
+import { AIIntelligenceSettings } from "@/components/AIIntelligenceSettings";
 
 const Settings = () => {
   const {
@@ -194,7 +196,7 @@ const Settings = () => {
             </div>}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -202,6 +204,14 @@ const Settings = () => {
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 Subscription
+              </TabsTrigger>
+              <TabsTrigger value="family" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Family
+              </TabsTrigger>
+              <TabsTrigger value="ai-intelligence" className="flex items-center gap-2">
+                <Bot className="h-4 w-4" />
+                AI Intelligence
               </TabsTrigger>
               <TabsTrigger value="privacy" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
@@ -413,6 +423,16 @@ const Settings = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Family Tab */}
+            <TabsContent value="family" className="space-y-6">
+              <UserManagement />
+            </TabsContent>
+
+            {/* AI Intelligence Tab */}
+            <TabsContent value="ai-intelligence" className="space-y-6">
+              <AIIntelligenceSettings />
             </TabsContent>
 
             {/* Privacy Tab */}
