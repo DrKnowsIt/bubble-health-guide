@@ -74,8 +74,8 @@ export default function UserDashboard() {
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',
         action: (
-          <ToastAction altText="View plans" onClick={() => navigate('/pricing')}>
-            View plans
+          <ToastAction altText="Upgrade" onClick={() => openCustomerPortal()}>
+            Upgrade
           </ToastAction>
         ),
       });

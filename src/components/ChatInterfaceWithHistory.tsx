@@ -20,7 +20,7 @@ interface ChatInterfaceWithHistoryProps {
 
 export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConversationCreated }: ChatInterfaceWithHistoryProps) => {
   const { user } = useAuth();
-  const { subscribed, loading: subscriptionLoading } = useSubscription();
+  const { subscribed, loading: subscriptionLoading, openCustomerPortal } = useSubscription();
   const { selectedUser } = useUsers();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -225,10 +225,10 @@ export const ChatInterfaceWithHistory = ({ onSendMessage, onShowHistory, onConve
             <Button 
               size="sm"
               variant="outline"
-              onClick={() => navigate('/pricing')}
+              onClick={() => openCustomerPortal()}
               className="ml-2 h-6 px-2 text-xs"
             >
-              View Plans
+              Upgrade
             </Button>
           </div>
         </div>

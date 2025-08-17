@@ -51,10 +51,10 @@ export const UserSettings = () => {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => navigate('/pricing')}
+            onClick={() => openCustomerPortal()}
             className="h-6 px-2 text-xs"
           >
-            View Plans
+            Upgrade
           </Button>
         </div>
       )}
@@ -132,7 +132,7 @@ export const UserSettings = () => {
                   )}
                   {!subscribed && (
                     <Button 
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => openCustomerPortal()}
                     >
                       Subscribe Now
                     </Button>
