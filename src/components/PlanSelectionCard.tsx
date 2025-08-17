@@ -9,7 +9,7 @@ interface PlanSelectionCardProps {
 }
 
 export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
-  const { createCheckoutSession, subscribed, subscription_tier, openCustomerPortal } = useSubscription();
+  const { openCustomerPortal, subscribed, subscription_tier } = useSubscription();
 
   const plans = [
     {
@@ -52,28 +52,19 @@ export const PlanSelectionCard = ({ description }: PlanSelectionCardProps) => {
 
   const handlePlanAction = async (tier: 'basic' | 'pro') => {
     try {
-      if (subscribed) {
-        // Open customer portal for plan changes
-        await openCustomerPortal();
-      } else {
-        // Create new subscription
-        await createCheckoutSession(tier);
-      }
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process subscription. Please try again.",
+        description: "Failed to open subscription management. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   const getButtonText = (planTier: 'basic' | 'pro') => {
-    if (!subscribed) return `Choose ${planTier === 'basic' ? 'Basic' : 'Pro'}`;
     if (subscription_tier === planTier) return 'Current Plan';
-    if (subscription_tier === 'basic' && planTier === 'pro') return 'Upgrade';
-    if (subscription_tier === 'pro' && planTier === 'basic') return 'Downgrade';
-    return 'Change Plan';
+    return 'Manage Subscription';
   };
 
   const isCurrentPlan = (planTier: 'basic' | 'pro') => {

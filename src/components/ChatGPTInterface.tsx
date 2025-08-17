@@ -42,7 +42,7 @@ const examplePrompts = [
 
 function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInterfaceProps & { conversation: { currentConversation: string | null; messages: Message[]; setMessages: Dispatch<SetStateAction<Message[]>>; createConversation: (title: string, patientId?: string | null) => Promise<string | null>; saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) => Promise<void>; updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) => Promise<void>; } }) {
   const { user } = useAuth();
-  const { subscribed, createCheckoutSession } = useSubscription();
+  const { subscribed, openCustomerPortal } = useSubscription();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentConversation, messages, setMessages, createConversation, saveMessage, updateConversationTitleIfPlaceholder } = conversation;
@@ -464,8 +464,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           title: 'Pro plan required',
           description: 'AI Chat requires a Pro subscription.',
           action: (
-            <ToastAction altText="Upgrade" onClick={() => createCheckoutSession('pro')}>
-              Upgrade to Pro
+            <ToastAction altText="Upgrade" onClick={() => openCustomerPortal()}>
+              Manage Subscription
             </ToastAction>
           ),
         });

@@ -16,15 +16,11 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
 
   const handleUpgrade = async () => {
     try {
-      if (subscribed) {
-        await openCustomerPortal();
-      } else {
-        await createCheckoutSession('pro');
-      }
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to start checkout process. Please try again.",
+        description: "Failed to open subscription management. Please try again.",
         variant: "destructive",
       });
     }
@@ -111,16 +107,14 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           {!isPro && (
             <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
               <Crown className="h-4 w-4 mr-2" />
-              {isBasic ? 'Upgrade to Pro' : 'Subscribe to Pro'}
+              Manage Subscription
             </DropdownMenuItem>
           )}
           
-          {subscribed && (
-            <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
-              <Settings className="h-4 w-4 mr-2" />
-              Billing Portal
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Subscription
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -132,7 +126,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           onClick={handleUpgrade}
           className="ml-2 h-7 px-3 text-xs btn-primary"
         >
-          {isBasic ? 'Upgrade' : 'Subscribe'}
+          Manage Plan
         </Button>
       )}
     </div>

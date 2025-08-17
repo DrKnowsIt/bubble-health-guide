@@ -16,7 +16,7 @@ const Pricing = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const { user } = useAuth();
-  const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, openCustomerPortal } = useSubscription();
 
   const openAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
@@ -32,13 +32,7 @@ const Pricing = () => {
     const planType = planName.toLowerCase() as 'basic' | 'pro';
 
     try {
-      if (subscribed) {
-        // Manage existing subscription in portal (also used for switching plans)
-        await openCustomerPortal();
-      } else {
-        // Start new subscription for the selected plan
-        await createCheckoutSession(planType);
-      }
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
@@ -261,7 +255,7 @@ const Pricing = () => {
                 if (subscribed) {
                   await openCustomerPortal();
                 } else {
-                  await createCheckoutSession('pro');
+                  await openCustomerPortal();
                 }
               } catch (error) {
                 toast({ title: 'Error', description: 'Please try again.', variant: 'destructive' });

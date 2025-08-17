@@ -7,21 +7,17 @@ import { Crown, Zap, Calendar, CreditCard, Settings, ExternalLink } from "lucide
 import { toast } from "@/hooks/use-toast";
 
 export const SubscriptionManagement = () => {
-  const { subscribed, subscription_tier, subscription_end, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, subscription_end, loading, openCustomerPortal } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePlanChange = async (planType: 'basic' | 'pro') => {
     setIsLoading(true);
     try {
-      if (subscribed) {
-        await openCustomerPortal();
-      } else {
-        await createCheckoutSession(planType);
-      }
+      await openCustomerPortal();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process subscription. Please try again.",
+        description: "Failed to manage subscription. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -183,10 +179,10 @@ export const SubscriptionManagement = () => {
             <Button
               variant={subscription_tier === 'basic' ? 'secondary' : 'outline'}
               className="w-full"
-              disabled={subscription_tier === 'basic' || isLoading}
+              disabled={isLoading}
               onClick={() => handlePlanChange('basic')}
             >
-              {subscription_tier === 'basic' ? 'Current Plan' : subscribed ? 'Downgrade' : 'Choose Basic'}
+              {subscription_tier === 'basic' ? 'Current Plan' : 'Manage Subscription'}
             </Button>
           </CardContent>
         </Card>
@@ -234,10 +230,10 @@ export const SubscriptionManagement = () => {
             <Button
               variant={subscription_tier === 'pro' ? 'secondary' : 'default'}
               className={`w-full ${subscription_tier !== 'pro' ? 'btn-primary' : ''}`}
-              disabled={subscription_tier === 'pro' || isLoading}
+              disabled={isLoading}
               onClick={() => handlePlanChange('pro')}
             >
-              {subscription_tier === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
+              {subscription_tier === 'pro' ? 'Current Plan' : 'Manage Subscription'}
             </Button>
           </CardContent>
         </Card>
@@ -263,7 +259,7 @@ export const SubscriptionManagement = () => {
               className="gap-2"
             >
               <ExternalLink className="h-4 w-4" />
-              Open Billing Portal
+              Manage Subscription
             </Button>
           </CardContent>
         </Card>
