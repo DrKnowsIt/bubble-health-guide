@@ -2,6 +2,7 @@
 // File: src/hooks/useConversations.tsx
 
 import { useState, useEffect, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useUsers } from './useUsers';
@@ -38,7 +39,7 @@ export const useConversations = (propSelectedUser?: any) => {
 
   const fetchConversations = useCallback(async () => {
     if (!user) {
-      setConversations([]);
+      flushSync(() => setConversations([]));
       return;
     }
     
@@ -71,8 +72,10 @@ export const useConversations = (propSelectedUser?: any) => {
         conversations: data?.map(c => ({ id: c.id, title: c.title, patient_id: c.patient_id })) || []
       });
       
-      // Set conversations state normally
-      setConversations(data || []);
+      // Use flushSync to ensure immediate state update
+      flushSync(() => {
+        setConversations(data || []);
+      });
       
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -137,9 +140,11 @@ export const useConversations = (propSelectedUser?: any) => {
       
       logDebug('Conversation created successfully in database', data);
       
-      // Update local state normally
-      setConversations(prev => [data, ...prev]);
-      setCurrentConversation(data.id);
+      // Immediately update local state with flushSync for synchronous update
+      flushSync(() => {
+        setConversations(prev => [data, ...prev]);
+        setCurrentConversation(data.id);
+      });
       
       logDebug('Conversation added to local state');
       
@@ -192,8 +197,10 @@ export const useConversations = (propSelectedUser?: any) => {
 
       if (error) throw error;
 
-      // Update local state normally
-      setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, title: newTitle, updated_at: nowIso } : c));
+      // Optimistically update local state
+      flushSync(() => {
+        setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, title: newTitle, updated_at: nowIso } : c));
+      });
     } catch (e) {
       console.error('Error updating conversation title:', e);
     }
@@ -206,15 +213,19 @@ export const useConversations = (propSelectedUser?: any) => {
   const startNewConversation = () => {
     logDebug('Starting new conversation - clearing all conversation state');
     
-    setCurrentConversation(null);
-    setMessages([]);
+    flushSync(() => {
+      setCurrentConversation(null);
+      setMessages([]);
+    });
     
     logDebug('New conversation state set - conversation and messages cleared');
   };
 
   const selectConversation = (conversationId: string) => {
     logDebug('Selecting conversation', conversationId);
-    setCurrentConversation(conversationId);
+    flushSync(() => {
+      setCurrentConversation(conversationId);
+    });
     fetchMessages(conversationId);
   };
 
@@ -239,14 +250,16 @@ export const useConversations = (propSelectedUser?: any) => {
 
       if (error) throw error;
 
-      // Update local state normally
-      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
-      
-      // If we deleted the current conversation, reset to empty state
-      if (currentConversation === conversationId) {
-        setCurrentConversation(null);
-        setMessages([]);
-      }
+      // Update local state with flushSync for immediate update
+      flushSync(() => {
+        setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+        
+        // If we deleted the current conversation, reset to empty state
+        if (currentConversation === conversationId) {
+          setCurrentConversation(null);
+          setMessages([]);
+        }
+      });
 
       toast({
         title: "Conversation deleted",
@@ -268,9 +281,11 @@ export const useConversations = (propSelectedUser?: any) => {
   useEffect(() => {
     if (!user) {
       logDebug('No user, clearing all state');
-      setConversations([]);
-      setCurrentConversation(null);
-      setMessages([]);
+      flushSync(() => {
+        setConversations([]);
+        setCurrentConversation(null);
+        setMessages([]);
+      });
       return;
     }
 
@@ -281,10 +296,12 @@ export const useConversations = (propSelectedUser?: any) => {
       previousConversationCount: conversations.length 
     });
     
-    // Clear all state when switching patients to prevent cross-contamination
-    setCurrentConversation(null);
-    setMessages([]);
-    setConversations([]); // Clear conversations first to ensure clean slate
+    // Immediately clear all state when switching patients to prevent cross-contamination
+    flushSync(() => {
+      setCurrentConversation(null);
+      setMessages([]);
+      setConversations([]); // Clear conversations first to ensure clean slate
+    });
     
     // Fetch fresh conversations for the new patient
     fetchConversations();
@@ -320,11 +337,13 @@ export const useConversations = (propSelectedUser?: any) => {
             if (!belongsToCurrentPatient) return;
             
             // Add new conversation to the list
-            setConversations(prev => {
-              if (!prev.find(conv => conv.id === payload.new.id)) {
-                return [payload.new as Conversation, ...prev];
-              }
-              return prev;
+            flushSync(() => {
+              setConversations(prev => {
+                if (!prev.find(conv => conv.id === payload.new.id)) {
+                  return [payload.new as Conversation, ...prev];
+                }
+                return prev;
+              });
             });
           } else if (payload.eventType === 'UPDATE') {
             // Check if this conversation belongs to the current patient context
@@ -333,16 +352,20 @@ export const useConversations = (propSelectedUser?: any) => {
               newRow?.patient_id === null;
             if (!belongsToCurrentPatient) return;
             // Update existing conversation
-            setConversations(prev => 
-              prev.map(conv => 
-                conv.id === payload.new.id ? payload.new as Conversation : conv
-              ).sort((a, b) => 
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-              )
-            );
+            flushSync(() => {
+              setConversations(prev => 
+                prev.map(conv => 
+                  conv.id === payload.new.id ? payload.new as Conversation : conv
+                ).sort((a, b) => 
+                  new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+                )
+              );
+            });
           } else if (payload.eventType === 'DELETE') {
             // Remove deleted conversation
-            setConversations(prev => prev.filter(conv => conv.id !== oldRow?.id));
+            flushSync(() => {
+              setConversations(prev => prev.filter(conv => conv.id !== oldRow?.id));
+            });
           }
         }
       )

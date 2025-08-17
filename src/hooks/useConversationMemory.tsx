@@ -53,64 +53,15 @@ export const useConversationMemory = (patientId?: string) => {
       memoryData.forEach(memory => {
         if (memory.memory && typeof memory.memory === 'object') {
           Object.entries(memory.memory).forEach(([key, value]) => {
-            if (value && key !== 'conversation_id' && key !== 'last_updated') {
+            if (value && key !== 'conversation_id') {
               const category = categorizeInsight(key);
-              
-              // Handle new structured memory format
-              if (typeof value === 'object' && value !== null) {
-                if (key === 'symptoms' && typeof value === 'object') {
-                  // Handle symptoms object with nested symptom entries
-                  Object.entries(value).forEach(([symptomName, symptomData]) => {
-                    extractedInsights.push({
-                      key: symptomName,
-                      value: symptomData,
-                      timestamp: memory.updated_at,
-                      conversation_id: memory.conversation_id,
-                      category: 'symptom'
-                    });
-                  });
-                } else if (Array.isArray(value)) {
-                  // Handle arrays (medical_history, current_medications, etc.)
-                  value.forEach((item, index) => {
-                    extractedInsights.push({
-                      key: `${key}_${index}`,
-                      value: item,
-                      timestamp: memory.updated_at,
-                      conversation_id: memory.conversation_id,
-                      category
-                    });
-                  });
-                } else if (typeof value === 'object') {
-                  // Handle other object types (lifestyle_factors, etc.)
-                  Object.entries(value).forEach(([subKey, subValue]) => {
-                    extractedInsights.push({
-                      key: `${key}_${subKey}`,
-                      value: subValue,
-                      timestamp: memory.updated_at,
-                      conversation_id: memory.conversation_id,
-                      category
-                    });
-                  });
-                } else {
-                  // Handle simple object with description/details
-                  extractedInsights.push({
-                    key,
-                    value,
-                    timestamp: memory.updated_at,
-                    conversation_id: memory.conversation_id,
-                    category
-                  });
-                }
-              } else {
-                // Handle simple key-value pairs (legacy format)
-                extractedInsights.push({
-                  key,
-                  value,
-                  timestamp: memory.updated_at,
-                  conversation_id: memory.conversation_id,
-                  category
-                });
-              }
+              extractedInsights.push({
+                key,
+                value,
+                timestamp: memory.updated_at,
+                conversation_id: memory.conversation_id,
+                category
+              });
             }
           });
         }

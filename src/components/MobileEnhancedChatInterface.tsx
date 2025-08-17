@@ -57,7 +57,6 @@ export const MobileEnhancedChatInterface = ({
   const [showDiagnoses, setShowDiagnoses] = useState(false);
   const [patientSelectorCollapsed, setPatientSelectorCollapsed] = useState(true);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
-  const [diagnoses, setDiagnoses] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Stale reply guard
@@ -86,37 +85,6 @@ export const MobileEnhancedChatInterface = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Load diagnoses when conversation or patient changes
-  useEffect(() => {
-    if (currentConversation && selectedUser?.id) {
-      loadDiagnosesForConversation();
-    } else {
-      setDiagnoses([]);
-    }
-  }, [currentConversation, selectedUser?.id]);
-
-  const loadDiagnosesForConversation = async () => {
-    if (!currentConversation || !selectedUser?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('conversation_diagnoses')
-        .select('*')
-        .eq('conversation_id', currentConversation)
-        .eq('patient_id', selectedUser.id)
-        .order('updated_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading diagnoses:', error);
-        return;
-      }
-
-      setDiagnoses(data || []);
-    } catch (error) {
-      console.error('Error loading diagnoses:', error);
-    }
-  };
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {
@@ -180,7 +148,15 @@ export const MobileEnhancedChatInterface = ({
 
       if (error) throw error;
 
-      const aiResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const rawResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const cleanResponse = rawResponse
+        .replace(/\{[\s\S]*?"diagnosis"[\s\S]*?\}/gi, '')
+        .replace(/\{[\s\S]*?"suggested_forms"[\s\S]*?\}/gi, '')
+        .replace(/\[[\s\S]*?\]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/\s+,/g, ',')
+        .replace(/,\s+\./g, '.')
+        .trim();
 
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
@@ -190,31 +166,12 @@ export const MobileEnhancedChatInterface = ({
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
-        content: aiResponse,
+        content: cleanResponse,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
-
-      // Call separate diagnosis analysis (background)
-      const recentMessages = [...messages, 
-        { type: 'user', content: messageContent },
-        { type: 'ai', content: aiResponse }
-      ].slice(-6);
-
-        supabase.functions.invoke('analyze-conversation-diagnosis', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          }
-        }).then(() => {
-          // Reload diagnoses after analysis
-          loadDiagnosesForConversation();
-        }).catch(error => {
-          console.error('Error analyzing conversation for diagnosis:', error);
-        });
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
@@ -350,13 +307,8 @@ export const MobileEnhancedChatInterface = ({
                 <div className="w-full">
                   <div className="p-3 bg-background border rounded-lg">
                     <ProbableDiagnoses 
-                      diagnoses={diagnoses.map(d => ({
-                        diagnosis: d.diagnosis,
-                        confidence: d.confidence || 0,
-                        reasoning: d.reasoning || '',
-                        updated_at: d.updated_at
-                      }))}
-                      patientName={selectedUser?.first_name + ' ' + selectedUser?.last_name || 'Unknown'}
+                      diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
+                      patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
                       patientId={selectedUser?.id || ''}
                     />
                   </div>
