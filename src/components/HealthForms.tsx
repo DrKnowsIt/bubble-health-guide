@@ -257,6 +257,16 @@ const healthForms: HealthForm[] = [
       { name: 'concerning_changes', label: 'Recent Changes That Concern You', type: 'textarea', placeholder: 'Any new symptoms, changes in how you feel, or health concerns you have' },
       { name: 'family_observations', label: 'Family/Friends\' Observations', type: 'textarea', placeholder: 'Things family or friends have noticed about your health that you might miss' }
     ]
+  },
+  {
+    id: 'general_health_notes',
+    title: 'General Health Notes',
+    icon: FileText,
+    category: 'personal',
+    color: 'bg-emerald-600',
+    fields: [
+      { name: 'general_notes', label: 'General Health Notes', type: 'textarea', placeholder: 'Any health-related information you want the AI to know - symptoms, blood work results, doctor observations, family history details, medication effects, or anything else relevant to your health that doesn\'t fit in other forms.' }
+    ]
   }
 ];
 
@@ -287,13 +297,11 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   // Define forms available for basic tier
   const basicTierFormIds = [
-    'general_health_notes',
-    'basic_health_info',
-    'current_symptoms',
-    'medical_history',
-    'medications_supplements',
-    'lifestyle_habits',
-    'diet_nutrition'
+    'personal_demographics', 
+    'medical_history', 
+    'vital_signs_current', 
+    'patient_observations',
+    'general_health_notes'
   ];
 
   // Filter forms based on subscription tier
