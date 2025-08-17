@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
+import { useConversationMemory } from '@/hooks/useConversationMemory';
 import { Brain, HardDrive, Settings, Trash2, User, Users, AlertTriangle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -20,15 +21,48 @@ export const AISettings = () => {
   const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [userKnowledge, setUserKnowledge] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
+  
+  // Use the conversation memory hook for the selected user
+  const { insights, loading: memoryLoading, getMemoryStats } = useConversationMemory(selectedUserId);
 
-  useEffect(() => {
-    if (selectedUserId) {
-      loadUserKnowledge();
+  // Format memory insights for display
+  const formatMemoryKnowledge = () => {
+    if (!insights || insights.length === 0) {
+      return 'No memory insights available for this user yet.';
     }
-  }, [selectedUserId]);
+
+    const stats = getMemoryStats();
+    let knowledgeText = `Memory Insights: ${stats.totalInsights} total\n`;
+    knowledgeText += `Categories: ${Object.keys(stats.categories).join(', ')}\n\n`;
+
+    // Group insights by category
+    const groupedInsights = insights.reduce((acc, insight) => {
+      if (!acc[insight.category]) {
+        acc[insight.category] = [];
+      }
+      acc[insight.category].push(insight);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Display insights by category
+    Object.entries(groupedInsights).forEach(([category, categoryInsights]) => {
+      knowledgeText += `${category.toUpperCase()}:\n`;
+      categoryInsights.slice(0, 3).forEach(insight => {
+        const value = typeof insight.value === 'object' 
+          ? JSON.stringify(insight.value) 
+          : String(insight.value);
+        knowledgeText += `• ${insight.key}: ${value}\n`;
+      });
+      knowledgeText += '\n';
+    });
+
+    if (stats.lastMemoryUpdate) {
+      knowledgeText += `Last updated: ${stats.lastMemoryUpdate.toLocaleDateString()}`;
+    }
+
+    return knowledgeText;
+  };
 
 
   const clearConversationHistory = async () => {
@@ -72,90 +106,6 @@ export const AISettings = () => {
     }
   };
 
-  const loadUserKnowledge = async () => {
-    if (!selectedUserId || !user) return;
-    
-    setKnowledgeLoading(true);
-    try {
-      // Get conversations for this user
-      const { data: conversations, error: convError } = await supabase
-        .from('conversations')
-        .select('id, title')
-        .eq('user_id', user.id)
-        .eq('patient_id', selectedUserId)
-        .order('created_at', { ascending: false });
-
-      if (convError) throw convError;
-
-      // Get messages from these conversations to analyze what AI knows
-      if (conversations && conversations.length > 0) {
-        const conversationIds = conversations.map(c => c.id);
-        const { data: messages, error: msgError } = await supabase
-          .from('messages')
-          .select('content, type')
-          .in('conversation_id', conversationIds)
-          .eq('type', 'assistant')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (msgError) throw msgError;
-
-        // Analyze AI responses to extract learned information
-        const knowledge = analyzeUserKnowledge(messages || [], conversations);
-        setUserKnowledge(knowledge);
-      } else {
-        setUserKnowledge('No conversations found for this user yet.');
-      }
-    } catch (error: any) {
-      console.error('Error loading user knowledge:', error);
-      setUserKnowledge('Error loading user knowledge.');
-    } finally {
-      setKnowledgeLoading(false);
-    }
-  };
-
-  const analyzeUserKnowledge = (messages: any[], conversations: any[]) => {
-    if (messages.length === 0) {
-      return 'No AI knowledge available for this user yet.';
-    }
-
-    const conversationCount = conversations.length;
-    const messageCount = messages.length;
-    
-    // Extract common health-related patterns from AI responses
-    const healthKeywords = ['symptoms', 'medication', 'condition', 'treatment', 'diagnosis', 'pain', 'therapy'];
-    const mentionedTopics = new Set<string>();
-    
-    messages.forEach(msg => {
-      const content = msg.content.toLowerCase();
-      healthKeywords.forEach(keyword => {
-        if (content.includes(keyword)) {
-          mentionedTopics.add(keyword);
-        }
-      });
-    });
-
-    let knowledge = `**Conversation Summary:**\n`;
-    knowledge += `• ${conversationCount} conversation(s) with ${messageCount} AI responses\n`;
-    
-    if (mentionedTopics.size > 0) {
-      knowledge += `\n**Topics Discussed:**\n`;
-      Array.from(mentionedTopics).forEach(topic => {
-        knowledge += `• ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n`;
-      });
-    }
-    
-    knowledge += `\n**Recent Conversation Topics:**\n`;
-    conversations.slice(0, 5).forEach((conv, index) => {
-      knowledge += `• ${conv.title || `Conversation ${index + 1}`}\n`;
-    });
-
-    if (conversations.length === 0) {
-      knowledge = 'No conversations have been started for this user yet. Once you begin chatting with DrKnowsIt about this user, the AI will start learning and remembering information about their health profile, symptoms, medications, and preferences.';
-    }
-
-    return knowledge;
-  };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     setDeletingUserId(userId);
@@ -164,7 +114,6 @@ export const AISettings = () => {
       // Reset selected user if it was the deleted one
       if (selectedUserId === userId) {
         setSelectedUserId('');
-        setUserKnowledge('');
       }
       toast({
         title: "User Deleted",
@@ -436,14 +385,14 @@ export const AISettings = () => {
             <div className="space-y-3">
               <Label>AI Knowledge Summary</Label>
               <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px]">
-                {knowledgeLoading ? (
+                {memoryLoading ? (
                   <div className="flex items-center justify-center h-32">
-                    <div className="text-sm text-muted-foreground">Loading user knowledge...</div>
+                    <div className="text-sm text-muted-foreground">Loading memory insights...</div>
                   </div>
                 ) : (
                   <div className="prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
-                      {userKnowledge || 'No knowledge available for this user yet.'}
+                      {formatMemoryKnowledge()}
                     </pre>
                   </div>
                 )}
