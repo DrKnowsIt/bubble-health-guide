@@ -37,6 +37,8 @@ interface HealthForm {
   icon: any;
   category: string;
   fields: FormField[];
+  color?: string;
+  subscription_required?: string;
 }
 
 interface FormField {
@@ -732,7 +734,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 {availableForms.map((form) => (
                   <Card 
                     key={form.id} 
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-emerald-500/50 shadow-emerald-500/10' : ''}`}
                     onClick={() => {
                       if (selectedPatient || users.length === 0) {
                         setSelectedForm(form);
@@ -741,13 +743,17 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                   >
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-3">
-                        <form.icon className="h-6 w-6 text-primary mt-1" />
+                        <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
+                          <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
+                        </div>
                         <div>
                           <h3 className="font-medium mb-2">{form.title}</h3>
                           <p className="text-sm text-muted-foreground mb-3">
                             {form.fields.length} fields to complete
                           </p>
-                          <Button size="sm">Fill Out Form</Button>
+                          <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}>
+                            Fill Out Form
+                          </Button>
                         </div>
                       </div>
                     </CardContent>

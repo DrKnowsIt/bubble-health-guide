@@ -69,12 +69,12 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       return false;
     }
 
-    // Hard limit at 10MB
-    if (file.size > 10 * 1024 * 1024) {
+    // Hard limit at 30MB
+    if (file.size > 30 * 1024 * 1024) {
       toast({
         variant: "destructive",
         title: "File Too Large",
-        description: "DNA files must be under 10MB. Please compress or contact support for larger files.",
+        description: "DNA files must be under 30MB. Please compress or contact support for larger files.",
       });
       return false;
     }
@@ -267,7 +267,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
               Drop your DNA file here or click to browse
             </p>
             <p className="text-sm text-muted-foreground">
-              Supports raw DNA data files (.txt, .csv, .tsv) from 23andMe, Ancestry.com, and similar services
+              Supports raw DNA data files (.txt, .csv, .tsv) from 23andMe, Ancestry.com, and similar services (max 30MB)
             </p>
           </div>
           
