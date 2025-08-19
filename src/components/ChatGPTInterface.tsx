@@ -306,24 +306,27 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     const textToSend = baseText || (pendingAttachment ? `I just attached an image: ${pendingAttachment.desc}` : '');
     if (!textToSend && !explicitImageUrl && !pendingAttachment) return;
     
-    if (!user || !subscribed) {
+    if (!selectedUser) {
+      toast({ title: "Select Patient", description: "Please select a patient before sending a message.", variant: "destructive" });
       return;
     }
   
-    // If we have a pending attachment, ensure it's recorded before sending
+    // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
     if (pendingAttachment && !imageUrl) {
       try {
-        await supabase.from('health_records').insert({
-          user_id: user!.id,
-          patient_id: selectedUser!.id,
-          record_type: 'image',
-          title: pendingAttachment.desc || 'Uploaded image',
-          file_url: pendingAttachment.path,
-          category: 'imaging',
-          tags: ['chat-upload'],
-          metadata: { conversation_id: currentConversation || null, source: 'chat', ai_description: pendingAttachment.desc }
-        });
+        if (user) {
+          await supabase.from('health_records').insert({
+            user_id: user.id,
+            patient_id: selectedUser.id,
+            record_type: 'image',
+            title: pendingAttachment.desc || 'Uploaded image',
+            file_url: pendingAttachment.path,
+            category: 'imaging',
+            tags: ['chat-upload'],
+            metadata: { conversation_id: currentConversation || null, source: 'chat', ai_description: pendingAttachment.desc }
+          });
+        }
         imageUrl = pendingAttachment.signedUrl;
       } catch (err) {
         console.error('Error saving health record:', err);
@@ -331,37 +334,34 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}-${Math.random()}`,
       type: 'user',
       content: textToSend,
       timestamp: new Date(),
       ...(imageUrl ? { image_url: imageUrl } : {})
     };
     
-    // If user is authenticated and no current conversation, create one FIRST
-    let conversationId = currentConversation;
-    if (user && !currentConversation) {
-      const title = generateConversationTitle(textToSend);
-      conversationId = await createConversation(title, selectedUser?.id || null);
-      
-      if (!conversationId) {
-        toast({
-          title: "Error",
-          description: "Failed to create conversation",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    // conversation already ensured above
-
-    // Immediately reflect user's message in UI and clear input/attachment
+    // Add user message to UI immediately
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     if (pendingAttachment) setPendingAttachment(null);
 
-    const currentInput = textToSend;
+    // Ensure conversation exists
+    let conversationId = currentConversation;
+    if (!conversationId) {
+      const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
+      conversationId = await createConversation(title, selectedUser.id);
+      if (!conversationId) {
+        toast({ title: "Error", description: "Failed to create conversation", variant: "destructive" });
+        return;
+      }
+    }
+
+    // Save user message
+    if (user) {
+      await saveMessage(conversationId, 'user', textToSend, imageUrl || undefined);
+      await updateConversationTitleIfPlaceholder(conversationId, textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend);
+    }
     
     // Mark this request and capture conversation at send time
     const reqId = ++requestSeqRef.current;
@@ -369,30 +369,20 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     
     setIsTyping(true);
 
-    // Save user message if authenticated
-    if (user && conversationId) {
-      await saveMessage(conversationId, 'user', textToSend, imageUrl || undefined);
-    }
-
-    // Update title if this is a placeholder conversation
-    if (conversationId) {
-      await updateConversationTitleIfPlaceholder(conversationId, generateConversationTitle(textToSend));
-    }
-
     // Call onSendMessage callback
-    onSendMessage?.(currentInput);
+    onSendMessage?.(textToSend);
 
     try {
-      // Prepare conversation history for context
+      // Prepare conversation history for context - match mobile/tablet pattern
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
-      const historyWithUser = [...conversationHistory, userMessage];
       const { data, error } = await supabase.functions.invoke('grok-chat', {
         body: {
-          message: currentInput,
-          conversation_history: historyWithUser,
-          user_id: user.id,
+          message: textToSend,
+          conversation_history: conversationHistory,
+          user_id: user?.id,
           conversation_id: conversationId,
-          patient_id: selectedUser?.id
+          patient_id: selectedUser.id,
+          image_url: imageUrl
         }
       });
 
@@ -400,45 +390,22 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         throw error;
       }
 
-      let responseContent = data.response || 'I apologize, but I was unable to generate a response. Please try again.';
+      const responseContent = data.response || 'I apologize, but I am unable to process your request at the moment.';
 
-      // Extract diagnoses from response and sanitize visible text
+      // Extract and clean diagnoses (preserve advanced features)
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
       let sanitized = sanitizeVisibleText(cleanResponse);
       if (!sanitized) {
-        console.debug('sanitizeVisibleText emptied content; falling back to cleanResponse');
         sanitized = cleanResponse;
-      }
-
-      // Prefer diagnoses returned by the server; otherwise use ones extracted from the response
-      if (conversationId && user && selectedUser?.id) {
-        const mapToDiagnosis = (d: any): Diagnosis => ({
-          id: d.id || `${Date.now()}-${Math.random()}`,
-          conversation_id: conversationId || '',
-          patient_id: selectedUser.id,
-          user_id: user.id,
-          diagnosis: d.diagnosis || d.name || '',
-          confidence: typeof d.confidence === 'number' ? d.confidence : (typeof d.confidence_score === 'number' ? d.confidence_score : 0),
-          reasoning: d.reasoning || d.explanation || '',
-          created_at: d.created_at || new Date().toISOString(),
-          updated_at: d.updated_at || new Date().toISOString(),
-        });
-
-        if (Array.isArray((data as any)?.updated_diagnoses) && (data as any).updated_diagnoses.length > 0) {
-          console.debug('Using updated_diagnoses from server to update sidebar.');
-          setDiagnoses(((data as any).updated_diagnoses as any[]).map(mapToDiagnosis));
-        } else if (extractedDiagnoses.length > 0) {
-          console.debug('Using extractedDiagnoses from AI response to update sidebar.');
-          setDiagnoses(extractedDiagnoses.map(mapToDiagnosis));
-        }
       }
 
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
         content: sanitized,
         timestamp: new Date()
@@ -446,9 +413,55 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       setMessages(prev => [...prev, aiMessage]);
 
-      // Save AI message if authenticated
+      // Save AI message
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
+      }
+
+      // Background diagnosis analysis (preserve advanced features)
+      if (conversationId && user && selectedUser?.id) {
+        // Use server diagnoses if available, otherwise extracted ones
+        if (Array.isArray((data as any)?.updated_diagnoses) && (data as any).updated_diagnoses.length > 0) {
+          const mappedDiagnoses = ((data as any).updated_diagnoses as any[]).map((d: any): Diagnosis => ({
+            id: d.id || `${Date.now()}-${Math.random()}`,
+            conversation_id: conversationId || '',
+            patient_id: selectedUser.id,
+            user_id: user.id,
+            diagnosis: d.diagnosis || d.name || '',
+            confidence: typeof d.confidence === 'number' ? d.confidence : (typeof d.confidence_score === 'number' ? d.confidence_score : 0),
+            reasoning: d.reasoning || d.explanation || '',
+            created_at: d.created_at || new Date().toISOString(),
+            updated_at: d.updated_at || new Date().toISOString(),
+          }));
+          setDiagnoses(mappedDiagnoses);
+        } else if (extractedDiagnoses.length > 0) {
+          const mappedDiagnoses = extractedDiagnoses.map((d: any): Diagnosis => ({
+            id: d.id || `${Date.now()}-${Math.random()}`,
+            conversation_id: conversationId || '',
+            patient_id: selectedUser.id,
+            user_id: user.id,
+            diagnosis: d.diagnosis || d.name || '',
+            confidence: typeof d.confidence === 'number' ? d.confidence : (typeof d.confidence_score === 'number' ? d.confidence_score : 0),
+            reasoning: d.reasoning || d.explanation || '',
+            created_at: d.created_at || new Date().toISOString(),
+            updated_at: d.updated_at || new Date().toISOString(),
+          }));
+          setDiagnoses(mappedDiagnoses);
+        }
+
+        // Background analysis for additional diagnoses (fire-and-forget like mobile)
+        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
+        supabase.functions.invoke('analyze-conversation-diagnosis', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          }
+        }).then(() => {
+          loadDiagnosesForConversation();
+        }).catch(error => {
+          console.error('Error analyzing conversation for diagnosis:', error);
+        });
       }
     } catch (error: any) {
       console.error('Grok chat failed:', error);
