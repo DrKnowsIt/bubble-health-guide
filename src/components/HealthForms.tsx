@@ -307,6 +307,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [currentFileSize, setCurrentFileSize] = useState<number>(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showBackConfirmation, setShowBackConfirmation] = useState(false);
+  const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
+  const [loadingFormData, setLoadingFormData] = useState(false);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
@@ -338,6 +340,48 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   // Check if a form is accessible
   const isFormAccessible = (formId: string) => {
     return availableForms.some(form => form.id === formId);
+  };
+
+  // Load existing form data when a form is selected
+  const loadExistingFormData = async (form: HealthForm) => {
+    if (!user?.id) return;
+    
+    setLoadingFormData(true);
+    try {
+      const { data: existingRecord, error } = await supabase
+        .from('health_records')
+        .select('id, data, file_url')
+        .eq('user_id', user.id)
+        .eq('record_type', form.id)
+        .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading existing form data:', error);
+        return;
+      }
+
+      if (existingRecord) {
+        // Found existing data, populate the form
+        const recordData = existingRecord.data && typeof existingRecord.data === 'object' && !Array.isArray(existingRecord.data) 
+          ? existingRecord.data as Record<string, any>
+          : {};
+        setFormData(recordData);
+        setExistingRecordId(existingRecord.id);
+        setHasUnsavedChanges(false);
+      } else {
+        // No existing data, start fresh
+        setFormData({});
+        setExistingRecordId(null);
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Error loading form data:', error);
+      setFormData({});
+      setExistingRecordId(null);
+    } finally {
+      setLoadingFormData(false);
+    }
   };
 
   // Update form data when selectedPatient changes
@@ -479,28 +523,60 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         delete processedData[fileField.name]; // Remove file object from data
       }
 
-      const { data: recordData, error } = await supabase
-        .from('health_records')
-        .insert({
-          user_id: user?.id,
-          patient_id: selectedPatient?.id === 'none' ? null : selectedPatient?.id || null,
-          record_type: selectedForm.id,
-          title: selectedForm.title,
-          category: selectedForm.category,
-          data: {
-            ...processedData,
-            isLargeFile: fileField && formData[fileField.name] ? formData[fileField.name].size > 5 * 1024 * 1024 : false
-          },
-          file_url: fileUrl,
-          metadata: {
-            form_version: '1.0',
-            completed_at: new Date().toISOString(),
-            last_modified: new Date().toISOString(),
-            user_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
-          }
-        })
-        .select('id')
-        .single();
+      let recordData;
+      let error;
+
+      if (existingRecordId) {
+        // Update existing record
+        const updateResult = await supabase
+          .from('health_records')
+          .update({
+            data: {
+              ...processedData,
+              isLargeFile: fileField && formData[fileField.name] ? formData[fileField.name].size > 5 * 1024 * 1024 : false
+            },
+            file_url: fileUrl || undefined, // Only update file_url if we have a new file
+            metadata: {
+              form_version: '1.0',
+              completed_at: new Date().toISOString(),
+              last_modified: new Date().toISOString(),
+              user_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
+            }
+          })
+          .eq('id', existingRecordId)
+          .select('id')
+          .single();
+
+        recordData = updateResult.data;
+        error = updateResult.error;
+      } else {
+        // Create new record
+        const insertResult = await supabase
+          .from('health_records')
+          .insert({
+            user_id: user?.id,
+            patient_id: selectedPatient?.id === 'none' ? null : selectedPatient?.id || null,
+            record_type: selectedForm.id,
+            title: selectedForm.title,
+            category: selectedForm.category,
+            data: {
+              ...processedData,
+              isLargeFile: fileField && formData[fileField.name] ? formData[fileField.name].size > 5 * 1024 * 1024 : false
+            },
+            file_url: fileUrl,
+            metadata: {
+              form_version: '1.0',
+              completed_at: new Date().toISOString(),
+              last_modified: new Date().toISOString(),
+              user_name: selectedPatient && selectedPatient.id !== 'none' ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : null
+            }
+          })
+          .select('id')
+          .single();
+
+        recordData = insertResult.data;
+        error = insertResult.error;
+      }
 
       if (error) throw error;
       healthRecordId = recordData?.id;
@@ -522,14 +598,16 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         await triggerAIAnalysis(healthRecordId, formData[fileField.name].name, formData[fileField.name].size);
       }
 
+      const actionText = existingRecordId ? 'updated' : 'saved';
       toast({
         title: "Success",
-        description: fileUrl ? `${selectedForm.title} saved and analyzed successfully.` : `${selectedForm.title} saved successfully.`,
+        description: fileUrl ? `${selectedForm.title} ${actionText} and analyzed successfully.` : `${selectedForm.title} ${actionText} successfully.`,
       });
 
       setFormData({});
       setSelectedForm(null);
       setHasUnsavedChanges(false);
+      setExistingRecordId(null);
       
       // Generate comprehensive health report after form submission
       try {
@@ -574,6 +652,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     setSelectedForm(null);
     setHasUnsavedChanges(false);
     setShowBackConfirmation(false);
+    setExistingRecordId(null);
   };
 
   const renderField = (field: FormField) => {
@@ -681,17 +760,25 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <selectedForm.icon className="h-5 w-5" />
-                  {selectedForm.title}
-                </CardTitle>
-                <CardDescription>
-                  Complete this form to help DrKnowItAll provide better health insights.
-                </CardDescription>
-              </div>
-            </div>
+              <div className="flex items-center justify-between">
+                 <div>
+                   <CardTitle className="flex items-center gap-2">
+                     <selectedForm.icon className="h-5 w-5" />
+                     {selectedForm.title}
+                     {existingRecordId && (
+                       <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                         Previously Saved
+                       </span>
+                     )}
+                   </CardTitle>
+                   <CardDescription>
+                     {existingRecordId 
+                       ? "Editing existing form data - your progress is saved automatically."
+                       : "Complete this form to help DrKnowItAll provide better health insights."
+                     }
+                   </CardDescription>
+                 </div>
+               </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
@@ -716,9 +803,9 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             ))}
             
             <div className="flex gap-2 pt-4">
-              <Button onClick={submitForm} disabled={loading}>
-                {loading ? 'Saving...' : 'Save Form'}
-              </Button>
+               <Button onClick={submitForm} disabled={loading || loadingFormData}>
+                 {loading ? 'Saving...' : loadingFormData ? 'Loading...' : existingRecordId ? 'Update Form' : 'Save Form'}
+               </Button>
             </div>
           </div>
         </CardContent>
@@ -833,34 +920,40 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 Available Forms ({availableForms.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableForms.map((form) => (
-                  <Card 
-                    key={form.id} 
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
-                    onClick={() => {
-                      if (selectedPatient || users.length === 0) {
-                        setSelectedForm(form);
-                      }
-                    }}
-                  >
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-3">
-                        <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
-                          <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
-                        </div>
-                        <div>
-                          <h3 className="font-medium mb-2">{form.title}</h3>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {form.fields.length} fields to complete
-                          </p>
-                          <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
-                            Fill Out Form
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                 {availableForms.map((form) => (
+                   <Card 
+                     key={form.id} 
+                     className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
+                     onClick={async () => {
+                       if (selectedPatient || users.length === 0) {
+                         setSelectedForm(form);
+                         await loadExistingFormData(form);
+                       }
+                     }}
+                   >
+                     <CardContent className="pt-6">
+                       <div className="flex items-start gap-3">
+                         <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
+                           <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
+                         </div>
+                         <div className="flex-1">
+                           <div className="flex items-center justify-between mb-2">
+                             <h3 className="font-medium">{form.title}</h3>
+                             {loadingFormData && selectedForm?.id === form.id && (
+                               <div className="text-xs text-muted-foreground">Loading...</div>
+                             )}
+                           </div>
+                           <p className="text-sm text-muted-foreground mb-3">
+                             {form.fields.length} fields to complete
+                           </p>
+                           <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
+                             Fill Out Form
+                           </Button>
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 ))}
               </div>
             </div>
           )}
