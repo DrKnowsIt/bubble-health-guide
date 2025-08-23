@@ -505,6 +505,18 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       if (error) throw error;
       healthRecordId = recordData?.id;
 
+      // Trigger AI analysis for health insights (for all forms)
+      if (healthRecordId) {
+        try {
+          await supabase.functions.invoke('analyze-health-insights', {
+            body: { health_record_id: healthRecordId }
+          });
+        } catch (analysisError) {
+          console.error('Error analyzing health insights:', analysisError);
+          // Don't fail the form submission if analysis fails
+        }
+      }
+
       // Trigger AI analysis if file was uploaded
       if (fileUrl && healthRecordId && fileField && formData[fileField.name]) {
         await triggerAIAnalysis(healthRecordId, formData[fileField.name].name, formData[fileField.name].size);

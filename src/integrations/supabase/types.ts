@@ -295,6 +295,60 @@ export type Database = {
         }
         Relationships: []
       }
+      health_insights: {
+        Row: {
+          acknowledged_at: string | null
+          confidence_score: number | null
+          created_at: string
+          description: string
+          health_record_id: string
+          id: string
+          insight_type: string
+          is_acknowledged: boolean
+          metadata: Json | null
+          patient_id: string | null
+          recommendation: string | null
+          severity_level: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          description: string
+          health_record_id: string
+          id?: string
+          insight_type: string
+          is_acknowledged?: boolean
+          metadata?: Json | null
+          patient_id?: string | null
+          recommendation?: string | null
+          severity_level?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          description?: string
+          health_record_id?: string
+          id?: string
+          insight_type?: string
+          is_acknowledged?: boolean
+          metadata?: Json | null
+          patient_id?: string | null
+          recommendation?: string | null
+          severity_level?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_record_history: {
         Row: {
           change_reason: string | null
