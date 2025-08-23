@@ -123,18 +123,6 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* Quick Upgrade Button - Only for non-Pro users */}
-      {!isPro && showUpgradeButton && (
-        <Button
-          size="sm"
-          variant="default"
-          onClick={handleUpgrade}
-          className="ml-2 h-7 px-3 text-xs btn-primary"
-        >
-          {isBasic ? 'Upgrade' : 'Subscribe'}
-        </Button>
-      )}
     </div>
   );
 };
