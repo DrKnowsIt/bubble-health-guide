@@ -530,6 +530,19 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       setFormData({});
       setSelectedForm(null);
       setHasUnsavedChanges(false);
+      
+      // Generate comprehensive health report after form submission
+      try {
+        await supabase.functions.invoke('generate-comprehensive-health-report', {
+          body: {
+            patient_id: selectedPatient?.id || null
+          }
+        });
+        console.log('Comprehensive health report generated successfully');
+      } catch (reportError) {
+        console.error('Error generating comprehensive health report:', reportError);
+      }
+      
       onFormSubmit?.();
     } catch (error: any) {
       toast({

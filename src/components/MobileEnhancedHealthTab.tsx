@@ -12,6 +12,7 @@ import { HealthRecordHistoryTab } from './HealthRecordHistoryTab';
 import { UserDropdown } from './UserDropdown';
 import { SubscriptionGate } from './SubscriptionGate';
 import { ImportantHealthInfo } from './ImportantHealthInfo';
+import { ComprehensiveHealthReport } from './ComprehensiveHealthReport';
 import { cn } from '@/lib/utils';
 
 interface MobileEnhancedHealthTabProps {
@@ -120,6 +121,9 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
 
             <div className="flex-1 overflow-y-auto">
               <TabsContent value="overview" className="mt-0 space-y-4">
+                {/* Comprehensive Health Report */}
+                <ComprehensiveHealthReport selectedUser={selectedUser} />
+                
                 {/* Important Health Information Panel */}
                 <ImportantHealthInfo patientId={selectedUser?.id} />
                 

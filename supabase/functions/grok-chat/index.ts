@@ -147,6 +147,7 @@ serve(async (req) => {
     // Fetch patient data and health records if patient_id is provided
     let patientContext = '';
     let healthFormsContext = '';
+    let comprehensiveHealthReport = '';
     
     if (patient_id) {
       // Verify patient belongs to user via RLS (row will only exist if owned)
@@ -161,6 +162,36 @@ serve(async (req) => {
           JSON.stringify({ error: 'Patient not found or access denied' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+
+      // Fetch comprehensive health report if available
+      const { data: healthReport } = await supabase
+        .from('comprehensive_health_reports')
+        .select('*')
+        .eq('user_id', user_id)
+        .eq('patient_id', patient_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (healthReport) {
+        comprehensiveHealthReport = `\n\nCOMPREHENSIVE HEALTH REPORT (Latest Analysis):
+Overall Status: ${healthReport.overall_health_status}
+Priority Level: ${healthReport.priority_level}
+
+Key Health Concerns:
+${(healthReport.key_concerns || []).map(c => `- ${c}`).join('\n')}
+
+Recommendations:
+${(healthReport.recommendations || []).map(r => `- ${r}`).join('\n')}
+
+Report Summary:
+${healthReport.report_summary}
+
+Confidence Score: ${healthReport.confidence_score ? Math.round(healthReport.confidence_score * 100) : 0}%
+Last Updated: ${new Date(healthReport.updated_at).toLocaleDateString()}
+
+Note: This comprehensive report analyzes all health data together and provides holistic insights.`;
       }
 
       // Get health records
@@ -286,6 +317,7 @@ PATIENT PROFILE:
 
 CURRENT DATE & TIME: ${currentDateTime} (UTC)
 
+${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}
 
 CRITICAL COMMUNICATION RULES:

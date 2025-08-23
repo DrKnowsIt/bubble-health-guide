@@ -74,6 +74,54 @@ export type Database = {
         }
         Relationships: []
       }
+      comprehensive_health_reports: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          demographics_summary: Json | null
+          health_metrics_summary: Json | null
+          id: string
+          key_concerns: string[] | null
+          overall_health_status: string
+          patient_id: string | null
+          priority_level: string
+          recommendations: string[] | null
+          report_summary: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          demographics_summary?: Json | null
+          health_metrics_summary?: Json | null
+          id?: string
+          key_concerns?: string[] | null
+          overall_health_status?: string
+          patient_id?: string | null
+          priority_level?: string
+          recommendations?: string[] | null
+          report_summary: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          demographics_summary?: Json | null
+          health_metrics_summary?: Json | null
+          id?: string
+          key_concerns?: string[] | null
+          overall_health_status?: string
+          patient_id?: string | null
+          priority_level?: string
+          recommendations?: string[] | null
+          report_summary?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_diagnoses: {
         Row: {
           confidence: number | null
