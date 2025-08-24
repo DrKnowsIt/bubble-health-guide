@@ -719,7 +719,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       setShowBackConfirmation(true);
     } else {
       setSelectedForm(null);
-      setFormData({});
+      // Don't clear formData - let it persist so returning to the form shows saved data
     }
   };
 
