@@ -310,6 +310,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
   const [loadingFormData, setLoadingFormData] = useState(false);
   const [originalFormData, setOriginalFormData] = useState<Record<string, any>>({});
+  const [formDataBaseline, setFormDataBaseline] = useState<Record<string, any>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [changedFields, setChangedFields] = useState<string[]>([]);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
@@ -386,14 +387,6 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     return { hasChanges: true, changedFields: changed };
   };
 
-  const setFormDataBaseline = (data: Record<string, any>) => {
-    // Set the baseline for change detection
-    const cleanData = { ...data };
-    setOriginalFormData(cleanData);
-    setHasChanges(false);
-    setChangedFields([]);
-  };
-
   const shouldTriggerAIAnalysis = (): boolean => {
     // Only trigger AI analysis if there are actual changes
     return hasChanges && changedFields.length > 0;
@@ -459,8 +452,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     const newFormData = { ...formData, [name]: value };
     setFormData(newFormData);
     
-    // Detect changes compared to original baseline
-    const changeDetection = detectFormChanges(newFormData, originalFormData);
+    // Detect changes compared to baseline (fix: use formDataBaseline instead of originalFormData)
+    const changeDetection = detectFormChanges(newFormData, formDataBaseline);
     setHasChanges(changeDetection.hasChanges);
     setChangedFields(changeDetection.changedFields);
     setHasUnsavedChanges(changeDetection.hasChanges);
@@ -679,13 +672,15 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         description: fileUrl ? `${selectedForm.title} ${actionText} and analyzed successfully.` : `${selectedForm.title} ${actionText} successfully.`,
       });
 
-      // Reset form state and update baseline
-      const newBaseline = { ...processedData };
-      setFormData({});
-      setFormDataBaseline(newBaseline);
+      // Update form state and baseline after successful save
+      const savedData = { ...processedData };
+      setFormData(savedData); // Keep the form populated with saved data
+      setFormDataBaseline(savedData); // Update baseline to match saved data
       setSelectedForm(null);
       setHasUnsavedChanges(false);
-      setExistingRecordId(null);
+      setHasChanges(false);
+      setChangedFields([]);
+      setExistingRecordId(recordData?.id || existingRecordId); // Update to the new/existing record ID
       setLastSavedAt(new Date().toISOString());
       
       // Generate comprehensive health report only if changes were detected

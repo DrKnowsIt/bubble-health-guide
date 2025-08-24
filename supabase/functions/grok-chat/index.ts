@@ -239,19 +239,24 @@ PATIENT PROFILE:
 
       patientContext += healthRecordsText;
 
-      // Build health forms context
-      const healthForms = allHealthRecords?.filter(r => 
-        ['symptom_tracker', 'medication_log', 'vital_signs', 'mood_tracker', 'pain_tracker', 'sleep_tracker'].includes(r.record_type)
-      ) || [];
+      // Build health forms context - Include ALL health record types for comprehensive AI analysis
+      const healthForms = allHealthRecords || [];
       
       if (healthForms.length > 0) {
-        healthFormsContext = '\n\nHEALTH FORMS DATA:';
-        healthForms.slice(0, 3).forEach(form => {
-          healthFormsContext += `\n- ${form.title}: ${form.data ? JSON.stringify(form.data).substring(0, 200) : 'No data'}`;
+        healthFormsContext = '\n\nHEALTH FORMS & RECORDS DATA:';
+        healthForms.slice(0, 10).forEach(form => {
+          healthFormsContext += `\n- ${form.title} (${form.record_type}): `;
+          if (form.data && typeof form.data === 'object') {
+            const dataStr = JSON.stringify(form.data);
+            healthFormsContext += dataStr.length > 300 ? `${dataStr.substring(0, 300)}...` : dataStr;
+          } else {
+            healthFormsContext += 'No detailed data';
+          }
+          healthFormsContext += ` [Updated: ${new Date(form.updated_at).toLocaleDateString()}]`;
         });
         
-        if (healthForms.length > 3) {
-          healthFormsContext += `\n  ... and ${healthForms.length - 3} more forms available`;
+        if (healthForms.length > 10) {
+          healthFormsContext += `\n  ... and ${healthForms.length - 10} more health records available`;
         }
       }
     }
