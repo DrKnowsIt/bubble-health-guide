@@ -314,6 +314,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [hasChanges, setHasChanges] = useState(false);
   const [changedFields, setChangedFields] = useState<string[]>([]);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
@@ -760,6 +761,65 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     setLastSavedAt(null);
   };
 
+  const handleClearForm = async () => {
+    if (!selectedForm || !user) return;
+    
+    setLoading(true);
+    try {
+      // If there's an existing record, delete it and clean up memory
+      if (existingRecordId) {
+        // Delete the health record
+        const { error: deleteError } = await supabase
+          .from('health_records')
+          .delete()
+          .eq('id', existingRecordId)
+          .eq('user_id', user.id);
+
+        if (deleteError) {
+          throw new Error('Failed to delete health record: ' + deleteError.message);
+        }
+
+        // Clean up AI memory references
+        const { error: memoryError } = await supabase.functions.invoke('clear-form-memory', {
+          body: {
+            health_record_id: existingRecordId,
+            patient_id: selectedPatient?.id === 'none' ? null : selectedPatient?.id || null,
+            form_type: selectedForm.id
+          }
+        });
+
+        if (memoryError) {
+          console.warn('Memory cleanup warning:', memoryError);
+          // Don't throw error for memory cleanup issues, just log them
+        }
+      }
+
+      // Clear all form data and state
+      setFormData({});
+      setFormDataBaseline({});
+      setHasUnsavedChanges(false);
+      setHasChanges(false);
+      setChangedFields([]);
+      setExistingRecordId(null);
+      setLastSavedAt(null);
+      setShowClearConfirmation(false);
+
+      toast({
+        title: "Form Cleared",
+        description: "All form data has been cleared successfully.",
+      });
+
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to clear form.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderField = (field: FormField) => {
     const value = formData[field.name] || '';
 
@@ -942,6 +1002,14 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                <Button onClick={submitForm} disabled={loading || loadingFormData}>
                  {loading ? 'Saving...' : loadingFormData ? 'Loading...' : existingRecordId ? 'Update Form' : 'Save Form'}
                </Button>
+               <Button 
+                 variant="outline" 
+                 onClick={() => setShowClearConfirmation(true)} 
+                 disabled={loading || loadingFormData}
+                 className="text-destructive hover:text-destructive"
+               >
+                 Clear Form
+               </Button>
             </div>
           </div>
         </CardContent>
@@ -968,6 +1036,29 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             </AlertDialogAction>
             <AlertDialogAction onClick={handleSaveAndGoBack}>
               Save & Go Back
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear Form Confirmation Dialog */}
+      <AlertDialog open={showClearConfirmation} onOpenChange={setShowClearConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear Form Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to clear all form data? This will permanently delete all information from this form and remove any AI memory references. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowClearConfirmation(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleClearForm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Clear Form
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

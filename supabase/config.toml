@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.patient-report-agent]
 verify_jwt = true
+
+[functions.clear-form-memory]
+verify_jwt = true
