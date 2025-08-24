@@ -311,6 +311,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [loadingFormData, setLoadingFormData] = useState(false);
   const [originalFormData, setOriginalFormData] = useState<Record<string, any>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [changedFields, setChangedFields] = useState<string[]>([]);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
@@ -344,6 +346,59 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     return availableForms.some(form => form.id === formId);
   };
 
+  // Utility functions for change detection
+  const generateFormHash = (data: Record<string, any>): string => {
+    // Create a consistent hash of form data for change detection
+    const sortedData = Object.keys(data).sort().reduce((result: Record<string, any>, key) => {
+      if (data[key] !== undefined && data[key] !== null) {
+        result[key] = data[key];
+      }
+      return result;
+    }, {});
+    return JSON.stringify(sortedData);
+  };
+
+  const detectFormChanges = (current: Record<string, any>, original: Record<string, any>): { hasChanges: boolean; changedFields: string[] } => {
+    const currentHash = generateFormHash(current);
+    const originalHash = generateFormHash(original);
+    
+    if (currentHash === originalHash) {
+      return { hasChanges: false, changedFields: [] };
+    }
+
+    // Find specific changed fields
+    const allFields = new Set([...Object.keys(current), ...Object.keys(original)]);
+    const changed: string[] = [];
+
+    allFields.forEach(field => {
+      const currentValue = current[field];
+      const originalValue = original[field];
+      
+      // Compare values, treating empty strings and undefined/null as equivalent
+      const currentNormalized = (currentValue === '' || currentValue === null || currentValue === undefined) ? null : currentValue;
+      const originalNormalized = (originalValue === '' || originalValue === null || originalValue === undefined) ? null : originalValue;
+      
+      if (JSON.stringify(currentNormalized) !== JSON.stringify(originalNormalized)) {
+        changed.push(field);
+      }
+    });
+
+    return { hasChanges: true, changedFields: changed };
+  };
+
+  const setFormDataBaseline = (data: Record<string, any>) => {
+    // Set the baseline for change detection
+    const cleanData = { ...data };
+    setOriginalFormData(cleanData);
+    setHasChanges(false);
+    setChangedFields([]);
+  };
+
+  const shouldTriggerAIAnalysis = (): boolean => {
+    // Only trigger AI analysis if there are actual changes
+    return hasChanges && changedFields.length > 0;
+  };
+
   // Load existing form data when a form is selected
   const loadExistingFormData = async (form: HealthForm) => {
     if (!user?.id) return;
@@ -352,7 +407,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     try {
       const { data: existingRecord, error } = await supabase
         .from('health_records')
-        .select('id, data, file_url')
+        .select('id, data, file_url, updated_at')
         .eq('user_id', user.id)
         .eq('record_type', form.id)
         .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
@@ -369,18 +424,24 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           ? existingRecord.data as Record<string, any>
           : {};
         setFormData(recordData);
+        setFormDataBaseline(recordData); // Set baseline for change detection
         setExistingRecordId(existingRecord.id);
+        setLastSavedAt(existingRecord.updated_at);
         setHasUnsavedChanges(false);
       } else {
         // No existing data, start fresh
         setFormData({});
+        setFormDataBaseline({}); // Set empty baseline
         setExistingRecordId(null);
+        setLastSavedAt(null);
         setHasUnsavedChanges(false);
       }
     } catch (error) {
       console.error('Error loading form data:', error);
       setFormData({});
+      setFormDataBaseline({});
       setExistingRecordId(null);
+      setLastSavedAt(null);
     } finally {
       setLoadingFormData(false);
     }
@@ -395,8 +456,14 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   }, [selectedPatient]);
 
   const handleInputChange = (name: string, value: any) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setHasUnsavedChanges(true);
+    const newFormData = { ...formData, [name]: value };
+    setFormData(newFormData);
+    
+    // Detect changes compared to original baseline
+    const changeDetection = detectFormChanges(newFormData, originalFormData);
+    setHasChanges(changeDetection.hasChanges);
+    setChangedFields(changeDetection.changedFields);
+    setHasUnsavedChanges(changeDetection.hasChanges);
   };
 
   const validateFileSize = (file: File): boolean => {
@@ -583,16 +650,22 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       if (error) throw error;
       healthRecordId = recordData?.id;
 
-      // Trigger AI analysis for health insights (for all forms)
-      if (healthRecordId) {
+      // Conditionally trigger AI analysis for health insights (only if changes detected)
+      if (healthRecordId && shouldTriggerAIAnalysis()) {
+        console.log(`Triggering AI analysis due to changes in fields: ${changedFields.join(', ')}`);
         try {
           await supabase.functions.invoke('analyze-health-insights', {
-            body: { health_record_id: healthRecordId }
+            body: { 
+              health_record_id: healthRecordId,
+              changed_fields: changedFields 
+            }
           });
         } catch (analysisError) {
           console.error('Error analyzing health insights:', analysisError);
           // Don't fail the form submission if analysis fails
         }
+      } else if (healthRecordId) {
+        console.log('Skipping AI analysis - no changes detected');
       }
 
       // Trigger AI analysis if file was uploaded
@@ -606,21 +679,32 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         description: fileUrl ? `${selectedForm.title} ${actionText} and analyzed successfully.` : `${selectedForm.title} ${actionText} successfully.`,
       });
 
+      // Reset form state and update baseline
+      const newBaseline = { ...processedData };
       setFormData({});
+      setFormDataBaseline(newBaseline);
       setSelectedForm(null);
       setHasUnsavedChanges(false);
       setExistingRecordId(null);
+      setLastSavedAt(new Date().toISOString());
       
-      // Generate comprehensive health report after form submission
-      try {
-        await supabase.functions.invoke('generate-comprehensive-health-report', {
-          body: {
-            patient_id: selectedPatient?.id || null
-          }
-        });
-        console.log('Comprehensive health report generated successfully');
-      } catch (reportError) {
-        console.error('Error generating comprehensive health report:', reportError);
+      // Generate comprehensive health report only if changes were detected
+      if (shouldTriggerAIAnalysis()) {
+        console.log('Generating comprehensive health report due to form changes');
+        try {
+          await supabase.functions.invoke('generate-comprehensive-health-report', {
+            body: {
+              patient_id: selectedPatient?.id || null,
+              trigger_reason: 'form_changes',
+              changed_fields: changedFields
+            }
+          });
+          console.log('Comprehensive health report generated successfully');
+        } catch (reportError) {
+          console.error('Error generating comprehensive health report:', reportError);
+        }
+      } else {
+        console.log('Skipping comprehensive health report generation - no changes detected');
       }
       
       onFormSubmit?.();
@@ -651,10 +735,14 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   const handleDiscardChanges = () => {
     setFormData({});
+    setFormDataBaseline({});
     setSelectedForm(null);
     setHasUnsavedChanges(false);
+    setHasChanges(false);
+    setChangedFields([]);
     setShowBackConfirmation(false);
     setExistingRecordId(null);
+    setLastSavedAt(null);
   };
 
   const renderField = (field: FormField) => {
@@ -764,21 +852,42 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
           <CardHeader>
               <div className="flex items-center justify-between">
                  <div>
-                   <CardTitle className="flex items-center gap-2">
-                     <selectedForm.icon className="h-5 w-5" />
-                     {selectedForm.title}
-                     {existingRecordId && (
-                       <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                         Previously Saved
-                       </span>
-                     )}
-                   </CardTitle>
-                   <CardDescription>
-                     {existingRecordId 
-                       ? "Editing existing form data - your progress is saved automatically."
-                       : "Complete this form to help DrKnowItAll provide better health insights."
-                     }
-                   </CardDescription>
+                    <CardTitle className="flex items-center gap-2">
+                      <selectedForm.icon className="h-5 w-5" />
+                      {selectedForm.title}
+                      {existingRecordId && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                          Previously Saved
+                        </span>
+                      )}
+                      {hasChanges && (
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                          {changedFields.length} Changes
+                        </span>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      {existingRecordId 
+                        ? (
+                          <div className="space-y-1">
+                            <div>Editing existing form data - your progress is saved automatically.</div>
+                            {lastSavedAt && (
+                              <div className="text-xs text-muted-foreground">
+                                Last saved: {new Date(lastSavedAt).toLocaleString()}
+                              </div>
+                            )}
+                            {hasChanges && (
+                              <div className="text-xs text-amber-600">
+                                Unsaved changes detected in: {changedFields.map(field => 
+                                  selectedForm.fields.find(f => f.name === field)?.label || field
+                                ).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        )
+                        : "Complete this form to help DrKnowItAll provide better health insights."
+                      }
+                    </CardDescription>
                  </div>
                </div>
           </CardHeader>
@@ -794,15 +903,25 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
               </div>
             )}
 
-            {selectedForm.fields.map((field) => (
-              <div key={field.name} className="space-y-2">
-                <Label htmlFor={field.name}>
-                  {field.label}
-                  {field.required && <span className="text-destructive ml-1">*</span>}
-                </Label>
-                {renderField(field)}
-              </div>
-            ))}
+            {selectedForm.fields.map((field) => {
+              const isChanged = changedFields.includes(field.name);
+              return (
+                <div key={field.name} className={`space-y-2 ${isChanged ? 'relative' : ''}`}>
+                  <Label htmlFor={field.name} className="flex items-center gap-2">
+                    {field.label}
+                    {field.required && <span className="text-destructive ml-1">*</span>}
+                    {isChanged && (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                        Modified
+                      </span>
+                    )}
+                  </Label>
+                  <div className={`${isChanged ? 'ring-2 ring-amber-200 rounded-md' : ''}`}>
+                    {renderField(field)}
+                  </div>
+                </div>
+              );
+            })}
             
             <div className="flex gap-2 pt-4">
                <Button onClick={submitForm} disabled={loading || loadingFormData}>
