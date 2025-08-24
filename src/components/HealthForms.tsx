@@ -400,20 +400,23 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     
     setLoadingFormData(true);
     try {
-      const { data: existingRecord, error } = await supabase
+      // Handle multiple records by getting the most recent one
+      const { data: existingRecords, error } = await supabase
         .from('health_records')
         .select('id, data, file_url, updated_at')
         .eq('user_id', user.id)
         .eq('record_type', form.id)
         .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
-        .maybeSingle();
+        .order('updated_at', { ascending: false });
 
-      console.log(`🔍 DEBUG: Query result for ${form.id}:`, { existingRecord, error });
+      console.log(`🔍 DEBUG: Query result for ${form.id}:`, { existingRecords, error, count: existingRecords?.length });
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error loading existing form data:', error);
         return;
       }
+
+      const existingRecord = existingRecords?.[0]; // Get the most recent record
 
       if (existingRecord) {
         // Found existing data, populate the form
@@ -448,16 +451,22 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
   // Update form data when selectedPatient changes
   useEffect(() => {
-    // Auto-assign the selected patient to form data if available
-    if (selectedPatient) {
+    // Auto-assign the selected patient to form data if available, but don't overwrite loaded data
+    if (selectedPatient && !loadingFormData) {
       console.log(`🔍 DEBUG: useEffect triggered - selectedPatient changed, current formData:`, formData);
       setFormData(prev => {
+        // Only update user_id if we don't have substantial form data already loaded
+        const hasLoadedData = Object.keys(prev).length > 1 || (Object.keys(prev).length === 1 && !prev.user_id);
+        if (hasLoadedData) {
+          console.log(`🔍 DEBUG: useEffect skipping update - form already has loaded data`);
+          return prev;
+        }
         const newData = { ...prev, user_id: selectedPatient.id };
         console.log(`🔍 DEBUG: useEffect updating formData from:`, prev, 'to:', newData);
         return newData;
       });
     }
-  }, [selectedPatient]);
+  }, [selectedPatient, loadingFormData]);
 
   const handleInputChange = (name: string, value: any) => {
     const newFormData = { ...formData, [name]: value };
