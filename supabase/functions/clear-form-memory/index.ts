@@ -48,100 +48,113 @@ serve(async (req) => {
     
     logStep('Starting memory cleanup', { health_record_id, patient_id, form_type, user_id: user.id });
 
-    // Clean up conversation memory references to this form data
+    // Clean up ALL conversation memory for this patient (not just form-specific)
     if (patient_id) {
       const { error: memoryError } = await supabase
         .from('conversation_memory')
         .delete()
         .eq('user_id', user.id)
-        .eq('patient_id', patient_id)
-        .like('memory::text', `%${form_type}%`);
+        .eq('patient_id', patient_id);
 
       if (memoryError) {
         logStep('Error cleaning conversation memory', memoryError);
       } else {
-        logStep('Cleaned conversation memory for form type', form_type);
+        logStep('Cleaned ALL conversation memory for patient', patient_id);
       }
     }
 
-    // Clean up comprehensive health reports that may contain analyzed form data
-    if (patient_id || health_record_id) {
+    // Delete ALL health records of the same type for this patient, not just the current one
+    if (form_type && patient_id) {
+      const { error: healthRecordsError } = await supabase
+        .from('health_records')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('patient_id', patient_id)
+        .eq('record_type', form_type);
+
+      if (healthRecordsError) {
+        logStep('Error deleting health records', healthRecordsError);
+      } else {
+        logStep('Deleted ALL health records of type', form_type);
+      }
+    }
+
+    // Clean up ALL comprehensive health reports for this patient (they contain analyzed form data)
+    if (patient_id) {
       const { error: reportsError } = await supabase
         .from('comprehensive_health_reports')
         .delete()
         .eq('user_id', user.id)
-        .eq('patient_id', patient_id || null);
+        .eq('patient_id', patient_id);
 
       if (reportsError) {
         logStep('Error cleaning comprehensive health reports', reportsError);
       } else {
-        logStep('Cleaned comprehensive health reports for patient', patient_id);
+        logStep('Cleaned ALL comprehensive health reports for patient', patient_id);
       }
     }
 
-    // Clean up doctor notes that reference this health record
-    if (health_record_id) {
+    // Clean up ALL doctor notes for this patient
+    if (patient_id) {
       const { error: notesError } = await supabase
         .from('doctor_notes')
         .delete()
         .eq('user_id', user.id)
-        .eq('patient_id', patient_id || null)
-        .like('content', `%${health_record_id}%`);
+        .eq('patient_id', patient_id);
 
       if (notesError) {
         logStep('Error cleaning doctor notes', notesError);
       } else {
-        logStep('Cleaned doctor notes for health record', health_record_id);
+        logStep('Cleaned ALL doctor notes for patient', patient_id);
       }
     }
 
-    // Clean up health insights related to this health record
-    if (health_record_id) {
+    // Clean up ALL health insights for this patient
+    if (patient_id) {
       const { error: insightsError } = await supabase
         .from('health_insights')
         .delete()
         .eq('user_id', user.id)
-        .eq('health_record_id', health_record_id);
+        .eq('patient_id', patient_id);
 
       if (insightsError) {
         logStep('Error cleaning health insights', insightsError);
       } else {
-        logStep('Cleaned health insights for health record', health_record_id);
+        logStep('Cleaned ALL health insights for patient', patient_id);
       }
     }
 
-    // Clean up health record summaries
-    if (health_record_id) {
+    // Clean up ALL health record summaries for this patient
+    if (patient_id) {
       const { error: summariesError } = await supabase
         .from('health_record_summaries')
         .delete()
-        .eq('user_id', user.id)
-        .eq('health_record_id', health_record_id);
+        .eq('user_id', user.id);
 
       if (summariesError) {
         logStep('Error cleaning health record summaries', summariesError);
       } else {
-        logStep('Cleaned health record summaries for health record', health_record_id);
+        logStep('Cleaned ALL health record summaries for user');
       }
     }
 
-    // Clean up health record history (previous versions of the data)
-    if (health_record_id) {
+    // Clean up ALL health record history for this patient
+    if (patient_id) {
       const { error: historyError } = await supabase
         .from('health_record_history')
         .delete()
         .eq('user_id', user.id)
-        .eq('health_record_id', health_record_id);
+        .eq('patient_id', patient_id);
 
       if (historyError) {
         logStep('Error cleaning health record history', historyError);
       } else {
-        logStep('Cleaned health record history for health record', health_record_id);
+        logStep('Cleaned ALL health record history for patient', patient_id);
       }
     }
 
-    // Clean up any conversation messages that might reference the form data
-    if (health_record_id && patient_id) {
+    // Clean up ALL conversation messages for this patient
+    if (patient_id) {
       // Get conversations for this patient first
       const { data: conversations } = await supabase
         .from('conversations')
@@ -152,17 +165,16 @@ serve(async (req) => {
       if (conversations && conversations.length > 0) {
         const conversationIds = conversations.map(c => c.id);
         
-        // Delete messages that reference the health record or form type
+        // Delete ALL messages for this patient
         const { error: messagesError } = await supabase
           .from('messages')
           .delete()
-          .in('conversation_id', conversationIds)
-          .or(`content.like.%${health_record_id}%,content.like.%${form_type}%`);
+          .in('conversation_id', conversationIds);
 
         if (messagesError) {
           logStep('Error cleaning messages', messagesError);
         } else {
-          logStep('Cleaned messages referencing form data');
+          logStep('Cleaned ALL messages for patient conversations');
         }
       }
     }
