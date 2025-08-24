@@ -396,6 +396,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const loadExistingFormData = async (form: HealthForm) => {
     if (!user?.id) return;
     
+    console.log(`🔍 DEBUG: Loading data for form "${form.title}" (ID: ${form.id})`);
+    
     setLoadingFormData(true);
     try {
       const { data: existingRecord, error } = await supabase
@@ -405,6 +407,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         .eq('record_type', form.id)
         .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
         .maybeSingle();
+
+      console.log(`🔍 DEBUG: Query result for ${form.id}:`, { existingRecord, error });
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading existing form data:', error);
@@ -416,6 +420,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         const recordData = existingRecord.data && typeof existingRecord.data === 'object' && !Array.isArray(existingRecord.data) 
           ? existingRecord.data as Record<string, any>
           : {};
+        console.log(`🔍 DEBUG: Setting form data for ${form.id}:`, recordData);
         setFormData(recordData);
         setFormDataBaseline(recordData); // Set baseline for change detection
         setExistingRecordId(existingRecord.id);
@@ -423,6 +428,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         setHasUnsavedChanges(false);
       } else {
         // No existing data, start fresh
+        console.log(`🔍 DEBUG: No existing data found for ${form.id}, starting fresh`);
         setFormData({});
         setFormDataBaseline({}); // Set empty baseline
         setExistingRecordId(null);
@@ -444,7 +450,12 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   useEffect(() => {
     // Auto-assign the selected patient to form data if available
     if (selectedPatient) {
-      setFormData(prev => ({ ...prev, user_id: selectedPatient.id }));
+      console.log(`🔍 DEBUG: useEffect triggered - selectedPatient changed, current formData:`, formData);
+      setFormData(prev => {
+        const newData = { ...prev, user_id: selectedPatient.id };
+        console.log(`🔍 DEBUG: useEffect updating formData from:`, prev, 'to:', newData);
+        return newData;
+      });
     }
   }, [selectedPatient]);
 
