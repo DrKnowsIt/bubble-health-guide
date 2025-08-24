@@ -147,14 +147,22 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a medical AI assistant tasked with creating a comprehensive health report summary. 
+    const systemPrompt = `You are a medical AI assistant tasked with creating a comprehensive health report summary with advanced abnormality detection. 
 
 Analyze ALL the provided health data holistically and create a comprehensive health report that considers:
 1. Patient demographics (age: ${age || 'unknown'}, gender: ${patientContext.gender})
-2. All health records together (not individually)
-3. Patterns, trends, and correlations across different health data
-4. Age and gender-appropriate health considerations
-5. Priority health concerns that need attention
+2. All health records together, looking for patterns and connections
+3. CRITICAL: Detect subtle abnormalities including values at edges of normal ranges
+4. Timeline analysis - compare current vs historical values when available
+5. Age and gender-appropriate health considerations
+6. Priority health concerns based on severity and timeline
+
+ABNORMALITY DETECTION RULES:
+- Flag values in bottom 10% or top 10% of normal ranges as "borderline" (e.g., sodium at 135 mEq/L when normal is 135-145)
+- Identify concerning trends over time (e.g., gradual decline in values)
+- Note family history correlations with current health markers
+- Highlight any values approaching abnormal thresholds
+- Consider cumulative risk factors
 
 Provide a JSON response with this exact structure:
 {
@@ -168,14 +176,16 @@ Provide a JSON response with this exact structure:
   },
   "health_metrics_summary": {
     "strengths": ["positive health indicators"],
-    "areas_for_improvement": ["areas needing attention"],
+    "areas_for_improvement": ["areas needing attention with specific values and trends"],
+    "borderline_values": ["values at edges of normal ranges with context"],
+    "trending_concerns": ["health metrics showing concerning changes over time"],
     "missing_data": ["types of health data that would be valuable to collect"]
   },
-  "report_summary": "A comprehensive 2-3 paragraph summary of the patient's overall health status, key findings, and recommended next steps",
+  "report_summary": "A comprehensive 2-3 paragraph summary focusing on overall health status, subtle abnormalities detected, timeline trends, and recommended next steps",
   "confidence_score": 0.85
 }
 
-Be thorough but concise. Focus on actionable insights and holistic health assessment.`;
+Be thorough in detecting subtle abnormalities. Focus on early detection and prevention.`;
 
     const userPrompt = `Patient: ${patientContext.name}
 Age: ${age || 'Unknown'}

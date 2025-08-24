@@ -309,6 +309,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [showBackConfirmation, setShowBackConfirmation] = useState(false);
   const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
   const [loadingFormData, setLoadingFormData] = useState(false);
+  const [originalFormData, setOriginalFormData] = useState<Record<string, any>>({});
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
