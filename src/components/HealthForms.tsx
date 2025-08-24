@@ -676,7 +676,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       const savedData = { ...processedData };
       setFormData(savedData); // Keep the form populated with saved data
       setFormDataBaseline(savedData); // Update baseline to match saved data
-      setSelectedForm(null);
+      // Keep the form open after saving (don't reset selectedForm)
       setHasUnsavedChanges(false);
       setHasChanges(false);
       setChangedFields([]);
