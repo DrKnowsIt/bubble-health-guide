@@ -19,6 +19,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
+import { EasyChatInterface } from '@/components/EasyChatInterface';
 
 import { useNavigate } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
@@ -38,7 +39,7 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState("easy-chat");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
@@ -420,9 +421,13 @@ export default function UserDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
-            // Mobile: Simplified 3-tab bottom navigation
+            // Mobile: 4-tab bottom navigation
             <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 mt-auto">
-              <TabsList className="w-full grid grid-cols-3 h-16 bg-muted/50">
+              <TabsList className="w-full grid grid-cols-4 h-16 bg-muted/50">
+                <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-1 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <MessageSquare className="h-5 w-5" />
+                  <span className="text-xs font-medium">Easy</span>
+                </TabsTrigger>
                 <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <MessageSquare className="h-5 w-5" />
@@ -449,7 +454,11 @@ export default function UserDashboard() {
           ) : isTablet ? (
             // Tablet: Enhanced bottom navigation with larger touch targets
             <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-auto">
-              <TabsList className="w-full grid grid-cols-3 h-20 bg-muted/50">
+              <TabsList className="w-full grid grid-cols-4 h-20 bg-muted/50">
+                <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-2 py-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <MessageSquare className="h-6 w-6" />
+                  <span className="text-sm font-medium">Easy Chat</span>
+                </TabsTrigger>
                 <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <MessageSquare className="h-6 w-6" />
@@ -474,9 +483,13 @@ export default function UserDashboard() {
               </TabsList>
             </div>
           ) : (
-            // Desktop: Top navigation - FIXED THIS SECTION
+            // Desktop: Top navigation
             <div className="px-4 pt-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="easy-chat" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Easy Chat
+                </TabsTrigger>
                 <TabsTrigger value="chat" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}> 
                   <div className="relative">
                     <MessageSquare className="h-4 w-4" />
@@ -504,16 +517,28 @@ export default function UserDashboard() {
 
           {/* Tab Content */}
           <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
+            <TabsContent value="easy-chat" className="h-full mt-0 pt-4">
+              <EasyChatInterface patientId={selectedUser?.id} />
+            </TabsContent>
+
             <TabsContent value="chat" className="h-full mt-0 pt-4">
-              {isMobile ? (
-                <MobileEnhancedChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
-              ) : isTablet ? (
-                <TabletChatInterface selectedUser={selectedUser} onUserSelect={setSelectedUser} />
-              ) : (
-                <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Basic or Pro subscription.">
+              <SubscriptionGate 
+                requiredTier="basic" 
+                feature="AI Chat" 
+                description="Unlimited AI conversations require a subscription. Upgrade to access personalized AI health discussions with no limits."
+              >
+                {isMobile ? (
+                  <MobileEnhancedChatInterface 
+                    selectedUser={selectedUser}
+                  />
+                ) : isTablet ? (
+                  <TabletChatInterface 
+                    selectedUser={selectedUser}
+                  />
+                ) : (
                   <ChatGPTInterface selectedUser={selectedUser} />
-                </SubscriptionGate>
-              )}
+                )}
+              </SubscriptionGate>
             </TabsContent>
 
             <TabsContent value="health" className="h-full mt-0 pt-4">

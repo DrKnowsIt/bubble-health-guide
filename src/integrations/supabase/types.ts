@@ -352,6 +352,107 @@ export type Database = {
         }
         Relationships: []
       }
+      easy_chat_questions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_root: boolean
+          parent_question_id: string | null
+          question_text: string
+          response_leads_to: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id: string
+          is_root?: boolean
+          parent_question_id?: string | null
+          question_text: string
+          response_leads_to?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_root?: boolean
+          parent_question_id?: string | null
+          question_text?: string
+          response_leads_to?: Json
+        }
+        Relationships: []
+      }
+      easy_chat_responses: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          response_text: string
+          response_value: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          response_text: string
+          response_value: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          response_text?: string
+          response_value?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "easy_chat_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "easy_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      easy_chat_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          current_question_id: string | null
+          final_summary: string | null
+          id: string
+          patient_id: string | null
+          session_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          current_question_id?: string | null
+          final_summary?: string | null
+          id?: string
+          patient_id?: string | null
+          session_data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          current_question_id?: string | null
+          final_summary?: string | null
+          id?: string
+          patient_id?: string | null
+          session_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_data_priorities: {
         Row: {
           created_at: string
