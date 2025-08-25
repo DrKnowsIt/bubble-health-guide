@@ -4,13 +4,14 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useUsers } from '@/hooks/useUsers';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useConversations } from '@/hooks/useConversations';
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsTablet } from '@/hooks/use-tablet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut } from 'lucide-react';
+import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut, FileDown } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/ChatGPTInterface';
 import { DNAUpload } from '@/components/DNAUpload';
 import { HealthForms } from '@/components/HealthForms';
@@ -67,6 +68,234 @@ export default function UserDashboard() {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Export functionality
+  const exportToPDF = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      await exportComprehensivePDFForUser(selectedUser, toast);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate PDF report. Please try again.",
+      });
+    }
+  };
+
+  // Standalone function for comprehensive PDF export
+  const exportComprehensivePDFForUser = async (
+    selectedUser: { id: string; first_name: string; last_name: string }, 
+    toastFn: typeof toast
+  ) => {
+    // Get memory data
+    const { data: memoryData } = await supabase
+      .from('conversation_memory')
+      .select('*')
+      .eq('patient_id', selectedUser.id)
+      .order('updated_at', { ascending: false });
+
+    // Get diagnoses
+    const { data: diagnosesData } = await supabase
+      .from('conversation_diagnoses')
+      .select('*')
+      .eq('patient_id', selectedUser.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Get health record summaries (simplified)
+    const { data: healthSummaries } = await supabase
+      .from('health_record_summaries')
+      .select('created_at')
+      .eq('user_id', selectedUser.id)
+      .order('created_at', { ascending: false });
+
+    // Get conversation solutions for holistic approaches
+    const { data: solutionsData } = await supabase
+      .from('conversation_solutions')
+      .select('*')
+      .eq('patient_id', selectedUser.id)
+      .order('confidence', { ascending: false })
+      .limit(8);
+
+    // Generate comprehensive PDF
+    const doc = new (await import('jspdf')).default();
+    const userName = `${selectedUser.first_name} ${selectedUser.last_name}`;
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+
+    let currentY = 40;
+
+    // Add header
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('DrKnowsIt', 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('AI-Powered Health Assistant | www.drknowsit.com', 20, 28);
+    doc.line(20, 32, 190, 32);
+
+    // Report title
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Comprehensive Clinical Health Report', 20, currentY);
+    currentY += 15;
+
+    // Patient info
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Patient: ${userName}`, 20, currentY);
+    currentY += 6;
+    doc.text(`Generated: ${currentDate}`, 20, currentY);
+    currentY += 15;
+
+    // Provider note
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('Dear Healthcare Provider,', 20, currentY);
+    currentY += 10;
+
+    doc.setFont(undefined, 'normal');
+    const providerNote = `This comprehensive report summarizes ${selectedUser.first_name}'s health information and AI-assisted analysis from our platform. The data includes patient-reported symptoms, historical health records, and AI-generated insights to support your clinical assessment.`;
+    const splitNote = doc.splitTextToSize(providerNote, 170);
+    doc.text(splitNote, 20, currentY);
+    currentY += splitNote.length * 4 + 15;
+
+    // Add diagnoses section
+    if (diagnosesData && diagnosesData.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('AI-Identified Health Topics:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      diagnosesData.forEach((diagnosis, index) => {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        doc.text(`${index + 1}. ${diagnosis.diagnosis}`, 25, currentY);
+        currentY += 6;
+        doc.text(`   Confidence: ${Math.round(diagnosis.confidence * 100)}%`, 25, currentY);
+        currentY += 6;
+        if (diagnosis.reasoning) {
+          const reasoning = doc.splitTextToSize(`   Analysis: ${diagnosis.reasoning}`, 165);
+          doc.text(reasoning, 25, currentY);
+          currentY += reasoning.length * 4 + 5;
+        }
+      });
+      currentY += 10;
+    }
+
+    // Add health records summary
+    if (healthSummaries && healthSummaries.length > 0) {
+      if (currentY > 220) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Health Records Summary:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      doc.text(`Total health records uploaded: ${healthSummaries.length}`, 25, currentY);
+      currentY += 10;
+    }
+
+    // Add memory insights if available
+    if (memoryData && memoryData.length > 0) {
+      if (currentY > 220) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('AI Memory Insights:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      memoryData.slice(0, 5).forEach((memory, index) => {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        if (memory.summary) {
+          const insight = doc.splitTextToSize(`• ${memory.summary}`, 165);
+          doc.text(insight, 25, currentY);
+          currentY += insight.length * 4 + 3;
+        }
+      });
+      currentY += 10;
+    }
+
+    // Add solutions/recommendations
+    if (solutionsData && solutionsData.length > 0) {
+      if (currentY > 200) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('AI-Generated Health Recommendations:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      solutionsData.slice(0, 5).forEach((solution, index) => {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        doc.text(`${index + 1}. ${solution.solution}`, 25, currentY);
+        currentY += 6;
+        if (solution.reasoning) {
+          const explanation = doc.splitTextToSize(`   Details: ${solution.reasoning}`, 165);
+          doc.text(explanation, 25, currentY);
+          currentY += explanation.length * 4 + 8;
+        }
+      });
+    }
+
+    // Add disclaimer
+    if (currentY > 220) {
+      doc.addPage();
+      currentY = 20;
+    } else {
+      currentY += 20;
+    }
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text('IMPORTANT MEDICAL DISCLAIMER:', 20, currentY);
+    currentY += 8;
+    
+    doc.setFont(undefined, 'normal');
+    const disclaimer = `This report contains AI-generated insights and patient-reported information. It is NOT a medical diagnosis and should be used only as supplementary information for clinical assessment. Please conduct your own thorough examination and use your professional judgment. DrKnowsIt is not responsible for clinical decisions made based on this report.`;
+    const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+    doc.text(splitDisclaimer, 20, currentY);
+
+    // Save the PDF
+    doc.save(`${userName.replace(/\s+/g, '_')}_Health_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    toastFn({
+      title: "Success",
+      description: "Medical report exported successfully!",
+    });
+  };
 
   const handleAddFamilyClick = () => {
     if (!subscribed || subscription_tier === 'basic') {
@@ -162,6 +391,27 @@ export default function UserDashboard() {
               Add family member
             </TooltipContent>
           </Tooltip>
+
+          {/* Export Medical Report Button */}
+          {selectedUser && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={exportToPDF}
+                  size="sm"
+                  variant="outline"
+                  className="h-8"
+                  aria-label="Export medical report"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export Medical Report
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Export comprehensive medical report
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
 

@@ -683,21 +683,6 @@ export const AISettings = () => {
             </Select>
           </div>
 
-          {/* Export Medical Report Button */}
-          {selectedUserId && (
-            <div className="flex justify-end">
-              <Button
-                onClick={exportToPDF}
-                size="sm"
-                variant="outline"
-                className="h-9"
-                disabled={memoryLoading || !hasExportableData}
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export Medical Report
-              </Button>
-            </div>
-          )}
 
           {/* User Management Actions */}
           {selectedUserId && (
