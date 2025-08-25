@@ -10,7 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUsers } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ProbableDiagnoses } from "@/components/ProbableDiagnoses";
+import HealthInsightsPanel from "@/components/HealthInsightsPanel";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -462,6 +462,17 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         }).catch(error => {
           console.error('Error analyzing conversation for diagnosis:', error);
         });
+
+        // Background solution analysis (fire-and-forget)
+        supabase.functions.invoke('analyze-conversation-solutions', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          }
+        }).catch(error => {
+          console.error('Error analyzing conversation for solutions:', error);
+        });
       }
     } catch (error: any) {
       console.error('Grok chat failed:', error);
@@ -728,15 +739,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       {/* Diagnoses Sidebar - Always visible */}
       <div className="w-80 border-l border-border bg-background overflow-y-auto">
         <div className="p-4">
-          <ProbableDiagnoses 
+          <HealthInsightsPanel 
             diagnoses={selectedUser && diagnoses ? diagnoses.map(d => ({
               diagnosis: d.diagnosis,
               confidence: d.confidence,
-              reasoning: d.reasoning,
-              updated_at: d.updated_at
+              reasoning: d.reasoning || '',
+              updated_at: d.updated_at || new Date().toISOString()
             })) : []}
-            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
             patientId={selectedUser?.id || ''}
+            conversationId={currentConversation}
           />
         </div>
       </div>

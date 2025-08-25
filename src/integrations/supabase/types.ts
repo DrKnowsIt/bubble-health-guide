@@ -214,6 +214,45 @@ export type Database = {
           },
         ]
       }
+      conversation_solutions: {
+        Row: {
+          category: string
+          confidence: number | null
+          conversation_id: string
+          created_at: string
+          id: string
+          patient_id: string
+          reasoning: string | null
+          solution: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          confidence?: number | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          reasoning?: string | null
+          solution: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          confidence?: number | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          reasoning?: string | null
+          solution?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -642,6 +681,36 @@ export type Database = {
           medical_disclaimer_accepted?: boolean | null
           medical_disclaimer_accepted_at?: string | null
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      solution_feedback: {
+        Row: {
+          created_at: string
+          feedback_type: string
+          id: string
+          patient_id: string
+          solution_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_type: string
+          id?: string
+          patient_id: string
+          solution_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          patient_id?: string
+          solution_text?: string
           updated_at?: string
           user_id?: string
         }
