@@ -134,6 +134,19 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                   ))}
                 </div>
 
+                {/* Restart Analysis Button */}
+                <div className="pt-4 border-t border-border">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleStartOver}
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Restart Analysis
+                  </Button>
+                </div>
+
                 {loading && (
                   <div className="flex items-center justify-center py-4">
                     <div className="flex items-center gap-2 text-muted-foreground">
