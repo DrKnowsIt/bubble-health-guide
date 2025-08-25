@@ -183,6 +183,33 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
       onSendMessage?.(currentInput);
+
+      // Background analysis for diagnoses and solutions (fire-and-forget)
+      if (user && conversationId && selectedUser?.id) {
+        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
+        
+        // Background diagnosis analysis (fire-and-forget)
+        supabase.functions.invoke('analyze-conversation-diagnosis', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          }
+        }).catch(error => {
+          console.error('Error analyzing conversation for diagnosis:', error);
+        });
+
+        // Background solution analysis (fire-and-forget)
+        supabase.functions.invoke('analyze-conversation-solutions', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          }
+        }).catch(error => {
+          console.error('Error analyzing conversation for solutions:', error);
+        });
+      }
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {

@@ -521,14 +521,27 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     // Fire-and-forget background analysis (non-blocking)
     if (currentConversation && selectedUser?.id) {
       try {
+        // Get recent messages for analysis
+        const recentMessages = messages.slice(-6);
+        
         // Always run diagnosis analysis
-        await supabase.functions.invoke('analyze-conversation', {
+        await supabase.functions.invoke('analyze-conversation-diagnosis', {
           body: {
             conversation_id: currentConversation,
             patient_id: selectedUser.id,
-            user_id: user.id,
+            recent_messages: recentMessages
           },
         });
+        
+        // Run solutions analysis
+        await supabase.functions.invoke('analyze-conversation-solutions', {
+          body: {
+            conversation_id: currentConversation,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          },
+        });
+        
         await loadDiagnosesForConversation();
 
         // Run memory analysis every 3 AI responses

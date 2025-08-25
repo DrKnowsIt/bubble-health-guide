@@ -36,7 +36,7 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
   conversationId
 }) => {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   
   // Use solutions hook

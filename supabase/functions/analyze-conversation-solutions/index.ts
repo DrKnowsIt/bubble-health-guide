@@ -144,7 +144,14 @@ Return JSON array with this structure:
 
     let solutions;
     try {
-      solutions = JSON.parse(solutionsText);
+      // Handle markdown-wrapped JSON responses
+      let cleanedText = solutionsText.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      solutions = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error("Failed to parse AI response:", solutionsText);
       throw new Error('Failed to parse AI response as JSON');
