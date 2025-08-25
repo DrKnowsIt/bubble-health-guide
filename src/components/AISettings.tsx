@@ -11,7 +11,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
 import { useConversationMemory } from '@/hooks/useConversationMemory';
-import { Brain, HardDrive, User, Users, Settings, Trash2, AlertTriangle, FileDown } from 'lucide-react';
+import { 
+  Brain, 
+  HardDrive, 
+  User, 
+  Users, 
+  Settings, 
+  Trash2, 
+  AlertTriangle, 
+  FileDown 
+} from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ComprehensivePDFExport } from "./ComprehensivePDFExport";
 import { toast as sonnerToast } from 'sonner';
