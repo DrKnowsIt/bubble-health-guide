@@ -66,6 +66,25 @@ serve(async (req) => {
     }
     logStep("Found Stripe customer", { customerId });
 
+    // Check if customer has any subscriptions before creating portal session
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1
+    });
+
+    if (subscriptions.data.length === 0) {
+      // Customer has no subscriptions, redirect to pricing page
+      logStep("Customer has no subscriptions, redirecting to pricing");
+      const origin = req.headers.get("origin") || "http://localhost:3000";
+      return new Response(JSON.stringify({ 
+        url: `${origin}/pricing`,
+        message: "Please subscribe to a plan first to manage your subscription"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
