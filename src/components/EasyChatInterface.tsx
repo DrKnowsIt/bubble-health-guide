@@ -143,16 +143,16 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                   </p>
                 </div>
 
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
                   {getResponseOptions().map((option, index) => (
                     <Button
                       key={index}
                       variant="outline"
-                      className="justify-start text-left h-auto p-4 hover:bg-primary/5 hover:border-primary/20 w-full"
+                      className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
                       onClick={() => handleResponseClick(option.value, option.text)}
                       disabled={loading}
                     >
-                      <span className="whitespace-normal text-sm leading-relaxed">
+                      <span className="whitespace-normal text-sm leading-snug">
                         {option.text}
                       </span>
                     </Button>
