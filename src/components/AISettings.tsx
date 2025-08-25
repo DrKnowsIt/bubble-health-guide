@@ -114,7 +114,7 @@ export const AISettings = () => {
 
     try {
       // Call the comprehensive PDF export directly
-      await exportComprehensivePDFForUser(selectedUser);
+      await exportComprehensivePDFForUser(selectedUser, toast);
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
@@ -126,9 +126,10 @@ export const AISettings = () => {
   };
 
   // Standalone function for comprehensive PDF export
-  const exportComprehensivePDFForUser = async (selectedUser: { id: string; first_name: string; last_name: string }) => {
-    const { toast } = useToast();
-    
+  const exportComprehensivePDFForUser = async (
+    selectedUser: { id: string; first_name: string; last_name: string }, 
+    toastFn: typeof toast
+  ) => {
     // Get memory data
     const { data: memoryData } = await supabase
       .from('conversation_memory')
@@ -316,7 +317,7 @@ export const AISettings = () => {
     const fileName = `DrKnowsIt_Clinical_Report_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
 
-    toast({
+    toastFn({
       title: "Clinical Report Exported",
       description: "Comprehensive clinical health report has been downloaded successfully.",
     });
