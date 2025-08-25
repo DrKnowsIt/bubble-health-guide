@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MessageCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useEasyChat } from '@/hooks/useEasyChat';
 
 interface EasyChatInterfaceProps {
@@ -49,9 +49,9 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-primary" />
@@ -64,13 +64,39 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
         </CardHeader>
       </Card>
 
+      {/* Topics to Discuss - For Easy Chat users */}
+      {conversationPath.length > 0 && (
+        <Card className="flex-shrink-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Topics to Discuss
+              <Badge variant="secondary" className="text-xs">
+                {Math.min(3, conversationPath.length)}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {conversationPath.slice(-3).map((item, index) => (
+              <div key={index} className="flex items-start gap-2 p-2 bg-muted/30 rounded-md">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{item.response}</p>
+                  <p className="text-xs text-muted-foreground">From: {item.question.question_text}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Conversation History */}
       {conversationPath.length > 0 && (
-        <Card>
+        <Card className="flex-shrink-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Your Journey</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 max-h-32 overflow-y-auto">
             {conversationPath.map((item, index) => (
               <div key={index} className="border-l-2 border-primary/20 pl-4">
                 <p className="text-sm font-medium text-muted-foreground">
@@ -86,8 +112,8 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
       )}
 
       {/* Current Question or Summary */}
-      <Card className="flex-1">
-        <CardContent className="p-6">
+      <Card className="flex-1 min-h-0 flex flex-col">
+        <CardContent className="p-6 flex-1 overflow-y-auto">
           {isCompleted ? (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-success">
@@ -133,7 +159,7 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                 </p>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid gap-3 max-h-96 overflow-y-auto">
                 {getResponseOptions().map((option, index) => (
                   <Button
                     key={index}

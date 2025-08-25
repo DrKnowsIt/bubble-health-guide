@@ -174,7 +174,19 @@ export const useEasyChat = (patientId?: string) => {
         .update({ 
           completed: true, 
           final_summary: summary,
-          session_data: { conversation_path: path.map(p => ({ question_id: p.question.id, question_text: p.question.question_text, response: p.response })) }
+          session_data: { 
+            conversation_path: path.map(p => ({ 
+              question_id: p.question.id, 
+              question_text: p.question.question_text, 
+              response: p.response 
+            })),
+            topics_for_doctor: path.slice(-3).map(p => ({
+              topic: p.response,
+              category: p.question.category,
+              confidence: 0.8,
+              created_at: new Date().toISOString()
+            }))
+          }
         })
         .eq('id', currentSession.id);
 

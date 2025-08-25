@@ -98,6 +98,15 @@ export default function UserDashboard() {
       .eq('patient_id', selectedUser.id)
       .order('updated_at', { ascending: false });
 
+    // Get Easy Chat sessions data  
+    const { data: easyChatData } = await supabase
+      .from('easy_chat_sessions')
+      .select('*')
+      .eq('patient_id', selectedUser.id)
+      .eq('completed', true)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
     // Get diagnoses
     const { data: diagnosesData } = await supabase
       .from('conversation_diagnoses')
@@ -269,6 +278,56 @@ export default function UserDashboard() {
           currentY += explanation.length * 4 + 8;
         }
       });
+    }
+
+    // Add Easy Chat sessions if available
+    if (easyChatData && easyChatData.length > 0) {
+      if (currentY > 200) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Easy Chat Sessions Summary:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      easyChatData.forEach((session, index) => {
+        if (currentY > 240) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        const sessionDate = new Date(session.created_at).toLocaleDateString();
+        doc.text(`Session ${index + 1} (${sessionDate}):`, 25, currentY);
+        currentY += 6;
+        
+        if (session.final_summary) {
+          const summary = doc.splitTextToSize(`   ${session.final_summary}`, 165);
+          doc.text(summary, 25, currentY);
+          currentY += summary.length * 4 + 8;
+        }
+        
+        // Add topics from session if available
+        if (session.session_data && typeof session.session_data === 'object' && session.session_data !== null) {
+          const sessionData = session.session_data as any;
+          if (sessionData.topics_for_doctor && Array.isArray(sessionData.topics_for_doctor)) {
+            doc.text('   Key Topics Discussed:', 25, currentY);
+            currentY += 4;
+            sessionData.topics_for_doctor.forEach((topic: any) => {
+              if (currentY > 250) {
+                doc.addPage();
+                currentY = 20;
+              }
+              doc.text(`     • ${topic.topic}`, 25, currentY);
+              currentY += 4;
+            });
+            currentY += 4;
+          }
+        }
+      });
+      currentY += 10;
     }
 
     // Add disclaimer
