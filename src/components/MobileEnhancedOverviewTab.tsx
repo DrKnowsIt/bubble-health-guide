@@ -168,6 +168,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
         <PatientMemoryOverview 
           patientId={selectedUser?.id} 
           patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : undefined}
+          conversationId={null}
         />
 
         {/* Quick Actions */}

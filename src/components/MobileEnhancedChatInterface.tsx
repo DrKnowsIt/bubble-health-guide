@@ -226,6 +226,16 @@ export const MobileEnhancedChatInterface = ({
       }).catch(error => {
         console.error('Error analyzing conversation for solutions:', error);
       });
+
+      // Background memory analysis (fire-and-forget)
+      supabase.functions.invoke('analyze-conversation-memory', {
+        body: {
+          conversation_id: conversationId,
+          patient_id: selectedUser.id,
+        }
+      }).catch(error => {
+        console.error('Error analyzing conversation for memory:', error);
+      });
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {

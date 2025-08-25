@@ -9,18 +9,22 @@ import {
   User, 
   Heart, 
   FileText,
-  TrendingUp
+  TrendingUp,
+  Lightbulb,
+  CheckCircle
 } from 'lucide-react';
 import { useConversationMemory } from '@/hooks/useConversationMemory';
+import { useConversationSolutions } from '@/hooks/useConversationSolutions';
 import { useComprehensiveHealthReport } from '@/hooks/useComprehensiveHealthReport';
 import { cn } from '@/lib/utils';
 
 interface PatientMemoryOverviewProps {
   patientId?: string;
   patientName?: string;
+  conversationId?: string | null;
 }
 
-export const PatientMemoryOverview = ({ patientId, patientName }: PatientMemoryOverviewProps) => {
+export const PatientMemoryOverview = ({ patientId, patientName, conversationId }: PatientMemoryOverviewProps) => {
   const { 
     insights, 
     loading, 
@@ -28,6 +32,11 @@ export const PatientMemoryOverview = ({ patientId, patientName }: PatientMemoryO
     getRecentInsights,
     formatInsightValue 
   } = useConversationMemory(patientId);
+  
+  const { 
+    solutions, 
+    loading: solutionsLoading 
+  } = useConversationSolutions(conversationId, patientId);
   
   const { 
     report: healthReport, 
@@ -68,6 +77,25 @@ export const PatientMemoryOverview = ({ patientId, patientName }: PatientMemoryO
         return 'bg-purple-500/10 text-purple-700 dark:text-purple-300';
       default:
         return 'bg-gray-500/10 text-gray-700 dark:text-gray-300';
+    }
+  };
+
+  const getSolutionCategoryColor = (category: string) => {
+    switch (category) {
+      case 'nutrition':
+        return 'bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800';
+      case 'exercise':
+        return 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+      case 'stress':
+        return 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+      case 'sleep':
+        return 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+      case 'mental_health':
+        return 'bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800';
+      case 'lifestyle':
+        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
+      default:
+        return 'bg-gray-500/10 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800';
     }
   };
 
@@ -217,6 +245,34 @@ export const PatientMemoryOverview = ({ patientId, patientName }: PatientMemoryO
                     {category.replace('_', ' ')}: {count}
                   </span>
                 </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Solutions */}
+        {solutions && solutions.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-600" />
+              Suggested Solutions
+            </h4>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {solutions.slice(0, 3).map((solution, index) => (
+                <div key={`${solution.id}-${index}`} className={cn("p-2 rounded-lg border text-xs", getSolutionCategoryColor(solution.category))}>
+                  <div className="flex items-center justify-between mb-1">
+                    <Badge variant="outline" className="text-xs h-5 capitalize">
+                      {solution.category.replace('_', ' ')}
+                    </Badge>
+                    <div className="text-xs opacity-75">
+                      {Math.round(solution.confidence * 100)}% confidence
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed">{solution.solution}</p>
+                  {solution.reasoning && (
+                    <p className="text-xs mt-1 opacity-80 italic">{solution.reasoning}</p>
+                  )}
+                </div>
               ))}
             </div>
           </div>

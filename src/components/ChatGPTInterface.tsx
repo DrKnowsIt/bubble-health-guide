@@ -53,7 +53,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const [isUploading, setIsUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<{ path: string; signedUrl: string; desc: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [memoryAnalysisCounter, setMemoryAnalysisCounter] = useState(0);
   
 
   // Stale reply guard
@@ -544,18 +543,18 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         
         await loadDiagnosesForConversation();
 
-        // Run memory analysis every 3 AI responses
-        const newCounter = memoryAnalysisCounter + 1;
-        setMemoryAnalysisCounter(newCounter);
-        
-        if (newCounter % 3 === 0) {
-          console.log('Running memory analysis (every 3 responses)');
+        // Run memory analysis on every AI response for better consistency
+        console.log('Running memory analysis for conversation:', currentConversation);
+        try {
           await supabase.functions.invoke('analyze-conversation-memory', {
             body: {
               conversation_id: currentConversation,
               patient_id: selectedUser.id,
             },
           });
+          console.log('Memory analysis completed successfully');
+        } catch (memoryError) {
+          console.error('Memory analysis failed:', memoryError);
         }
       } catch (e) {
         console.error('Background analysis failed (non-blocking):', e);
