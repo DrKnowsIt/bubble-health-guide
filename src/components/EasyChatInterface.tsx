@@ -69,30 +69,9 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
 
         {/* Conversation History - Compact */}
         {conversationPath.length > 0 && (
-          <Card className="flex-shrink-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                Your Journey
-                <Badge variant="secondary" className="text-xs">
-                  {conversationPath.length} responses
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 max-h-28 overflow-y-auto">
-              {conversationPath.slice(-2).map((item, index) => (
-                <div key={index} className="flex items-start gap-2 p-2 bg-muted/30 rounded-md text-xs">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{item.response}</p>
-                    <p className="text-muted-foreground truncate">
-                      {item.question?.question_text?.slice(0, 50)}...
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <div className="text-xs text-muted-foreground mb-2">
+            Progress: {conversationPath.length} questions answered
+          </div>
         )}
 
         {/* Current Question or Summary - Main Content */}
