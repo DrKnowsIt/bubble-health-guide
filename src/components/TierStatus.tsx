@@ -101,24 +101,15 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
             </p>
           </div>
           
-          <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to="/pricing" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Manage Subscription
-            </Link>
+          <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Subscription
           </DropdownMenuItem>
           
           {!isPro && (
             <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
               <Crown className="h-4 w-4 mr-2" />
               {isBasic ? 'Upgrade to Pro' : 'Subscribe to Pro'}
-            </DropdownMenuItem>
-          )}
-          
-          {subscribed && (
-            <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
-              <Settings className="h-4 w-4 mr-2" />
-              Billing Portal
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
