@@ -44,27 +44,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user is an alpha tester first
-    const { data: profileData, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('alpha_tester')
-      .eq('user_id', user.id)
-      .single();
-
-    const isAlphaTester = profileData?.alpha_tester || false;
-    logStep("Alpha tester status checked", { isAlphaTester });
-
-    if (isAlphaTester) {
-      logStep("Alpha tester detected - redirecting to subscription management");
-      const origin = req.headers.get("origin") || "http://localhost:3000";
-      return new Response(JSON.stringify({ 
-        url: `${origin}/pricing`,
-        message: "Alpha testers can manage their subscription on the subscription page"
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
+    // All authenticated users go directly to Stripe customer portal
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
