@@ -41,10 +41,15 @@ export const useEasyChat = (patientId?: string) => {
   const [conversationPath, setConversationPath] = useState<Array<{ question: EasyChatQuestion; response: string }>>([]);
 
   const startNewSession = useCallback(async () => {
-    if (!user) return;
+    console.log('Starting Easy Chat session, user:', user);
+    if (!user) {
+      console.log('No user found, cannot start session');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('Creating session with patient_id:', patientId);
       
       // Create new session
       const { data: sessionData, error: sessionError } = await supabase
@@ -57,7 +62,12 @@ export const useEasyChat = (patientId?: string) => {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('Session creation error:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Session created:', sessionData);
 
       // Get root question
       const { data: questionData, error: questionError } = await supabase
@@ -66,14 +76,27 @@ export const useEasyChat = (patientId?: string) => {
         .eq('id', 'root_start')
         .single();
 
-      if (questionError) throw questionError;
+      if (questionError) {
+        console.error('Question fetch error:', questionError);
+        throw questionError;
+      }
 
+      console.log('Root question found:', questionData);
       setCurrentSession(sessionData);
       setCurrentQuestion(questionData);
       setResponses([]);
       setConversationPath([]);
     } catch (error) {
       console.error('Error starting easy chat session:', error);
+      // Set a fallback state so the component doesn't break
+      setCurrentQuestion({
+        id: 'error',
+        question_text: 'Unable to load Easy Chat. Please try again later.',
+        category: 'error',
+        parent_question_id: null,
+        response_leads_to: {},
+        is_root: true
+      });
     } finally {
       setLoading(false);
     }
@@ -170,7 +193,15 @@ export const useEasyChat = (patientId?: string) => {
   const getResponseOptions = useCallback(() => {
     if (!currentQuestion) return [];
 
-    const responses = Object.keys(currentQuestion.response_leads_to);
+    // Handle error state
+    if (currentQuestion.id === 'error') {
+      return [
+        { value: 'retry', text: 'Try again' },
+        { value: 'contact', text: 'Contact support' }
+      ];
+    }
+
+    const responses = Object.keys(currentQuestion.response_leads_to || {});
     
     // Map response keys to user-friendly text
     const responseMap: Record<string, string> = {
