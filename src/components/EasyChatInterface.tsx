@@ -53,21 +53,7 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
     <div className="h-full flex gap-4 overflow-hidden">
       {/* Main Chat Area - Left Side */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
-        {/* Header */}
-        <Card className="flex-shrink-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              Easy Chat
-              <Badge variant="secondary" className="ml-2">Free</Badge>
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Get personalized health guidance through our guided conversation
-            </p>
-          </CardHeader>
-        </Card>
-
-        {/* Conversation History - Compact */}
+        {/* Progress indicator */}
         {conversationPath.length > 0 && (
           <div className="text-xs text-muted-foreground mb-2">
             Progress: {conversationPath.length} questions answered
@@ -114,6 +100,11 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
             ) : currentQuestion ? (
               <div className="space-y-6">
                 <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                    <span className="font-semibold text-lg">Easy Chat</span>
+                    <Badge variant="secondary" className="ml-2">Free</Badge>
+                  </div>
                   <h3 className="text-lg font-semibold mb-2 leading-tight">
                     {currentQuestion.question_text}
                   </h3>
@@ -149,9 +140,15 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <MessageCircle className="h-8 w-8 text-primary" />
+                  <div>
+                    <h3 className="font-semibold text-lg">Easy Chat</h3>
+                    <Badge variant="secondary" className="mt-1">Free</Badge>
+                  </div>
+                </div>
                 <p className="text-muted-foreground mb-4">
-                  Ready to start your guided health conversation?
+                  Get personalized health guidance through our guided conversation
                 </p>
                 <Button onClick={startNewSession} disabled={loading}>
                   {loading ? (
