@@ -152,6 +152,14 @@ export const AISettings = () => {
       .eq('user_id', selectedUser.id)
       .order('created_at', { ascending: false });
 
+    // Get conversation solutions for holistic approaches
+    const { data: solutionsData } = await supabase
+      .from('conversation_solutions')
+      .select('*')
+      .eq('patient_id', selectedUser.id)
+      .order('confidence', { ascending: false })
+      .limit(8);
+
     // Generate comprehensive PDF
     const doc = new (await import('jspdf')).default();
     const userName = `${selectedUser.first_name} ${selectedUser.last_name}`;
@@ -278,6 +286,55 @@ export const AISettings = () => {
         doc.text(text, 20, currentY);
         currentY += text.length * 4 + 5;
       });
+    }
+
+    // Add holistic solutions section
+    if (solutionsData && solutionsData.length > 0) {
+      if (currentY > 200) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Holistic Solutions & Wellness Approaches:', 20, currentY);
+      currentY += 10;
+
+      doc.setFont(undefined, 'normal');
+      const introText = 'Based on symptom analysis, the following holistic approaches may complement medical treatment:';
+      const splitIntro = doc.splitTextToSize(introText, 170);
+      doc.text(splitIntro, 20, currentY);
+      currentY += splitIntro.length * 4 + 8;
+
+      solutionsData.forEach((solution, index) => {
+        if (currentY > 240) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        doc.text(`${index + 1}. ${solution.solution}`, 25, currentY);
+        currentY += 6;
+        
+        if (solution.category) {
+          doc.text(`   Category: ${solution.category}`, 25, currentY);
+          currentY += 6;
+        }
+        
+        if (solution.confidence && solution.confidence > 0) {
+          doc.text(`   Confidence: ${Math.round(solution.confidence * 100)}%`, 25, currentY);
+          currentY += 6;
+        }
+        
+        if (solution.reasoning) {
+          const reasoning = doc.splitTextToSize(`   Rationale: ${solution.reasoning}`, 165);
+          doc.text(reasoning, 25, currentY);
+          currentY += reasoning.length * 4 + 5;
+        }
+        
+        currentY += 3; // Add spacing between solutions
+      });
+      
+      currentY += 10; // Extra spacing after solutions section
     }
 
     // Add recommendations
