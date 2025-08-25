@@ -11,7 +11,7 @@ import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import { UserSelector } from './UserSelector';
-import HealthInsightsPanel from './HealthInsightsPanel';
+import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { TierStatus } from './TierStatus';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
@@ -451,7 +451,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
 
         {/* Right Sidebar - Probable Diagnoses - Always visible */}
         <div className="w-80">
-          <HealthInsightsPanel 
+          <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser?.probable_diagnoses || []}
             patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
             patientId={selectedUser?.id || ''}

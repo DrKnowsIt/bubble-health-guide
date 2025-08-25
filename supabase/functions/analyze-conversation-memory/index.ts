@@ -85,6 +85,24 @@ serve(async (req) => {
       .eq('patient_id', patient_id)
       .single();
 
+    // Get relevant health record summaries for context
+    const { data: healthSummaries } = await supabase
+      .from('health_record_summaries')
+      .select('summary_text, priority_level')
+      .eq('user_id', user.id)
+      .in('priority_level', ['always', 'conditional'])
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Get high-confidence diagnoses for memory context
+    const { data: diagnosesToSave } = await supabase
+      .from('conversation_diagnoses')
+      .select('diagnosis, confidence, reasoning')
+      .eq('patient_id', patient_id)
+      .gte('confidence', 0.7)
+      .order('updated_at', { ascending: false })
+      .limit(3);
+
     // Prepare conversation text for analysis
     const conversationText = messages
       .reverse()
@@ -112,10 +130,16 @@ MEMORY RULES (from ai-conversation-rules.json):
 
 CURRENT MEMORY: ${JSON.stringify(existingMemory?.memory || {}, null, 2)}
 
+HEALTH RECORD CONTEXT: 
+${healthSummaries?.map(h => `- ${h.summary_text} (Priority: ${h.priority_level})`).join('\n') || 'No health records available'}
+
+HIGH-CONFIDENCE DIAGNOSES TO REMEMBER:
+${diagnosesToSave?.map(d => `- ${d.diagnosis} (${Math.round(d.confidence * 100)}%): ${d.reasoning}`).join('\n') || 'None'}
+
 CONVERSATION TO ANALYZE:
 ${conversationText}
 
-Extract memory updates as a JSON object. Only include NEW or UPDATED information that follows the memory rules. Use this structure:
+Extract memory updates as a JSON object. Include health record insights and high-confidence diagnoses. Only include NEW or UPDATED information that follows the memory rules. Use this structure:
 {
   "medical_history": ["confirmed diagnoses or conditions"],
   "current_medications": ["medications, supplements with recent changes noted"],
@@ -134,6 +158,8 @@ Extract memory updates as a JSON object. Only include NEW or UPDATED information
   "key_negatives": ["things patient explicitly doesn't have"],
   "care_preferences": ["patient's stated preferences"],
   "environmental_factors": ["relevant exposures"],
+  "high_confidence_topics": ["topics with strong evidence from conversation"],
+  "health_record_insights": ["relevant insights from health records"],
   "last_updated": "${new Date().toISOString()}"
 }
 

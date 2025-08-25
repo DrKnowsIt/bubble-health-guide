@@ -157,12 +157,40 @@ export const ComprehensiveHealthReport: React.FC<ComprehensiveHealthReportProps>
           </div>
         )}
 
+        {/* Message to Primary Care Provider */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-medium mb-3 flex items-center gap-2 text-blue-800">
+            <CheckCircle className="h-4 w-4" />
+            Message to Primary Care Provider
+          </h3>
+          <div className="space-y-3 text-sm text-blue-900">
+            <div>
+              <span className="font-medium">Current Patient Concerns: </span>
+              {report.key_concerns && report.key_concerns.length > 0 
+                ? report.key_concerns.join(', ')
+                : 'Patient reports feeling well overall'
+              }
+            </div>
+            <div>
+              <span className="font-medium">Suggested Assessments: </span>
+              Based on reported symptoms, consider: routine vitals, basic metabolic panel, and targeted examination of areas of concern.
+            </div>
+            <div>
+              <span className="font-medium">Patient Timeline: </span>
+              Symptoms and concerns have been developing over recent conversations. Please review full health history for context.
+            </div>
+            <div className="text-xs text-blue-700 mt-2">
+              This summary is generated from patient conversations and health data. Please conduct your own clinical assessment.
+            </div>
+          </div>
+        </div>
+
         {/* Recommendations */}
         {report.recommendations && report.recommendations.length > 0 && (
           <div>
             <h3 className="font-medium mb-2 flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              Recommendations
+              Wellness Recommendations
             </h3>
             <ul className="space-y-1">
               {report.recommendations.map((recommendation, index) => (

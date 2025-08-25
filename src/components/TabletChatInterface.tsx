@@ -11,7 +11,7 @@ import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
-import HealthInsightsPanel from './HealthInsightsPanel';
+import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
@@ -478,7 +478,7 @@ export const TabletChatInterface = ({
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-3">
-                <HealthInsightsPanel 
+                <EnhancedHealthInsightsPanel 
                   diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
                   patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
                   patientId={selectedUser?.id || ''}

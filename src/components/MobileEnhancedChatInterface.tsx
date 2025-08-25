@@ -10,7 +10,7 @@ import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
-import HealthInsightsPanel from './HealthInsightsPanel';
+import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
@@ -370,7 +370,7 @@ export const MobileEnhancedChatInterface = ({
                 {/* Topics to Discuss - Always visible */}
                 <div className="w-full">
                   <div className="p-3 bg-background border rounded-lg">
-                    <HealthInsightsPanel 
+                    <EnhancedHealthInsightsPanel 
                       diagnoses={diagnoses.map(d => ({
                         diagnosis: d.diagnosis,
                         confidence: d.confidence || 0,
