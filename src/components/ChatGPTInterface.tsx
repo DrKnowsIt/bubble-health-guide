@@ -519,12 +519,12 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
 
     // Fire-and-forget background analysis (non-blocking)
-    if (conversationId && selectedUser?.id) {
+    if (currentConversation && selectedUser?.id) {
       try {
         // Always run diagnosis analysis
         await supabase.functions.invoke('analyze-conversation', {
           body: {
-            conversation_id: conversationId,
+            conversation_id: currentConversation,
             patient_id: selectedUser.id,
             user_id: user.id,
           },
@@ -539,7 +539,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           console.log('Running memory analysis (every 3 responses)');
           await supabase.functions.invoke('analyze-conversation-memory', {
             body: {
-              conversation_id: conversationId,
+              conversation_id: currentConversation,
               patient_id: selectedUser.id,
             },
           });
