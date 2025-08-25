@@ -140,7 +140,7 @@ export const useEasyChat = (patientId?: string) => {
         .insert({
           user_id: user.id,
           patient_id: patientId || null,
-          current_question_id: 'root_start'
+          current_question_id: null
         })
         .select()
         .single();
@@ -153,20 +153,16 @@ export const useEasyChat = (patientId?: string) => {
       console.log('Session created:', sessionData);
       setCurrentSession(sessionData);
 
-      // Start with dynamic questions immediately
-      setUseDynamicQuestions(true);
-      
-      // Generate first question
-      const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
-        body: { 
-          conversationPath: [],
-          patientId 
-        }
-      });
+      // Start with root questions from database
+      const { data: rootQuestions, error: rootError } = await supabase
+        .from('easy_chat_questions')
+        .select('*')
+        .eq('is_root', true)
+        .limit(1);
 
-      if (error) {
-        console.error('Error generating first question:', error);
-        // Fallback to hardcoded first question
+      if (rootError || !rootQuestions || rootQuestions.length === 0) {
+        console.error('Error fetching root questions:', rootError);
+        // Fallback to predefined first question
         setDynamicQuestion({
           question: "What brings you here today? What's your main health concern?",
           options: [
@@ -180,8 +176,20 @@ export const useEasyChat = (patientId?: string) => {
             "I have other concerns as well"
           ]
         });
+        setUseDynamicQuestions(true);
       } else {
-        setDynamicQuestion(data);
+        // Use the first root question
+        const rootQuestion = rootQuestions[0] as EasyChatQuestion;
+        setCurrentQuestion(rootQuestion);
+        
+        // Update session with current question
+        await supabase
+          .from('easy_chat_sessions')
+          .update({ 
+            current_question_id: rootQuestion.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', sessionData.id);
       }
 
     } catch (error) {
@@ -200,6 +208,7 @@ export const useEasyChat = (patientId?: string) => {
           "I have other concerns as well"
         ]
       });
+      setUseDynamicQuestions(true);
     } finally {
       setLoading(false);
     }
@@ -320,6 +329,7 @@ export const useEasyChat = (patientId?: string) => {
           }
         } else {
           // No more hardcoded questions, switch to dynamic
+          console.log('Switching to AI-generated questions after first response');
           setUseDynamicQuestions(true);
           await generateNextQuestion();
         }
@@ -389,6 +399,8 @@ export const useEasyChat = (patientId?: string) => {
     startNewSession,
     submitResponse,
     getResponseOptions,
-    isCompleted: currentSession?.completed || false
+    isCompleted: currentSession?.completed || false,
+    hasActiveSession: !!currentSession && !currentSession.completed,
+    hasResponses: conversationPath.length > 0
   };
 };

@@ -20,7 +20,9 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
     startNewSession,
     submitResponse,
     getResponseOptions,
-    isCompleted
+    isCompleted,
+    hasActiveSession,
+    hasResponses
   } = useEasyChat(patientId);
 
   useEffect(() => {
@@ -104,6 +106,9 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                     <MessageCircle className="h-5 w-5 text-primary" />
                     <span className="font-semibold text-lg">Easy Chat</span>
                     <Badge variant="secondary" className="ml-2">Free</Badge>
+                    {hasActiveSession && hasResponses && (
+                      <Badge variant="outline" className="ml-1">In Progress</Badge>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold mb-2 leading-tight">
                     {currentQuestion.question_text}
@@ -150,16 +155,23 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                 <p className="text-muted-foreground mb-4">
                   Get personalized health guidance through our guided conversation
                 </p>
-                <Button onClick={startNewSession} disabled={loading}>
-                  {loading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                      Starting...
-                    </>
-                  ) : (
-                    'Begin Easy Chat'
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={startNewSession} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                        Starting...
+                      </>
+                    ) : (
+                      hasActiveSession ? 'New Chat' : 'Begin Easy Chat'
+                    )}
+                  </Button>
+                  {hasActiveSession && (
+                    <Button variant="outline" onClick={startNewSession} disabled={loading}>
+                      Restart
+                    </Button>
                   )}
-                </Button>
+                </div>
               </div>
             )}
           </CardContent>
