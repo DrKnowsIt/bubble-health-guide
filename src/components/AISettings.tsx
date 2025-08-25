@@ -34,6 +34,7 @@ export const AISettings = () => {
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [clearingMemory, setClearingMemory] = useState<string | null>(null);
+  const [hasExportableData, setHasExportableData] = useState<boolean>(false);
   const [topDiagnosis, setTopDiagnosis] = useState<string>('');
   
   // Use the conversation memory hook for the selected user
@@ -380,14 +381,74 @@ export const AISettings = () => {
     });
   };
 
+  // Check if user has exportable data
+  const checkExportableData = async () => {
+    if (!selectedUserId || !user) {
+      setHasExportableData(false);
+      return;
+    }
+
+    try {
+      // Check for memory insights
+      if (insights && insights.length > 0) {
+        setHasExportableData(true);
+        return;
+      }
+
+      // Check for diagnoses
+      const { data: diagnoses } = await supabase
+        .from('conversation_diagnoses')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedUserId)
+        .limit(1);
+
+      if (diagnoses && diagnoses.length > 0) {
+        setHasExportableData(true);
+        return;
+      }
+
+      // Check for health record summaries
+      const { data: healthSummaries } = await supabase
+        .from('health_record_summaries')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (healthSummaries && healthSummaries.length > 0) {
+        setHasExportableData(true);
+        return;
+      }
+
+      // Check for conversation solutions
+      const { data: solutions } = await supabase
+        .from('conversation_solutions')
+        .select('id')
+        .eq('patient_id', selectedUserId)
+        .limit(1);
+
+      if (solutions && solutions.length > 0) {
+        setHasExportableData(true);
+        return;
+      }
+
+      setHasExportableData(false);
+    } catch (error) {
+      console.error('Error checking exportable data:', error);
+      setHasExportableData(false);
+    }
+  };
+
   // Update top diagnosis when user changes
   useEffect(() => {
     if (selectedUserId) {
       fetchTopDiagnosis();
+      checkExportableData();
     } else {
       setTopDiagnosis('');
+      setHasExportableData(false);
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, insights]);
 
 
   const clearUserMemory = async (userId: string, userName: string) => {
@@ -621,6 +682,22 @@ export const AISettings = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Export Medical Report Button */}
+          {selectedUserId && (
+            <div className="flex justify-end">
+              <Button
+                onClick={exportToPDF}
+                size="sm"
+                variant="outline"
+                className="h-9"
+                disabled={memoryLoading || !hasExportableData}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Export Medical Report
+              </Button>
+            </div>
+          )}
 
           {/* User Management Actions */}
           {selectedUserId && (
