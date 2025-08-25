@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain } from 'lucide-react';
 import { useEasyChat } from '@/hooks/useEasyChat';
+import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
 
 interface EasyChatInterfaceProps {
   patientId?: string;
@@ -49,151 +50,155 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 overflow-hidden">
-      {/* Header */}
-      <Card className="flex-shrink-0">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" />
-            Easy Chat
-            <Badge variant="secondary" className="ml-2">Free</Badge>
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Get personalized health guidance through our guided conversation
-          </p>
-        </CardHeader>
-      </Card>
-
-      {/* Topics to Discuss - For Easy Chat users */}
-      {conversationPath.length > 0 && (
+    <div className="h-full flex gap-4 overflow-hidden">
+      {/* Main Chat Area - Left Side */}
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
+        {/* Header */}
         <Card className="flex-shrink-0">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Topics to Discuss
-              <Badge variant="secondary" className="text-xs">
-                {Math.min(3, conversationPath.length)}
-              </Badge>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              Easy Chat
+              <Badge variant="secondary" className="ml-2">Free</Badge>
             </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Get personalized health guidance through our guided conversation
+            </p>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {conversationPath.slice(-3).map((item, index) => (
-              <div key={index} className="flex items-start gap-2 p-2 bg-muted/30 rounded-md">
-                <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{item.response}</p>
-                  <p className="text-xs text-muted-foreground">From: {item.question.question_text}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
         </Card>
-      )}
 
-      {/* Conversation History */}
-      {conversationPath.length > 0 && (
-        <Card className="flex-shrink-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Your Journey</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 max-h-32 overflow-y-auto">
-            {conversationPath.map((item, index) => (
-              <div key={index} className="border-l-2 border-primary/20 pl-4">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {item.question.question_text}
-                </p>
-                <p className="text-sm text-primary font-medium">
-                  {item.response}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Current Question or Summary */}
-      <Card className="flex-1 min-h-0 flex flex-col">
-        <CardContent className="p-6 flex-1 overflow-y-auto">
-          {isCompleted ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle className="h-5 w-5" />
-                <h3 className="font-semibold">Session Complete!</h3>
-              </div>
-              
-              {currentSession?.final_summary && (
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-sm whitespace-pre-line">
-                    {currentSession.final_summary}
-                  </p>
-                </div>
-              )}
-
-              <Separator />
-              
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Want more detailed analysis and personalized AI conversations?
-                </p>
-                <Button className="w-full">
-                  Upgrade for Full AI Chat
-                </Button>
-              </div>
-
-              <Button 
-                variant="outline" 
-                onClick={handleStartOver}
-                className="w-full"
-              >
-                Start New Easy Chat
-              </Button>
-            </div>
-          ) : currentQuestion ? (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  {currentQuestion.question_text}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Please select the option that best describes your situation:
-                </p>
-              </div>
-
-              <div className="grid gap-3 max-h-96 overflow-y-auto">
-                {getResponseOptions().map((option, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="justify-start text-left h-auto p-4 hover:bg-primary/5 hover:border-primary/20"
-                    onClick={() => handleResponseClick(option.value, option.text)}
-                    disabled={loading}
-                  >
-                    <span className="whitespace-normal">{option.text}</span>
-                  </Button>
-                ))}
-              </div>
-
-              {loading && (
-                <div className="flex items-center justify-center py-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Processing your response...</span>
+        {/* Conversation History - Compact */}
+        {conversationPath.length > 0 && (
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                Your Journey
+                <Badge variant="secondary" className="text-xs">
+                  {conversationPath.length} responses
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 max-h-28 overflow-y-auto">
+              {conversationPath.slice(-2).map((item, index) => (
+                <div key={index} className="flex items-start gap-2 p-2 bg-muted/30 rounded-md text-xs">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{item.response}</p>
+                    <p className="text-muted-foreground truncate">
+                      {item.question?.question_text?.slice(0, 50)}...
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                Ready to start your guided health conversation?
-              </p>
-              <Button onClick={startNewSession} disabled={loading}>
-                Begin Easy Chat
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Current Question or Summary - Main Content */}
+        <Card className="flex-1 min-h-0 flex flex-col">
+          <CardContent className="p-6 flex-1 overflow-y-auto">
+            {isCompleted ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="h-5 w-5" />
+                  <h3 className="font-semibold">Session Complete!</h3>
+                </div>
+                
+                {currentSession?.final_summary && (
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <p className="text-sm whitespace-pre-line">
+                      {currentSession.final_summary}
+                    </p>
+                  </div>
+                )}
+
+                <Separator />
+                
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Want more detailed analysis and personalized AI conversations?
+                  </p>
+                  <Button className="w-full">
+                    Upgrade for Full AI Chat
+                  </Button>
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleStartOver}
+                  className="w-full"
+                >
+                  Start New Easy Chat
+                </Button>
+              </div>
+            ) : currentQuestion ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 leading-tight">
+                    {currentQuestion.question_text}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Please select the option that best describes your situation:
+                  </p>
+                </div>
+
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                  {getResponseOptions().map((option, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="justify-start text-left h-auto p-4 hover:bg-primary/5 hover:border-primary/20 w-full"
+                      onClick={() => handleResponseClick(option.value, option.text)}
+                      disabled={loading}
+                    >
+                      <span className="whitespace-normal text-sm leading-relaxed">
+                        {option.text}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+
+                {loading && (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>Processing your response...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
+                  Ready to start your guided health conversation?
+                </p>
+                <Button onClick={startNewSession} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                      Starting...
+                    </>
+                  ) : (
+                    'Begin Easy Chat'
+                  )}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Right Sidebar - Health Topics */}
+      <div className="w-80 flex-shrink-0">
+        <EasyChatTopicsPanel
+          conversationPath={conversationPath}
+          patientName={patientId ? "Patient" : "You"}
+          patientId={patientId || ""}
+          sessionId={currentSession?.id}
+        />
+      </div>
     </div>
   );
 };

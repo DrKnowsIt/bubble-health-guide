@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -6,9 +6,9 @@ interface EasyChatQuestion {
   id: string;
   question_text: string;
   category: string;
-  parent_question_id: string | null;
-  response_leads_to: any;
   is_root: boolean;
+  parent_question_id: string | null;
+  response_leads_to: Record<string, string>;
 }
 
 interface EasyChatSession {
@@ -16,20 +16,25 @@ interface EasyChatSession {
   user_id: string;
   patient_id: string | null;
   session_data: any;
-  current_question_id: string | null;
   completed: boolean;
-  final_summary: string | null;
   created_at: string;
   updated_at: string;
+  current_question_id: string | null;
+  final_summary: string | null;
 }
 
 interface EasyChatResponse {
   id: string;
   session_id: string;
   question_id: string;
-  response_text: string;
   response_value: string;
+  response_text: string;
   created_at: string;
+}
+
+interface DynamicQuestion {
+  question: string;
+  options: string[];
 }
 
 export const useEasyChat = (patientId?: string) => {
@@ -37,129 +42,10 @@ export const useEasyChat = (patientId?: string) => {
   const [currentQuestion, setCurrentQuestion] = useState<EasyChatQuestion | null>(null);
   const [currentSession, setCurrentSession] = useState<EasyChatSession | null>(null);
   const [responses, setResponses] = useState<EasyChatResponse[]>([]);
-  const [loading, setLoading] = useState(false);
   const [conversationPath, setConversationPath] = useState<Array<{ question: EasyChatQuestion; response: string }>>([]);
-
-  const startNewSession = useCallback(async () => {
-    console.log('Starting Easy Chat session, user:', user);
-    if (!user) {
-      console.log('No user found, cannot start session');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log('Creating session with patient_id:', patientId);
-      
-      // Create new session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('easy_chat_sessions')
-        .insert({
-          user_id: user.id,
-          patient_id: patientId || null,
-          current_question_id: 'root_start'
-        })
-        .select()
-        .single();
-
-      if (sessionError) {
-        console.error('Session creation error:', sessionError);
-        throw sessionError;
-      }
-
-      console.log('Session created:', sessionData);
-
-      // Get root question
-      const { data: questionData, error: questionError } = await supabase
-        .from('easy_chat_questions')
-        .select('*')
-        .eq('id', 'root_start')
-        .single();
-
-      if (questionError) {
-        console.error('Question fetch error:', questionError);
-        throw questionError;
-      }
-
-      console.log('Root question found:', questionData);
-      setCurrentSession(sessionData);
-      setCurrentQuestion(questionData);
-      setResponses([]);
-      setConversationPath([]);
-    } catch (error) {
-      console.error('Error starting easy chat session:', error);
-      // Set a fallback state so the component doesn't break
-      setCurrentQuestion({
-        id: 'error',
-        question_text: 'Unable to load Easy Chat. Please try again later.',
-        category: 'error',
-        parent_question_id: null,
-        response_leads_to: {},
-        is_root: true
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user, patientId]);
-
-  const submitResponse = useCallback(async (responseValue: string, responseText: string) => {
-    if (!currentSession || !currentQuestion || !user) return;
-
-    try {
-      setLoading(true);
-
-      // Save response
-      const { data: responseData, error: responseError } = await supabase
-        .from('easy_chat_responses')
-        .insert({
-          session_id: currentSession.id,
-          question_id: currentQuestion.id,
-          response_text: responseText,
-          response_value: responseValue
-        })
-        .select()
-        .single();
-
-      if (responseError) throw responseError;
-
-      // Add to conversation path
-      const newPath = [...conversationPath, { question: currentQuestion, response: responseText }];
-      setConversationPath(newPath);
-      
-      // Update responses
-      setResponses(prev => [...prev, responseData]);
-
-      // Get next question ID
-      const nextQuestionId = currentQuestion.response_leads_to[responseValue];
-      
-      if (!nextQuestionId || nextQuestionId === 'final_summary') {
-        // End of conversation - generate summary
-        await completeSession(newPath);
-        return;
-      }
-
-      // Fetch next question
-      const { data: nextQuestion, error: nextQuestionError } = await supabase
-        .from('easy_chat_questions')
-        .select('*')
-        .eq('id', nextQuestionId)
-        .single();
-
-      if (nextQuestionError) throw nextQuestionError;
-
-      // Update session with current question
-      await supabase
-        .from('easy_chat_sessions')
-        .update({ current_question_id: nextQuestionId })
-        .eq('id', currentSession.id);
-
-      setCurrentQuestion(nextQuestion);
-    } catch (error) {
-      console.error('Error submitting response:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentSession, currentQuestion, user, conversationPath]);
+  const [loading, setLoading] = useState(false);
+  const [dynamicQuestion, setDynamicQuestion] = useState<DynamicQuestion | null>(null);
+  const [useDynamicQuestions, setUseDynamicQuestions] = useState(false);
 
   const completeSession = useCallback(async (path: Array<{ question: EasyChatQuestion; response: string }>) => {
     if (!currentSession) return;
@@ -192,6 +78,7 @@ export const useEasyChat = (patientId?: string) => {
 
       setCurrentSession(prev => prev ? { ...prev, completed: true, final_summary: summary } : null);
       setCurrentQuestion(null);
+      setDynamicQuestion(null);
     } catch (error) {
       console.error('Error completing session:', error);
     }
@@ -202,63 +89,299 @@ export const useEasyChat = (patientId?: string) => {
     return `Based on your responses, here are key topics to discuss with a healthcare provider:\n\n${topics}\n\nConsider scheduling an appointment to discuss these concerns in detail.`;
   };
 
-  const getResponseOptions = useCallback(() => {
-    if (!currentQuestion) return [];
+  const generateNextQuestion = useCallback(async () => {
+    try {
+      console.log('Generating next dynamic question...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
+        body: { 
+          conversationPath,
+          patientId 
+        }
+      });
 
-    // Handle error state
-    if (currentQuestion.id === 'error') {
-      return [
-        { value: 'retry', text: 'Try again' },
-        { value: 'contact', text: 'Contact support' }
-      ];
+      if (error) {
+        console.error('Error generating question:', error);
+        throw error;
+      }
+
+      console.log('Generated question data:', data);
+      setDynamicQuestion(data);
+      
+    } catch (error) {
+      console.error('Failed to generate next question:', error);
+      // Fallback to completion
+      const newPath = [...conversationPath];
+      await completeSession(newPath);
+    }
+  }, [conversationPath, patientId, completeSession]);
+
+  const startNewSession = useCallback(async () => {
+    console.log('Starting Easy Chat session, user:', user);
+    if (!user) {
+      console.log('No user found, cannot start session');
+      return;
     }
 
-    const responses = Object.keys(currentQuestion.response_leads_to || {});
-    
-    // Map response keys to user-friendly text
-    const responseMap: Record<string, string> = {
-      'symptoms': 'I have symptoms I\'m concerned about',
-      'wellness': 'General wellness and prevention',
-      'concerns': 'I have health concerns or questions',
-      'check_results': 'I need help understanding test results',
-      'pain': 'Pain or discomfort',
-      'fever': 'Fever or feeling unwell',
-      'breathing': 'Breathing difficulties',
-      'digestive': 'Digestive issues',
-      'skin': 'Skin problems',
-      'mental': 'Mental health concerns',
-      'fatigue': 'Fatigue or low energy',
-      'head': 'Headache or head pain',
-      'chest': 'Chest pain',
-      'abdomen': 'Abdominal pain',
-      'back': 'Back pain',
-      'joints': 'Joint pain',
-      'muscle': 'Muscle pain',
-      'prevention': 'Disease prevention',
-      'nutrition': 'Nutrition and diet',
-      'exercise': 'Exercise and fitness',
-      'sleep': 'Sleep issues',
-      'stress': 'Stress management',
-      'checkup': 'Regular checkup needed',
-      'family_history': 'Family medical history concerns',
-      'medication': 'Medication questions',
-      'procedure': 'Medical procedure questions',
-      'diagnosis': 'Questions about a diagnosis',
-      'lab_results': 'Understanding lab results',
-      'second_opinion': 'Want a second opinion',
-      'continue': 'Continue',
-      'none_above': 'None of the above',
-      'other_issues': 'I have other concerns as well'
-    };
+    try {
+      setLoading(true);
+      console.log('Creating session with patient_id:', patientId);
+      
+      // Reset states
+      setCurrentQuestion(null);
+      setDynamicQuestion(null);
+      setUseDynamicQuestions(false);
+      setConversationPath([]);
+      setResponses([]);
+      
+      // Create new session
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('easy_chat_sessions')
+        .insert({
+          user_id: user.id,
+          patient_id: patientId || null,
+          current_question_id: 'root_start'
+        })
+        .select()
+        .single();
 
-    return responses.map(key => ({
-      value: key,
-      text: responseMap[key] || key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-    }));
-  }, [currentQuestion]);
+      if (sessionError) {
+        console.error('Session creation error:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Session created:', sessionData);
+      setCurrentSession(sessionData);
+
+      // Start with dynamic questions immediately
+      setUseDynamicQuestions(true);
+      
+      // Generate first question
+      const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
+        body: { 
+          conversationPath: [],
+          patientId 
+        }
+      });
+
+      if (error) {
+        console.error('Error generating first question:', error);
+        // Fallback to hardcoded first question
+        setDynamicQuestion({
+          question: "What brings you here today? What's your main health concern?",
+          options: [
+            "I have pain or discomfort",
+            "I'm feeling unwell or sick", 
+            "I have questions about my health",
+            "I want to discuss test results",
+            "I need preventive care advice",
+            "I have mental health concerns",
+            "None of the above",
+            "I have other concerns as well"
+          ]
+        });
+      } else {
+        setDynamicQuestion(data);
+      }
+
+    } catch (error) {
+      console.error('Error starting easy chat session:', error);
+      // Set a fallback state so the component doesn't break
+      setDynamicQuestion({
+        question: "What brings you here today? What's your main health concern?",
+        options: [
+          "I have pain or discomfort",
+          "I'm feeling unwell or sick", 
+          "I have questions about my health",
+          "I want to discuss test results",
+          "I need preventive care advice",
+          "I have mental health concerns",
+          "None of the above",
+          "I have other concerns as well"
+        ]
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, patientId]);
+
+  const submitResponse = useCallback(async (responseValue: string, responseText: string) => {
+    if (!currentSession || !user) {
+      console.error('Cannot submit response: missing session or user');
+      return;
+    }
+
+    // Handle "None of the above" or "Other concerns" specially
+    if (responseValue === 'none_of_above' || responseValue === 'other_concerns') {
+      console.log('User selected none/other, completing session');
+      const newPath = [...conversationPath];
+      if (currentQuestion || dynamicQuestion) {
+        newPath.push({ 
+          question: currentQuestion || { question_text: dynamicQuestion?.question || 'Question' } as EasyChatQuestion, 
+          response: responseText 
+        });
+      }
+      setConversationPath(newPath);
+      await completeSession(newPath);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Submitting response:', { responseValue, responseText });
+
+      // Save the response for dynamic questions (create a fake question ID)
+      if (useDynamicQuestions && dynamicQuestion) {
+        const fakeQuestionId = `dynamic_${Date.now()}`;
+        
+        const { error: responseError } = await supabase
+          .from('easy_chat_responses')
+          .insert({
+            session_id: currentSession.id,
+            question_id: fakeQuestionId,
+            response_value: responseValue,
+            response_text: responseText
+          });
+
+        if (responseError) {
+          console.error('Error saving response:', responseError);
+        }
+
+        // Update conversation path
+        const newPath = [...conversationPath, { 
+          question: { question_text: dynamicQuestion.question } as EasyChatQuestion, 
+          response: responseText 
+        }];
+        setConversationPath(newPath);
+
+        // Generate next question or complete after 5 responses
+        if (newPath.length >= 5) {
+          console.log('Reached maximum questions, completing session');
+          await completeSession(newPath);
+        } else {
+          await generateNextQuestion();
+        }
+        
+      } else if (currentQuestion) {
+        // Original logic for hardcoded questions
+        const { error: responseError } = await supabase
+          .from('easy_chat_responses')
+          .insert({
+            session_id: currentSession.id,
+            question_id: currentQuestion.id,
+            response_value: responseValue,
+            response_text: responseText
+          });
+
+        if (responseError) {
+          console.error('Error saving response:', responseError);
+          throw responseError;
+        }
+
+        // Update conversation path
+        const newPath = [...conversationPath, { question: currentQuestion, response: responseText }];
+        setConversationPath(newPath);
+
+        // Check if this response leads to another question
+        const nextQuestionId = currentQuestion.response_leads_to[responseValue];
+        
+        if (nextQuestionId) {
+          console.log('Loading next question:', nextQuestionId);
+          
+          const { data: nextQuestion, error: questionError } = await supabase
+            .from('easy_chat_questions')
+            .select('*')
+            .eq('id', nextQuestionId)
+            .single();
+
+          if (questionError) {
+            console.error('Error fetching next question:', questionError);
+            // Switch to dynamic questions if hardcoded fails
+            setUseDynamicQuestions(true);
+            await generateNextQuestion();
+            return;
+          }
+
+          if (nextQuestion) {
+            setCurrentQuestion(nextQuestion as EasyChatQuestion);
+            
+            // Update session with new current question
+            const { error: updateError } = await supabase
+              .from('easy_chat_sessions')
+              .update({ 
+                current_question_id: nextQuestion.id,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', currentSession.id);
+
+            if (updateError) {
+              console.error('Error updating session:', updateError);
+            }
+          }
+        } else {
+          // No more hardcoded questions, switch to dynamic
+          setUseDynamicQuestions(true);
+          await generateNextQuestion();
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting response:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion, generateNextQuestion]);
+
+  const getResponseOptions = useCallback(() => {
+    if (useDynamicQuestions && dynamicQuestion) {
+      return dynamicQuestion.options.map((option, index) => ({
+        value: option === 'None of the above' ? 'none_of_above' : 
+               option === 'I have other concerns as well' ? 'other_concerns' :
+               `option_${index}`,
+        text: option
+      }));
+    }
+    
+    if (!currentQuestion) return [];
+
+    const options = Object.entries(currentQuestion.response_leads_to);
+    
+    // Convert the response_leads_to mapping to user-friendly options
+    return options.map(([value, _]) => {
+      let text = value;
+      
+      // Map common values to user-friendly text
+      const valueMap: Record<string, string> = {
+        'yes': 'Yes',
+        'no': 'No',
+        'mild': 'Mild',
+        'moderate': 'Moderate', 
+        'severe': 'Severe',
+        'recent': 'Recently (within days)',
+        'weeks': 'A few weeks ago',
+        'months': 'Months ago',
+        'years': 'Years ago',
+        'morning': 'In the morning',
+        'afternoon': 'In the afternoon',
+        'evening': 'In the evening',
+        'night': 'At night',
+        'constant': 'All the time',
+        'intermittent': 'Comes and goes',
+        'stress_related': 'When I\'m stressed',
+        'physical_activity': 'During physical activity',
+        'rest': 'When I\'m resting',
+        'eating': 'When eating',
+        'sleeping': 'When sleeping'
+      };
+      
+      return {
+        value,
+        text: valueMap[value] || value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      };
+    });
+  }, [currentQuestion, useDynamicQuestions, dynamicQuestion]);
 
   return {
-    currentQuestion,
+    currentQuestion: useDynamicQuestions ? { question_text: dynamicQuestion?.question || '' } as EasyChatQuestion : currentQuestion,
     currentSession,
     responses,
     conversationPath,
