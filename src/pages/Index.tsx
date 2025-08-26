@@ -44,11 +44,11 @@ const Index = () => {
               {/* Mobile Header - Properly spaced */}
               <div className="shrink-0 text-center p-4 bg-card border-b border-border space-y-3">
                 <h1 className="mobile-text-lg sm:text-xl font-bold text-foreground leading-tight">
-                  Healthcare feeling like an assembly line?
+                  Healthcare & pet care feeling rushed?
                 </h1>
                 <p className="mobile-text-sm text-muted-foreground leading-relaxed">
-                  Beat the system - come over-prepared with{" "}
-                  <span className="text-primary font-semibold">DrKnowsIt</span>
+                  Come prepared with{" "}
+                  <span className="text-primary font-semibold">DrKnowsIt</span> - for you and your pets
                 </p>
                 <p className="mobile-text-xs text-muted-foreground/70">
                   Powered by Grok
@@ -83,8 +83,8 @@ const Index = () => {
                 {/* Left side - Text content */}
                 <div className="text-center lg:text-left">
                   <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare feeling like a rushed assembly line more than actual care?</h1>
-                    <p className="text-lg text-muted-foreground mb-4">Get organized before your appointment so you can communicate clearly and feel confident about your health concerns.</p>
+                    <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare & veterinary visits feeling rushed and impersonal?</h1>
+                    <p className="text-lg text-muted-foreground mb-4">Get organized before appointments for yourself and your pets - communicate clearly and feel confident about all your family's health concerns.</p>
                   </div>
                   
                   <div className="mb-4">
@@ -93,7 +93,7 @@ const Index = () => {
                       <span className="text-primary">DrKnowsIt</span>
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      AI-powered health guidance available 24/7
+                      AI-powered health & pet care guidance available 24/7
                     </p>
                     <p className="text-xs text-muted-foreground/70 mt-1">
                       Powered by Grok
@@ -103,7 +103,7 @@ const Index = () => {
                   {/* Legal Disclaimer */}
                   <div className="max-w-xl mx-auto lg:mx-0 rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
                     <p className="text-xs font-medium text-warning">
-                      ⚠️ For general health information only. Always consult healthcare professionals for medical decisions.
+                      ⚠️ For general information only. Always consult healthcare professionals and veterinarians for medical decisions.
                     </p>
                   </div>
                 </div>

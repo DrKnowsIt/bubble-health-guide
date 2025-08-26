@@ -6,7 +6,7 @@ const features = [
   {
     icon: MessageCircle,
     title: "Intelligent Chat Interface",
-    description: "Engage in natural conversations with DrKnowsIt. Our AI helps you organize symptoms and prepare thoughtful questions for your healthcare provider.",
+    description: "Engage in natural conversations about health concerns for you and your pets. Our AI helps organize symptoms and prepare thoughtful questions for healthcare providers and veterinarians.",
     highlight: "Basic+",
     benefits: ["Natural conversation flow", "Smart follow-up questions", "Context-aware responses"]
   },
@@ -20,14 +20,14 @@ const features = [
   {
     icon: FileText,
     title: "Auto Health Records",
-    description: "DrKnowsIt automatically organizes your conversations into a comprehensive health profile, making it easy to track symptoms and concerns over time.",
+    description: "DrKnowsIt automatically organizes conversations into comprehensive health profiles for your family and pets, making it easy to track symptoms and concerns over time.",
     highlight: "Pro Only",
     benefits: ["Automatic organization", "Timeline tracking", "Comprehensive reports"]
   },
   {
     icon: Users,
     title: "Doctor Communication",
-    description: "Generate organized summaries of your symptoms and concerns to share with your healthcare provider, ensuring you don't forget important details during appointments.",
+    description: "Generate organized summaries of symptoms and concerns to share with healthcare providers and veterinarians, ensuring you don't forget important details during appointments.",
     highlight: "Basic+",
     benefits: ["Professional summaries", "Key points highlighted", "Appointment preparation"]
   },
@@ -41,7 +41,7 @@ const features = [
   {
     icon: Zap,
     title: "Instant Responses",
-    description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical appointments.",
+    description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical and veterinary appointments.",
     highlight: "Basic+",
     benefits: ["Lightning fast responses", "Always available", "Real-time processing"]
   }
@@ -61,8 +61,8 @@ export const Features = () => {
             Why Choose DrKnowsIt?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Our AI-powered platform combines advanced technology with healthcare expertise to provide 
-            you with personalized guidance and seamless doctor communication.
+            Our AI-powered platform combines advanced technology with healthcare and veterinary expertise to provide 
+            you with personalized guidance and seamless communication with doctors and veterinarians.
           </p>
         </div>
 
@@ -113,10 +113,10 @@ export const Features = () => {
           <Card className="inline-block p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
             <CardContent className="p-0">
               <h3 className="text-2xl font-bold text-foreground mb-4">
-                Ready to Transform Your Healthcare Experience?
+                Ready to Transform Your Healthcare & Pet Care Experience?
               </h3>
               <p className="text-muted-foreground mb-6 max-w-2xl">
-                Join our early users who are helping us build the future of AI-powered healthcare communication.
+                Join our early users who are helping us build the future of AI-powered healthcare and veterinary communication.
               </p>
               <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center">

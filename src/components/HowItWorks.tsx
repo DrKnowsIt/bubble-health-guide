@@ -4,25 +4,25 @@ const steps = [
   {
     icon: Brain,
     title: "Multi-Layer Processing",
-    description: "Your health question is processed through our proprietary chain-of-thought architecture, breaking complex queries into structured medical reasoning steps.",
+    description: "Your health or pet care question is processed through our proprietary chain-of-thought architecture, breaking complex queries into structured medical and veterinary reasoning steps.",
     step: "01"
   },
   {
     icon: Filter,
     title: "Hallucination Filtering",
-    description: "Our advanced validation system cross-references responses against verified medical databases and flags any uncertain information before delivery.",
+    description: "Our advanced validation system cross-references responses against verified medical and veterinary databases and flags any uncertain information before delivery.",
     step: "02"
   },
   {
     icon: CheckCircle,
     title: "Confidence Scoring",
-    description: "Every suggestion includes confidence indicators to help you understand which possibilities to discuss with your doctor first.",
+    description: "Every suggestion includes confidence indicators to help you understand which possibilities to discuss with your doctor or veterinarian first.",
     step: "03"
   },
   {
     icon: ArrowRight,
     title: "Contextual Refinement",
-    description: "The AI maintains conversation context and your health profile to provide increasingly personalized and accurate guidance over time.",
+    description: "The AI maintains conversation context and health profiles for your family and pets to provide increasingly personalized and accurate guidance over time.",
     step: "04"
   }
 ];
@@ -36,8 +36,8 @@ export const HowItWorks = () => {
             How DrKnowsIt Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Our unique architecture processes health information through multiple validation layers, 
-            helping you organize symptoms and prepare thoughtful questions for your doctor.
+            Our unique architecture processes health and pet care information through multiple validation layers, 
+            helping you organize symptoms and prepare thoughtful questions for doctors and veterinarians.
           </p>
         </div>
 
@@ -79,13 +79,13 @@ export const HowItWorks = () => {
         {/* Technical Details */}
         <div className="mt-16 medical-card p-8 text-center">
           <h3 className="text-2xl font-bold text-foreground mb-4">
-            Built for Medical Accuracy
+            Built for Medical & Veterinary Accuracy
           </h3>
           <p className="text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Our proprietary chain-of-thought processing architecture breaks down complex symptom descriptions into 
-            structured possibilities. Each suggestion is validated against medical knowledge bases and scored for 
+            Our proprietary chain-of-thought processing architecture breaks down complex symptom descriptions for both humans and pets into 
+            structured possibilities. Each suggestion is validated against medical and veterinary knowledge bases and scored for 
             likelihood. This helps you prepare informed questions and organize your thoughts before consulting with 
-            healthcare professionals for proper diagnosis and treatment.
+            healthcare professionals and veterinarians for proper diagnosis and treatment.
           </p>
         </div>
       </div>

@@ -40,7 +40,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold text-foreground">DrKnowsIt</span>
-              <span className="text-xs text-muted-foreground">AI Medical Guidance</span>
+              <span className="text-xs text-muted-foreground">AI Health & Pet Care</span>
             </div>
           </Link>
 
