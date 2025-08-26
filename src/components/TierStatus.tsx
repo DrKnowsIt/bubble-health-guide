@@ -16,6 +16,9 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
   const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal, refreshSubscription } = useSubscription();
   const { isAlphaTester, loading: alphaTesterLoading } = useAlphaTester();
 
+  // Debug logging for state changes
+  console.log('TierStatus render:', { isAlphaTester, subscribed, subscription_tier, loading, alphaTesterLoading });
+
   const handleUpgrade = async () => {
     try {
       if (subscribed) {

@@ -69,7 +69,12 @@ const Settings = () => {
   };
 
   const handleToggleTesterMode = async (enabled: boolean) => {
-    await toggleTesterMode(enabled);
+    const success = await toggleTesterMode(enabled);
+    if (success) {
+      // Force refresh subscription state to ensure TierStatus updates
+      await refreshSubscription();
+      console.log('Alpha tester mode toggled and subscription refreshed');
+    }
   };
 
   const getCurrentTierDisplay = () => {

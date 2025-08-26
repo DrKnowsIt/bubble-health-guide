@@ -121,7 +121,13 @@ export const useAlphaTester = () => {
         return false;
       }
 
+      // Immediately update local state
       setIsAlphaTester(enabled);
+      console.log(`Alpha tester mode ${enabled ? 'enabled' : 'disabled'} for user:`, user.email);
+      
+      // Force a small delay to ensure state propagation
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       toast({
         title: enabled ? "Tester Mode Enabled" : "Tester Mode Disabled",
         description: enabled 
