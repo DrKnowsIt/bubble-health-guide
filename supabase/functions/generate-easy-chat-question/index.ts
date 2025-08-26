@@ -18,7 +18,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { conversationPath, patientId } = await req.json();
+    const { conversationPath, patientId, anatomyContext } = await req.json();
     
     console.log('Generating question for conversation path:', conversationPath?.length || 0, 'responses');
 
@@ -27,11 +27,17 @@ serve(async (req) => {
       `Q: ${item.question?.question_text || 'Previous question'}\nA: ${item.response}`
     ).join('\n\n') || 'No previous context';
 
+    // Add anatomy context if provided
+    const fullContext = anatomyContext 
+      ? `${anatomyContext}\n\nConversation history:\n${context}`
+      : context;
+
     const systemPrompt = `You are a medical intake specialist creating follow-up health questions. 
-Generate a relevant health question based on the conversation history and provide 6-10 response options.
+Generate a relevant health question based on the conversation history and any specified body areas of concern.
 
 Guidelines:
-- Ask one focused follow-up question based on previous responses
+- Ask one focused follow-up question based on previous responses and body areas mentioned
+- If specific body areas are mentioned, tailor questions to those areas
 - Always include "None of the above" and "I have other concerns as well" as options
 - Keep responses under 15 words each
 - Make questions conversational and easy to understand
@@ -50,7 +56,11 @@ Return ONLY a JSON object with this structure:
   ]
 }`;
 
-    const userPrompt = `Previous conversation:\n${context}\n\nGenerate the next logical health question with response options.`;
+    const userPrompt = `Based on the following context, generate the next appropriate health question:
+
+${fullContext}
+
+Generate a follow-up question that helps gather more specific health information.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

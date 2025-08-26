@@ -3,15 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain } from 'lucide-react';
+import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target } from 'lucide-react';
 import { useEasyChat } from '@/hooks/useEasyChat';
 import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
 
 interface EasyChatInterfaceProps {
   patientId?: string;
+  selectedAnatomy?: string[];
+  onFinish?: () => void;
+  useEasyChatHook?: any; // Allow flexibility for enhanced hook
 }
 
-export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
+export const EasyChatInterface = ({ 
+  patientId, 
+  selectedAnatomy, 
+  onFinish,
+  useEasyChatHook
+}: EasyChatInterfaceProps) => {
+  // Use provided hook or create new one
+  const hookData = useEasyChatHook || useEasyChat(patientId);
   const {
     currentQuestion,
     currentSession,
@@ -23,7 +33,7 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
     isCompleted,
     hasActiveSession,
     hasResponses
-  } = useEasyChat(patientId);
+  } = hookData;
 
   useEffect(() => {
     // Auto-start session when component mounts
@@ -55,12 +65,31 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
     <div className="h-full flex gap-4 overflow-hidden">
       {/* Main Chat Area - Left Side */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
-        {/* Progress indicator */}
-        {conversationPath.length > 0 && (
-          <div className="text-xs text-muted-foreground mb-2">
-            Progress: {conversationPath.length} questions answered
-          </div>
-        )}
+        {/* Selected Anatomy & Progress indicator */}
+        <div className="flex items-center justify-between mb-2">
+          {selectedAnatomy && selectedAnatomy.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-primary" />
+              <div className="flex flex-wrap gap-1">
+                {selectedAnatomy.slice(0, 3).map((area) => (
+                  <Badge key={area} variant="outline" className="text-xs">
+                    {area.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </Badge>
+                ))}
+                {selectedAnatomy.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{selectedAnatomy.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+          {conversationPath.length > 0 && (
+            <div className="text-xs text-muted-foreground">
+              {conversationPath.length} questions answered
+            </div>
+          )}
+        </div>
 
         {/* Current Question or Summary - Main Content */}
         <Card className="flex-1 min-h-0 flex flex-col">
@@ -90,6 +119,15 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                     Upgrade for Full AI Chat
                   </Button>
                 </div>
+
+                {onFinish && (
+                  <Button 
+                    onClick={onFinish}
+                    className="w-full"
+                  >
+                    Export Results
+                  </Button>
+                )}
 
                 <Button 
                   variant="outline" 
@@ -134,8 +172,19 @@ export const EasyChatInterface = ({ patientId }: EasyChatInterfaceProps) => {
                   ))}
                 </div>
 
-                {/* Restart Analysis Button */}
-                <div className="pt-4 border-t border-border">
+                {/* Action Buttons */}
+                <div className="pt-4 border-t border-border space-y-2">
+                  {onFinish && conversationPath.length > 2 && (
+                    <Button 
+                      onClick={onFinish}
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Finish & Export Results
+                    </Button>
+                  )}
+                  
                   <Button 
                     variant="outline" 
                     onClick={handleStartOver}

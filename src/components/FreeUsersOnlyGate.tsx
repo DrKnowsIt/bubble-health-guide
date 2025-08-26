@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { EnhancedEasyChatInterface } from './EnhancedEasyChatInterface';
 
 interface FreeUsersOnlyGateProps {
   children: ReactNode;
@@ -53,6 +54,6 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
     );
   }
 
-  // Free users can access the content
-  return <>{children}</>;
+  // Free users get the enhanced easy chat interface
+  return <EnhancedEasyChatInterface />;
 };

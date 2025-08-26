@@ -37,7 +37,7 @@ interface DynamicQuestion {
   options: string[];
 }
 
-export const useEasyChat = (patientId?: string) => {
+export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
   const { user } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState<EasyChatQuestion | null>(null);
   const [currentSession, setCurrentSession] = useState<EasyChatSession | null>(null);
@@ -45,6 +45,7 @@ export const useEasyChat = (patientId?: string) => {
   const [conversationPath, setConversationPath] = useState<Array<{ question: EasyChatQuestion; response: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [dynamicQuestion, setDynamicQuestion] = useState<DynamicQuestion | null>(null);
+  const [healthTopics, setHealthTopics] = useState<any[]>([]);
   const [useDynamicQuestions, setUseDynamicQuestions] = useState(false);
 
   const completeSession = useCallback(async (path: Array<{ question: EasyChatQuestion; response: string }>) => {
@@ -93,12 +94,15 @@ export const useEasyChat = (patientId?: string) => {
     try {
       console.log('Generating next dynamic question...');
       
-      const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
-        body: { 
-          conversationPath,
-          patientId 
-        }
-      });
+        const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
+          body: { 
+            conversationPath,
+            patientId,
+            anatomyContext: selectedAnatomy && selectedAnatomy.length > 0 
+              ? `Body areas of interest: ${selectedAnatomy.join(', ')}`
+              : ''
+          }
+        });
 
       if (error) {
         console.error('Error generating question:', error);
@@ -134,13 +138,19 @@ export const useEasyChat = (patientId?: string) => {
       setConversationPath([]);
       setResponses([]);
       
+      const sessionDataObj = { 
+        started_at: new Date().toISOString(),
+        ...(selectedAnatomy && selectedAnatomy.length > 0 ? { selected_anatomy: selectedAnatomy } : {})
+      };
+
       // Create new session
-      const { data: sessionData, error: sessionError } = await supabase
+      const { data: newSessionData, error: sessionError } = await supabase
         .from('easy_chat_sessions')
         .insert({
           user_id: user.id,
           patient_id: patientId || null,
-          current_question_id: null
+          current_question_id: null,
+          session_data: sessionDataObj
         })
         .select()
         .single();
@@ -150,8 +160,8 @@ export const useEasyChat = (patientId?: string) => {
         throw sessionError;
       }
 
-      console.log('Session created:', sessionData);
-      setCurrentSession(sessionData);
+      console.log('Session created:', newSessionData);
+      setCurrentSession(newSessionData);
 
       // Start with root questions from database
       const { data: rootQuestions, error: rootError } = await supabase
@@ -162,9 +172,17 @@ export const useEasyChat = (patientId?: string) => {
 
       if (rootError || !rootQuestions || rootQuestions.length === 0) {
         console.error('Error fetching root questions:', rootError);
-        // Fallback to predefined first question
+        // Fallback to predefined first question with anatomy context
+        let questionText = "What brings you here today? What's your main health concern?";
+        if (selectedAnatomy && selectedAnatomy.length > 0) {
+          const anatomyNames = selectedAnatomy.map(a => 
+            a.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          ).join(', ');
+          questionText = `You've indicated concerns about: ${anatomyNames}. What specific issues are you experiencing in these areas?`;
+        }
+
         setDynamicQuestion({
-          question: "What brings you here today? What's your main health concern?",
+          question: questionText,
           options: [
             "I have pain or discomfort",
             "I'm feeling unwell or sick", 
@@ -189,7 +207,7 @@ export const useEasyChat = (patientId?: string) => {
             current_question_id: rootQuestion.id,
             updated_at: new Date().toISOString()
           })
-          .eq('id', sessionData.id);
+          .eq('id', newSessionData.id);
       }
 
     } catch (error) {
@@ -401,6 +419,7 @@ export const useEasyChat = (patientId?: string) => {
     getResponseOptions,
     isCompleted: currentSession?.completed || false,
     hasActiveSession: !!currentSession && !currentSession.completed,
-    hasResponses: conversationPath.length > 0
+    hasResponses: conversationPath.length > 0,
+    completeSession
   };
 };
