@@ -98,7 +98,7 @@ const Index = () => {
                   {/* Powered by note */}
                   <div className="mb-6">
                     <p className="text-sm text-muted-foreground/80">
-                      Powered by GPT-5, Claude 4, Grok & more • Available 24/7
+                      Powered by GPT-5, Grok & more • Available 24/7
                     </p>
                   </div>
                 </div>
