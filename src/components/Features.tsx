@@ -1,6 +1,7 @@
 import { MessageCircle, Mic, FileText, Users, Shield, Zap, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { UserCountBadge } from "@/components/UserCountBadge";
 
 const features = [
   {
@@ -115,9 +116,10 @@ export const Features = () => {
               <h3 className="text-2xl font-bold text-foreground mb-4">
                 Ready to Transform Your Healthcare & Pet Care Experience?
               </h3>
-              <p className="text-muted-foreground mb-6 max-w-2xl">
+              <p className="text-muted-foreground mb-4 max-w-2xl">
                 Join our early users who are helping us build the future of AI-powered healthcare and veterinary communication.
               </p>
+              <UserCountBadge variant="cta" className="justify-center mb-6" />
               <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />

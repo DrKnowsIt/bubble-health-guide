@@ -12,6 +12,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/ChatGPTInterface";
+import { UserCountBadge } from "@/components/UserCountBadge";
 // Using the uploaded vintage healthcare trio image
 const Index = () => {
   const {
@@ -85,6 +86,9 @@ const Index = () => {
                   <div className="mb-6">
                     <h1 className="text-3xl font-bold text-foreground mb-3">Want to maximize your healthcare & veterinary appointments?</h1>
                     <p className="text-lg text-muted-foreground mb-4">Get organized before appointments for yourself and your pets - communicate clearly and feel confident about all your family's health concerns.</p>
+                    <div className="mb-4">
+                      <UserCountBadge variant="hero" />
+                    </div>
                   </div>
                   
                   <div className="mb-4">
