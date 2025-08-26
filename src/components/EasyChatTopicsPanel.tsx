@@ -34,11 +34,19 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
   const [loading, setLoading] = useState(false);
   const [lastAnalyzedCount, setLastAnalyzedCount] = useState(0);
 
-  // Generate topics when we have enough new responses
+  // Generate topics when we have enough new responses or conversation is complete
   useEffect(() => {
     const shouldAnalyze = conversationPath.length > 0 && 
                          conversationPath.length !== lastAnalyzedCount && 
-                         conversationPath.length % 2 === 0; // Every 2 responses
+                         (conversationPath.length % 2 === 0 || // Every 2 responses
+                          conversationPath.length >= 3); // Or when we have at least 3 responses
+
+    console.log('Topic generation check:', { 
+      pathLength: conversationPath.length, 
+      lastAnalyzed: lastAnalyzedCount, 
+      shouldAnalyze, 
+      sessionId 
+    });
 
     if (shouldAnalyze && sessionId) {
       generateTopics();
@@ -50,13 +58,19 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
 
     try {
       setLoading(true);
-      console.log('Generating topics for Easy Chat conversation...');
+      console.log('Generating topics for Easy Chat conversation...', { 
+        pathLength: conversationPath.length, 
+        patientId, 
+        sessionId 
+      });
 
       const conversationContext = conversationPath.map(item => 
         `Q: ${item.question?.question_text || 'Question'}\nA: ${item.response}`
       ).join('\n\n');
 
-      const { data, error } = await supabase.functions.invoke('analyze-conversation-diagnosis', {
+      console.log('Conversation context:', conversationContext.substring(0, 200) + '...');
+
+      const { data, error } = await supabase.functions.invoke('analyze-easy-chat-topics', {
         body: {
           conversation_context: conversationContext,
           patient_id: patientId,
@@ -69,17 +83,23 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
         return;
       }
 
-      if (data?.diagnoses) {
-        const generatedTopics = data.diagnoses.map((diagnosis: any) => ({
-          topic: diagnosis.diagnosis,
-          confidence: diagnosis.confidence || 0.5,
-          reasoning: diagnosis.reasoning || 'Based on conversation responses',
-          category: diagnosis.confidence > 0.7 ? 'high_confidence' : 
-                   diagnosis.confidence > 0.4 ? 'moderate_confidence' : 'low_confidence'
+      console.log('Response from analyze-easy-chat-topics:', data);
+
+      if (data?.diagnoses || data?.topics) {
+        const topicsData = data.diagnoses || data.topics;
+        const generatedTopics = topicsData.map((item: any) => ({
+          topic: item.topic || item.diagnosis,
+          confidence: item.confidence || 0.5,
+          reasoning: item.reasoning || 'Based on conversation responses',
+          category: item.category || (item.confidence > 0.7 ? 'high_confidence' : 
+                   item.confidence > 0.4 ? 'moderate_confidence' : 'low_confidence')
         }));
 
         setTopics(generatedTopics.slice(0, 5)); // Limit to 5 topics
         setLastAnalyzedCount(conversationPath.length);
+        console.log('Generated topics:', generatedTopics);
+      } else {
+        console.log('No topics data in response');
       }
     } catch (error) {
       console.error('Error in topic generation:', error);
