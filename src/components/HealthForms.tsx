@@ -39,7 +39,11 @@ import {
   Lock,
   FileText,
   AlertTriangle,
-  ArrowLeft
+  ArrowLeft,
+  PawPrint,
+  Stethoscope,
+  Apple,
+  Shield
 } from 'lucide-react';
 
 interface HealthForm {
@@ -281,6 +285,133 @@ const healthForms: HealthForm[] = [
   }
 ];
 
+const petHealthForms: HealthForm[] = [
+  {
+    id: 'pet_general_notes',
+    title: 'General Pet Health Notes',
+    icon: FileText,
+    category: 'personal',
+    color: 'bg-yellow-600',
+    fields: [
+      { name: 'general_notes', label: 'General Pet Health Notes', type: 'textarea', placeholder: 'Any health-related information about your pet - symptoms, behavior changes, vet observations, medication effects, or anything else relevant to your pet\'s health.' }
+    ]
+  },
+  {
+    id: 'pet_basic_info',
+    title: 'Basic Pet Information',
+    icon: PawPrint,
+    category: 'personal',
+    fields: [
+      { name: 'pet_name', label: 'Pet Name', type: 'text', required: true, placeholder: 'Your pet\'s name' },
+      { name: 'species', label: 'Species', type: 'select', options: ['Dog', 'Cat', 'Bird', 'Rabbit', 'Hamster', 'Guinea Pig', 'Reptile', 'Fish', 'Other'], required: true },
+      { name: 'breed', label: 'Breed', type: 'text', placeholder: 'Breed or mix (e.g., Golden Retriever, Domestic Shorthair)' },
+      { name: 'age', label: 'Age', type: 'number', required: true, placeholder: '5' },
+      { name: 'current_weight', label: 'Current Weight (lbs)', type: 'number', required: true, placeholder: '50' },
+      { name: 'weight_history', label: 'Weight History', type: 'textarea', placeholder: 'Past weights with dates. Include any significant weight changes.' },
+      { name: 'microchip_number', label: 'Microchip Number', type: 'text', placeholder: 'Microchip ID if applicable' },
+      { name: 'registration_numbers', label: 'Registration Numbers', type: 'textarea', placeholder: 'AKC, breed registry, or other registration numbers' },
+      { name: 'spay_neuter_status', label: 'Spay/Neuter Status', type: 'select', options: ['Spayed', 'Neutered', 'Intact', 'Unknown'], required: true },
+      { name: 'spay_neuter_date', label: 'Spay/Neuter Date', type: 'date', placeholder: 'Date of procedure if known' }
+    ]
+  },
+  {
+    id: 'pet_veterinary_history',
+    title: 'Veterinary History',
+    icon: Stethoscope,
+    category: 'medical',
+    fields: [
+      { name: 'current_vet', label: 'Current Veterinarian', type: 'textarea', placeholder: 'Vet name, clinic name, phone number, address' },
+      { name: 'previous_vets', label: 'Previous Veterinarians', type: 'textarea', placeholder: 'List previous vets if you\'ve switched clinics' },
+      { name: 'vaccination_history', label: 'Vaccination History', type: 'textarea', placeholder: 'List all vaccinations with dates (rabies, DHPP, bordetella, etc.)' },
+      { name: 'current_medications', label: 'Current Medications', type: 'textarea', placeholder: 'List all current medications, dosages, and frequency' },
+      { name: 'past_medications', label: 'Past Medications', type: 'textarea', placeholder: 'Previous medications, why discontinued, any adverse reactions' },
+      { name: 'surgeries', label: 'Past Surgeries', type: 'textarea', placeholder: 'List all surgeries with dates, complications, recovery notes' },
+      { name: 'hospitalizations', label: 'Past Hospitalizations', type: 'textarea', placeholder: 'Emergency visits, overnight stays, reasons, outcomes' },
+      { name: 'injuries', label: 'Significant Injuries', type: 'textarea', placeholder: 'Major injuries, accidents, ongoing effects' },
+      { name: 'chronic_conditions', label: 'Chronic Conditions', type: 'textarea', placeholder: 'Ongoing health issues, diagnosis dates, management plans' },
+      { name: 'allergies', label: 'Known Allergies', type: 'textarea', placeholder: 'Food, environmental, medication allergies and reactions' }
+    ]
+  },
+  {
+    id: 'pet_current_health',
+    title: 'Current Health Status',
+    icon: Heart,
+    category: 'medical',
+    fields: [
+      { name: 'current_symptoms', label: 'Current Symptoms', type: 'textarea', placeholder: 'Any symptoms you\'ve noticed recently' },
+      { name: 'appetite', label: 'Appetite', type: 'select', options: ['Excellent', 'Good', 'Fair', 'Poor', 'Varies'], required: true },
+      { name: 'energy_level', label: 'Energy Level', type: 'select', options: ['Very High', 'High', 'Normal', 'Low', 'Very Low'], required: true },
+      { name: 'mobility', label: 'Mobility', type: 'select', options: ['Excellent', 'Good', 'Some stiffness', 'Limited', 'Significantly impaired'], required: true },
+      { name: 'bowel_movements', label: 'Bowel Movements', type: 'textarea', placeholder: 'Frequency, consistency, any changes or concerns' },
+      { name: 'urination', label: 'Urination', type: 'textarea', placeholder: 'Frequency, any accidents, changes in habits' },
+      { name: 'breathing', label: 'Breathing', type: 'select', options: ['Normal', 'Occasional panting', 'Heavy breathing', 'Labored breathing', 'Difficulty breathing'] },
+      { name: 'skin_coat', label: 'Skin & Coat Condition', type: 'textarea', placeholder: 'Condition of skin and fur/feathers, any irritations, shedding patterns' },
+      { name: 'dental_health', label: 'Dental Health', type: 'textarea', placeholder: 'Teeth condition, breath odor, eating difficulties, dental cleanings' },
+      { name: 'eyes_ears', label: 'Eyes & Ears', type: 'textarea', placeholder: 'Any discharge, irritation, hearing/vision concerns' }
+    ]
+  },
+  {
+    id: 'pet_behavior_lifestyle',
+    title: 'Behavior & Lifestyle',
+    icon: Activity,
+    category: 'lifestyle',
+    fields: [
+      { name: 'activity_level', label: 'Activity Level', type: 'select', options: ['Very Active', 'Active', 'Moderate', 'Low Activity', 'Sedentary'], required: true },
+      { name: 'exercise_routine', label: 'Exercise Routine', type: 'textarea', placeholder: 'Daily walks, play time, exercise frequency and duration' },
+      { name: 'social_behavior', label: 'Social Behavior', type: 'textarea', placeholder: 'How they interact with people, other pets, strangers' },
+      { name: 'behavioral_changes', label: 'Recent Behavioral Changes', type: 'textarea', placeholder: 'Any changes in behavior, mood, or personality' },
+      { name: 'stress_triggers', label: 'Stress Triggers', type: 'textarea', placeholder: 'Things that cause anxiety or stress for your pet' },
+      { name: 'living_environment', label: 'Living Environment', type: 'textarea', placeholder: 'Indoor/outdoor access, living space, other pets in home' },
+      { name: 'sleep_patterns', label: 'Sleep Patterns', type: 'textarea', placeholder: 'Where they sleep, sleep quality, any sleep disturbances' },
+      { name: 'training_behavior', label: 'Training & Behavior', type: 'textarea', placeholder: 'House training, obedience, any behavioral training or issues' }
+    ]
+  },
+  {
+    id: 'pet_diet_nutrition',
+    title: 'Diet & Nutrition',
+    icon: Apple,
+    category: 'lifestyle',
+    fields: [
+      { name: 'current_diet', label: 'Current Diet', type: 'textarea', placeholder: 'Brand and type of food, wet/dry, treats, supplements' },
+      { name: 'feeding_schedule', label: 'Feeding Schedule', type: 'textarea', placeholder: 'How often and when you feed, portion sizes' },
+      { name: 'food_preferences', label: 'Food Preferences & Dislikes', type: 'textarea', placeholder: 'Favorite foods, foods they refuse, picky eating habits' },
+      { name: 'treats_snacks', label: 'Treats & Snacks', type: 'textarea', placeholder: 'Types of treats given, frequency, training rewards' },
+      { name: 'water_intake', label: 'Water Intake', type: 'select', options: ['Drinks plenty', 'Normal', 'Drinks little', 'Excessive drinking', 'Difficulty drinking'], required: true },
+      { name: 'dietary_restrictions', label: 'Dietary Restrictions', type: 'textarea', placeholder: 'Special diet requirements, food allergies, foods to avoid' },
+      { name: 'past_diets', label: 'Past Diets', type: 'textarea', placeholder: 'Previous foods tried, reasons for switching, reactions' },
+      { name: 'supplements', label: 'Supplements', type: 'textarea', placeholder: 'Vitamins, joint supplements, probiotics, or other supplements given' }
+    ]
+  },
+  {
+    id: 'pet_emergency_contacts',
+    title: 'Emergency & Contact Information',
+    icon: Shield,
+    category: 'emergency',
+    fields: [
+      { name: 'emergency_vet', label: 'Emergency Veterinarian', type: 'textarea', placeholder: 'Emergency vet clinic name, address, phone number' },
+      { name: 'pet_insurance', label: 'Pet Insurance', type: 'textarea', placeholder: 'Insurance company, policy number, coverage details' },
+      { name: 'emergency_contacts', label: 'Emergency Contacts', type: 'textarea', placeholder: 'People who can care for your pet in an emergency' },
+      { name: 'care_instructions', label: 'Special Care Instructions', type: 'textarea', placeholder: 'Important information for pet sitters or emergency caregivers' },
+      { name: 'medical_alert', label: 'Medical Alert Information', type: 'textarea', placeholder: 'Critical medical information that emergency responders should know' }
+    ]
+  },
+  {
+    id: 'pet_health_observations',
+    title: 'Your Pet Health Observations',
+    icon: Heart,
+    category: 'personal',
+    fields: [
+      { name: 'symptom_patterns', label: 'Symptoms You\'ve Noticed', type: 'textarea', placeholder: 'Any recurring symptoms, when they occur, patterns you\'ve observed' },
+      { name: 'behavior_health_connection', label: 'Behavior & Health Connections', type: 'textarea', placeholder: 'How your pet\'s behavior changes when they\'re not feeling well' },
+      { name: 'environmental_factors', label: 'Environmental Health Factors', type: 'textarea', placeholder: 'How weather, seasons, or environment affects your pet\'s health' },
+      { name: 'your_concerns', label: 'Your Current Concerns', type: 'textarea', placeholder: 'Any health concerns you have about your pet right now' },
+      { name: 'care_strategies', label: 'What Helps Your Pet Feel Better', type: 'textarea', placeholder: 'Care strategies, home remedies, or things that improve your pet\'s wellbeing' },
+      { name: 'family_observations', label: 'Family Observations', type: 'textarea', placeholder: 'Things family members have noticed about your pet\'s health or behavior' },
+      { name: 'veterinary_questions', label: 'Questions for Your Vet', type: 'textarea', placeholder: 'Questions you want to ask at your next vet visit' }
+    ]
+  }
+];
+
 interface HealthFormsProps {
   onFormSubmit?: () => void;
   selectedPatient?: any | null;
@@ -325,23 +456,44 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     'patient_observations'
   ];
 
+  // Define pet forms available for basic tier
+  const basicTierPetFormIds = [
+    'pet_general_notes',
+    'pet_basic_info',
+    'pet_current_health',
+    'pet_health_observations'
+  ];
+
+  // Get the appropriate form set based on whether the selected patient is a pet
+  const getCurrentFormSet = () => {
+    return selectedPatient?.is_pet ? petHealthForms : healthForms;
+  };
+
+  const getCurrentBasicTierFormIds = () => {
+    return selectedPatient?.is_pet ? basicTierPetFormIds : basicTierFormIds;
+  };
+
   // Filter forms based on subscription tier
   const getAvailableForms = () => {
     if (!subscribed || !subscription_tier) return [];
     
+    const currentFormSet = getCurrentFormSet();
+    const currentBasicTierFormIds = getCurrentBasicTierFormIds();
+    
     if (subscription_tier === 'basic') {
-      return healthForms.filter(form => basicTierFormIds.includes(form.id));
+      return currentFormSet.filter(form => currentBasicTierFormIds.includes(form.id));
     }
     
     if (subscription_tier === 'pro') {
-      return healthForms;
+      return currentFormSet;
     }
     
     return [];
   };
 
   const availableForms = getAvailableForms();
-  const restrictedForms = healthForms.filter(form => !availableForms.includes(form));
+  const currentFormSet = getCurrentFormSet();
+  const restrictedForms = currentFormSet.filter(form => !availableForms.includes(form));
 
   // Check if a form is accessible
   const isFormAccessible = (formId: string) => {
