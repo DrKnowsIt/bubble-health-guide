@@ -1,4 +1,4 @@
-import { Check, ChevronDown, User as UserIcon } from 'lucide-react';
+import { Check, ChevronDown, User as UserIcon, Dog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -34,9 +34,12 @@ export const UserDropdown = ({
   onOpenChange,
 }: UserDropdownProps) => {
   const getUserDisplayName = (user: User) => {
-    const name = `${user.first_name} ${user.last_name}`;
+    const name = user.is_pet ? user.first_name : `${user.first_name} ${user.last_name}`;
     if (user.is_primary) {
       return `${name} (Primary)`;
+    }
+    if (user.is_pet && user.species) {
+      return `${name} (${user.species})`;
     }
     return `${name} (${user.relationship})`;
   };
@@ -56,7 +59,11 @@ export const UserDropdown = ({
         >
           {selectedUser ? (
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <UserIcon className="h-4 w-4 flex-shrink-0" />
+              {selectedUser.is_pet ? (
+                <Dog className="h-4 w-4 flex-shrink-0" />
+              ) : (
+                <UserIcon className="h-4 w-4 flex-shrink-0" />
+              )}
               <span className="truncate mobile-text-sm">{getUserDisplayName(selectedUser)}</span>
             </div>
           ) : (
@@ -90,10 +97,15 @@ export const UserDropdown = ({
                       selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
                     )}
                   />
+                  {user.is_pet ? (
+                    <Dog className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground" />
+                  ) : (
+                    <UserIcon className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground" />
+                  )}
                   <div className="flex items-center justify-between w-full min-w-0">
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="font-medium mobile-text-sm truncate">
-                        {user.first_name} {user.last_name}
+                        {user.is_pet ? user.first_name : `${user.first_name} ${user.last_name}`}
                       </span>
                       {user.date_of_birth && (
                         <span className="mobile-text-xs text-muted-foreground truncate">
@@ -104,6 +116,10 @@ export const UserDropdown = ({
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {user.is_primary ? (
                         <Badge variant="default" className="mobile-text-xs">Primary</Badge>
+                      ) : user.is_pet && user.species ? (
+                        <Badge variant="secondary" className="mobile-text-xs capitalize max-w-[4rem] truncate">
+                          {user.species}
+                        </Badge>
                       ) : (
                         <Badge variant="secondary" className="mobile-text-xs capitalize max-w-[4rem] truncate">
                           {user.relationship}

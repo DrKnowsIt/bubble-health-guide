@@ -20,6 +20,9 @@ export interface User {
   gender?: string;
   relationship: string;
   is_primary: boolean;
+  is_pet?: boolean;
+  species?: string;
+  breed?: string;
   probable_diagnoses?: Diagnosis[];
   created_at: string;
   updated_at: string;
@@ -32,6 +35,9 @@ export interface CreateUserData {
   gender?: string;
   relationship: string;
   is_primary?: boolean;
+  is_pet?: boolean;
+  species?: string;
+  breed?: string;
 }
 
 export const useUsers = () => {

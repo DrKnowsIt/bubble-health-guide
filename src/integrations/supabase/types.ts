@@ -702,41 +702,50 @@ export type Database = {
       }
       patients: {
         Row: {
+          breed: string | null
           created_at: string
           date_of_birth: string | null
           first_name: string
           gender: string | null
           id: string
+          is_pet: boolean
           is_primary: boolean | null
           last_name: string
           probable_diagnoses: Json | null
           relationship: string
+          species: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          breed?: string | null
           created_at?: string
           date_of_birth?: string | null
           first_name: string
           gender?: string | null
           id?: string
+          is_pet?: boolean
           is_primary?: boolean | null
           last_name: string
           probable_diagnoses?: Json | null
           relationship?: string
+          species?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          breed?: string | null
           created_at?: string
           date_of_birth?: string | null
           first_name?: string
           gender?: string | null
           id?: string
+          is_pet?: boolean
           is_primary?: boolean | null
           last_name?: string
           probable_diagnoses?: Json | null
           relationship?: string
+          species?: string | null
           updated_at?: string
           user_id?: string
         }
