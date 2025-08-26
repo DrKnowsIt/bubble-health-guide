@@ -210,8 +210,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   };
 
   return (
-    <div className="h-full flex flex-col justify-center p-3">
-      <Card className="w-full max-w-3xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95 flex-shrink-0">
+    <div className="h-full overflow-y-auto p-3">
+      <Card className="w-full max-w-3xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95">
         <CardHeader className="text-center pb-3">
           <div className="flex items-center justify-center gap-2 mb-1">
             <User className="h-5 w-5 text-primary" />
