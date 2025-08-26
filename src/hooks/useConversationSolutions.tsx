@@ -24,7 +24,10 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
   const [feedback, setFeedback] = useState<Record<string, string>>({});
 
   const fetchSolutions = async () => {
-    if (!conversationId || !user) return;
+    if (!conversationId || !user) {
+      setSolutions([]);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -95,6 +98,12 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
   useEffect(() => {
     loadExistingFeedback();
   }, [patientId, user]);
+
+  // Immediately clear state when switching patients to prevent stale data
+  useEffect(() => {
+    setSolutions([]);
+    setFeedback({});
+  }, [patientId]);
 
   return {
     solutions,
