@@ -13,6 +13,7 @@ interface EasyChatTopicsPanelProps {
   patientName: string;
   patientId: string;
   sessionId?: string;
+  healthTopics?: GeneratedTopic[]; // Add healthTopics prop
 }
 
 interface GeneratedTopic {
@@ -26,26 +27,40 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
   conversationPath,
   patientName,
   patientId,
-  sessionId
+  sessionId,
+  healthTopics = [] // Use provided topics or empty array
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
-  const [topics, setTopics] = useState<GeneratedTopic[]>([]);
+  const [topics, setTopics] = useState<GeneratedTopic[]>(healthTopics);
   const [loading, setLoading] = useState(false);
   const [lastAnalyzedCount, setLastAnalyzedCount] = useState(0);
 
+  // Update topics when healthTopics prop changes (from real-time generation)
+  useEffect(() => {
+    if (healthTopics && healthTopics.length > 0) {
+      console.log('Received real-time health topics:', healthTopics);
+      setTopics(healthTopics);
+      setLastAnalyzedCount(conversationPath.length);
+    }
+  }, [healthTopics, conversationPath.length]);
+
   // Generate topics when we have enough new responses or conversation is complete
   useEffect(() => {
+    // Skip if we already have topics from props or if conversation is too short
+    if (healthTopics && healthTopics.length > 0) return;
+    
     const shouldAnalyze = conversationPath.length > 0 && 
                          conversationPath.length !== lastAnalyzedCount && 
                          (conversationPath.length % 2 === 0 || // Every 2 responses
                           conversationPath.length >= 3); // Or when we have at least 3 responses
 
-    console.log('Topic generation check:', { 
+    console.log('Topic generation check (fallback):', { 
       pathLength: conversationPath.length, 
       lastAnalyzed: lastAnalyzedCount, 
       shouldAnalyze, 
-      sessionId 
+      sessionId,
+      hasProvidedTopics: healthTopics && healthTopics.length > 0
     });
 
     if (shouldAnalyze && sessionId) {

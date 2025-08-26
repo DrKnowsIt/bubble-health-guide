@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
-import { useEasyChat } from '@/hooks/useEasyChat';
+import { useEasyChatEnhanced } from '@/hooks/useEasyChatEnhanced';
 import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
 
 interface EasyChatInterfaceProps {
@@ -24,8 +24,8 @@ export const EasyChatInterface = ({
   onRestart,
   useEasyChatHook
 }: EasyChatInterfaceProps) => {
-  // Use provided hook or create new one
-  const hookData = useEasyChatHook || useEasyChat(patientId);
+  // Use provided hook or create new enhanced hook
+  const hookData = useEasyChatHook || useEasyChatEnhanced(patientId, selectedAnatomy);
   const {
     currentQuestion,
     currentSession,
@@ -37,7 +37,8 @@ export const EasyChatInterface = ({
     getResponseOptions,
     isCompleted,
     hasActiveSession,
-    hasResponses
+    hasResponses,
+    healthTopics
   } = hookData;
 
   // Local state for text input mode
@@ -61,6 +62,8 @@ export const EasyChatInterface = ({
 
   const handleTextSubmit = () => {
     if (!textInput.trim()) return;
+    
+    console.log('Submitting custom text response:', textInput.trim());
     
     if (submitTextResponse) {
       submitTextResponse(textInput.trim());
@@ -329,6 +332,7 @@ export const EasyChatInterface = ({
           patientName={patientId ? "Patient" : "You"}
           patientId={patientId || ""}
           sessionId={currentSession?.id}
+          healthTopics={healthTopics || []}
         />
       </div>
     </div>
