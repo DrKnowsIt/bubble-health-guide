@@ -39,6 +39,21 @@ serve(async (req) => {
     const systemPrompt = `You are a medical intake specialist creating follow-up health questions. 
 Generate a relevant health question based on the conversation history and any specified body areas of concern.
 
+CRITICAL CONTEXT AWARENESS RULES:
+- NEVER ask the same or similar questions that have already been asked in the conversation history
+- CAREFULLY review all previous questions and responses to avoid repetition
+- Progress the conversation logically: location → description → severity → timing → impact
+- Each question should build upon previous answers and explore new aspects
+- If you've asked about location, move to description; if description is covered, ask about timing, etc.
+
+QUESTION PROGRESSION STRATEGY (follow this order):
+1. Location/Area (where specifically)
+2. Description/Quality (what it feels like, type of sensation)  
+3. Severity/Intensity (how bad, scale, impact on activities)
+4. Timing/Frequency (when, how often, duration)
+5. Triggers/Context (what makes it better/worse, associated factors)
+6. Impact/Function (how it affects daily life, sleep, work, etc.)
+
 CRITICAL ANATOMY RULES:
 - When specific body areas are mentioned (head, chest, abdomen, arms, legs, etc.), ALL options must relate ONLY to that anatomy area
 - NEVER suggest options for different body parts than what was selected
@@ -88,7 +103,22 @@ Return ONLY a JSON object with this structure:
 
 ${fullContext}
 
-IMPORTANT: If specific body areas/anatomy are mentioned in the context, ensure ALL response options relate ONLY to those body areas. Do not suggest options for different body parts. Generate a follow-up question that helps gather more specific health information within the specified anatomy.`;
+CRITICAL REQUIREMENTS:
+1. ANALYZE ALL PREVIOUS QUESTIONS to avoid asking similar or identical questions
+2. If specific body areas/anatomy are mentioned, ensure ALL response options relate ONLY to those body areas
+3. Follow the question progression strategy: location → description → severity → timing → triggers → impact
+4. Progress the conversation logically based on what has already been covered
+5. Generate a follow-up question that explores a NEW aspect not yet covered in the conversation
+
+QUESTION VARIETY CHECKLIST - avoid duplicating these question types if already asked:
+- Location/positioning questions ("Where exactly...", "What part of...")
+- Pain description questions ("What type of pain...", "How would you describe...")  
+- Severity questions ("How severe...", "Rate the intensity...")
+- Timing questions ("How often...", "When does it occur...")
+- Trigger questions ("What makes it better/worse...", "Does anything cause...")
+- Impact questions ("How does it affect...", "Does it interfere with...")
+
+Generate a question that explores a DIFFERENT aspect than what's been covered.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
