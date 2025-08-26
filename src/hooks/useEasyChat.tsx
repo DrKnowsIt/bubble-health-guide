@@ -63,13 +63,13 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
           final_summary: summary,
           session_data: { 
             conversation_path: path.map(p => ({ 
-              question_id: p.question.id, 
-              question_text: p.question.question_text, 
+              question_id: p.question?.id || 'dynamic', 
+              question_text: p.question?.question_text || 'Dynamic question', 
               response: p.response 
             })),
-            topics_for_doctor: path.slice(-3).map(p => ({
+            topics_for_doctor: path.map(p => ({
               topic: p.response,
-              category: p.question.category,
+              category: p.question?.category || 'general',
               confidence: 0.8,
               created_at: new Date().toISOString()
             }))
@@ -86,12 +86,22 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
   }, [currentSession]);
 
   const generateSummary = (path: Array<{ question: EasyChatQuestion; response: string }>) => {
+    const questionsAndAnswers = path.map(p => {
+      const questionText = p.question?.question_text || 'Question';
+      return `Q: ${questionText}\nA: ${p.response}`;
+    }).join('\n\n');
+    
     const topics = path.map(p => `• ${p.response}`).join('\n');
+    
     return `DrKnowsIt - AI Health Assistant
 www.drknowsit.com
 
-HEALTH DISCUSSION TOPICS FOR YOUR DOCTOR VISIT
+EASY CHAT SESSION SUMMARY
 
+CONVERSATION DETAILS:
+${questionsAndAnswers}
+
+HEALTH DISCUSSION TOPICS FOR YOUR DOCTOR VISIT:
 Based on your consultation, here are the key topics to discuss with your healthcare provider:
 
 ${topics}

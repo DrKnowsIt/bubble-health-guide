@@ -46,13 +46,24 @@ export const useEasyChatEnhanced = (patientId?: string, selectedAnatomy?: string
     if (!easyChatHook.currentSession) return;
 
     try {
-      // Check if we should complete the session based on AI evaluation
-      if (easyChatHook.conversationPath.length >= 3) {
+      // Require minimum 10 questions before checking AI confidence
+      if (easyChatHook.conversationPath.length < 10) {
+        console.log(`Need at least 10 questions (currently ${easyChatHook.conversationPath.length}). Continuing conversation...`);
+        return; // Don't complete yet, need more questions
+      }
+
+      // After 10 questions, check if AI is confident about completion
+      if (easyChatHook.conversationPath.length >= 10 && easyChatHook.conversationPath.length < 15) {
         const shouldComplete = await easyChatHook.checkIfReadyToComplete?.(easyChatHook.conversationPath);
-        if (!shouldComplete && easyChatHook.conversationPath.length < 10) {
+        if (!shouldComplete) {
           console.log('AI suggests continuing the conversation for better health topics');
           return; // Don't complete yet, let the conversation continue
         }
+      }
+
+      // Force completion after 15 questions to prevent infinite loops
+      if (easyChatHook.conversationPath.length >= 15) {
+        console.log('Reached maximum questions limit (15). Completing session...');
       }
 
       // Generate final summary and complete session

@@ -227,6 +227,62 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
     }
   };
 
+  const formatEasyChatSessions = async () => {
+    if (!selectedUser) return '';
+    
+    try {
+      const { data: easyChatSessions, error } = await supabase
+        .from('easy_chat_sessions')
+        .select('*')
+        .eq('patient_id', selectedUser.id)
+        .eq('completed', true)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error || !easyChatSessions?.length) return '';
+
+      let content = 'EASY CHAT GUIDED CONVERSATIONS:\n\n';
+      
+      easyChatSessions.forEach((session, index) => {
+        const sessionData = session.session_data as any;
+        const conversationPath = sessionData?.conversation_path || [];
+        const topics = sessionData?.topics_for_doctor || [];
+        
+        content += `SESSION ${index + 1} - ${new Date(session.created_at).toLocaleDateString()}:\n`;
+        
+        if (sessionData?.selected_anatomy && sessionData.selected_anatomy.length > 0) {
+          content += `Body Areas of Focus: ${sessionData.selected_anatomy.join(', ')}\n`;
+        }
+        
+        if (conversationPath.length > 0) {
+          content += `\nCONVERSATION DETAILS:\n`;
+          conversationPath.forEach((step: any, stepIndex: number) => {
+            content += `Q${stepIndex + 1}: ${step.question_text}\n`;
+            content += `A${stepIndex + 1}: ${step.response}\n\n`;
+          });
+        }
+        
+        if (topics.length > 0) {
+          content += `GENERATED HEALTH TOPICS:\n`;
+          topics.forEach((topic: any) => {
+            content += `• ${topic.topic} (Category: ${topic.category})\n`;
+          });
+        }
+        
+        if (session.final_summary) {
+          content += `\nSESSION SUMMARY:\n${session.final_summary}\n`;
+        }
+        
+        content += '\n' + '='.repeat(50) + '\n\n';
+      });
+      
+      return content;
+    } catch (error) {
+      console.error('Error fetching Easy Chat sessions:', error);
+      return '';
+    }
+  };
+
   const getLatestDiagnoses = async () => {
     if (!selectedUser) return '';
     
@@ -641,6 +697,31 @@ We appreciate your time in reviewing this information and hope it provides valua
         doc.setFont(undefined, 'normal');
         const splitDiagnoses = doc.splitTextToSize(diagnosesContent, 170);
         doc.text(splitDiagnoses, 20, currentY);
+        
+        addDisclaimerToPage(doc, pageHeight);
+      }
+      
+      // Page 4.5: Easy Chat Sessions
+      const easyChatContent = await formatEasyChatSessions();
+      if (easyChatContent.trim()) {
+        doc.addPage();
+        addHeaderToPage(doc);
+        currentY = 40;
+        
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('EASY CHAT GUIDED CONVERSATIONS', 20, currentY);
+        currentY += 12;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'italic');
+        doc.text('Structured health conversations conducted through DrKnowsIt\'s Easy Chat feature.', 20, currentY);
+        currentY += 10;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        const splitEasyChat = doc.splitTextToSize(easyChatContent, 170);
+        doc.text(splitEasyChat, 20, currentY);
         
         addDisclaimerToPage(doc, pageHeight);
       }
