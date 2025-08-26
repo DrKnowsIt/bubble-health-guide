@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthDebugPanel } from "./components/AuthDebugPanel";
 import { navItems } from "./nav-items";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 
@@ -23,6 +24,7 @@ const App = () => {
           />
         ))}
       </Routes>
+      <AuthDebugPanel />
     </TooltipProvider>
   );
 };
