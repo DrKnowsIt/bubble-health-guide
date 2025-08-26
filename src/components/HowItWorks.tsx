@@ -44,7 +44,7 @@ export const HowItWorks = () => {
         {/* Main Content with Image and Steps */}
         <div className="grid lg:grid-cols-2 gap-8 items-center mb-16">
           {/* Left side - Doctor Image */}
-          <div className="flex justify-center lg:justify-start">
+          <div className="flex justify-center">
             <div className="relative max-w-sm w-full">
               <img 
                 src="/lovable-uploads/82b7c835-d673-4823-a50b-9f9acb76779f.png"
