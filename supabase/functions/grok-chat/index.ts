@@ -164,6 +164,9 @@ serve(async (req) => {
         );
       }
 
+      // Set isPet flag based on patient data
+      isPet = patient.is_pet === true;
+
       // Fetch comprehensive health report if available
       const { data: healthReport } = await supabase
         .from('comprehensive_health_reports')
@@ -318,8 +321,8 @@ PATIENT PROFILE:
       timeStyle: 'long'
     });
     
-    // Check if this is a pet patient
-    const isPet = patient?.is_pet === true;
+    // Check if this is a pet patient (default to false if no patient)
+    let isPet = false;
     
     // Define conversation rules directly (since edge functions can't read external files)
     const petRules = [
