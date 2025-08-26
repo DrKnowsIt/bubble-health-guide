@@ -374,7 +374,20 @@ export default function UserDashboard() {
   };
 
   const handleAddFamilyClick = () => {
-    if (!subscribed || subscription_tier === 'basic') {
+    if (!subscribed) {
+      toast({
+        title: 'Subscription Required',
+        description: 'Family member management is available for Basic and Pro subscribers. Add multiple family members to track everyone\'s health in one place.',
+        action: (
+          <ToastAction altText="View pricing" onClick={() => navigate('/pricing')}>
+            View Pricing
+          </ToastAction>
+        ),
+      });
+      return;
+    }
+    
+    if (subscription_tier === 'basic') {
       toast({
         title: 'Pro plan required',
         description: 'Adding family members is a Pro feature.',
