@@ -187,8 +187,27 @@ Generate a question for the NEXT UNCOVERED CATEGORY that is completely different
     });
 
     if (isDuplicate) {
-      console.log('DUPLICATE DETECTED - Question too similar to previous ones');
-      throw new Error('Generated question too similar to previous questions');
+      console.log('DUPLICATE DETECTED - Question too similar to previous ones, using fallback');
+      // Instead of throwing error, use a fallback question from a curated list
+      const fallbackQuestions = [
+        {
+          question: "Is there anything else about your symptoms you'd like to discuss?",
+          options: ["Yes, I have more to share", "No, that covers it", "I'm not sure", "I have other concerns as well"]
+        },
+        {
+          question: "How would you rate the overall impact on your daily life?", 
+          options: ["Minimal impact", "Some disruption", "Significant impact", "Severe impact", "I have other concerns as well"]
+        },
+        {
+          question: "What would you most like your doctor to know about your condition?",
+          options: ["The severity of symptoms", "How long it's been going on", "What might be causing it", "Treatment options", "I have other concerns as well"]
+        }
+      ];
+      
+      // Select fallback based on conversation length to avoid repeating fallbacks
+      const fallbackIndex = conversationPath.length % fallbackQuestions.length;
+      questionData = fallbackQuestions[fallbackIndex];
+      console.log('Using fallback question due to duplicate detection');
     }
 
     console.log('Generated question:', questionData.question);
