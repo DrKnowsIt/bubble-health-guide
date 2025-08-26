@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { User, ArrowRight, X } from 'lucide-react';
 
 interface AnatomySelectorProps {
@@ -210,8 +211,9 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   };
 
   return (
-    <div className="h-full overflow-y-auto p-3">
-      <Card className="w-full max-w-3xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95">
+    <ScrollArea className="h-full">
+      <div className="p-3">
+        <Card className="w-full max-w-3xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95">
         <CardHeader className="text-center pb-3">
           <div className="flex items-center justify-center gap-2 mb-1">
             <User className="h-5 w-5 text-primary" />
@@ -271,7 +273,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
           {selectedParts.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-medium text-sm">Selected Areas:</h3>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              <ScrollArea className="max-h-32">
+                <div className="flex flex-wrap gap-2 pr-4">
                 {selectedParts.map(partId => {
                   const part = bodyParts.find(p => p.id === partId);
                   return (
@@ -294,7 +297,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     </Badge>
                   );
                 })}
-              </div>
+                </div>
+              </ScrollArea>
             </div>
           )}
 
@@ -332,7 +336,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             </p>
           </div>
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </ScrollArea>
   );
 };
