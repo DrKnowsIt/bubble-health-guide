@@ -34,8 +34,9 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
   const handleAnatomySelection = (anatomy: string[]) => {
     setSelectedAnatomy(anatomy);
     setPhase('chat');
-    // Start new session with anatomy context
-    startNewSession();
+    // Always force new session when coming from anatomy selection - this ensures fresh start
+    console.log('Starting fresh Easy Chat session from anatomy selection');
+    startNewSession(true);
   };
 
   const handleFinishChat = () => {
@@ -44,12 +45,14 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
   };
 
   const handleStartNewChat = () => {
+    console.log('Starting completely new chat - resetting to anatomy selection');
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
   };
 
   const handleRestartAnalysis = () => {
+    console.log('Restarting analysis - resetting to anatomy selection');
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
