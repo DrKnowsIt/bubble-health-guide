@@ -83,7 +83,7 @@ const Index = () => {
                 {/* Left side - Text content */}
                 <div className="text-center lg:text-left">
                   <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-foreground mb-3">Healthcare & veterinary visits feeling rushed and impersonal?</h1>
+                    <h1 className="text-3xl font-bold text-foreground mb-3">Want to maximize your healthcare & veterinary appointments?</h1>
                     <p className="text-lg text-muted-foreground mb-4">Get organized before appointments for yourself and your pets - communicate clearly and feel confident about all your family's health concerns.</p>
                   </div>
                   
