@@ -496,16 +496,16 @@ export default function UserDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
-            // Mobile: 4-tab bottom navigation
+            // Mobile: Dynamic tab bottom navigation
             <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 mt-auto">
-              <TabsList className="w-full grid grid-cols-4 h-16 bg-muted/50">
+              <TabsList className={cn("w-full grid h-16 bg-muted/50", subscribed && subscription_tier ? "grid-cols-3" : "grid-cols-4")}>
                 {(!subscribed || !subscription_tier) && (
                   <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-1 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                     <MessageSquare className="h-5 w-5" />
                     <span className="text-xs font-medium">Easy</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50", (!subscribed || !subscription_tier) ? "col-span-1" : "col-start-1")}>
+                <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
                   <div className="relative">
                     <MessageSquare className="h-5 w-5" />
                     {!hasAccess('basic') && <Lock className="h-3 w-3 absolute -top-1 -right-1" />}
@@ -531,7 +531,7 @@ export default function UserDashboard() {
           ) : isTablet ? (
             // Tablet: Enhanced bottom navigation with larger touch targets
             <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-auto">
-              <TabsList className="w-full grid grid-cols-4 h-20 bg-muted/50">
+              <TabsList className={cn("w-full grid h-20 bg-muted/50", subscribed && subscription_tier ? "grid-cols-3" : "grid-cols-4")}>
                 {(!subscribed || !subscription_tier) && (
                   <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-2 py-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                     <MessageSquare className="h-6 w-6" />
@@ -564,7 +564,7 @@ export default function UserDashboard() {
           ) : (
             // Desktop: Top navigation
             <div className="px-4 pt-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className={cn("grid w-full", subscribed && subscription_tier ? "grid-cols-3" : "grid-cols-4")}>
                 {(!subscribed || !subscription_tier) && (
                   <TabsTrigger value="easy-chat" className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
