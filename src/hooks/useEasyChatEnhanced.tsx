@@ -48,23 +48,42 @@ export const useEasyChatEnhanced = (patientId?: string, selectedAnatomy?: string
         `Q: ${step.question?.question_text || 'Unknown question'} A: ${step.response}`
       ).join('\n');
 
-      console.log('Generating real-time topics for Easy Chat conversation');
+      console.log('Generating real-time topics for Easy Chat conversation', {
+        conversationLength: conversationPath.length,
+        patientId: patientId || 'none',
+        contextLength: conversationContext.length
+      });
+      
+      // Get current user to use as patient_id if no specific patient provided
+      const { data: { user } } = await supabase.auth.getUser();
+      const effectivePatientId = patientId || user?.id || '';
+      
+      console.log('Using effective patient ID:', effectivePatientId);
       
       const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-easy-chat-topics', {
         body: { 
           conversation_context: conversationContext,
-          patient_id: patientId || '',
+          patient_id: effectivePatientId,
           conversation_type: 'easy_chat'
         }
       });
 
-      if (!topicsError && (topicsData?.topics || topicsData?.diagnoses)) {
+      if (topicsError) {
+        console.error('Error from analyze-easy-chat-topics:', topicsError);
+        return;
+      }
+
+      if (topicsData?.topics || topicsData?.diagnoses) {
         const topics = topicsData?.topics || topicsData?.diagnoses || [];
         console.log('Real-time topics generated:', topics);
         setHealthTopics(topics);
         
         // Also save to conversation_diagnoses for health insights panel
-        await saveTopicsAsConversationDiagnoses(topics, patientId);
+        if (effectivePatientId) {
+          await saveTopicsAsConversationDiagnoses(topics, effectivePatientId);
+        }
+      } else {
+        console.log('No topics returned from edge function');
       }
     } catch (error) {
       console.error('Error generating real-time topics:', error);

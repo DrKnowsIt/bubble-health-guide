@@ -85,16 +85,27 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
 
       console.log('Conversation context:', conversationContext.substring(0, 200) + '...');
 
+      // Get current user as fallback for patient_id
+      const { data: { user } } = await supabase.auth.getUser();
+      const effectivePatientId = patientId || user?.id || '';
+      
+      console.log('Calling analyze-easy-chat-topics with:', {
+        contextLength: conversationContext.length,
+        patientId: effectivePatientId,
+        hasUser: !!user
+      });
+
       const { data, error } = await supabase.functions.invoke('analyze-easy-chat-topics', {
         body: {
           conversation_context: conversationContext,
-          patient_id: patientId,
+          patient_id: effectivePatientId,
           conversation_type: 'easy_chat'
         }
       });
 
       if (error) {
         console.error('Error generating topics:', error);
+        console.error('Error details:', error);
         return;
       }
 

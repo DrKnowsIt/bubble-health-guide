@@ -20,9 +20,9 @@ serve(async (req) => {
     console.log('Conversation type:', conversation_type);
     console.log('Context length:', conversation_context?.length || 0);
 
-    if (!conversation_context || !patient_id) {
+    if (!conversation_context) {
       return new Response(
-        JSON.stringify({ error: 'Missing required parameters: conversation_context, patient_id' }),
+        JSON.stringify({ error: 'Missing required parameter: conversation_context' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -54,30 +54,41 @@ serve(async (req) => {
       );
     }
 
-    // Verify patient belongs to user
-    const { data: patient } = await supabase
-      .from('patients')
-      .select('*')
-      .eq('id', patient_id)
-      .eq('user_id', userData.user.id)
-      .maybeSingle();
+    // Try to get patient info if patient_id provided, otherwise use generic context
+    let patientContext = 'Patient: Anonymous user';
+    
+    if (patient_id) {
+      console.log('Looking up patient with ID:', patient_id);
+      
+      // Try to find patient in patients table first
+      const { data: patient } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', patient_id)
+        .eq('user_id', userData.user.id)
+        .maybeSingle();
 
-    if (!patient) {
-      return new Response(
-        JSON.stringify({ error: 'Patient not found or access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      if (patient) {
+        console.log('Found patient:', patient.first_name, patient.last_name);
+        const patientAge = patient.date_of_birth 
+          ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+          : null;
 
-    // Get patient context
-    const patientAge = patient.date_of_birth 
-      ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-      : null;
-
-    const patientContext = `
+        patientContext = `
 Patient: ${patient.first_name} ${patient.last_name}
 Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
 Gender: ${patient.gender || 'Not specified'}`;
+      } else {
+        // If patient_id matches user_id, use that
+        if (patient_id === userData.user.id) {
+          console.log('Using user as patient');
+          patientContext = 'Patient: Current user (self-assessment)';
+        } else {
+          console.log('Patient not found, using generic context');
+          patientContext = 'Patient: Anonymous user';
+        }
+      }
+    }
 
     const systemPrompt = `You are a medical analysis AI that generates health topics based on guided conversation responses from an Easy Chat system.
 
