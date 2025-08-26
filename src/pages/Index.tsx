@@ -91,7 +91,7 @@ const Index = () => {
                       <span className="block text-primary">healthcare visits</span>
                     </h1>
                     <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                      <span className="text-primary font-semibold">AI-powered</span> guidance to help you organize thoughts, ask the right questions, and feel confident at appointments.
+                      <span className="text-blue-600 font-semibold">AI-powered</span> guidance to help you organize thoughts, ask the right questions, and feel confident at appointments.
                     </p>
                     <UserCountBadge variant="hero" className="mb-6" />
                   </div>
