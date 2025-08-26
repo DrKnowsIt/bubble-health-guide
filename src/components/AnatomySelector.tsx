@@ -229,7 +229,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             <div className="relative max-w-md mx-auto">
               {/* Base human silhouette image */}
               <img 
-                src="/lovable-uploads/018e2d73-bb78-4a90-8608-bc25125cfd88.png" 
+                src="/lovable-uploads/06c04c75-fcba-4b38-a11b-ec0b46e6d3be.png" 
                 alt="Human body silhouette" 
                 className="w-full h-auto max-h-[500px] object-contain filter drop-shadow-sm"
                 style={{ maxWidth: '400px' }}
