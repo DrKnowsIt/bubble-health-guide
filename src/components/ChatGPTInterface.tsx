@@ -31,12 +31,20 @@ interface Diagnosis {
   updated_at: string;
 }
 
-const examplePrompts = [
+const humanExamplePrompts = [
   "I have a headache that won't go away",
   "My knee hurts when I walk", 
   "I'm feeling chest pain",
   "I have trouble sleeping",
   "I'm experiencing back pain"
+];
+
+const petExamplePrompts = [
+  "My dog seems lethargic and won't eat",
+  "My cat is vomiting frequently",
+  "My pet is limping on their back leg",
+  "My dog is scratching excessively",
+  "My cat is hiding and acting strange"
 ];
 
 
@@ -609,12 +617,19 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white mx-auto mb-4">
                       <Bot className="h-6 w-6" />
                     </div>
-                    <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
-                    <p className="text-muted-foreground mb-6">I'm here to assist with your health questions and concerns.</p>
+                    <h2 className="text-xl font-semibold mb-2">
+                      {selectedUser?.is_pet ? "How can I help with your pet today?" : "How can I help you today?"}
+                    </h2>
+                    <p className="text-muted-foreground mb-6">
+                      {selectedUser?.is_pet 
+                        ? "I'm here to help with your pet's health questions and concerns." 
+                        : "I'm here to assist with your health questions and concerns."
+                      }
+                    </p>
                     
                     {/* Example Prompts */}
                     <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
-                      {examplePrompts.map((prompt, index) => (
+                      {(selectedUser?.is_pet ? petExamplePrompts : humanExamplePrompts).map((prompt, index) => (
                         <Button
                           key={index}
                           variant="outline"
