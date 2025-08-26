@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target } from 'lucide-react';
 import { useEasyChat } from '@/hooks/useEasyChat';
 import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
@@ -166,21 +167,23 @@ export const EasyChatInterface = ({
                   </p>
                 </div>
 
-                <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                  {getResponseOptions().map((option, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
-                      onClick={() => handleResponseClick(option.value, option.text)}
-                      disabled={loading}
-                    >
-                      <span className="whitespace-normal text-sm leading-snug">
-                        {option.text}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
+                <ScrollArea className="max-h-80">
+                  <div className="space-y-2 pr-4">
+                    {getResponseOptions().map((option, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
+                        onClick={() => handleResponseClick(option.value, option.text)}
+                        disabled={loading}
+                      >
+                        <span className="whitespace-normal text-sm leading-snug">
+                          {option.text}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
 
                 {/* Action Buttons */}
                 <div className="pt-4 border-t border-border space-y-2">
