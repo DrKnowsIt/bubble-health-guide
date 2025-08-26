@@ -49,22 +49,32 @@ LEGS: Focus on hip, thigh, knee, calf, ankle, foot, toes
 BACK: Focus on upper back, lower back, spine, shoulder blades
 NECK: Focus on front of neck, back of neck, sides, throat
 
+CRITICAL: The "options" array must contain ANSWER CHOICES that users can select as their response, NOT additional questions.
+
 Guidelines:
-- Ask one focused follow-up question based on previous responses and body areas mentioned
-- If anatomy is specified, tailor ALL options to that specific body area - never mix body parts
+- Generate one focused follow-up question based on previous responses and body areas mentioned
+- The "options" array must contain what users would SAY/SELECT as their answer to your question
+- If anatomy is specified, tailor ALL answer options to that specific body area - never mix body parts
 - Always include "I have other concerns as well" as the last option
-- Keep responses under 15 words each
-- Make questions conversational and easy to understand
+- Keep answer options under 15 words each
+- Make answer options conversational and easy to understand
 - Cover location, symptoms, timeline, severity, or related concerns within the specified anatomy
-- Maximum 10 total options
+- Maximum 10 total answer options
 - Prioritize the selected anatomy over general questions
+
+EXAMPLES OF CORRECT FORMAT:
+Question: "Can you describe any pain in your chest area?"
+Options: ["Sharp stabbing pain", "Dull ache", "Burning sensation", "Pressure feeling", "No pain, just discomfort", "I have other concerns as well"]
+
+Question: "Where specifically in your head do you feel discomfort?"
+Options: ["Forehead area", "Back of my head", "Temples", "Top of my head", "Around my eyes", "Jaw area", "I have other concerns as well"]
 
 Return ONLY a JSON object with this structure:
 {
   "question": "Your follow-up question here",
   "options": [
-    "Response option 1",
-    "Response option 2",
+    "User answer choice 1",
+    "User answer choice 2", 
     "...",
     "I have other concerns as well"
   ]
