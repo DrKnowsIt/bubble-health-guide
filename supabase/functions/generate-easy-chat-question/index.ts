@@ -22,10 +22,14 @@ serve(async (req) => {
     
     console.log('Generating question for conversation path:', conversationPath?.length || 0, 'responses');
 
-    // Create context from previous responses
-    const context = conversationPath?.map((item: any) => 
-      `Q: ${item.question?.question_text || 'Previous question'}\nA: ${item.response}`
-    ).join('\n\n') || 'No previous context';
+    // Create context from previous responses with improved logging
+    console.log('Building context from conversation path:', conversationPath?.length || 0, 'responses');
+    const context = conversationPath?.map((item: any, index: number) => {
+      const questionText = item.question?.question_text || 'Previous question';
+      console.log(`Context ${index + 1}: Q="${questionText}" A="${item.response}"`);
+      return `Q: ${questionText}\nA: ${item.response}`;
+    }).join('\n\n') || 'No previous context';
+    console.log('Final context for AI:', context);
 
     // Add anatomy context if provided
     const fullContext = anatomyContext 
@@ -143,7 +147,7 @@ IMPORTANT: If specific body areas/anatomy are mentioned in the context, ensure A
       options: [
         "Pain or discomfort",
         "Changes in how I feel",
-        "Digestive issues",
+        "Stomach or digestive discomfort",
         "Sleep problems",
         "Mood or energy changes", 
         "Skin or appearance concerns",
