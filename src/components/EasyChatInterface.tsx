@@ -11,6 +11,7 @@ interface EasyChatInterfaceProps {
   patientId?: string;
   selectedAnatomy?: string[];
   onFinish?: () => void;
+  onRestart?: () => void;
   useEasyChatHook?: any; // Allow flexibility for enhanced hook
 }
 
@@ -18,6 +19,7 @@ export const EasyChatInterface = ({
   patientId, 
   selectedAnatomy, 
   onFinish,
+  onRestart,
   useEasyChatHook
 }: EasyChatInterfaceProps) => {
   // Use provided hook or create new one
@@ -48,6 +50,14 @@ export const EasyChatInterface = ({
 
   const handleStartOver = () => {
     startNewSession();
+  };
+
+  const handleRestart = () => {
+    if (onRestart) {
+      onRestart();
+    } else {
+      startNewSession();
+    }
   };
 
   if (loading && !currentQuestion) {
@@ -131,7 +141,7 @@ export const EasyChatInterface = ({
 
                 <Button 
                   variant="outline" 
-                  onClick={handleStartOver}
+                  onClick={handleRestart}
                   className="w-full"
                 >
                   Start New Easy Chat
@@ -187,7 +197,7 @@ export const EasyChatInterface = ({
                   
                   <Button 
                     variant="outline" 
-                    onClick={handleStartOver}
+                    onClick={handleRestart}
                     className="w-full"
                     disabled={loading}
                   >

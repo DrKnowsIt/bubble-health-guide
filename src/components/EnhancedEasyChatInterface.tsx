@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AnatomySelector } from './AnatomySelector';
 import { EasyChatInterface } from './EasyChatInterface';
@@ -48,6 +49,12 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
     setShowCompletionModal(false);
   };
 
+  const handleRestartAnalysis = () => {
+    setPhase('anatomy-selection');
+    setSelectedAnatomy([]);
+    setShowCompletionModal(false);
+  };
+
   const sessionData = {
     selectedAnatomy,
     conversationPath,
@@ -77,6 +84,7 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
           patientId={patientId}
           selectedAnatomy={selectedAnatomy}
           onFinish={handleFinishChat}
+          onRestart={handleRestartAnalysis}
             useEasyChatHook={{
               currentQuestion,
               currentSession,
