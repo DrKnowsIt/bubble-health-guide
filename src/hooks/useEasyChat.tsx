@@ -90,6 +90,32 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     return `Based on your responses, here are key topics to discuss with a healthcare provider:\n\n${topics}\n\nConsider scheduling an appointment to discuss these concerns in detail.`;
   };
 
+  const checkIfReadyToComplete = useCallback(async (path: Array<{ question: EasyChatQuestion; response: string }>) => {
+    try {
+      const conversationContext = path.map(step => 
+        `Q: ${step.question?.question_text || 'Unknown question'} A: ${step.response}`
+      ).join('\n');
+
+      const { data, error } = await supabase.functions.invoke('evaluate-easy-chat-completeness', {
+        body: { 
+          conversation_context: conversationContext,
+          patient_id: patientId || '',
+          conversation_length: path.length
+        }
+      });
+
+      if (error) {
+        console.error('Error checking completion readiness:', error);
+        return path.length >= 7; // Fallback to length-based completion
+      }
+
+      return data?.should_complete || false;
+    } catch (error) {
+      console.error('Failed to check completion readiness:', error);
+      return path.length >= 7; // Fallback to length-based completion
+    }
+  }, [patientId]);
+
   const generateNextQuestion = useCallback(async () => {
     try {
       console.log('Generating next dynamic question...');
@@ -267,16 +293,25 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
       }];
       setConversationPath(newPath);
 
-      // Complete session after text input
-      console.log('Completing session after text input');
-      await completeSession(newPath);
+      // Check if we should complete after text input
+      const shouldComplete = await checkIfReadyToComplete(newPath);
+      if (shouldComplete) {
+        console.log('AI is confident about health topics after text input, completing session');
+        await completeSession(newPath);
+      } else if (newPath.length >= 10) {
+        console.log('Reached maximum questions after text input, completing session');
+        await completeSession(newPath);
+      } else {
+        console.log('Continuing conversation after text input');
+        await generateNextQuestion();
+      }
       
     } catch (error) {
       console.error('Error submitting text response:', error);
     } finally {
       setLoading(false);
     }
-  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion]);
+  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion, checkIfReadyToComplete, generateNextQuestion]);
 
   const submitResponse = useCallback(async (responseValue: string, responseText: string) => {
     if (!currentSession || !user) {
@@ -327,10 +362,18 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
         }];
         setConversationPath(newPath);
 
-        // Generate next question or complete after 5 responses
-        if (newPath.length >= 5) {
-          console.log('Reached maximum questions, completing session');
-          await completeSession(newPath);
+        // Check if we have enough confident health topics before completing
+        if (newPath.length >= 3) {
+          const shouldComplete = await checkIfReadyToComplete(newPath);
+          if (shouldComplete) {
+            console.log('AI is confident about health topics, completing session');
+            await completeSession(newPath);
+          } else if (newPath.length >= 10) {
+            console.log('Reached maximum questions, completing session');
+            await completeSession(newPath);
+          } else {
+            await generateNextQuestion();
+          }
         } else {
           await generateNextQuestion();
         }
@@ -403,7 +446,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     } finally {
       setLoading(false);
     }
-  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion, generateNextQuestion]);
+  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion, generateNextQuestion, checkIfReadyToComplete]);
 
   const getResponseOptions = useCallback(() => {
     if (useDynamicQuestions && dynamicQuestion) {
@@ -467,6 +510,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     isCompleted: currentSession?.completed || false,
     hasActiveSession: !!currentSession && !currentSession.completed,
     hasResponses: conversationPath.length > 0,
-    completeSession
+    completeSession,
+    checkIfReadyToComplete
   };
 };

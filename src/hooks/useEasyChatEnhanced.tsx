@@ -15,6 +15,15 @@ export const useEasyChatEnhanced = (patientId?: string, selectedAnatomy?: string
         `Q: ${step.question?.question_text || 'Unknown question'} A: ${step.response}`
       ).join('\n');
 
+      // Check if we should complete the session based on AI evaluation
+      if (easyChatHook.conversationPath.length >= 3) {
+        const shouldComplete = await easyChatHook.checkIfReadyToComplete?.(easyChatHook.conversationPath);
+        if (!shouldComplete && easyChatHook.conversationPath.length < 10) {
+          console.log('AI suggests continuing the conversation for better health topics');
+          return; // Don't complete yet, let the conversation continue
+        }
+      }
+
       // Generate final summary and complete session
       await easyChatHook.completeSession(easyChatHook.conversationPath);
 

@@ -125,7 +125,7 @@ export const EasyChatInterface = ({
           )}
           {conversationPath.length > 0 && (
             <div className="text-xs text-muted-foreground">
-              {conversationPath.length} questions answered
+              {conversationPath.length} questions answered • AI evaluating health topics
             </div>
           )}
         </div>
@@ -274,7 +274,7 @@ export const EasyChatInterface = ({
                   <div className="flex items-center justify-center py-4">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span>Processing your response...</span>
+                      <span>{conversationPath.length >= 3 ? 'Analyzing your responses for health topics...' : 'Processing your response...'}</span>
                     </div>
                   </div>
                 )}
