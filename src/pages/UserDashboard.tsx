@@ -40,24 +40,18 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
-  const [activeTab, setActiveTab] = useState(() => {
-    // Default to chat tab for subscribed users, easy-chat for free users
-    return subscribed && subscription_tier ? "chat" : "easy-chat";
-  });
+  const [activeTab, setActiveTab] = useState("easy-chat"); // Default to easy-chat for all users
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   
   // Update active tab when subscription changes
   useEffect(() => {
-    // If user has subscription and is on easy-chat tab, switch to chat tab
-    if (subscribed && subscription_tier && activeTab === "easy-chat") {
-      setActiveTab("chat");
-    }
-    // If user loses subscription and is on a premium tab, switch to easy-chat
-    if ((!subscribed || !subscription_tier) && activeTab !== "easy-chat") {
+    // Default to easy-chat if no specific tab is selected
+    // Users can now access all tabs in free mode
+    if (!activeTab) {
       setActiveTab("easy-chat");
     }
-  }, [subscribed, subscription_tier, activeTab]);
+  }, [activeTab]);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -405,17 +399,17 @@ export default function UserDashboard() {
   // Tab configuration with subscription requirements
   const tabConfig = {
     chat: {
-      requiredTier: 'basic',
+      requiredTier: null,
       icon: MessageSquare,
       title: "AI Chat"
     },
     health: {
-      requiredTier: 'basic',
+      requiredTier: null,
       icon: Heart,
       title: "Health"
     },
     overview: {
-      requiredTier: 'basic',
+      requiredTier: null,
       icon: Activity,
       title: "Overview"
     }
@@ -518,25 +512,16 @@ export default function UserDashboard() {
                     <span className="text-xs font-medium">Easy</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <MessageSquare className="h-5 w-5" />
-                    {!hasAccess('basic') && <Lock className="h-3 w-3 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <MessageSquare className="h-5 w-5" />
                   <span className="text-xs font-medium">Chat</span>
                 </TabsTrigger>
-                <TabsTrigger value="health" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Heart className="h-5 w-5" />
-                    {!hasAccess('basic') && <Lock className="h-3 w-3 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <Heart className="h-5 w-5" />
                   <span className="text-xs font-medium">Health</span>
                 </TabsTrigger>
-                <TabsTrigger value="overview" className={cn("flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Activity className="h-5 w-5" />
-                    {!hasAccess('basic') && <Lock className="h-3 w-3 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <Activity className="h-5 w-5" />
                   <span className="text-xs font-medium">Overview</span>
                 </TabsTrigger>
               </TabsList>
@@ -551,25 +536,16 @@ export default function UserDashboard() {
                     <span className="text-sm font-medium">Easy Chat</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="chat" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <MessageSquare className="h-6 w-6" />
-                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <MessageSquare className="h-6 w-6" />
                   <span className="text-sm font-medium">AI Chat</span>
                 </TabsTrigger>
-                <TabsTrigger value="health" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Heart className="h-6 w-6" />
-                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <Heart className="h-6 w-6" />
                   <span className="text-sm font-medium">Health</span>
                 </TabsTrigger>
-                <TabsTrigger value="overview" className={cn("flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Activity className="h-6 w-6" />
-                    {!hasAccess('basic') && <Lock className="h-4 w-4 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <Activity className="h-6 w-6" />
                   <span className="text-sm font-medium">Overview</span>
                 </TabsTrigger>
               </TabsList>
@@ -584,25 +560,16 @@ export default function UserDashboard() {
                     Easy Chat
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="chat" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}> 
-                  <div className="relative">
-                    <MessageSquare className="h-4 w-4" />
-                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="chat" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
                   AI Chat
                 </TabsTrigger>
-                <TabsTrigger value="health" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Heart className="h-4 w-4" />
-                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="health" className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
                   Health
                 </TabsTrigger>
-                <TabsTrigger value="overview" className={cn("flex items-center gap-2 relative", !hasAccess('basic') && "opacity-50")}>
-                  <div className="relative">
-                    <Activity className="h-4 w-4" />
-                    {!hasAccess('basic') && <Lock className="h-2 w-2 absolute -top-1 -right-1" />}
-                  </div>
+                <TabsTrigger value="overview" className="flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
                   Overview
                 </TabsTrigger>
               </TabsList>
@@ -618,45 +585,35 @@ export default function UserDashboard() {
             </TabsContent>
 
             <TabsContent value="chat" className="h-full mt-0 pt-4">
-              <SubscriptionGate 
-                requiredTier="basic" 
-                feature="AI Chat" 
-                description="Unlimited AI conversations require a subscription. Upgrade to access personalized AI health discussions with no limits."
-              >
-                {isMobile ? (
-                  <MobileEnhancedChatInterface 
-                    selectedUser={selectedUser}
-                  />
-                ) : isTablet ? (
-                  <TabletChatInterface 
-                    selectedUser={selectedUser}
-                  />
-                ) : (
-                  <ChatGPTInterface selectedUser={selectedUser} />
-                )}
-              </SubscriptionGate>
+              {isMobile ? (
+                <MobileEnhancedChatInterface 
+                  selectedUser={selectedUser}
+                />
+              ) : isTablet ? (
+                <TabletChatInterface 
+                  selectedUser={selectedUser}
+                />
+              ) : (
+                <ChatGPTInterface selectedUser={selectedUser} />
+              )}
             </TabsContent>
 
             <TabsContent value="health" className="h-full mt-0 pt-4">
               {isMobile ? (
                 <MobileEnhancedHealthTab onTabChange={setActiveTab} />
               ) : (
-                <SubscriptionGate requiredTier="basic" feature="Health Records" description="Manage your health records and forms with a Basic or Pro subscription.">
-                  <div className="h-full overflow-y-auto">
-                    <div className="space-y-6">
-                      <div className="space-y-6">
-                        <HealthForms selectedPatient={selectedUser} />
-                        
-                        <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data from companies like 23andMe or Ancestry for advanced genetic insights — available on Pro.">
-                          <DNAUpload 
-                            selectedPatient={selectedUser} 
-                            onUploadComplete={() => {}}
-                          />
-                        </SubscriptionGate>
-                      </div>
+                <div className="h-full overflow-y-auto">
+                  <div className="space-y-6">
+                    <HealthForms selectedPatient={selectedUser} />
+                    
+                    <SubscriptionGate requiredTier="pro" feature="DNA/Genetics Analysis" description="Upload DNA data from companies like 23andMe or Ancestry for advanced genetic insights — available on Pro.">
+                      <DNAUpload 
+                        selectedPatient={selectedUser} 
+                        onUploadComplete={() => {}}
+                      />
+                    </SubscriptionGate>
                   </div>
-                  </div>
-                </SubscriptionGate>
+                </div>
               )}
             </TabsContent>
 
@@ -665,8 +622,7 @@ export default function UserDashboard() {
                 <MobileEnhancedOverviewTab onTabChange={setActiveTab} />
               ) : (
                 <div className="h-full overflow-y-auto">
-                  <SubscriptionGate requiredTier="basic" feature="Overview" description="View your health analytics, quick actions, and settings with a Basic or Pro subscription.">
-                    <div className="space-y-6">
+                  <div className="space-y-6">
                       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                         <Card>
                           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -753,10 +709,9 @@ export default function UserDashboard() {
                         </Card>
                       </div>
 
-                      {/* Feature Discovery */}
-                      <FeatureDiscovery onNavigateToTab={setActiveTab} />
-                    </div>
-                  </SubscriptionGate>
+                    {/* Feature Discovery */}
+                    <FeatureDiscovery onNavigateToTab={setActiveTab} />
+                  </div>
                 </div>
               )}
             </TabsContent>
