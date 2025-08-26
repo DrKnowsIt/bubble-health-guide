@@ -321,31 +321,38 @@ PATIENT PROFILE:
     // Check if this is a pet patient
     const isPet = patient?.is_pet === true;
     
-    // Load appropriate AI conversation rules
-    const rulesFile = isPet ? 'ai-conversation-rules-pets.json' : 'ai-conversation-rules.json';
-    let conversationRules;
-    try {
-      const rulesText = await Deno.readTextFile(rulesFile);
-      conversationRules = JSON.parse(rulesText);
-    } catch (error) {
-      console.error(`Error loading ${rulesFile}:`, error);
-      // Fallback to basic rules
-      conversationRules = {
-        communication_rules: isPet ? [
-          "Focus on observable behaviors, appetite changes, activity levels, and physical symptoms",
-          "Ask about duration, frequency, and any recent changes in behavior or environment", 
-          "Consider species-specific health issues based on breed, age, and size"
-        ] : [
-          "Don't assume worst case scenario right away - user may be overexaggerating",
-          "Consider anxiety, stress, mental health factors first when symptoms align",
-          "Always ask questions to increase confidence"
-        ]
-      };
-    }
+    // Define conversation rules directly (since edge functions can't read external files)
+    const petRules = [
+      "Don't assume worst case scenario right away – pet owners may be over-exaggerating symptoms or anthropomorphizing normal pet behaviors",
+      "Consider environmental changes, diet changes, stress from new situations, or routine disruptions first when symptoms align", 
+      "Always ask questions about specific observations to increase confidence before leaning toward possibilities",
+      "If confidence isn't increasing, shift approach to explore other causes like breed-specific issues, age-related changes, or environmental factors",
+      "Keep conversations focused on observable pet behaviors, physical symptoms, and environmental factors",
+      "When examining pet symptoms, look into any potential behavioral patterns, eating/drinking changes, or activity level shifts",
+      "If the owner asks for solutions, suggest low-risk environmental or behavioral approaches first—but only as suggestions",
+      "Always consider species-specific and breed-specific health predispositions when evaluating symptoms",
+      "Never diagnose; instead, propose possibilities and uncertainties in plain language appropriate for pet health",
+      "Get easy data first like the pet's environment, diet, routine, recent changes, etc. if it is unknown",
+      "Escalate urgency only if clear red-flag symptoms appear (difficulty breathing, seizures, collapse, bloating in large dogs, inability to urinate, etc.); otherwise remain calm, curious, and supportive"
+    ];
+
+    const humanRules = [
+      "Don't assume worst case scenario right away – the user may be slightly over-exaggerating symptoms",
+      "Consider anxiety, stress, sleep debt, and burnout first when symptoms align (especially in workaholics or poor sleepers)",
+      "Always ask questions to increase confidence before leaning toward possibilities",
+      "If confidence isn't increasing, shift approach to explore other causes",
+      "Keep conversations medically focused unless non-medical relates to mental health or lifestyle",
+      "Never diagnose; instead, propose possibilities and uncertainties in plain language",
+      "Get easy data first like the users environment, diet, lifestyle, etc.. if it is unknown",
+      "Acknowledge emotions before digging deeper into symptoms when the user is distressed",
+      "Escalate urgency only if clear red-flag symptoms appear; otherwise remain calm, curious, and supportive"
+    ];
+
+    const communicationRules = isPet ? petRules : humanRules;
     
     let systemPrompt;
     if (isPet) {
-      const communicationRules = conversationRules.communication_rules
+      const rulesText = communicationRules
         .map(rule => `- ${rule}`)
         .join('\n');
       
@@ -357,7 +364,7 @@ ${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}
 
 CRITICAL COMMUNICATION RULES:
-${communicationRules}
+${rulesText}
 
 CONVERSATION STYLE:
 - 1-2 sentences maximum
@@ -377,7 +384,7 @@ You: "Can you see any swelling or cuts on the paw? Is your pet putting any weigh
 
 Remember: Just have a natural conversation to understand their pet's situation better.`;
     } else {
-      const communicationRules = conversationRules.communication_rules
+      const rulesText = communicationRules
         .map(rule => `- ${rule}`)
         .join('\n');
         
@@ -389,7 +396,7 @@ ${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}
 
 CRITICAL COMMUNICATION RULES:
-${communicationRules}
+${rulesText}
 
 CONVERSATION STYLE:
 - 1-2 sentences maximum

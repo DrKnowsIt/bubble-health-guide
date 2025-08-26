@@ -128,38 +128,39 @@ serve(async (req) => {
       isPet 
     });
 
-    // Load appropriate AI conversation rules
-    const rulesFile = isPet ? 'ai-conversation-rules-pets.json' : 'ai-conversation-rules.json';
-    let conversationRules;
-    try {
-      const rulesText = await Deno.readTextFile(rulesFile);
-      conversationRules = JSON.parse(rulesText);
-    } catch (error) {
-      console.error(`Error loading ${rulesFile}:`, error);
-      // Fallback to basic rules
-      conversationRules = {
-        memory_rules: isPet ? [
-          "Save when owner confirms a veterinarian-diagnosed condition or prior medical history",
-          "Save important symptoms the owner mentions—even if they're not the primary concern initially",
-          "Save notable environmental factors, diet details, routine changes, or behavioral patterns that may be medically relevant"
-        ] : [
-          "Save when user confirms a doctor-diagnosed illness or prior medical history", 
-          "Save important symptoms the user mentions—even if they're not focused on them initially",
-          "Save noticeable unhealthy habits that may be medically relevant"
-        ]
-      };
-    }
+    // Define memory rules directly (since edge functions can't read external files)
+    const petMemoryRules = [
+      "Save when owner confirms a veterinarian-diagnosed condition or prior medical history",
+      "Save important symptoms the owner mentions—even if they're not the primary concern initially",
+      "Save notable environmental factors, diet details, routine changes, or behavioral patterns that may be medically relevant",
+      "Save any medications, supplements, treatments, and recent changes the pet is receiving",
+      "Save key negatives when relevant (e.g., 'no vomiting', 'eating normally', 'no lethargy') to avoid repeated questioning",
+      "Overwrite outdated memories with newer information",
+      "Always timestamp symptoms and medical events",
+      "Save stated care preferences (e.g., prefers natural approaches first, budget constraints, treatment anxiety)",
+      "Save environmental exposures if potentially relevant (e.g., new foods, plants, chemicals, other animals)",
+      "Save species, breed, age, weight, and any breed-specific health considerations mentioned"
+    ];
 
-    // Memory-focused system prompt using loaded rules
-    const memoryRules = conversationRules.memory_rules
-      .map((rule, index) => `${index + 1}. ${rule}`)
-      .join('\n');
+    const humanMemoryRules = [
+      "Save when user confirms a doctor-diagnosed illness or prior medical history",
+      "Save important symptoms the user mentions—even if they're not focused on them initially", 
+      "Save noticeable unhealthy habits that may be medically relevant (e.g., sleep deprivation, heavy workload, substance use)",
+      "Save any medications, supplements, and recent changes the user is actively taking",
+      "Save key negatives when relevant (e.g., 'no chest pain', 'no fever') to avoid repeated questioning",
+      "Overwrite outdated memories with newer information",
+      "Always timestamp symptoms and medical events",
+      "Save stated care preferences (e.g., prefers natural approaches first, anxiety about tests)",
+      "Save environmental exposures if potentially relevant (e.g., water/air/occupational notes)"
+    ];
+
+    const memoryRules = isPet ? petMemoryRules : humanMemoryRules;
       
     const entityType = isPet ? 'pet patient' : 'patient';
     const systemPrompt = `You are a medical conversation memory analyzer. Your job is to extract and update ${entityType} memory following these specific rules:
 
 MEMORY RULES:
-${memoryRules}
+${memoryRules.map((rule, index) => `${index + 1}. ${rule}`).join('\n')}
 
 CURRENT MEMORY: ${JSON.stringify(existingMemory?.memory || {}, null, 2)}
 
