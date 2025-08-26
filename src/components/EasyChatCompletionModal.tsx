@@ -103,7 +103,7 @@ export const EasyChatCompletionModal = ({
 
           doc.setFontSize(9);
           doc.setFont(undefined, 'normal');
-          doc.text(`Confidence: ${Math.round(topic.confidence)}%`, 25, currentY);
+          doc.text(`Confidence: ${Math.round(topic.confidence * 100)}%`, 25, currentY);
           currentY += 4;
 
           if (topic.reasoning) {

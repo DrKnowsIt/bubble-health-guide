@@ -2,6 +2,17 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// String similarity function to detect near-duplicate questions
+function calculateStringSimilarity(str1: string, str2: string): number {
+  const words1 = str1.toLowerCase().split(/\s+/);
+  const words2 = str2.toLowerCase().split(/\s+/);
+  
+  const commonWords = words1.filter(word => words2.includes(word));
+  const totalWords = Math.max(words1.length, words2.length);
+  
+  return totalWords > 0 ? commonWords.length / totalWords : 0;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -22,14 +33,17 @@ serve(async (req) => {
     
     console.log('Generating question for conversation path:', conversationPath?.length || 0, 'responses');
 
-    // Create context from previous responses with improved logging
+    // Create context from previous responses and extract previous questions for deduplication
     console.log('Building context from conversation path:', conversationPath?.length || 0, 'responses');
+    const previousQuestions = [];
     const context = conversationPath?.map((item: any, index: number) => {
       const questionText = item.question?.question_text || 'Previous question';
+      previousQuestions.push(questionText.toLowerCase());
       console.log(`Context ${index + 1}: Q="${questionText}" A="${item.response}"`);
       return `Q: ${questionText}\nA: ${item.response}`;
     }).join('\n\n') || 'No previous context';
     console.log('Final context for AI:', context);
+    console.log('Previous questions to avoid:', previousQuestions);
 
     // Add anatomy context if provided
     const fullContext = anatomyContext 
@@ -40,11 +54,12 @@ serve(async (req) => {
 Generate a relevant health question based on the conversation history and any specified body areas of concern.
 
 CRITICAL CONTEXT AWARENESS RULES:
-- NEVER ask the same or similar questions that have already been asked in the conversation history
-- CAREFULLY review all previous questions and responses to avoid repetition
-- Progress the conversation logically: location → description → severity → timing → impact
-- Each question should build upon previous answers and explore new aspects
-- If you've asked about location, move to description; if description is covered, ask about timing, etc.
+- ABSOLUTELY NEVER ask the same or similar questions that have already been asked in the conversation history
+- CAREFULLY review ALL PREVIOUS QUESTIONS to avoid any form of repetition or similarity
+- Different phrasing of the same concept still counts as duplicate (e.g. "What causes pain?" vs "What triggers pain?")
+- Progress the conversation logically through DISTINCT categories: location → description → severity → timing → triggers → impact  
+- Each question must explore a COMPLETELY NEW aspect not yet covered
+- If a category has been covered, move to the next uncovered category
 
 QUESTION PROGRESSION STRATEGY (follow this order):
 1. Location/Area (where specifically)
@@ -103,22 +118,25 @@ Return ONLY a JSON object with this structure:
 
 ${fullContext}
 
-CRITICAL REQUIREMENTS:
-1. ANALYZE ALL PREVIOUS QUESTIONS to avoid asking similar or identical questions
-2. If specific body areas/anatomy are mentioned, ensure ALL response options relate ONLY to those body areas
-3. Follow the question progression strategy: location → description → severity → timing → triggers → impact
-4. Progress the conversation logically based on what has already been covered
-5. Generate a follow-up question that explores a NEW aspect not yet covered in the conversation
+PREVIOUS QUESTIONS ALREADY ASKED (DO NOT REPEAT OR REPHRASE):
+${previousQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
 
-QUESTION VARIETY CHECKLIST - avoid duplicating these question types if already asked:
-- Location/positioning questions ("Where exactly...", "What part of...")
-- Pain description questions ("What type of pain...", "How would you describe...")  
-- Severity questions ("How severe...", "Rate the intensity...")
-- Timing questions ("How often...", "When does it occur...")
-- Trigger questions ("What makes it better/worse...", "Does anything cause...")
-- Impact questions ("How does it affect...", "Does it interfere with...")
+STRICT DEDUPLICATION REQUIREMENTS:
+1. NEVER ask questions similar to those listed above - even with different wording
+2. NEVER ask about the same concept using different phrasing  
+3. If body areas/anatomy are mentioned, ALL response options must relate ONLY to those areas
+4. Follow progression: location → description → severity → timing → triggers → impact
+5. Skip categories already covered and move to the next uncovered category
 
-Generate a question that explores a DIFFERENT aspect than what's been covered.`;
+QUESTION CATEGORY ANALYSIS - determine which categories have been covered:
+- Location: Has specific location/area been identified? 
+- Description: Have symptoms/sensations been described?
+- Severity: Has intensity/impact level been discussed?
+- Timing: Have frequency/duration patterns been covered?
+- Triggers: Have aggravating/relieving factors been explored?
+- Impact: Has effect on daily activities/sleep been discussed?
+
+Generate a question for the NEXT UNCOVERED CATEGORY that is completely different from all previous questions.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -159,6 +177,18 @@ Generate a question that explores a DIFFERENT aspect than what's been covered.`;
     // Validate the response structure
     if (!questionData.question || !Array.isArray(questionData.options)) {
       throw new Error('Invalid question format from AI');
+    }
+
+    // Check for duplicate questions (case-insensitive similarity check)
+    const newQuestionLower = questionData.question.toLowerCase();
+    const isDuplicate = previousQuestions.some(prevQ => {
+      const similarity = calculateStringSimilarity(newQuestionLower, prevQ);
+      return similarity > 0.7; // 70% similarity threshold
+    });
+
+    if (isDuplicate) {
+      console.log('DUPLICATE DETECTED - Question too similar to previous ones');
+      throw new Error('Generated question too similar to previous questions');
     }
 
     console.log('Generated question:', questionData.question);
