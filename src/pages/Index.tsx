@@ -108,8 +108,8 @@ const Index = () => {
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative max-w-md w-full">
                     <img 
-                      src="/lovable-uploads/bc672140-1a9c-4563-8565-0767896af89f.png" 
-                      alt="Friendly cartoon-style holographic doctor handing a clipboard to a real doctor, with a happy family and their dog on teal background"
+                      src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
+                      alt="Blue holographic cartoon doctor handing clipboard to real doctor with stethoscope, alongside smiling family with their dog on teal background"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
