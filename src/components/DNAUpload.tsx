@@ -61,10 +61,13 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
     const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
     if (!validExtensions.includes(extension)) {
+      const isPet = selectedPatient?.is_pet;
       toast({
         variant: "destructive",
         title: "Invalid File Type",
-        description: "Please upload a raw DNA data file (.txt, .csv, or .tsv) from 23andMe, Ancestry, or similar services.",
+        description: isPet 
+          ? "Please upload genetic reports or breed analysis files (.txt, .csv, or .tsv)."
+          : "Please upload a raw DNA data file (.txt, .csv, or .tsv) from 23andMe, Ancestry, or similar services.",
       });
       return false;
     }
@@ -158,7 +161,9 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
           user_id: user?.id,
           patient_id: selectedPatient?.id || null,
           record_type: 'dna_genetics',
-          title: `DNA Analysis - ${file.name}`,
+          title: selectedPatient?.is_pet 
+            ? `Genetic Analysis - ${file.name}` 
+            : `DNA Analysis - ${file.name}`,
           data: {
             filename: file.name,
             fileSize: file.size,
@@ -178,7 +183,7 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       await triggerAIAnalysis(recordData.id, file.name, file.size);
 
       toast({
-        title: "DNA File Processed",
+        title: selectedPatient?.is_pet ? "Genetic File Processed" : "DNA File Processed",
         description: `Successfully uploaded and analyzed ${file.name}`,
       });
 
@@ -229,10 +234,13 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          DNA File Upload (23andMe/Ancestry)
+          {selectedPatient?.is_pet ? "Genetic Information Upload" : "DNA File Upload (23andMe/Ancestry)"}
         </CardTitle>
         <CardDescription>
-          Upload your raw DNA data files from companies like 23andMe or Ancestry.com for personalized health insights.
+          {selectedPatient?.is_pet 
+            ? "Upload any genetic reports, breed analysis, or veterinary genetic testing files for your pet. While raw DNA data isn't typically available for pets, you can upload any genetic documentation you have."
+            : "Upload your raw DNA data files from companies like 23andMe or Ancestry.com for personalized health insights."
+          }
           {selectedPatient && (
             <span className="block mt-1 text-sm">
               Uploading for: {selectedPatient.first_name} {selectedPatient.last_name}
@@ -242,11 +250,14 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
         <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mt-4">
           <AlertCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm">
-            <p className="font-medium text-green-800">DNA Data Source & Voluntary Upload</p>
+            <p className="font-medium text-green-800">
+              {selectedPatient?.is_pet ? "Genetic Information Source & Voluntary Upload" : "DNA Data Source & Voluntary Upload"}
+            </p>
             <p className="text-green-700 mt-1">
-              Only upload raw DNA data files from reputable companies like 23andMe, Ancestry.com, or similar services. 
-              Uploading your DNA data is completely voluntary and optional. Your genetic information is encrypted and 
-              secure, and you can delete it at any time.
+              {selectedPatient?.is_pet 
+                ? "Upload any genetic reports from veterinary services, breed analysis, or health screening documents. Uploading genetic information is completely voluntary and optional. Your pet's information is encrypted and secure, and you can delete it at any time."
+                : "Only upload raw DNA data files from reputable companies like 23andMe, Ancestry.com, or similar services. Uploading your DNA data is completely voluntary and optional. Your genetic information is encrypted and secure, and you can delete it at any time."
+              }
             </p>
           </div>
         </div>
@@ -264,10 +275,13 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
           <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
           <div className="space-y-2">
             <p className="text-lg font-medium">
-              Drop your DNA file here or click to browse
+              {selectedPatient?.is_pet ? "Drop your genetic file here or click to browse" : "Drop your DNA file here or click to browse"}
             </p>
             <p className="text-sm text-muted-foreground">
-              Supports raw DNA data files (.txt, .csv, .tsv) from 23andMe, Ancestry.com, and similar services (max 30MB)
+              {selectedPatient?.is_pet 
+                ? "Supports genetic reports and breed analysis files (.txt, .csv, .tsv) from veterinary services (max 30MB)"
+                : "Supports raw DNA data files (.txt, .csv, .tsv) from 23andMe, Ancestry.com, and similar services (max 30MB)"
+              }
             </p>
           </div>
           
@@ -296,22 +310,36 @@ export const DNAUpload: React.FC<DNAUploadProps> = ({ selectedPatient, onUploadC
           <div className="flex items-start gap-3 text-sm">
             <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium">How to get your raw DNA data file:</p>
-              <ul className="mt-1 space-y-1 text-muted-foreground">
-                <li>• <strong>23andMe:</strong> Go to Account → Download your data → Raw Data</li>
-                <li>• <strong>Ancestry:</strong> Go to Settings → Privacy → Download your data</li>
-                <li>• <strong>Other services:</strong> Look for "Raw DNA" or "Export genetic data" options</li>
-              </ul>
+              <p className="font-medium">
+                {selectedPatient?.is_pet ? "Pet genetic information sources:" : "How to get your raw DNA data file:"}
+              </p>
+              {selectedPatient?.is_pet ? (
+                <ul className="mt-1 space-y-1 text-muted-foreground">
+                  <li>• <strong>Veterinary services:</strong> Request genetic testing reports in text format</li>
+                  <li>• <strong>Breed analysis:</strong> Any breed identification or genetic screening reports</li>
+                  <li>• <strong>Health screening:</strong> Genetic health test results from your vet</li>
+                </ul>
+              ) : (
+                <ul className="mt-1 space-y-1 text-muted-foreground">
+                  <li>• <strong>23andMe:</strong> Go to Account → Download your data → Raw Data</li>
+                  <li>• <strong>Ancestry:</strong> Go to Settings → Privacy → Download your data</li>
+                  <li>• <strong>Other services:</strong> Look for "Raw DNA" or "Export genetic data" options</li>
+                </ul>
+              )}
             </div>
           </div>
           
           <div className="flex items-start gap-3 text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium">Your genetic data is secure & voluntary:</p>
+              <p className="font-medium">
+                {selectedPatient?.is_pet ? "Your pet's genetic data is secure & voluntary:" : "Your genetic data is secure & voluntary:"}
+              </p>
               <p className="text-muted-foreground">
-                DNA uploads are completely optional. Files are encrypted, stored securely, and only accessible by you. 
-                You can delete your genetic data at any time.
+                {selectedPatient?.is_pet 
+                  ? "Genetic information uploads are completely optional. Files are encrypted, stored securely, and only accessible by you. You can delete your pet's genetic data at any time."
+                  : "DNA uploads are completely optional. Files are encrypted, stored securely, and only accessible by you. You can delete your genetic data at any time."
+                }
               </p>
             </div>
           </div>
