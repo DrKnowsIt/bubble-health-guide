@@ -1,10 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Crown, Zap, Loader2, Settings, ChevronDown } from 'lucide-react';
+import { Crown, Zap, Loader2, Settings, ChevronDown, TestTube } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAlphaTester } from '@/hooks/useAlphaTester';
 import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TierStatusProps {
   showUpgradeButton?: boolean;
@@ -12,7 +13,8 @@ interface TierStatusProps {
 }
 
 export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierStatusProps) => {
-  const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal } = useSubscription();
+  const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal, refreshSubscription } = useSubscription();
+  const { isAlphaTester, loading: alphaTesterLoading } = useAlphaTester();
 
   const handleUpgrade = async () => {
     try {
@@ -42,7 +44,43 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
     }
   };
 
-  if (loading) {
+  const handleTierSwitch = async (tier: 'free' | 'basic' | 'pro') => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.email) {
+        throw new Error('User email not found');
+      }
+
+      const { error } = await supabase.functions.invoke('alpha-tier-switch', {
+        body: {
+          email: userData.user.email,
+          subscribed: tier !== 'free',
+          subscription_tier: tier === 'free' ? null : tier,
+          subscription_end: tier === 'free' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      await refreshSubscription();
+      
+      toast({
+        title: "Tier Updated",
+        description: `Successfully switched to ${tier.charAt(0).toUpperCase() + tier.slice(1)} tier`,
+      });
+    } catch (error) {
+      console.error('Error switching tier:', error);
+      toast({
+        title: "Error",
+        description: "Failed to switch tier. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading || alphaTesterLoading) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -75,17 +113,20 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
             {isPro ? (
               <>
                 <Crown className="h-3 w-3" />
-                <span className="font-medium">Pro</span>
+                <span className="font-medium">{isAlphaTester ? 'Pro: Tester' : 'Pro'}</span>
+                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
               </>
             ) : isBasic ? (
               <>
                 <Zap className="h-3 w-3" />
-                <span className="font-medium">Basic</span>
+                <span className="font-medium">{isAlphaTester ? 'Basic: Tester' : 'Basic'}</span>
+                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
               </>
             ) : (
               <>
                 <Zap className="h-3 w-3" />
-                <span className="font-medium">Free</span>
+                <span className="font-medium">{isAlphaTester ? 'Free: Tester' : 'Free'}</span>
+                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
               </>
             )}
             <ChevronDown className="h-3 w-3 opacity-50" />
@@ -95,22 +136,62 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
           <div className="p-2 border-b">
             <p className="text-sm font-medium">
               {isPro ? 'Pro Plan' : isBasic ? 'Basic Plan' : 'Free Tier'}
+              {isAlphaTester && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  TESTER
+                </Badge>
+              )}
             </p>
             <p className="text-xs text-muted-foreground">
               {isPro ? 'All features unlocked' : isBasic ? 'Essential features' : 'Limited features'}
+              {isAlphaTester && ' (Test Mode)'}
             </p>
           </div>
           
-          <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
-            <Settings className="h-4 w-4 mr-2" />
-            Manage Subscription
-          </DropdownMenuItem>
-          
-          {!isPro && (
-            <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
-              <Crown className="h-4 w-4 mr-2" />
-              {isBasic ? 'Upgrade to Pro' : 'Subscribe to Pro'}
-            </DropdownMenuItem>
+          {isAlphaTester ? (
+            <>
+              <div className="p-2 pb-0">
+                <p className="text-xs font-medium text-muted-foreground">Switch Test Tier</p>
+              </div>
+              <DropdownMenuItem 
+                onClick={() => handleTierSwitch('free')} 
+                className="cursor-pointer"
+                disabled={isUnsubscribed}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Free Tier
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleTierSwitch('basic')} 
+                className="cursor-pointer"
+                disabled={isBasic}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Basic Plan
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleTierSwitch('pro')} 
+                className="cursor-pointer"
+                disabled={isPro}
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Pro Plan
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer">
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Subscription
+              </DropdownMenuItem>
+              
+              {!isPro && (
+                <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer">
+                  <Crown className="h-4 w-4 mr-2" />
+                  {isBasic ? 'Upgrade to Pro' : 'Subscribe to Pro'}
+                </DropdownMenuItem>
+              )}
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
