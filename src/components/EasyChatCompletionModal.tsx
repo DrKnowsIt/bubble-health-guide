@@ -114,36 +114,6 @@ export const EasyChatCompletionModal = ({
         });
       }
 
-      // Conversation Path Summary
-      if (sessionData.conversationPath.length > 0) {
-        // Check if we need a new page
-        if (currentY + 30 > pageHeight) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Conversation Summary:', 20, currentY);
-        currentY += 8;
-
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Total questions answered: ${sessionData.conversationPath.length}`, 20, currentY);
-        currentY += 6;
-
-        sessionData.conversationPath.forEach((step, index) => {
-          if (currentY + 15 > pageHeight) {
-            doc.addPage();
-            currentY = 20;
-          }
-
-          doc.text(`Q${index + 1}: ${step.question}`, 20, currentY);
-          currentY += 4;
-          doc.text(`A: ${step.response}`, 25, currentY);
-          currentY += 8;
-        });
-      }
 
       // Footer disclaimer
       const disclaimerY = doc.internal.pageSize.height - 20;
