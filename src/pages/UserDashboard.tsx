@@ -19,7 +19,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
-import { EasyChatInterface } from '@/components/EasyChatInterface';
+import { EnhancedEasyChatInterface } from '@/components/EnhancedEasyChatInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 
 import { useNavigate } from 'react-router-dom';
@@ -613,7 +613,7 @@ export default function UserDashboard() {
           <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
             <TabsContent value="easy-chat" className="h-full mt-0 pt-4">
               <FreeUsersOnlyGate>
-                <EasyChatInterface patientId={selectedUser?.id} />
+                <EnhancedEasyChatInterface patientId={selectedUser?.id} />
               </FreeUsersOnlyGate>
             </TabsContent>
 
