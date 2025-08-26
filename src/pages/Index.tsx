@@ -12,7 +12,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/ChatGPTInterface";
-import threePanelImage from "@/assets/three-panel-healthcare.jpg";
+import artisticHealthcareImage from "@/assets/artistic-healthcare-composition.jpg";
 // Using the uploaded Dr. Knowsit mascot image
 const Index = () => {
   const {
@@ -113,8 +113,8 @@ const Index = () => {
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative max-w-md w-full">
                     <img 
-                      src={threePanelImage} 
-                      alt="Three-panel healthcare illustration: AI hologram doctor (vintage cartoon style), professional doctor, and happy family with their dog"
+                      src={artisticHealthcareImage} 
+                      alt="Artistic healthcare composition featuring a vintage hologram doctor, professional physician, and family with their dog in one cohesive illustration"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
