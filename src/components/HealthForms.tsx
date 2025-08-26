@@ -461,7 +461,11 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     'pet_general_notes',
     'pet_basic_info',
     'pet_current_health',
-    'pet_health_observations'
+    'pet_health_observations',
+    'pet_veterinary_history',
+    'pet_behavior_lifestyle',
+    'pet_diet_nutrition',
+    'pet_emergency_contacts'
   ];
 
   // Get the appropriate form set based on whether the selected patient is a pet
