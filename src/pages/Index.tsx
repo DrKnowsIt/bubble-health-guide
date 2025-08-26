@@ -80,34 +80,25 @@ const Index = () => {
       <section className="relative bg-background">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
               {/* Hero Section with Image */}
-              <div className="grid lg:grid-cols-2 gap-12 items-center mb-8">
+              <div className="grid lg:grid-cols-2 gap-16 items-center mb-12">
                 {/* Left side - Text content */}
                 <div className="text-center lg:text-left">
+                  {/* Main Headline */}
+                  <div className="mb-8">
+                    <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
+                      Get prepared for your
+                      <span className="block text-primary">healthcare visits</span>
+                    </h1>
+                    <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
+                      AI-powered guidance to help you organize thoughts, ask the right questions, and feel confident at appointments.
+                    </p>
+                    <UserCountBadge variant="hero" className="mb-6" />
+                  </div>
+                  
+                  {/* Powered by note */}
                   <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-foreground mb-3">Want to maximize your healthcare & veterinary appointments?</h1>
-                    <p className="text-lg text-muted-foreground mb-4">Get organized before appointments for yourself and your pets - communicate clearly and feel confident about all your family's health concerns.</p>
-                    <div className="mb-4">
-                      <UserCountBadge variant="hero" />
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <h2 className="text-xl font-semibold text-foreground mb-2">
-                      Chat with{" "}
-                      <span className="text-primary">DrKnowsIt</span>
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      AI-powered health & pet care guidance available 24/7
-                    </p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
-                      Powered by Grok
-                    </p>
-                  </div>
-                  
-                  {/* Legal Disclaimer */}
-                  <div className="max-w-xl mx-auto lg:mx-0 rounded-lg bg-warning/10 border border-warning/20 p-2 mb-4">
-                    <p className="text-xs font-medium text-warning">
-                      ⚠️ For general information only. Always consult healthcare professionals and veterinarians for medical decisions.
+                    <p className="text-sm text-muted-foreground/80">
+                      Powered by Grok AI • Available 24/7
                     </p>
                   </div>
                 </div>
@@ -126,11 +117,20 @@ const Index = () => {
               </div>
 
               {/* Desktop Chat Interface with Sidebar */}
-              <div className="flex bg-card rounded-lg border border-border shadow-sm overflow-hidden" style={{
-            height: '70vh'
+              <div className="flex bg-card rounded-xl border border-border shadow-lg overflow-hidden" style={{
+            height: '65vh'
           }}>
                 <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                 <ChatInterfaceWithHistory />
+              </div>
+              
+              {/* Legal Disclaimer */}
+              <div className="mt-6 max-w-4xl mx-auto">
+                <div className="rounded-lg bg-warning/5 border border-warning/20 p-4 text-center">
+                  <p className="text-sm text-warning font-medium">
+                    ⚠️ For general information only. Always consult healthcare professionals and veterinarians for medical decisions.
+                  </p>
+                </div>
               </div>
             </div>
           </section>}
