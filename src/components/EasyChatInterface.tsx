@@ -207,9 +207,16 @@ export const EasyChatInterface = ({
                       placeholder="Type your concerns here... (e.g., I've been experiencing headaches and fatigue lately)"
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
+                      maxLength={200}
                       className="min-h-[100px] resize-none"
                       disabled={loading}
                     />
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Describe your specific concerns (up to 200 characters)</span>
+                      <span className={textInput.length > 180 ? "text-orange-500" : ""}>
+                        {textInput.length}/200
+                      </span>
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         onClick={handleTextSubmit}
