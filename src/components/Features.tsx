@@ -5,45 +5,45 @@ import { Badge } from "@/components/ui/badge";
 const features = [
   {
     icon: MessageCircle,
-    title: "Intelligent Chat Interface",
-    description: "Engage in natural conversations about health concerns for you and your pets. Our AI helps organize symptoms and prepare thoughtful questions for healthcare providers and veterinarians.",
+    title: "AI-Powered Health Analysis",
+    description: "Advanced AI analyzes your symptoms and health concerns using the latest medical knowledge, providing personalized insights for both human and pet health to help you communicate more effectively with healthcare providers.",
     highlight: "Basic+",
-    benefits: ["Natural conversation flow", "Smart follow-up questions", "Context-aware responses"]
+    benefits: ["Smart symptom analysis", "Evidence-based insights", "Personalized recommendations"]
   },
   {
     icon: Mic,
-    title: "Voice Mode",
-    description: "Speak naturally with DrKnowsIt using our advanced voice recognition. Perfect for when you're on the go or prefer verbal communication.",
+    title: "Multi-Modal Intelligence",
+    description: "Communicate through text, voice, or images. Upload photos of symptoms, speak your concerns, or type detailed descriptions - DrKnowsIt understands it all and provides comprehensive analysis.",
     highlight: "Pro Only",
-    benefits: ["Advanced voice recognition", "Hands-free operation", "Natural speech processing"]
+    benefits: ["Voice recognition", "Image analysis", "Multi-format input"]
   },
   {
     icon: FileText,
-    title: "Auto Health Records",
-    description: "DrKnowsIt automatically organizes conversations into comprehensive health profiles for your family and pets, making it easy to track symptoms and concerns over time.",
+    title: "Smart Health Profiles",
+    description: "Automatically builds detailed health histories for your entire family and pets, tracking patterns, medications, and symptoms over time to provide better context for healthcare visits.",
     highlight: "Pro Only",
-    benefits: ["Automatic organization", "Timeline tracking", "Comprehensive reports"]
+    benefits: ["Pattern recognition", "Medication tracking", "Family & pet profiles"]
   },
   {
     icon: Users,
-    title: "Doctor Communication",
-    description: "Generate organized summaries of symptoms and concerns to share with healthcare providers and veterinarians, ensuring you don't forget important details during appointments.",
+    title: "Appointment Optimizer",
+    description: "Generates professional, organized summaries and targeted questions for your healthcare visits. Ensures you maximize your limited appointment time and don't forget crucial details.",
     highlight: "Basic+",
-    benefits: ["Professional summaries", "Key points highlighted", "Appointment preparation"]
+    benefits: ["Professional summaries", "Targeted questions", "Visit preparation"]
   },
   {
     icon: Shield,
-    title: "Privacy & Security",
-    description: "Your health information is protected with enterprise-grade security and encryption. We maintain strict data protection standards and never share your personal information without permission.",
+    title: "Enterprise Security",
+    description: "Bank-level encryption protects your health data. Your conversations remain private with zero data sharing. All processing happens securely within our protected infrastructure.",
     highlight: "Basic+",
-    benefits: ["End-to-end encryption", "Zero data sharing"]
+    benefits: ["Bank-level encryption", "Private conversations", "Secure infrastructure"]
   },
   {
     icon: Zap,
-    title: "Instant Responses",
-    description: "Get immediate help organizing your thoughts 24/7. DrKnowsIt is always available to help you prepare thoughtful questions for medical and veterinary appointments.",
-    highlight: "Basic+",
-    benefits: ["Lightning fast responses", "Always available", "Real-time processing"]
+    title: "Contextual Memory",
+    description: "DrKnowsIt remembers your health journey, connecting past conversations to provide more relevant insights. No need to repeat your medical history - it builds on previous discussions.",
+    highlight: "Pro Only",
+    benefits: ["Conversation memory", "Connected insights", "Evolving understanding"]
   }
 ];
 
