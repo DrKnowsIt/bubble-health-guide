@@ -41,8 +41,6 @@ const Settings = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [testerCode, setTesterCode] = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<string>('');
-  const [tierLoading, setTierLoading] = useState(false);
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -72,65 +70,6 @@ const Settings = () => {
 
   const handleToggleTesterMode = async (enabled: boolean) => {
     await toggleTesterMode(enabled);
-  };
-
-  const handleTierSwitch = async () => {
-    if (!selectedTier || !user?.email) return;
-
-    setTierLoading(true);
-    try {
-      const tierConfig = {
-        unpaid: { subscribed: false, tier: null, end: null },
-        basic: { 
-          subscribed: true, 
-          tier: 'basic',
-          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-        },
-        pro: { 
-          subscribed: true, 
-          tier: 'pro',
-          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-        }
-      };
-
-      const config = tierConfig[selectedTier as keyof typeof tierConfig];
-      
-      // Call secure edge function to update subscription status
-      const { data, error } = await supabase.functions.invoke('alpha-tier-switch', {
-        body: { 
-          email: user.email,
-          subscribed: config.subscribed,
-          subscription_tier: config.tier,
-          subscription_end: config.end
-        }
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Request failed');
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      // Refresh subscription status
-      await refreshSubscription();
-      
-      toast({
-        title: "Tier switched successfully",
-        description: `Switched to ${selectedTier} tier`,
-      });
-    } catch (error) {
-      console.error('Error switching tier:', error);
-      const message = (error as any)?.message || 'Failed to switch subscription tier';
-      toast({
-        title: "Error switching tier",
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setTierLoading(false);
-    }
   };
 
   const getCurrentTierDisplay = () => {
@@ -335,33 +274,10 @@ const Settings = () => {
                             </Badge>
                           </div>
 
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Switch to Tier</Label>
-                            <Select value={selectedTier} onValueChange={setSelectedTier}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a tier to switch to" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="unpaid">Unpaid</SelectItem>
-                                <SelectItem value="basic">Basic</SelectItem>
-                                <SelectItem value="pro">Pro</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <Button 
-                            onClick={handleTierSwitch} 
-                            disabled={!selectedTier || tierLoading}
-                            className="w-full"
-                          >
-                            {tierLoading ? 'Switching...' : 'Switch Tier'}
-                          </Button>
-                        </div>
-
                         <div className="p-3 bg-muted/30 rounded-lg">
                           <p className="text-sm text-muted-foreground">
-                            <strong>Tester privileges:</strong> Access to subscription tier switching, 
-                            early feature previews, and testing tools. Use tier switching to test 
+                            <strong>Tester privileges:</strong> Access to subscription tier switching via the tier dropdown in the header, 
+                            early feature previews, and testing tools. Use the tier dropdown to test 
                             different subscription features.
                           </p>
                         </div>
