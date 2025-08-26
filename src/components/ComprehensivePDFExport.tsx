@@ -271,9 +271,7 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
           content += `This guided conversation covered health concerns and symptoms.\n\n`;
         }
         
-        if (session.final_summary) {
-          content += `\nSESSION SUMMARY:\n${session.final_summary}\n`;
-        }
+        // Note: Conversation summary is already included on the first page
         
         content += '\n' + '='.repeat(50) + '\n\n';
       });

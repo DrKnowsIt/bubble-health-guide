@@ -40,7 +40,12 @@ serve(async (req) => {
 
 EVALUATION CRITERIA:
 
-SHOULD COMPLETE (return true) if conversation has:
+MINIMUM CONVERSATION LENGTH REQUIREMENT:
+- Conversations with fewer than 10 questions should NEVER be marked as complete
+- Only conversations with 10+ questions can be considered for completion
+- This ensures adequate depth and breadth of health information gathering
+
+SHOULD COMPLETE (return true) if conversation has 10+ questions AND:
 - At least 2-3 specific symptoms or health concerns mentioned
 - Clear location/body area specificity 
 - Symptom details (timing, severity, duration, triggers)
@@ -48,6 +53,7 @@ SHOULD COMPLETE (return true) if conversation has:
 - Patient has described their concerns with sufficient detail
 
 SHOULD CONTINUE (return false) if conversation:
+- Has fewer than 10 questions (MANDATORY requirement)
 - Only has vague or general responses
 - Lacks specific symptom details
 - Responses are too brief or unclear
@@ -55,9 +61,10 @@ SHOULD CONTINUE (return false) if conversation:
 - Would benefit from more targeted questions to clarify concerns
 
 CONVERSATION LENGTH FACTORS:
-- After 3+ questions: Look for meaningful health content
-- After 6+ questions: Be more likely to complete if any reasonable health topics exist
-- After 8+ questions: Complete unless conversation is completely unhelpful
+- Before 10 questions: NEVER complete, regardless of quality
+- After 10+ questions: Evaluate based on content quality and specificity
+- After 12+ questions: Be more likely to complete if reasonable health topics exist
+- After 15+ questions: Should complete unless conversation is completely unhelpful
 
 RESPONSE FORMAT (JSON only):
 {
@@ -67,6 +74,8 @@ RESPONSE FORMAT (JSON only):
   "identified_topics_count": number,
   "conversation_quality": "excellent|good|fair|poor"
 }
+
+IMPORTANT: Never suggest completion before 10 questions, regardless of conversation quality.
 
 Analyze this Easy Chat conversation:
 ${conversation_context}`;
@@ -96,7 +105,7 @@ ${conversation_context}`;
       return new Response(
         JSON.stringify({ 
           error: 'Failed to evaluate conversation completeness',
-          should_complete: conversation_length >= 7 // Fallback logic
+          should_complete: conversation_length >= 10 // Fallback logic - minimum 10 questions
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -126,7 +135,7 @@ ${conversation_context}`;
       return new Response(
         JSON.stringify({ 
           error: 'Invalid response format from AI',
-          should_complete: conversation_length >= 7 // Fallback
+          should_complete: conversation_length >= 10 // Fallback - minimum 10 questions
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -136,8 +145,8 @@ ${conversation_context}`;
     const shouldComplete = evaluationData.should_complete || false;
     const confidenceScore = Math.min(Math.max(evaluationData.confidence_score || 0.5, 0), 1);
     
-    // Override logic: if conversation is very long, force completion
-    const forceComplete = conversation_length >= 10;
+    // Override logic: if conversation is very long, force completion after 15+ questions
+    const forceComplete = conversation_length >= 15;
     
     console.log(`Evaluation result: should_complete=${shouldComplete}, confidence=${confidenceScore}, force_complete=${forceComplete}`);
 
