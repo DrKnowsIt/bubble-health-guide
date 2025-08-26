@@ -46,11 +46,11 @@ export const EasyChatInterface = ({
   const [textInput, setTextInput] = useState('');
 
   useEffect(() => {
-    // Auto-start session when component mounts
-    if (!currentSession && !loading) {
+    // Auto-start session when component mounts, but only once
+    if (!currentSession && !loading && !hasActiveSession) {
       startNewSession();
     }
-  }, [currentSession, loading, startNewSession]);
+  }, [currentSession, loading, hasActiveSession]); // Remove startNewSession from dependencies
 
   const handleResponseClick = (value: string, text: string) => {
     if (value === 'other_concerns') {
