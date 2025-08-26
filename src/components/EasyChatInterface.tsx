@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
 import { useEasyChat } from '@/hooks/useEasyChat';
 import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
 
@@ -32,11 +33,16 @@ export const EasyChatInterface = ({
     loading,
     startNewSession,
     submitResponse,
+    submitTextResponse,
     getResponseOptions,
     isCompleted,
     hasActiveSession,
     hasResponses
   } = hookData;
+
+  // Local state for text input mode
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [textInput, setTextInput] = useState('');
 
   useEffect(() => {
     // Auto-start session when component mounts
@@ -46,7 +52,29 @@ export const EasyChatInterface = ({
   }, [currentSession, loading, startNewSession]);
 
   const handleResponseClick = (value: string, text: string) => {
+    if (value === 'other_concerns') {
+      setShowTextInput(true);
+      return;
+    }
     submitResponse(value, text);
+  };
+
+  const handleTextSubmit = () => {
+    if (!textInput.trim()) return;
+    
+    if (submitTextResponse) {
+      submitTextResponse(textInput.trim());
+    } else {
+      submitResponse('other_concerns', textInput.trim());
+    }
+    
+    setTextInput('');
+    setShowTextInput(false);
+  };
+
+  const handleBackToOptions = () => {
+    setShowTextInput(false);
+    setTextInput('');
   };
 
   const handleStartOver = () => {
@@ -168,21 +196,55 @@ export const EasyChatInterface = ({
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  {getResponseOptions().map((option, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
-                      onClick={() => handleResponseClick(option.value, option.text)}
+                {showTextInput ? (
+                  <div className="space-y-4">
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Please describe your other health concerns in detail:
+                      </p>
+                    </div>
+                    <Textarea
+                      placeholder="Type your concerns here... (e.g., I've been experiencing headaches and fatigue lately)"
+                      value={textInput}
+                      onChange={(e) => setTextInput(e.target.value)}
+                      className="min-h-[100px] resize-none"
                       disabled={loading}
-                    >
-                      <span className="whitespace-normal text-sm leading-snug">
-                        {option.text}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleTextSubmit}
+                        disabled={!textInput.trim() || loading}
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Submit Concerns
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleBackToOptions}
+                        disabled={loading}
+                      >
+                        Back
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getResponseOptions().map((option, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
+                        onClick={() => handleResponseClick(option.value, option.text)}
+                        disabled={loading}
+                      >
+                        <span className="whitespace-normal text-sm leading-snug">
+                          {option.text}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="pt-4 border-t border-border space-y-2">

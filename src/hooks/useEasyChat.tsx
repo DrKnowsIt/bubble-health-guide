@@ -230,6 +230,54 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     }
   }, [user, patientId]);
 
+  const submitTextResponse = useCallback(async (textResponse: string) => {
+    if (!currentSession || !user) {
+      console.error('Cannot submit text response: missing session or user');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Submitting text response:', textResponse);
+
+      // Create a fake question for text responses
+      const fakeQuestionId = `text_input_${Date.now()}`;
+      
+      const { error: responseError } = await supabase
+        .from('easy_chat_responses')
+        .insert({
+          session_id: currentSession.id,
+          question_id: fakeQuestionId,
+          response_value: 'text_input',
+          response_text: textResponse
+        });
+
+      if (responseError) {
+        console.error('Error saving text response:', responseError);
+      }
+
+      // Update conversation path
+      const currentQuestionText = useDynamicQuestions && dynamicQuestion 
+        ? dynamicQuestion.question 
+        : currentQuestion?.question_text || 'Describe your concerns';
+        
+      const newPath = [...conversationPath, { 
+        question: { question_text: currentQuestionText } as EasyChatQuestion, 
+        response: textResponse 
+      }];
+      setConversationPath(newPath);
+
+      // Complete session after text input
+      console.log('Completing session after text input');
+      await completeSession(newPath);
+      
+    } catch (error) {
+      console.error('Error submitting text response:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion]);
+
   const submitResponse = useCallback(async (responseValue: string, responseText: string) => {
     if (!currentSession || !user) {
       console.error('Cannot submit response: missing session or user');
@@ -414,6 +462,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     loading,
     startNewSession,
     submitResponse,
+    submitTextResponse,
     getResponseOptions,
     isCompleted: currentSession?.completed || false,
     hasActiveSession: !!currentSession && !currentSession.completed,
