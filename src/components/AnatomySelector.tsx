@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, ArrowRight, X } from 'lucide-react';
-import humanSilhouette from '/lovable-uploads/018e2d73-bb78-4a90-8608-bc25125cfd88.png';
+import humanSilhouette from '@/assets/human-silhouette.png';
 
 interface AnatomySelectorProps {
   onSelectionComplete: (selectedParts: string[]) => void;
