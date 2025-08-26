@@ -36,7 +36,7 @@ const features = [
     title: "Privacy & Security",
     description: "Your health information is protected with enterprise-grade security and encryption. We maintain strict data protection standards and never share your personal information without permission.",
     highlight: "Basic+",
-    benefits: ["End-to-end encryption", "HIPAA compliant", "Zero data sharing"]
+    benefits: ["End-to-end encryption", "Zero data sharing"]
   },
   {
     icon: Zap,
