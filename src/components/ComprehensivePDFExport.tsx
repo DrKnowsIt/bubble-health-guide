@@ -254,19 +254,21 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
           content += `Body Areas of Focus: ${sessionData.selected_anatomy.join(', ')}\n`;
         }
         
-        if (conversationPath.length > 0) {
-          content += `\nCONVERSATION DETAILS:\n`;
-          conversationPath.forEach((step: any, stepIndex: number) => {
-            content += `Q${stepIndex + 1}: ${step.question_text}\n`;
-            content += `A${stepIndex + 1}: ${step.response}\n\n`;
-          });
-        }
-        
         if (topics.length > 0) {
-          content += `GENERATED HEALTH TOPICS:\n`;
+          content += `AI-IDENTIFIED HEALTH TOPICS:\n`;
           topics.forEach((topic: any) => {
-            content += `• ${topic.topic} (Category: ${topic.category})\n`;
+            content += `• ${topic.topic}\n`;
+            if (topic.confidence) {
+              content += `  Confidence: ${Math.round(topic.confidence * 100)}%\n`;
+            }
+            if (topic.reasoning) {
+              content += `  Reasoning: ${topic.reasoning}\n`;
+            }
+            content += `\n`;
           });
+        } else {
+          content += `CONVERSATION SUMMARY (${conversationPath.length} questions answered):\n`;
+          content += `This guided conversation covered health concerns and symptoms.\n\n`;
         }
         
         if (session.final_summary) {

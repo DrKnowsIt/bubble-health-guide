@@ -333,6 +333,7 @@ export const EasyChatInterface = ({
           patientId={patientId || ""}
           sessionId={currentSession?.id}
           healthTopics={healthTopics || []}
+          key={`topics-${conversationPath.length}-${(healthTopics || []).length}`}
         />
       </div>
     </div>
