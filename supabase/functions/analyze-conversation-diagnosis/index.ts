@@ -98,14 +98,56 @@ serve(async (req) => {
       ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
       : null;
 
+    const isPet = patient.is_pet === true;
+    
     const patientContext = `
-Patient: ${patient.first_name} ${patient.last_name}
+${isPet ? 'Pet' : 'Patient'}: ${patient.first_name} ${patient.last_name}
 Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
-Gender: ${patient.gender || 'Not specified'}
+${isPet ? `Species: ${patient.species || 'Not specified'}` : `Gender: ${patient.gender || 'Not specified'}`}
 High-confidence diagnoses (preserved): ${highConfidenceDiagnoses?.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}%)`).join(', ') || 'None'}
 Previous low-confidence topics: ${lowConfidenceDiagnoses?.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}%)`).join(', ') || 'None'}`;
 
-    const systemPrompt = `You are a medical analysis AI that generates potential diagnoses based on conversation context. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
+    const systemPrompt = isPet 
+      ? `You are a veterinary analysis AI that generates potential diagnoses based on conversation context about pets. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
+
+PATIENT CONTEXT:
+${patientContext}
+
+ANALYSIS INSTRUCTIONS:
+- High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
+- ONLY generate NEW diagnoses for symptoms explicitly mentioned in the current conversation
+- Check if new symptoms relate to existing high-confidence diagnoses before creating new ones
+- If symptoms clearly relate to existing diagnoses, increase confidence rather than create duplicates
+- Focus on the primary complaint mentioned by the pet owner
+- Generate 1-2 potential diagnoses maximum for new symptoms
+- Base confidence on symptom specificity and veterinary likelihood for the species
+- Use confidence scale 0.3-0.8 (be conservative)
+
+PRESERVATION RULES:
+- If new symptoms support an existing high-confidence diagnosis, return that diagnosis with updated confidence
+- If new symptoms are unrelated, create new separate diagnoses
+- Never duplicate or replace high-confidence diagnoses unless contradicted
+
+CONFIDENCE SCORING:
+- 0.3-0.4: Possible but needs more information
+- 0.5-0.6: Moderate likelihood based on symptoms
+- 0.7-0.8: Strong evidence supporting this possibility
+
+RESPONSE FORMAT (JSON only):
+{
+  "diagnoses": [
+    {
+      "diagnosis": "specific condition name",
+      "confidence": 0.65,
+      "reasoning": "clear evidence-based justification",
+      "relates_to_existing": "diagnosis_name_if_related_or_null"
+    }
+  ],
+  "preserve_existing": true
+}
+
+Current conversation: "${conversationText}"`
+      : `You are a medical analysis AI that generates potential diagnoses based on conversation context. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
 
 PATIENT CONTEXT:
 ${patientContext}

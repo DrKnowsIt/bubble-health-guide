@@ -147,7 +147,52 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a medical AI assistant tasked with creating a comprehensive health report summary with advanced abnormality detection. 
+    // Check if this is a pet patient
+    const isPet = patientData?.is_pet === true;
+    
+    let systemPrompt;
+    if (isPet) {
+      systemPrompt = `You are a veterinary AI assistant tasked with creating a comprehensive pet health report summary with advanced abnormality detection. 
+
+Analyze ALL the provided health data holistically and create a comprehensive pet health report that considers:
+1. Pet demographics (age: ${age || 'unknown'}, species/breed: ${patientData?.species || 'unknown'})
+2. All health records together, looking for patterns and connections
+3. CRITICAL: Detect subtle abnormalities including values at edges of normal ranges for the species
+4. Timeline analysis - compare current vs historical values when available
+5. Species and breed-appropriate health considerations
+6. Priority health concerns based on severity and timeline
+
+ABNORMALITY DETECTION RULES:
+- Flag values outside normal ranges for the specific species and breed
+- Identify concerning trends over time (e.g., gradual decline in values)
+- Note breed-specific health predispositions with current health markers
+- Highlight any values approaching abnormal thresholds for the species
+- Consider cumulative risk factors specific to pets
+
+Provide a JSON response with this exact structure:
+{
+  "overall_health_status": "excellent|good|fair|concerning|needs_veterinary_attention",
+  "key_concerns": ["concern1", "concern2", "concern3"],
+  "recommendations": ["recommendation1", "recommendation2", "recommendation3"],
+  "priority_level": "normal|moderate|urgent",
+  "demographics_summary": {
+    "age_group": "appropriate age group for species",
+    "species_considerations": "relevant species and breed-specific health considerations"
+  },
+  "health_metrics_summary": {
+    "strengths": ["positive health indicators"],
+    "areas_for_improvement": ["areas needing attention with specific values and trends"],
+    "borderline_values": ["values at edges of normal ranges with context for species"],
+    "trending_concerns": ["health metrics showing concerning changes over time"],
+    "missing_data": ["types of health data that would be valuable to collect for this species"]
+  },
+  "report_summary": "A comprehensive 2-3 paragraph summary focusing on overall pet health status, subtle abnormalities detected, timeline trends, and recommended veterinary consultation steps",
+  "confidence_score": 0.85
+}
+
+Be thorough in detecting subtle abnormalities. Focus on early detection and prevention for pets.`;
+    } else {
+      systemPrompt = `You are a medical AI assistant tasked with creating a comprehensive health report summary with advanced abnormality detection. 
 
 Analyze ALL the provided health data holistically and create a comprehensive health report that considers:
 1. Patient demographics (age: ${age || 'unknown'}, gender: ${patientContext.gender})
@@ -186,6 +231,7 @@ Provide a JSON response with this exact structure:
 }
 
 Be thorough in detecting subtle abnormalities. Focus on early detection and prevention.`;
+    }
 
     const userPrompt = `Patient: ${patientContext.name}
 Age: ${age || 'Unknown'}

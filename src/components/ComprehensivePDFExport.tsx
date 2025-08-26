@@ -13,6 +13,7 @@ interface User {
   id: string;
   first_name: string;
   last_name: string;
+  is_pet?: boolean;
 }
 
 interface ComprehensivePDFExportProps {
@@ -32,8 +33,10 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
 
     let content = '';
     
+    const isPet = selectedUser?.is_pet === true;
+    
     if (insights.length > 0) {
-      content += 'CLINICAL MEMORY INSIGHTS:\n\n';
+      content += isPet ? 'PET HEALTH INSIGHTS:\n\n' : 'CLINICAL MEMORY INSIGHTS:\n\n';
       
       // Group insights by category for better organization
       const groupedInsights = insights.reduce((acc, insight) => {
@@ -54,32 +57,32 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
     
     // Extract clinical information from memory
     if (memories.length > 0) {
-      content += 'DETAILED PATIENT HISTORY:\n\n';
+      content += isPet ? 'DETAILED PET HISTORY:\n\n' : 'DETAILED PATIENT HISTORY:\n\n';
       memories.forEach((memory) => {
         if (memory.memory) {
           const mem = memory.memory;
           
-          // Medical History
+          // Medical History (adjust for pets)
           if (mem.medical_history && mem.medical_history.length > 0) {
-            content += 'CONFIRMED MEDICAL CONDITIONS:\n';
+            content += isPet ? 'CONFIRMED HEALTH CONDITIONS:\n' : 'CONFIRMED MEDICAL CONDITIONS:\n';
             mem.medical_history.forEach((condition: string) => {
               content += `• ${condition}\n`;
             });
             content += '\n';
           }
           
-          // Current Medications
+          // Current Medications (adjust for pets)
           if (mem.current_medications && mem.current_medications.length > 0) {
-            content += 'CURRENT MEDICATIONS & SUPPLEMENTS:\n';
+            content += isPet ? 'CURRENT MEDICATIONS & TREATMENTS:\n' : 'CURRENT MEDICATIONS & SUPPLEMENTS:\n';
             mem.current_medications.forEach((med: string) => {
               content += `• ${med}\n`;
             });
             content += '\n';
           }
           
-          // Symptoms with details
+          // Symptoms with details (adjust for pets)
           if (mem.symptoms && Object.keys(mem.symptoms).length > 0) {
-            content += 'DOCUMENTED SYMPTOMS:\n';
+            content += isPet ? 'OBSERVED SYMPTOMS:\n' : 'DOCUMENTED SYMPTOMS:\n';
             Object.entries(mem.symptoms).forEach(([symptom, details]: [string, any]) => {
               content += `• ${symptom.toUpperCase()}:\n`;
               if (details.description) content += `  Description: ${details.description}\n`;
@@ -89,9 +92,9 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
             content += '\n';
           }
           
-          // Lifestyle Factors
+          // Lifestyle Factors (adjust for pets)
           if (mem.lifestyle_factors) {
-            content += 'LIFESTYLE FACTORS:\n';
+            content += isPet ? 'BEHAVIORAL FACTORS:\n' : 'LIFESTYLE FACTORS:\n';
             Object.entries(mem.lifestyle_factors).forEach(([factor, info]: [string, any]) => {
               if (info) content += `• ${factor.replace(/_/g, ' ').toUpperCase()}: ${info}\n`;
             });

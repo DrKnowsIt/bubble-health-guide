@@ -36,11 +36,21 @@ serve(async (req) => {
       .join("\n")
       .slice(0, 1500);
 
-    const systemPrompt =
-      "You are a medical assistant that generates concise, clinician-friendly image descriptions. " +
-      "Infer key details from the conversation when relevant. " +
-      "Return one short sentence (<= 140 chars) covering modality/type, body part, laterality if present, and key visible findings. " +
-      "Avoid PHI, no guesses beyond what is visible.";
+    // Check if this is likely a pet-related conversation based on context
+    const isPetContext = contextText.toLowerCase().includes('pet') || 
+                        contextText.toLowerCase().includes('dog') || 
+                        contextText.toLowerCase().includes('cat') ||
+                        contextText.toLowerCase().includes('animal');
+    
+    const systemPrompt = isPetContext
+      ? "You are a veterinary assistant that generates concise, veterinarian-friendly image descriptions for pets. " +
+        "Infer key details from the conversation when relevant. " +
+        "Return one short sentence (<= 140 chars) covering image type, body part/area, and key visible findings. " +
+        "Focus on what veterinarians would need to know. Avoid guesses beyond what is visible."
+      : "You are a medical assistant that generates concise, clinician-friendly image descriptions. " +
+        "Infer key details from the conversation when relevant. " +
+        "Return one short sentence (<= 140 chars) covering modality/type, body part, laterality if present, and key visible findings. " +
+        "Avoid PHI, no guesses beyond what is visible.";
 
     const userTextInstruction =
       `Conversation context (for reference):\n${contextText || 'No prior context provided.'}\n\n` +
