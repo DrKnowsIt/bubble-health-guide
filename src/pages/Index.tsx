@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/ChatGPTInterface";
 import { UserCountBadge } from "@/components/UserCountBadge";
+import heroCgiImage from "@/assets/hero-cgi-healthcare.jpg";
 // Using the uploaded vintage healthcare trio image
 const Index = () => {
   const {
@@ -107,8 +108,8 @@ const Index = () => {
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative max-w-md w-full">
                     <img 
-                      src="/lovable-uploads/aad42fc1-ec8d-4a80-96e6-2ae7cc90c625.png" 
-                      alt="Vintage-style illustration showing a glowing hologram doctor, professional physician with stethoscope, and happy family with their dog"
+                      src={heroCgiImage} 
+                      alt="CGI-rendered scene showing a glowing hologram doctor, professional physician with stethoscope, and happy family with their dog on teal background"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
