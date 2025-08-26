@@ -399,7 +399,7 @@ export default function UserDashboard() {
   // Tab configuration with subscription requirements
   const tabConfig = {
     chat: {
-      requiredTier: null,
+      requiredTier: 'basic',
       icon: MessageSquare,
       title: "AI Chat"
     },
@@ -594,7 +594,13 @@ export default function UserDashboard() {
                   selectedUser={selectedUser}
                 />
               ) : (
-                <ChatGPTInterface selectedUser={selectedUser} />
+                <SubscriptionGate 
+                  requiredTier="basic" 
+                  feature="AI Chat" 
+                  description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription."
+                >
+                  <ChatGPTInterface selectedUser={selectedUser} />
+                </SubscriptionGate>
               )}
             </TabsContent>
 

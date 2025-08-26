@@ -266,7 +266,7 @@ export const TabletChatInterface = ({
   }
 
   return (
-    <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start conversations with our AI health assistant with a Pro subscription.">
+    <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex bg-background overflow-hidden">
         {/* Main Chat Area - Two Column Layout for Tablet */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
