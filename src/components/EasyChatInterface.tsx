@@ -104,7 +104,8 @@ export const EasyChatInterface = ({
 
         {/* Current Question or Summary - Main Content */}
         <Card className="flex-1 min-h-0 flex flex-col">
-          <CardContent className="p-6 flex-1 overflow-y-auto">
+          <ScrollArea className="flex-1">
+            <CardContent className="p-6">
             {isCompleted ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-green-600">
@@ -167,23 +168,21 @@ export const EasyChatInterface = ({
                   </p>
                 </div>
 
-                <ScrollArea className="max-h-80">
-                  <div className="space-y-2 pr-4">
-                    {getResponseOptions().map((option, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
-                        onClick={() => handleResponseClick(option.value, option.text)}
-                        disabled={loading}
-                      >
-                        <span className="whitespace-normal text-sm leading-snug">
-                          {option.text}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <div className="space-y-2">
+                  {getResponseOptions().map((option, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
+                      onClick={() => handleResponseClick(option.value, option.text)}
+                      disabled={loading}
+                    >
+                      <span className="whitespace-normal text-sm leading-snug">
+                        {option.text}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
 
                 {/* Action Buttons */}
                 <div className="pt-4 border-t border-border space-y-2">
@@ -249,7 +248,8 @@ export const EasyChatInterface = ({
                 </div>
               </div>
             )}
-          </CardContent>
+            </CardContent>
+          </ScrollArea>
         </Card>
       </div>
 
