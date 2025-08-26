@@ -7,17 +7,15 @@ export const useUserCount = () => {
 
   const fetchUserCount = async () => {
     try {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      const { data, error } = await supabase.rpc('get_total_user_count');
 
       if (error) {
         console.error('Error fetching user count:', error);
         return;
       }
 
-      if (count !== null) {
-        setUserCount(count);
+      if (data !== null) {
+        setUserCount(data);
       }
     } catch (error) {
       console.error('Error fetching user count:', error);
