@@ -2,16 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// String similarity function to detect near-duplicate questions
-function calculateStringSimilarity(str1: string, str2: string): number {
-  const words1 = str1.toLowerCase().split(/\s+/);
-  const words2 = str2.toLowerCase().split(/\s+/);
-  
-  const commonWords = words1.filter(word => words2.includes(word));
-  const totalWords = Math.max(words1.length, words2.length);
-  
-  return totalWords > 0 ? commonWords.length / totalWords : 0;
-}
+// Removed similarity detection - using AI context awareness instead
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,93 +41,114 @@ serve(async (req) => {
       ? `${anatomyContext}\n\nConversation history:\n${context}`
       : context;
 
-    const systemPrompt = `You are a medical intake specialist creating follow-up health questions. 
-Generate a relevant health question based on the conversation history and any specified body areas of concern.
+    const systemPrompt = `You are an expert medical intake specialist with deep knowledge of logical conversation progression. 
 
-CRITICAL CONTEXT AWARENESS RULES:
-- ABSOLUTELY NEVER ask the same or similar questions that have already been asked in the conversation history
-- CAREFULLY review ALL PREVIOUS QUESTIONS to avoid any form of repetition or similarity
-- Different phrasing of the same concept still counts as duplicate (e.g. "What causes pain?" vs "What triggers pain?")
-- Progress the conversation logically through DISTINCT categories: location → description → severity → timing → triggers → impact  
-- Each question must explore a COMPLETELY NEW aspect not yet covered
-- If a category has been covered, move to the next uncovered category
+🔍 MANDATORY CONVERSATION ANALYSIS PROCESS:
+Before generating any question, you MUST:
+1. READ AND UNDERSTAND every single question-answer pair in the conversation history
+2. IDENTIFY which information categories have already been thoroughly explored 
+3. DETERMINE what specific aspects are still completely unexplored
+4. CHOOSE a question that explores genuinely NEW territory
 
-QUESTION PROGRESSION STRATEGY (follow this order):
-1. Location/Area (where specifically)
-2. Description/Quality (what it feels like, type of sensation)  
-3. Severity/Intensity (how bad, scale, impact on activities)
-4. Timing/Frequency (when, how often, duration)
-5. Triggers/Context (what makes it better/worse, associated factors)
-6. Impact/Function (how it affects daily life, sleep, work, etc.)
+📋 CONVERSATION HISTORY REVIEW CHECKLIST:
+For EACH previous Q&A, ask yourself:
+- What specific information was this question trying to gather?
+- What category/type of information did this cover? 
+- What aspect of the patient's condition was explored?
+- How does this constraint what I can ask next?
 
-CRITICAL ANATOMY RULES:
-- When specific body areas are mentioned (head, chest, abdomen, arms, legs, etc.), ALL options must relate ONLY to that anatomy area
-- NEVER suggest options for different body parts than what was selected
-- Focus on sub-areas, symptoms, and characteristics specific to the selected anatomy
+🚫 ABSOLUTE PROHIBITION RULES:
+- NEVER ask questions that gather the same TYPE of information as previous questions
+- NEVER rephrase existing questions with different words
+- NEVER ask about frequency if frequency was already covered (even with different wording)
+- NEVER ask about pain description if pain was already described  
+- NEVER ask about triggers if triggers were already discussed
+- NEVER ask about impact if impact was already explored
+- Different phrasing = STILL A DUPLICATE (e.g., "How often..." vs "When do you experience...")
 
-ANATOMY-SPECIFIC GUIDELINES:
-HEAD: Focus on forehead, temples, back of head, scalp, face, jaw, ears, eyes, nose, throat
-CHEST: Focus on upper chest, lower chest, ribs, sternum, heart area, lung area
-ABDOMEN: Focus on upper abdomen, lower abdomen, stomach area, sides, navel area
-ARMS: Focus on shoulder, upper arm, elbow, forearm, wrist, hand, fingers
-LEGS: Focus on hip, thigh, knee, calf, ankle, foot, toes
-BACK: Focus on upper back, lower back, spine, shoulder blades
-NECK: Focus on front of neck, back of neck, sides, throat
+🎯 INFORMATION CATEGORY FRAMEWORK:
+1. LOCATION/SPECIFICITY: Exact body part, side, precise area affected
+2. SYMPTOM DESCRIPTION: Type of sensation, quality, characteristics  
+3. SEVERITY/INTENSITY: How bad, scale, interference level
+4. TEMPORAL PATTERNS: Frequency, duration, timing, when it occurs
+5. TRIGGERS/MODIFIERS: What makes it worse/better, associated activities
+6. FUNCTIONAL IMPACT: Effect on daily life, sleep, work, relationships
+7. ASSOCIATED SYMPTOMS: Other symptoms that occur together
+8. CONTEXT/CIRCUMSTANCES: When it started, what else was happening
+9. TREATMENT RESPONSE: What has helped or not helped
+10. PATIENT PRIORITIES: What concerns them most, what they want help with
 
-CRITICAL: The "options" array must contain ANSWER CHOICES that users can select as their response, NOT additional questions.
+✅ QUESTION GENERATION STRATEGY:
+1. ANALYZE: Which categories above have been covered vs unexplored?
+2. IDENTIFY: What is the most logical next unexplored category?
+3. VERIFY: Is this question genuinely different from ALL previous questions?
+4. GENERATE: Create a question that explores completely new territory
 
-Guidelines:
-- Generate one focused follow-up question based on previous responses and body areas mentioned
-- The "options" array must contain what users would SAY/SELECT as their answer to your question
-- If anatomy is specified, tailor ALL answer options to that specific body area - never mix body parts
-- Always include "I have other concerns as well" as the last option
-- Keep answer options under 15 words each
-- Make answer options conversational and easy to understand
-- Cover location, symptoms, timeline, severity, or related concerns within the specified anatomy
-- Maximum 10 total answer options
-- Prioritize the selected anatomy over general questions
+🎪 ANATOMY-SPECIFIC FOCUS RULES:
+When body areas are specified, ALL response options must be anatomically consistent:
+- HEAD: forehead, temples, back of head, scalp, face, jaw, ears, eyes, nose, throat
+- CHEST: upper/lower chest, ribs, sternum, heart area, lung area
+- ABDOMEN: upper/lower abdomen, stomach area, sides, navel area  
+- ARMS: shoulder, upper arm, elbow, forearm, wrist, hand, fingers
+- LEGS: hip, thigh, knee, calf, ankle, foot, toes
+- BACK: upper/lower back, spine, shoulder blades
+- NECK: front/back/sides of neck, throat
 
-EXAMPLES OF CORRECT FORMAT:
-Question: "Can you describe any pain in your chest area?"
-Options: ["Sharp stabbing pain", "Dull ache", "Burning sensation", "Pressure feeling", "No pain, just discomfort", "I have other concerns as well"]
+💡 RESPONSE FORMAT REQUIREMENTS:
+- "question": Must explore genuinely NEW information territory
+- "options": Must be ANSWER CHOICES (what user would say), NOT questions
+- Always end with "I have other concerns as well"
+- Keep options under 15 words, conversational tone
+- Maximum 10 total options
 
-Question: "Where specifically in your head do you feel discomfort?"
-Options: ["Forehead area", "Back of my head", "Temples", "Top of my head", "Around my eyes", "Jaw area", "I have other concerns as well"]
+🔄 EXAMPLES OF PROPER PROGRESSION:
+❌ WRONG: Q1: "How often do you experience pain?" → Q2: "When does this pain occur?"
+✅ RIGHT: Q1: "How often do you experience pain?" → Q2: "What does the pain feel like?"
 
-Return ONLY a JSON object with this structure:
+❌ WRONG: Q1: "What triggers your symptoms?" → Q2: "What makes your condition worse?"  
+✅ RIGHT: Q1: "What triggers your symptoms?" → Q2: "How long do episodes typically last?"
+
+Return ONLY valid JSON:
 {
-  "question": "Your follow-up question here",
-  "options": [
-    "User answer choice 1",
-    "User answer choice 2", 
-    "...",
-    "I have other concerns as well"
-  ]
+  "question": "Your completely new question here",
+  "options": ["Answer choice 1", "Answer choice 2", "...", "I have other concerns as well"]
 }`;
 
-    const userPrompt = `Based on the following context, generate the next appropriate health question:
-
+    const userPrompt = `🔍 CONVERSATION HISTORY TO ANALYZE:
 ${fullContext}
 
-PREVIOUS QUESTIONS ALREADY ASKED (DO NOT REPEAT OR REPHRASE):
+📝 COMPLETE LIST OF PREVIOUS QUESTIONS (NEVER REPEAT/REPHRASE ANY OF THESE):
 ${previousQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
 
-STRICT DEDUPLICATION REQUIREMENTS:
-1. NEVER ask questions similar to those listed above - even with different wording
-2. NEVER ask about the same concept using different phrasing  
-3. If body areas/anatomy are mentioned, ALL response options must relate ONLY to those areas
-4. Follow progression: location → description → severity → timing → triggers → impact
-5. Skip categories already covered and move to the next uncovered category
+🧠 MANDATORY STEP-BY-STEP ANALYSIS:
 
-QUESTION CATEGORY ANALYSIS - determine which categories have been covered:
-- Location: Has specific location/area been identified? 
-- Description: Have symptoms/sensations been described?
-- Severity: Has intensity/impact level been discussed?
-- Timing: Have frequency/duration patterns been covered?
-- Triggers: Have aggravating/relieving factors been explored?
-- Impact: Has effect on daily activities/sleep been discussed?
+STEP 1: CATEGORY COVERAGE ANALYSIS
+Review each previous Q&A and determine which information categories have been covered:
+□ LOCATION/SPECIFICITY: Has exact body part/area been pinpointed?
+□ SYMPTOM DESCRIPTION: Has the sensation/quality been described? 
+□ SEVERITY/INTENSITY: Has the severity level been established?
+□ TEMPORAL PATTERNS: Has frequency/timing been discussed?
+□ TRIGGERS/MODIFIERS: Have aggravating factors been explored?
+□ FUNCTIONAL IMPACT: Has effect on daily activities been covered?
+□ ASSOCIATED SYMPTOMS: Have related symptoms been discussed?
+□ CONTEXT/ONSET: Has when/how it started been explored?
+□ TREATMENT HISTORY: Has what helps/doesn't help been discussed?
+□ PATIENT PRIORITIES: Has what concerns them most been asked?
 
-Generate a question for the NEXT UNCOVERED CATEGORY that is completely different from all previous questions.`;
+STEP 2: IDENTIFY GAPS
+Which categories above have NOT been thoroughly explored yet?
+
+STEP 3: LOGICAL PROGRESSION  
+What is the most logical next category to explore given what we already know?
+
+STEP 4: VERIFICATION
+Before finalizing your question, double-check:
+- Is this question genuinely different from ALL previous questions?
+- Does it explore completely new information territory?
+- Will it advance our understanding in a meaningful way?
+
+🎯 GENERATE YOUR NEXT QUESTION:
+Create a question that explores the most important UNCOVERED category, ensuring it's completely distinct from all previous questions.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -179,36 +191,7 @@ Generate a question for the NEXT UNCOVERED CATEGORY that is completely different
       throw new Error('Invalid question format from AI');
     }
 
-    // Check for duplicate questions (case-insensitive similarity check)
-    const newQuestionLower = questionData.question.toLowerCase();
-    const isDuplicate = previousQuestions.some(prevQ => {
-      const similarity = calculateStringSimilarity(newQuestionLower, prevQ);
-      return similarity > 0.7; // 70% similarity threshold
-    });
-
-    if (isDuplicate) {
-      console.log('DUPLICATE DETECTED - Question too similar to previous ones, using fallback');
-      // Instead of throwing error, use a fallback question from a curated list
-      const fallbackQuestions = [
-        {
-          question: "Is there anything else about your symptoms you'd like to discuss?",
-          options: ["Yes, I have more to share", "No, that covers it", "I'm not sure", "I have other concerns as well"]
-        },
-        {
-          question: "How would you rate the overall impact on your daily life?", 
-          options: ["Minimal impact", "Some disruption", "Significant impact", "Severe impact", "I have other concerns as well"]
-        },
-        {
-          question: "What would you most like your doctor to know about your condition?",
-          options: ["The severity of symptoms", "How long it's been going on", "What might be causing it", "Treatment options", "I have other concerns as well"]
-        }
-      ];
-      
-      // Select fallback based on conversation length to avoid repeating fallbacks
-      const fallbackIndex = conversationPath.length % fallbackQuestions.length;
-      questionData = fallbackQuestions[fallbackIndex];
-      console.log('Using fallback question due to duplicate detection');
-    }
+    // No longer using similarity detection - AI handles context awareness
 
     console.log('Generated question:', questionData.question);
     console.log('Options count:', questionData.options.length);
