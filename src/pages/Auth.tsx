@@ -22,7 +22,9 @@ export default function Auth() {
     password: '',
     firstName: '',
     lastName: '',
+    accessCode: '',
   });
+  const [showAccessCode, setShowAccessCode] = useState(false);
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -57,7 +59,7 @@ export default function Auth() {
 
     try {
       const result = isSignUp 
-        ? await signUp(formData.email, formData.password, formData.firstName, formData.lastName)
+        ? await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.accessCode)
         : await signIn(formData.email, formData.password);
       
       console.log('Auth - Form submission result:', { 
@@ -82,7 +84,9 @@ export default function Auth() {
       password: '',
       firstName: '',
       lastName: '',
+      accessCode: '',
     });
+    setShowAccessCode(false);
   };
 
   const toggleMode = () => {
@@ -134,6 +138,44 @@ export default function Auth() {
                     required={isSignUp}
                   />
                 </div>
+              </div>
+            )}
+            
+            {isSignUp && (
+              <div className="space-y-2">
+                {!showAccessCode ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAccessCode(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Have an access code?
+                  </Button>
+                ) : (
+                  <>
+                    <Label htmlFor="accessCode">Access Code (Optional)</Label>
+                    <Input
+                      id="accessCode"
+                      placeholder="Enter your access code"
+                      value={formData.accessCode}
+                      onChange={(e) => setFormData({ ...formData, accessCode: e.target.value })}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowAccessCode(false);
+                        setFormData({ ...formData, accessCode: '' });
+                      }}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
               </div>
             )}
             

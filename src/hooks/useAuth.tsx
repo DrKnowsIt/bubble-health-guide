@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, accessCode?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -190,9 +190,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, accessCode?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
+      
+      // Check if access code is the alpha tester code
+      const isValidTesterCode = accessCode === 'DRKNOWSIT_ALPHA_2024';
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -202,6 +205,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             first_name: firstName,
             last_name: lastName,
+            alpha_tester: isValidTesterCode,
+            access_code: accessCode, // Store for potential future use
           }
         }
       });
@@ -213,9 +218,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: error.message,
         });
       } else {
+        const successMessage = isValidTesterCode 
+          ? "Account created with alpha tester access! Please check your email to verify your account."
+          : "Please check your email to verify your account.";
+        
         toast({
           title: "Account Created!",
-          description: "Please check your email to verify your account.",
+          description: successMessage,
         });
       }
       
