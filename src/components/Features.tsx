@@ -13,9 +13,9 @@ const features = [
   {
     icon: Mic,
     title: "Multi-Modal Intelligence",
-    description: "Communicate through text, voice, or images. Upload photos of symptoms, speak your concerns, or type detailed descriptions - DrKnowsIt understands it all and provides comprehensive analysis.",
+    description: "Communicate through text or voice. Speak your concerns naturally or type detailed descriptions - DrKnowsIt understands both and provides comprehensive analysis tailored to your communication style.",
     highlight: "Pro Only",
-    benefits: ["Voice recognition", "Image analysis", "Multi-format input"]
+    benefits: ["Advanced voice recognition", "Natural speech processing", "Text & voice input"]
   },
   {
     icon: FileText,
