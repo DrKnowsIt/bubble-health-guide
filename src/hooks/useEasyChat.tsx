@@ -190,7 +190,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
             "I want to discuss test results",
             "I need preventive care advice",
             "I have mental health concerns",
-            "None of the above",
+            "Other",
             "I have other concerns as well"
           ]
         });
@@ -222,7 +222,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
           "I want to discuss test results",
           "I need preventive care advice",
           "I have mental health concerns",
-          "None of the above",
+          "Other",
           "I have other concerns as well"
         ]
       });
@@ -362,7 +362,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
   const getResponseOptions = useCallback(() => {
     if (useDynamicQuestions && dynamicQuestion) {
       return dynamicQuestion.options.map((option, index) => ({
-        value: option === 'None of the above' ? 'none_of_above' : 
+        value: option === 'Other' ? 'none_of_above' : 
                option === 'I have other concerns as well' ? 'other_concerns' :
                `option_${index}`,
         text: option
