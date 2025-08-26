@@ -41,114 +41,24 @@ serve(async (req) => {
       ? `${anatomyContext}\n\nConversation history:\n${context}`
       : context;
 
-    const systemPrompt = `You are an expert medical intake specialist with deep knowledge of logical conversation progression. 
+    const systemPrompt = `You are a medical intake assistant. Based on the conversation history provided, generate the next logical question that hasn't been asked yet.
 
-🔍 MANDATORY CONVERSATION ANALYSIS PROCESS:
-Before generating any question, you MUST:
-1. READ AND UNDERSTAND every single question-answer pair in the conversation history
-2. IDENTIFY which information categories have already been thoroughly explored 
-3. DETERMINE what specific aspects are still completely unexplored
-4. CHOOSE a question that explores genuinely NEW territory
+Analysis Process:
+1. Review what has already been discussed in the conversation history
+2. Identify what important information is still missing
+3. Generate a natural follow-up question that explores new territory
+4. Avoid repeating or rephrasing previous questions
 
-📋 CONVERSATION HISTORY REVIEW CHECKLIST:
-For EACH previous Q&A, ask yourself:
-- What specific information was this question trying to gather?
-- What category/type of information did this cover? 
-- What aspect of the patient's condition was explored?
-- How does this constraint what I can ask next?
-
-🚫 ABSOLUTE PROHIBITION RULES:
-- NEVER ask questions that gather the same TYPE of information as previous questions
-- NEVER rephrase existing questions with different words
-- NEVER ask about frequency if frequency was already covered (even with different wording)
-- NEVER ask about pain description if pain was already described  
-- NEVER ask about triggers if triggers were already discussed
-- NEVER ask about impact if impact was already explored
-- Different phrasing = STILL A DUPLICATE (e.g., "How often..." vs "When do you experience...")
-
-🎯 INFORMATION CATEGORY FRAMEWORK:
-1. LOCATION/SPECIFICITY: Exact body part, side, precise area affected
-2. SYMPTOM DESCRIPTION: Type of sensation, quality, characteristics  
-3. SEVERITY/INTENSITY: How bad, scale, interference level
-4. TEMPORAL PATTERNS: Frequency, duration, timing, when it occurs
-5. TRIGGERS/MODIFIERS: What makes it worse/better, associated activities
-6. FUNCTIONAL IMPACT: Effect on daily life, sleep, work, relationships
-7. ASSOCIATED SYMPTOMS: Other symptoms that occur together
-8. CONTEXT/CIRCUMSTANCES: When it started, what else was happening
-9. TREATMENT RESPONSE: What has helped or not helped
-10. PATIENT PRIORITIES: What concerns them most, what they want help with
-
-✅ QUESTION GENERATION STRATEGY:
-1. ANALYZE: Which categories above have been covered vs unexplored?
-2. IDENTIFY: What is the most logical next unexplored category?
-3. VERIFY: Is this question genuinely different from ALL previous questions?
-4. GENERATE: Create a question that explores completely new territory
-
-🎪 ANATOMY-SPECIFIC FOCUS RULES:
-When body areas are specified, ALL response options must be anatomically consistent:
-- HEAD: forehead, temples, back of head, scalp, face, jaw, ears, eyes, nose, throat
-- CHEST: upper/lower chest, ribs, sternum, heart area, lung area
-- ABDOMEN: upper/lower abdomen, stomach area, sides, navel area  
-- ARMS: shoulder, upper arm, elbow, forearm, wrist, hand, fingers
-- LEGS: hip, thigh, knee, calf, ankle, foot, toes
-- BACK: upper/lower back, spine, shoulder blades
-- NECK: front/back/sides of neck, throat
-
-💡 RESPONSE FORMAT REQUIREMENTS:
-- "question": Must explore genuinely NEW information territory
-- "options": Must be ANSWER CHOICES (what user would say), NOT questions
-- Always end with "I have other concerns as well"
-- Keep options under 15 words, conversational tone
-- Maximum 10 total options
-
-🔄 EXAMPLES OF PROPER PROGRESSION:
-❌ WRONG: Q1: "How often do you experience pain?" → Q2: "When does this pain occur?"
-✅ RIGHT: Q1: "How often do you experience pain?" → Q2: "What does the pain feel like?"
-
-❌ WRONG: Q1: "What triggers your symptoms?" → Q2: "What makes your condition worse?"  
-✅ RIGHT: Q1: "What triggers your symptoms?" → Q2: "How long do episodes typically last?"
-
-Return ONLY valid JSON:
+Response Format - Return ONLY valid JSON:
 {
-  "question": "Your completely new question here",
-  "options": ["Answer choice 1", "Answer choice 2", "...", "I have other concerns as well"]
+  "question": "Your next question here",
+  "options": ["Answer choice 1", "Answer choice 2", "Answer choice 3", "Answer choice 4", "Answer choice 5", "I have other concerns as well"]
 }`;
 
-    const userPrompt = `🔍 CONVERSATION HISTORY TO ANALYZE:
+    const userPrompt = `Conversation History:
 ${fullContext}
 
-📝 COMPLETE LIST OF PREVIOUS QUESTIONS (NEVER REPEAT/REPHRASE ANY OF THESE):
-${previousQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
-
-🧠 MANDATORY STEP-BY-STEP ANALYSIS:
-
-STEP 1: CATEGORY COVERAGE ANALYSIS
-Review each previous Q&A and determine which information categories have been covered:
-□ LOCATION/SPECIFICITY: Has exact body part/area been pinpointed?
-□ SYMPTOM DESCRIPTION: Has the sensation/quality been described? 
-□ SEVERITY/INTENSITY: Has the severity level been established?
-□ TEMPORAL PATTERNS: Has frequency/timing been discussed?
-□ TRIGGERS/MODIFIERS: Have aggravating factors been explored?
-□ FUNCTIONAL IMPACT: Has effect on daily activities been covered?
-□ ASSOCIATED SYMPTOMS: Have related symptoms been discussed?
-□ CONTEXT/ONSET: Has when/how it started been explored?
-□ TREATMENT HISTORY: Has what helps/doesn't help been discussed?
-□ PATIENT PRIORITIES: Has what concerns them most been asked?
-
-STEP 2: IDENTIFY GAPS
-Which categories above have NOT been thoroughly explored yet?
-
-STEP 3: LOGICAL PROGRESSION  
-What is the most logical next category to explore given what we already know?
-
-STEP 4: VERIFICATION
-Before finalizing your question, double-check:
-- Is this question genuinely different from ALL previous questions?
-- Does it explore completely new information territory?
-- Will it advance our understanding in a meaningful way?
-
-🎯 GENERATE YOUR NEXT QUESTION:
-Create a question that explores the most important UNCOVERED category, ensuring it's completely distinct from all previous questions.`;
+Based on this conversation history, what should the next logical question be? Generate a question that explores new information not already covered in the conversation above.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
