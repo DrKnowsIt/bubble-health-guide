@@ -368,7 +368,8 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
     
     if (!currentQuestion) return [];
 
-    const options = Object.entries(currentQuestion.response_leads_to);
+    const options = Object.entries(currentQuestion.response_leads_to)
+      .filter(([value]) => value !== 'none_above'); // Filter out any remaining none_above
     
     // Convert the response_leads_to mapping to user-friendly options
     return options.map(([value, _]) => {
