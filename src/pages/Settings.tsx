@@ -253,34 +253,34 @@ const Settings = () => {
 
                         <Separator />
 
-                        {/* Tier Switching Section */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Label className="text-base font-medium">Subscription Testing</Label>
-                            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                              Alpha
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <Label className="text-sm font-medium">Current Tier</Label>
-                              <div className="text-sm text-muted-foreground">
-                                Current subscription status for testing
-                              </div>
-                            </div>
-                            <Badge variant="outline" className="font-medium">
-                              {getCurrentTierDisplay()}
-                            </Badge>
-                          </div>
+                         <div className="space-y-3">
+                           <div className="flex items-center gap-2">
+                             <Label className="text-base font-medium">Subscription Testing</Label>
+                             <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                               Alpha
+                             </Badge>
+                           </div>
+                           
+                           <div className="flex items-center justify-between">
+                             <div className="space-y-1">
+                               <Label className="text-sm font-medium">Current Tier</Label>
+                               <div className="text-sm text-muted-foreground">
+                                 Current subscription status for testing
+                               </div>
+                             </div>
+                             <Badge variant="outline" className="font-medium">
+                               {getCurrentTierDisplay()}
+                             </Badge>
+                           </div>
 
-                        <div className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Tester privileges:</strong> Access to subscription tier switching via the tier dropdown in the header, 
-                            early feature previews, and testing tools. Use the tier dropdown to test 
-                            different subscription features.
-                          </p>
-                        </div>
+                           <div className="p-3 bg-muted/30 rounded-lg">
+                             <p className="text-sm text-muted-foreground">
+                               <strong>Tester privileges:</strong> Access to subscription tier switching via the tier dropdown in the header, 
+                               early feature previews, and testing tools. Use the tier dropdown to test 
+                               different subscription features.
+                             </p>
+                           </div>
+                         </div>
                       </div>
                     )}
                   </div>
