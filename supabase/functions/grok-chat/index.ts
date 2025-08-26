@@ -148,6 +148,7 @@ serve(async (req) => {
     let patientContext = '';
     let healthFormsContext = '';
     let comprehensiveHealthReport = '';
+    let isPet = false;
     
     if (patient_id) {
       // Verify patient belongs to user via RLS (row will only exist if owned)
@@ -320,9 +321,6 @@ PATIENT PROFILE:
       dateStyle: 'full',
       timeStyle: 'long'
     });
-    
-    // Check if this is a pet patient (default to false if no patient)
-    let isPet = false;
     
     // Define conversation rules directly (since edge functions can't read external files)
     const petRules = [
