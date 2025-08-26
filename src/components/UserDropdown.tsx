@@ -17,6 +17,10 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { User } from '@/hooks/useUsers';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
+import { useNavigate } from 'react-router-dom';
 
 interface UserDropdownProps {
   users: User[];
@@ -33,6 +37,10 @@ export const UserDropdown = ({
   open,
   onOpenChange,
 }: UserDropdownProps) => {
+  const { subscribed } = useSubscription();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const getUserDisplayName = (user: User) => {
     const name = user.is_pet ? user.first_name : `${user.first_name} ${user.last_name}`;
     if (user.is_primary) {
@@ -46,6 +54,26 @@ export const UserDropdown = ({
 
   const getUserValue = (user: User) => {
     return `${user.id}-${user.first_name}-${user.last_name}`;
+  };
+
+  const handleUserSelect = (user: User) => {
+    // If user is not subscribed and trying to select a non-primary user
+    if (!subscribed && !user.is_primary) {
+      toast({
+        title: 'Subscription Required',
+        description: 'Family member management is available for Basic and Pro subscribers. Manage multiple family members and pets in one place.',
+        action: (
+          <ToastAction altText="View pricing" onClick={() => navigate('/pricing')}>
+            View Pricing
+          </ToastAction>
+        ),
+      });
+      onOpenChange(false);
+      return;
+    }
+
+    onUserSelect(user.id === selectedUser?.id ? null : user);
+    onOpenChange(false);
   };
 
   return (
@@ -81,54 +109,81 @@ export const UserDropdown = ({
           <CommandList>
             <CommandEmpty>No users found.</CommandEmpty>
             <CommandGroup>
-              {users.map((user) => (
-                <CommandItem
-                  key={user.id}
-                  value={getUserValue(user)}
-                  onSelect={() => {
-                    onUserSelect(user.id === selectedUser?.id ? null : user);
-                    onOpenChange(false);
-                  }}
-                  className="min-h-[3rem] p-2"
-                >
-                  <Check
+              {users.map((user) => {
+                const isRestricted = !subscribed && !user.is_primary;
+                return (
+                  <CommandItem
+                    key={user.id}
+                    value={getUserValue(user)}
+                    onSelect={() => handleUserSelect(user)}
                     className={cn(
-                      "mr-2 h-4 w-4 flex-shrink-0",
-                      selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
+                      "min-h-[3rem] p-2",
+                      isRestricted && "opacity-50 cursor-not-allowed"
                     )}
-                  />
-                  {user.is_pet ? (
-                    <Dog className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground" />
-                  ) : (
-                    <UserIcon className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground" />
-                  )}
-                  <div className="flex items-center justify-between w-full min-w-0">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="font-medium mobile-text-sm truncate">
-                        {user.is_pet ? user.first_name : `${user.first_name} ${user.last_name}`}
-                      </span>
-                      {user.date_of_birth && (
-                        <span className="mobile-text-xs text-muted-foreground truncate">
-                          Born: {new Date(user.date_of_birth).toLocaleDateString()}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4 flex-shrink-0",
+                        selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {user.is_pet ? (
+                      <Dog className={cn(
+                        "h-4 w-4 mr-2 flex-shrink-0",
+                        isRestricted ? "text-muted-foreground/50" : "text-muted-foreground"
+                      )} />
+                    ) : (
+                      <UserIcon className={cn(
+                        "h-4 w-4 mr-2 flex-shrink-0",
+                        isRestricted ? "text-muted-foreground/50" : "text-muted-foreground"
+                      )} />
+                    )}
+                    <div className="flex items-center justify-between w-full min-w-0">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className={cn(
+                          "font-medium mobile-text-sm truncate",
+                          isRestricted && "text-muted-foreground/50"
+                        )}>
+                          {user.is_pet ? user.first_name : `${user.first_name} ${user.last_name}`}
                         </span>
-                      )}
+                        {user.date_of_birth && (
+                          <span className={cn(
+                            "mobile-text-xs text-muted-foreground truncate",
+                            isRestricted && "text-muted-foreground/50"
+                          )}>
+                            Born: {new Date(user.date_of_birth).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {user.is_primary ? (
+                          <Badge variant="default" className="mobile-text-xs">Primary</Badge>
+                        ) : user.is_pet && user.species ? (
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "mobile-text-xs capitalize max-w-[4rem] truncate",
+                              isRestricted && "opacity-50"
+                            )}
+                          >
+                            {user.species}
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "mobile-text-xs capitalize max-w-[4rem] truncate",
+                              isRestricted && "opacity-50"
+                            )}
+                          >
+                            {user.relationship}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      {user.is_primary ? (
-                        <Badge variant="default" className="mobile-text-xs">Primary</Badge>
-                      ) : user.is_pet && user.species ? (
-                        <Badge variant="secondary" className="mobile-text-xs capitalize max-w-[4rem] truncate">
-                          {user.species}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="mobile-text-xs capitalize max-w-[4rem] truncate">
-                          {user.relationship}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
             {users.length === 0 && (
               <CommandEmpty>
