@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Crown, Zap, Loader2, Settings, ChevronDown, TestTube } from 'lucide-react';
+import { Crown, Zap, Loader2, Settings, ChevronDown, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAlphaTester } from '@/hooks/useAlphaTester';
@@ -114,19 +114,19 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
               <>
                 <Crown className="h-3 w-3" />
                 <span className="font-medium">{isAlphaTester ? 'Pro: Tester' : 'Pro'}</span>
-                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
+                {isAlphaTester && <Edit className="h-3 w-3 opacity-70" />}
               </>
             ) : isBasic ? (
               <>
                 <Zap className="h-3 w-3" />
                 <span className="font-medium">{isAlphaTester ? 'Basic: Tester' : 'Basic'}</span>
-                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
+                {isAlphaTester && <Edit className="h-3 w-3 opacity-70" />}
               </>
             ) : (
               <>
                 <Zap className="h-3 w-3" />
                 <span className="font-medium">{isAlphaTester ? 'Free: Tester' : 'Free'}</span>
-                {isAlphaTester && <TestTube className="h-3 w-3 opacity-70" />}
+                {isAlphaTester && <Edit className="h-3 w-3 opacity-70" />}
               </>
             )}
             <ChevronDown className="h-3 w-3 opacity-50" />
