@@ -35,8 +35,12 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-bubble">
-              <Stethoscope className="h-6 w-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20">
+              <img 
+                src="/lovable-uploads/2ac8f009-810e-4840-ba6b-3bb89d5b1b14.png"
+                alt="DrKnowsIt Logo - Cartoon Doctor"
+                className="h-8 w-8 object-cover"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold text-foreground">DrKnowsIt</span>
