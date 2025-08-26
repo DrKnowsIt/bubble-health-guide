@@ -190,7 +190,6 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
             "I want to discuss test results",
             "I need preventive care advice",
             "I have mental health concerns",
-            "Other",
             "I have other concerns as well"
           ]
         });
@@ -222,7 +221,6 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
           "I want to discuss test results",
           "I need preventive care advice",
           "I have mental health concerns",
-          "Other",
           "I have other concerns as well"
         ]
       });
@@ -238,9 +236,9 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
       return;
     }
 
-    // Handle "None of the above" or "Other concerns" specially
-    if (responseValue === 'none_of_above' || responseValue === 'other_concerns') {
-      console.log('User selected none/other, completing session');
+    // Handle "I have other concerns as well" specially
+    if (responseValue === 'other_concerns') {
+      console.log('User selected other concerns, completing session');
       const newPath = [...conversationPath];
       if (currentQuestion || dynamicQuestion) {
         newPath.push({ 
@@ -362,8 +360,7 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
   const getResponseOptions = useCallback(() => {
     if (useDynamicQuestions && dynamicQuestion) {
       return dynamicQuestion.options.map((option, index) => ({
-        value: option === 'Other' ? 'none_of_above' : 
-               option === 'I have other concerns as well' ? 'other_concerns' :
+        value: option === 'I have other concerns as well' ? 'other_concerns' :
                `option_${index}`,
         text: option
       }));
