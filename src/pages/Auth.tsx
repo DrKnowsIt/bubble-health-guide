@@ -141,44 +141,6 @@ export default function Auth() {
               </div>
             )}
             
-            {isSignUp && (
-              <div className="space-y-2">
-                {!showAccessCode ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAccessCode(true)}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Have an access code?
-                  </Button>
-                ) : (
-                  <>
-                    <Label htmlFor="accessCode">Access Code (Optional)</Label>
-                    <Input
-                      id="accessCode"
-                      placeholder="Enter your access code"
-                      value={formData.accessCode}
-                      onChange={(e) => setFormData({ ...formData, accessCode: e.target.value })}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowAccessCode(false);
-                        setFormData({ ...formData, accessCode: '' });
-                      }}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -213,6 +175,47 @@ export default function Auth() {
                 </Button>
               </div>
             </div>
+
+            {isSignUp && (
+              <div className="flex flex-col items-center space-y-2">
+                {!showAccessCode ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAccessCode(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Have an access code?
+                  </Button>
+                ) : (
+                  <div className="w-full space-y-2">
+                    <Label htmlFor="accessCode" className="text-center block">Access Code (Optional)</Label>
+                    <Input
+                      id="accessCode"
+                      placeholder="Enter your access code"
+                      value={formData.accessCode}
+                      onChange={(e) => setFormData({ ...formData, accessCode: e.target.value })}
+                      className="text-center"
+                    />
+                    <div className="flex justify-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowAccessCode(false);
+                          setFormData({ ...formData, accessCode: '' });
+                        }}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
