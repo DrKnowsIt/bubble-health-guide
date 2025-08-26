@@ -24,8 +24,11 @@ export const EasyChatInterface = ({
   onRestart,
   useEasyChatHook
 }: EasyChatInterfaceProps) => {
-  // Use provided hook or create new enhanced hook
-  const hookData = useEasyChatHook || useEasyChatEnhanced(patientId, selectedAnatomy);
+  // Require hook to be provided - no fallback to prevent duplicate hook instances
+  if (!useEasyChatHook) {
+    throw new Error('EasyChatInterface requires useEasyChatHook to be provided');
+  }
+  
   const {
     currentQuestion,
     currentSession,
@@ -39,7 +42,7 @@ export const EasyChatInterface = ({
     hasActiveSession,
     hasResponses,
     healthTopics
-  } = hookData;
+  } = useEasyChatHook;
 
   // Local state for text input mode
   const [showTextInput, setShowTextInput] = useState(false);

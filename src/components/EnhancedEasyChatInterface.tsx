@@ -23,6 +23,7 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
     loading,
     startNewSession,
     submitResponse,
+    submitTextResponse,
     getResponseOptions,
     isCompleted,
     hasActiveSession,
@@ -88,19 +89,20 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
           selectedAnatomy={selectedAnatomy}
           onFinish={handleFinishChat}
           onRestart={handleRestartAnalysis}
-            useEasyChatHook={{
-              currentQuestion,
-              currentSession,
-              conversationPath,
-              loading,
-              startNewSession,
-              submitResponse,
-              getResponseOptions,
-              isCompleted,
-              hasActiveSession,
-              hasResponses,
-              responses: []
-            }}
+          useEasyChatHook={{
+            currentQuestion,
+            currentSession,
+            conversationPath,
+            loading,
+            startNewSession,
+            submitResponse,
+            submitTextResponse,
+            getResponseOptions,
+            isCompleted,
+            hasActiveSession,
+            hasResponses,
+            healthTopics
+          }}
         />
         
         <EasyChatCompletionModal
