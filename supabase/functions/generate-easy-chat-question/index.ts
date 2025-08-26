@@ -38,7 +38,7 @@ Generate a relevant health question based on the conversation history and any sp
 Guidelines:
 - Ask one focused follow-up question based on previous responses and body areas mentioned
 - If specific body areas are mentioned, tailor questions to those areas
-- Always include "None of the above" and "I have other concerns as well" as options
+- Always include "I have other concerns as well" as the last option
 - Keep responses under 15 words each
 - Make questions conversational and easy to understand
 - Cover symptoms, timeline, severity, or related concerns
@@ -51,7 +51,6 @@ Return ONLY a JSON object with this structure:
     "Response option 1",
     "Response option 2",
     "...",
-    "None of the above",
     "I have other concerns as well"
   ]
 }`;
@@ -123,7 +122,6 @@ Generate a follow-up question that helps gather more specific health information
         "Sleep problems",
         "Mood or energy changes", 
         "Skin or appearance concerns",
-        "None of the above",
         "I have other concerns as well"
       ]
     };
