@@ -189,7 +189,30 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
       console.log('Session created:', newSessionData);
       setCurrentSession(newSessionData);
 
-      // Start with root questions from database
+      // If anatomy is pre-selected, skip hardcoded questions and go straight to AI-generated ones
+      if (selectedAnatomy && selectedAnatomy.length > 0) {
+        console.log('Anatomy pre-selected, using AI-generated questions from start');
+        const anatomyNames = selectedAnatomy.map(a => 
+          a.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+        ).join(', ');
+        
+        setDynamicQuestion({
+          question: `You've selected ${anatomyNames} as your area of concern. What specific issues are you experiencing in this area?`,
+          options: [
+            "I have pain or discomfort",
+            "I'm feeling unwell or sick", 
+            "I have questions about my health",
+            "I want to discuss test results",
+            "I need preventive care advice",
+            "I have mental health concerns",
+            "I have other concerns as well"
+          ]
+        });
+        setUseDynamicQuestions(true);
+        return;
+      }
+
+      // No anatomy selected, try to use root questions from database
       const { data: rootQuestions, error: rootError } = await supabase
         .from('easy_chat_questions')
         .select('*')
@@ -198,17 +221,9 @@ export const useEasyChat = (patientId?: string, selectedAnatomy?: string[]) => {
 
       if (rootError || !rootQuestions || rootQuestions.length === 0) {
         console.error('Error fetching root questions:', rootError);
-        // Fallback to predefined first question with anatomy context
-        let questionText = "What brings you here today? What's your main health concern?";
-        if (selectedAnatomy && selectedAnatomy.length > 0) {
-          const anatomyNames = selectedAnatomy.map(a => 
-            a.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-          ).join(', ');
-          questionText = `You've indicated concerns about: ${anatomyNames}. What specific issues are you experiencing in these areas?`;
-        }
-
+        // Fallback to general question without anatomy context
         setDynamicQuestion({
-          question: questionText,
+          question: "What brings you here today? What's your main health concern?",
           options: [
             "I have pain or discomfort",
             "I'm feeling unwell or sick", 
