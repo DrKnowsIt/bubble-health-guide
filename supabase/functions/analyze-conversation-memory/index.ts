@@ -109,24 +109,57 @@ serve(async (req) => {
       .map(msg => `${msg.type === 'user' ? 'Patient' : 'AI'}: ${msg.content}`)
       .join('\n');
 
+    // Get patient info to determine if this is a pet
+    const { data: patient, error: patientError } = await supabase
+      .from('users')
+      .select('is_pet')
+      .eq('id', patient_id)
+      .single();
+    
+    if (patientError) {
+      logStep('Error fetching patient info', patientError);
+    }
+    
+    const isPet = patient?.is_pet === true;
+
     logStep('Analyzing conversation for memory extraction', { 
       messageCount: messages.length,
-      hasExistingMemory: !!existingMemory 
+      hasExistingMemory: !!existingMemory,
+      isPet 
     });
 
-    // Memory-focused system prompt based on ai-conversation-rules.json
-    const systemPrompt = `You are a medical conversation memory analyzer. Your job is to extract and update patient memory following these specific rules:
+    // Load appropriate AI conversation rules
+    const rulesFile = isPet ? 'ai-conversation-rules-pets.json' : 'ai-conversation-rules.json';
+    let conversationRules;
+    try {
+      const rulesText = await Deno.readTextFile(rulesFile);
+      conversationRules = JSON.parse(rulesText);
+    } catch (error) {
+      console.error(`Error loading ${rulesFile}:`, error);
+      // Fallback to basic rules
+      conversationRules = {
+        memory_rules: isPet ? [
+          "Save when owner confirms a veterinarian-diagnosed condition or prior medical history",
+          "Save important symptoms the owner mentions—even if they're not the primary concern initially",
+          "Save notable environmental factors, diet details, routine changes, or behavioral patterns that may be medically relevant"
+        ] : [
+          "Save when user confirms a doctor-diagnosed illness or prior medical history", 
+          "Save important symptoms the user mentions—even if they're not focused on them initially",
+          "Save noticeable unhealthy habits that may be medically relevant"
+        ]
+      };
+    }
 
-MEMORY RULES (from ai-conversation-rules.json):
-1. Save when user confirms a doctor-diagnosed illness or prior medical history
-2. Save important symptoms the user mentions—even if they're not focused on them initially
-3. Save noticeable unhealthy habits that may be medically relevant (e.g., sleep deprivation, heavy workload, substance use)
-4. Save any medications, supplements, and recent changes the user is actively taking
-5. Save key negatives when relevant (e.g., 'no chest pain', 'no fever') to avoid repeated questioning
-6. Overwrite outdated memories with newer information
-7. Always timestamp symptoms and medical events
-8. Save stated care preferences (e.g., prefers natural approaches first, anxiety about tests)
-9. Save environmental exposures if potentially relevant (e.g., water/air/occupational notes)
+    // Memory-focused system prompt using loaded rules
+    const memoryRules = conversationRules.memory_rules
+      .map((rule, index) => `${index + 1}. ${rule}`)
+      .join('\n');
+      
+    const entityType = isPet ? 'pet patient' : 'patient';
+    const systemPrompt = `You are a medical conversation memory analyzer. Your job is to extract and update ${entityType} memory following these specific rules:
+
+MEMORY RULES:
+${memoryRules}
 
 CURRENT MEMORY: ${JSON.stringify(existingMemory?.memory || {}, null, 2)}
 

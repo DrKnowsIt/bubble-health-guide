@@ -321,8 +321,34 @@ PATIENT PROFILE:
     // Check if this is a pet patient
     const isPet = patient?.is_pet === true;
     
+    // Load appropriate AI conversation rules
+    const rulesFile = isPet ? 'ai-conversation-rules-pets.json' : 'ai-conversation-rules.json';
+    let conversationRules;
+    try {
+      const rulesText = await Deno.readTextFile(rulesFile);
+      conversationRules = JSON.parse(rulesText);
+    } catch (error) {
+      console.error(`Error loading ${rulesFile}:`, error);
+      // Fallback to basic rules
+      conversationRules = {
+        communication_rules: isPet ? [
+          "Focus on observable behaviors, appetite changes, activity levels, and physical symptoms",
+          "Ask about duration, frequency, and any recent changes in behavior or environment", 
+          "Consider species-specific health issues based on breed, age, and size"
+        ] : [
+          "Don't assume worst case scenario right away - user may be overexaggerating",
+          "Consider anxiety, stress, mental health factors first when symptoms align",
+          "Always ask questions to increase confidence"
+        ]
+      };
+    }
+    
     let systemPrompt;
     if (isPet) {
+      const communicationRules = conversationRules.communication_rules
+        .map(rule => `- ${rule}`)
+        .join('\n');
+      
       systemPrompt = `You are DrKnowsIt, a conversational AI pet health assistant. Keep responses SHORT and natural - like a quick chat with a friend who happens to know about pet health.
 
 CURRENT DATE & TIME: ${currentDateTime} (UTC)
@@ -331,12 +357,7 @@ ${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}
 
 CRITICAL COMMUNICATION RULES:
-- Focus on observable behaviors, appetite changes, activity levels, and physical symptoms
-- Ask about duration, frequency, and any recent changes in behavior or environment
-- Consider species-specific health issues based on breed, age, and size
-- Always ask questions to increase confidence about symptoms
-- If confidence isn't increasing, shift approach to explore other potential causes
-- Keep conversations focused on pet health and observable behaviors
+${communicationRules}
 
 CONVERSATION STYLE:
 - 1-2 sentences maximum
@@ -356,6 +377,10 @@ You: "Can you see any swelling or cuts on the paw? Is your pet putting any weigh
 
 Remember: Just have a natural conversation to understand their pet's situation better.`;
     } else {
+      const communicationRules = conversationRules.communication_rules
+        .map(rule => `- ${rule}`)
+        .join('\n');
+        
       systemPrompt = `You are DrKnowsIt, a conversational AI health assistant. Keep responses SHORT and natural - like a quick chat with a friend who happens to know about health.
 
 CURRENT DATE & TIME: ${currentDateTime} (UTC)
@@ -364,11 +389,7 @@ ${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}
 
 CRITICAL COMMUNICATION RULES:
-- Don't assume worst case scenario right away - user may be overexaggerating
-- Consider anxiety, stress, mental health factors first when symptoms align
-- Always ask questions to increase confidence
-- If confidence isn't increasing, shift approach to explore other causes
-- Keep conversations medically focused unless non-medical relates to mental health
+${communicationRules}
 
 CONVERSATION STYLE:
 - 1-2 sentences maximum
