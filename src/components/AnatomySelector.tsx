@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, ArrowRight, X } from 'lucide-react';
-import humanSilhouette from '@/assets/human-silhouette.png';
 
 interface AnatomySelectorProps {
   onSelectionComplete: (selectedParts: string[]) => void;
@@ -230,7 +229,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             <div className="relative max-w-md mx-auto">
               {/* Base human silhouette image */}
               <img 
-                src={humanSilhouette} 
+                src="/lovable-uploads/018e2d73-bb78-4a90-8608-bc25125cfd88.png" 
                 alt="Human body silhouette" 
                 className="w-full h-auto max-h-[500px] object-contain filter drop-shadow-sm"
                 style={{ maxWidth: '400px' }}
