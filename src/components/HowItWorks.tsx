@@ -56,7 +56,7 @@ export const HowItWorks = () => {
           </div>
 
           {/* Right side - Steps arranged vertically */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             {steps.map((step, index) => (
               <div
                 key={index}
@@ -64,28 +64,28 @@ export const HowItWorks = () => {
               >
                 {/* Vertical Connection Line */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-20 left-8 w-px h-16 bg-border z-0">
+                  <div className="hidden md:block absolute top-16 left-6 w-px h-8 bg-border z-0">
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
                   </div>
                 )}
                 
-                <div className="flex items-start gap-6 medical-card p-6 group-hover:scale-105 transition-all duration-300 relative z-10">
+                <div className="flex items-start gap-4 medical-card p-4 group-hover:scale-105 transition-all duration-300 relative z-10">
                   <div className="shrink-0">
                     <div className="relative">
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
-                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl gradient-bubble text-white group-hover:shadow-elevated transition-shadow">
-                        <step.icon className="h-8 w-8" />
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg gradient-bubble text-white group-hover:shadow-elevated transition-shadow">
+                        <step.icon className="h-6 w-6" />
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
                       {step.title}
                     </h3>
-                    <p className="text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {step.description}
                     </p>
                   </div>
