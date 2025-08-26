@@ -43,7 +43,7 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
               Easy Chat is designed for free users with limited features. You have access to the full AI experience!
             </p>
             <Button 
-              onClick={() => navigate('/dashboard')} 
+              onClick={() => navigate('/dashboard?tab=chat')} 
               className="w-full"
             >
               Go to AI Chat

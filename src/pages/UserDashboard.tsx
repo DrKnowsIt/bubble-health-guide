@@ -22,7 +22,7 @@ import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
 import { EnhancedEasyChatInterface } from '@/components/EnhancedEasyChatInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { PlanSelectionCard } from '@/components/PlanSelectionCard';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -40,18 +40,25 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser } = useUsers();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("easy-chat"); // Default to easy-chat for all users
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   
-  // Update active tab when subscription changes
+  // Update active tab when subscription changes or URL parameters change
   useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
     // Default to easy-chat if no specific tab is selected
     // Users can now access all tabs in free mode
     if (!activeTab) {
       setActiveTab("easy-chat");
     }
-  }, [activeTab]);
+  }, [location.search]);
   const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
