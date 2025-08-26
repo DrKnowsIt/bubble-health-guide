@@ -2,62 +2,49 @@ import { MessageCircle, Mic, FileText, Users, Shield, Zap, CheckCircle } from "l
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserCountBadge } from "@/components/UserCountBadge";
-
-const features = [
-  {
-    icon: MessageCircle,
-    title: "AI-Powered Health Analysis",
-    description: "Advanced AI analyzes your symptoms and health concerns using the latest medical knowledge, providing personalized insights for both human and pet health to help you communicate more effectively with healthcare providers.",
-    highlight: "Basic+",
-    benefits: ["Smart symptom analysis", "Evidence-based insights", "Personalized recommendations"]
-  },
-  {
-    icon: Mic,
-    title: "Multi-Modal Intelligence",
-    description: "Communicate through text or voice. Speak your concerns naturally or type detailed descriptions - DrKnowsIt understands both and provides comprehensive analysis tailored to your communication style.",
-    highlight: "Pro Only",
-    benefits: ["Advanced voice recognition", "Natural speech processing", "Text & voice input"]
-  },
-  {
-    icon: FileText,
-    title: "Smart Health Profiles",
-    description: "Automatically builds detailed health histories for your entire family and pets, tracking patterns, medications, and symptoms over time to provide better context for healthcare visits.",
-    highlight: "Pro Only",
-    benefits: ["Pattern recognition", "Medication tracking", "Family & pet profiles"]
-  },
-  {
-    icon: Users,
-    title: "Appointment Optimizer",
-    description: "Generates professional, organized summaries and targeted questions for your healthcare visits. Ensures you maximize your limited appointment time and don't forget crucial details.",
-    highlight: "Basic+",
-    benefits: ["Professional summaries", "Targeted questions", "Visit preparation"]
-  },
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Bank-level encryption protects your health data. Your conversations remain private with zero data sharing. All processing happens securely within our protected infrastructure.",
-    highlight: "Basic+",
-    benefits: ["Bank-level encryption", "Private conversations", "Secure infrastructure"]
-  },
-  {
-    icon: Zap,
-    title: "Contextual Memory",
-    description: "DrKnowsIt remembers your health journey, connecting past conversations to provide more relevant insights. No need to repeat your medical history - it builds on previous discussions.",
-    highlight: "Pro Only",
-    benefits: ["Conversation memory", "Connected insights", "Evolving understanding"]
-  }
-];
-
-
+const features = [{
+  icon: MessageCircle,
+  title: "AI-Powered Health Analysis",
+  description: "Advanced AI analyzes your symptoms and health concerns using the latest medical knowledge, providing personalized insights for both human and pet health to help you communicate more effectively with healthcare providers.",
+  highlight: "Basic+",
+  benefits: ["Smart symptom analysis", "Evidence-based insights", "Personalized recommendations"]
+}, {
+  icon: Mic,
+  title: "Multi-Modal Intelligence",
+  description: "Communicate through text or voice. Speak your concerns naturally or type detailed descriptions - DrKnowsIt understands both and provides comprehensive analysis tailored to your communication style.",
+  highlight: "Pro Only",
+  benefits: ["Advanced voice recognition", "Natural speech processing", "Text & voice input"]
+}, {
+  icon: FileText,
+  title: "Smart Health Profiles",
+  description: "Automatically builds detailed health histories for your entire family and pets, tracking patterns, medications, and symptoms over time to provide better context for healthcare visits.",
+  highlight: "Pro Only",
+  benefits: ["Pattern recognition", "Medication tracking", "Family & pet profiles"]
+}, {
+  icon: Users,
+  title: "Appointment Optimizer",
+  description: "Generates professional, organized summaries and targeted questions for your healthcare visits. Ensures you maximize your limited appointment time and don't forget crucial details.",
+  highlight: "Basic+",
+  benefits: ["Professional summaries", "Targeted questions", "Visit preparation"]
+}, {
+  icon: Shield,
+  title: "Enterprise Security",
+  description: "Bank-level encryption protects your health data. Your conversations remain private with zero data sharing. All processing happens securely within our protected infrastructure.",
+  highlight: "Basic+",
+  benefits: ["Bank-level encryption", "Private conversations", "Secure infrastructure"]
+}, {
+  icon: Zap,
+  title: "Contextual Memory",
+  description: "DrKnowsIt remembers your health journey, connecting past conversations to provide more relevant insights. No need to repeat your medical history - it builds on previous discussions.",
+  highlight: "Pro Only",
+  benefits: ["Conversation memory", "Connected insights", "Evolving understanding"]
+}];
 export const Features = () => {
-  return (
-    <section id="features" className="py-20 bg-gradient-to-b from-background to-muted/30">
+  return <section id="features" className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <Badge variant="outline" className="mb-4 px-4 py-2 text-sm font-medium">
-            🚀 Coming Soon
-          </Badge>
+          
           <h2 className="text-4xl font-bold text-foreground sm:text-5xl mb-6 gradient-text">
             Why Choose DrKnowsIt?
           </h2>
@@ -70,12 +57,9 @@ export const Features = () => {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <Card
-              key={index}
-              className="group hover-scale animate-fade-in bg-card/95 backdrop-blur shadow-card hover:shadow-elevated transition-all duration-300"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+          {features.map((feature, index) => <Card key={index} className="group hover-scale animate-fade-in bg-card/95 backdrop-blur shadow-card hover:shadow-elevated transition-all duration-300" style={{
+          animationDelay: `${index * 0.1}s`
+        }}>
               <CardContent className="p-8">
                 {/* Icon and Badge */}
                 <div className="flex items-start justify-between mb-6">
@@ -97,16 +81,13 @@ export const Features = () => {
 
                 {/* Benefits */}
                 <div className="space-y-2">
-                  {feature.benefits.map((benefit, benefitIndex) => (
-                    <div key={benefitIndex} className="flex items-center text-sm text-muted-foreground">
+                  {feature.benefits.map((benefit, benefitIndex) => <div key={benefitIndex} className="flex items-center text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-accent mr-2 flex-shrink-0" />
                       {benefit}
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
 
         {/* Call to Action */}
@@ -138,6 +119,5 @@ export const Features = () => {
           </Card>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
