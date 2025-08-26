@@ -110,13 +110,13 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
       const userData = {
         first_name: formData.first_name,
         last_name: memberType === 'pet' ? '' : formData.last_name,
-        date_of_birth: formData.date_of_birth,
-        gender: formData.gender,
+        date_of_birth: formData.date_of_birth && formData.date_of_birth.trim() !== '' ? formData.date_of_birth : null,
+        gender: formData.gender || null,
         relationship: memberType === 'pet' ? 'pet' : formData.relationship,
         is_primary: false,
         is_pet: memberType === 'pet',
-        species: memberType === 'pet' ? formData.species : undefined,
-        breed: memberType === 'pet' ? formData.breed : undefined,
+        species: memberType === 'pet' ? formData.species || null : null,
+        breed: memberType === 'pet' ? formData.breed || null : null,
       };
 
       await createUser(userData);

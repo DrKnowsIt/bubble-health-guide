@@ -75,7 +75,7 @@ export const UserDropdown = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-background border-border z-[100]" align="start">
+      <PopoverContent className="w-full p-0 bg-popover border-border z-[200] shadow-lg" align="start">
         <Command className="bg-background">
           <CommandInput placeholder="Search users..." />
           <CommandList>
