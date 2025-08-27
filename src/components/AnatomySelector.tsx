@@ -15,8 +15,7 @@ interface BodyPart {
   displayName: string;
   description: string;
   includes: string[];
-  position: { x: number; y: number; width: number; height: number }; // Rectangle position and size (percentages of container)
-  transform: { rotation: number; scaleX: number; scaleY: number }; // Transform properties
+  position: { x: number; y: number; radius: number }; // Circle position and size (percentages of container)
 }
 
 const bodyParts: BodyPart[] = [
@@ -26,8 +25,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Head & Neck',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine'],
-    position: { x: 37, y: 8, width: 15, height: 12 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
+    position: { x: 44, y: 14, radius: 8 }
   },
   {
     id: 'chest',
@@ -35,8 +33,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Chest',
     description: 'The chest area includes the upper torso, ribcage, and organs within the thoracic cavity.',
     includes: ['Upper chest', 'Lower chest', 'Ribs', 'Sternum', 'Heart area', 'Lung area', 'Breast area', 'Intercostal muscles'],
-    position: { x: 35, y: 25, width: 20, height: 15 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
+    position: { x: 45, y: 32, radius: 10 }
   },
   {
     id: 'abdomen',
@@ -44,8 +41,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Abdomen',
     description: 'The abdominal region contains digestive organs and extends from below the ribs to the pelvis.',
     includes: ['Upper abdomen', 'Lower abdomen', 'Stomach area', 'Sides (flanks)', 'Navel area', 'Digestive organs', 'Abdominal muscles'],
-    position: { x: 35, y: 42, width: 20, height: 15 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
+    position: { x: 45, y: 49, radius: 10 }
   },
   {
     id: 'pelvis',
@@ -53,175 +49,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Pelvis & Hips',
     description: 'The pelvic region includes the hip bones, reproductive organs, and lower abdominal structures.',
     includes: ['Hip bones', 'Groin area', 'Reproductive organs', 'Bladder area', 'Lower back connection', 'Pelvic muscles'],
-    position: { x: 35, y: 58, width: 20, height: 12 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  // Right side (viewer's left)
-  {
-    id: 'right_shoulder',
-    name: 'right_shoulder',
-    displayName: 'Right Shoulder',
-    description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
-    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
-    position: { x: 20, y: 22, width: 12, height: 10 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_upper_arm',
-    name: 'right_upper_arm',
-    displayName: 'Right Upper Arm',
-    description: 'The upper portion of the arm between the shoulder and elbow.',
-    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
-    position: { x: 15, y: 32, width: 10, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_forearm',
-    name: 'right_forearm',
-    displayName: 'Right Forearm',
-    description: 'The lower arm between the elbow and wrist, containing two main bones.',
-    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
-    position: { x: 8, y: 50, width: 8, height: 16 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_hand',
-    name: 'right_hand',
-    displayName: 'Right Hand',
-    description: 'The hand including fingers, thumb, palm, and wrist connection.',
-    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
-    position: { x: 5, y: 66, width: 8, height: 10 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  // Left side (viewer's right)
-  {
-    id: 'left_shoulder',
-    name: 'left_shoulder',
-    displayName: 'Left Shoulder',
-    description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
-    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
-    position: { x: 58, y: 22, width: 12, height: 10 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_upper_arm',
-    name: 'left_upper_arm',
-    displayName: 'Left Upper Arm',
-    description: 'The upper portion of the arm between the shoulder and elbow.',
-    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
-    position: { x: 65, y: 32, width: 10, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_forearm',
-    name: 'left_forearm',
-    displayName: 'Left Forearm',
-    description: 'The lower arm between the elbow and wrist, containing two main bones.',
-    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
-    position: { x: 74, y: 50, width: 8, height: 16 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_hand',
-    name: 'left_hand',
-    displayName: 'Left Hand',
-    description: 'The hand including fingers, thumb, palm, and wrist connection.',
-    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
-    position: { x: 77, y: 66, width: 8, height: 10 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  // Right leg (viewer's left)
-  {
-    id: 'right_thigh',
-    name: 'right_thigh',
-    displayName: 'Right Thigh',
-    description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
-    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
-    position: { x: 38, y: 72, width: 8, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_knee',
-    name: 'right_knee',
-    displayName: 'Right Knee',
-    description: 'The knee joint connecting the thigh and lower leg bones.',
-    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
-    position: { x: 38, y: 90, width: 8, height: 6 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_shin',
-    name: 'right_shin',
-    displayName: 'Right Shin',
-    description: 'The lower leg between the knee and ankle, containing two main bones.',
-    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
-    position: { x: 38, y: 96, width: 8, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'right_foot',
-    name: 'right_foot',
-    displayName: 'Right Foot',
-    description: 'The foot including toes, arch, heel, and ankle connection.',
-    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
-    position: { x: 35, y: 114, width: 12, height: 8 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  // Left leg (viewer's right)
-  {
-    id: 'left_thigh',
-    name: 'left_thigh',
-    displayName: 'Left Thigh',
-    description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
-    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
-    position: { x: 44, y: 72, width: 8, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_knee',
-    name: 'left_knee',
-    displayName: 'Left Knee',
-    description: 'The knee joint connecting the thigh and lower leg bones.',
-    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
-    position: { x: 44, y: 90, width: 8, height: 6 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_shin',
-    name: 'left_shin',
-    displayName: 'Left Shin',
-    description: 'The lower leg between the knee and ankle, containing two main bones.',
-    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
-    position: { x: 44, y: 96, width: 8, height: 18 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'left_foot',
-    name: 'left_foot',
-    displayName: 'Left Foot',
-    description: 'The foot including toes, arch, heel, and ankle connection.',
-    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
-    position: { x: 43, y: 114, width: 12, height: 8 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  // Back areas 
-  {
-    id: 'upper_back',
-    name: 'upper_back',
-    displayName: 'Upper Back',
-    description: 'The upper portion of the back including shoulder blades and upper spine.',
-    includes: ['Shoulder blades', 'Upper spine', 'Thoracic vertebrae', 'Upper back muscles', 'Rhomboids', 'Latissimus dorsi'],
-    position: { x: 30, y: 28, width: 25, height: 15 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
-  },
-  {
-    id: 'lower_back',
-    name: 'lower_back',
-    displayName: 'Lower Back',
-    description: 'The lower portion of the back including the lumbar spine and surrounding muscles.',
-    includes: ['Lumbar spine', 'Lower back muscles', 'Lumbar vertebrae', 'Sacrum', 'Hip connection', 'Core muscles'],
-    position: { x: 30, y: 45, width: 25, height: 15 },
-    transform: { rotation: 0, scaleX: 1, scaleY: 1 }
+    position: { x: 45, y: 64, radius: 10 }
   }
 ];
 
@@ -231,10 +59,11 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [bodyPartsState, setBodyPartsState] = useState(() => 
     bodyParts.map(part => ({ ...part }))
   );
-  const [activeHandle, setActiveHandle] = useState<{ partId: string; type: 'drag' | 'resize' | 'rotate'; corner?: string } | null>(null);
+  const [activeHandle, setActiveHandle] = useState<{ partId: string; type: 'drag' | 'resize' } | null>(null);
   const [showDebug, setShowDebug] = useState(true);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number; partX: number; partY: number; partWidth?: number; partHeight?: number; partRotation?: number } | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; partX: number; partY: number; partRadius?: number } | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleCircleClick = (partId: string) => {
     if (!activeHandle) {
@@ -242,31 +71,48 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent, partId: string, handleType: 'drag' | 'resize' | 'rotate', corner?: string) => {
+  const handleMouseDown = (e: React.MouseEvent, partId: string, handleType: 'drag' | 'resize') => {
     e.stopPropagation();
     const part = bodyPartsState.find(p => p.id === partId);
     if (!part) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const containerRect = (e.currentTarget.closest('.relative') as HTMLElement)?.getBoundingClientRect();
-    if (!containerRect) return;
-
-    setActiveHandle({ partId, type: handleType, corner });
+    setActiveHandle({ partId, type: handleType });
     setDragStart({
       x: e.clientX,
       y: e.clientY,
       partX: part.position.x,
       partY: part.position.y,
-      partWidth: part.position.width,
-      partHeight: part.position.height,
-      partRotation: part.transform.rotation
+      partRadius: part.position.radius
     });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!activeHandle || !dragStart || !imageRef.current) return;
+  const handleImageClick = (e: React.MouseEvent) => {
+    if (activeHandle) return; // Don't add new circles while dragging
+    
+    if (!overlayRef.current) return;
+    const rect = overlayRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Create a new body part
+    const newId = `custom_${Date.now()}`;
+    const newPart: BodyPart = {
+      id: newId,
+      name: newId,
+      displayName: `Custom Area ${bodyPartsState.length + 1}`,
+      description: 'Custom selected area',
+      includes: ['Custom area'],
+      position: { x, y, radius: 5 }
+    };
+    
+    setBodyPartsState(prev => [...prev, newPart]);
+    setSelectedParts(prev => [...prev, newId]);
+  };
 
-    const containerRect = imageRef.current.getBoundingClientRect();
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!activeHandle || !dragStart || !overlayRef.current) return;
+
+    const containerRect = overlayRef.current.getBoundingClientRect();
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
     
@@ -283,33 +129,18 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             ...part,
             position: {
               ...part.position,
-              x: Math.max(0, Math.min(85, dragStart.partX + deltaXPercent)), // Leave some margin at edges
-              y: Math.max(0, Math.min(85, dragStart.partY + deltaYPercent))
+              x: Math.max(5, Math.min(95, dragStart.partX + deltaXPercent)),
+              y: Math.max(5, Math.min(95, dragStart.partY + deltaYPercent))
             }
           };
 
         case 'resize':
-          const scaleFactorX = 1 + (deltaX / 200); // More reasonable scaling
-          const scaleFactorY = 1 + (deltaY / 200);
+          const scaleFactor = 1 + (deltaX / 100);
           return {
             ...part,
             position: {
               ...part.position,
-              width: Math.max(2, Math.min(30, (dragStart.partWidth || part.position.width) * scaleFactorX)),
-              height: Math.max(2, Math.min(30, (dragStart.partHeight || part.position.height) * scaleFactorY))
-            }
-          };
-
-        case 'rotate':
-          // Calculate angle from center of the part
-          const partCenterX = containerRect.left + (part.position.x / 100) * containerRect.width + (part.position.width / 100) * containerRect.width / 2;
-          const partCenterY = containerRect.top + (part.position.y / 100) * containerRect.height + (part.position.height / 100) * containerRect.height / 2;
-          const angle = Math.atan2(e.clientY - partCenterY, e.clientX - partCenterX) * (180 / Math.PI);
-          return {
-            ...part,
-            transform: {
-              ...part.transform,
-              rotation: angle
+              radius: Math.max(2, Math.min(20, (dragStart.partRadius || part.position.radius) * scaleFactor))
             }
           };
 
@@ -378,10 +209,12 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   style={{ width: '300px', height: 'auto' }}
                 />
                 
-                {/* Interactive rectangles with handles - matches image dimensions exactly */}
+                {/* Interactive circles - matches image dimensions exactly */}
                 <div 
-                  className="absolute top-0 left-0 pointer-events-none"
+                  ref={overlayRef}
+                  className="absolute top-0 left-0 cursor-crosshair"
                   style={{ width: '300px', height: '600px' }}
+                  onClick={handleImageClick}
                 >
                   {bodyPartsState.map(part => {
                     const isSelected = selectedParts.includes(part.id);
@@ -389,10 +222,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     const isActive = activeHandle?.partId === part.id;
                     
                     return (
-                      <div key={part.id} className="absolute pointer-events-auto">
-                        {/* Main rectangle */}
+                      <div key={part.id} className="absolute">
+                        {/* Main circle */}
                         <div
-                          className={`absolute border-2 transition-all duration-200 cursor-move ${
+                          className={`absolute border-2 transition-all duration-200 cursor-move rounded-full ${
                             isSelected
                               ? 'bg-primary/70 border-primary shadow-lg'
                               : isHovered || isActive
@@ -400,54 +233,38 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                               : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
                           }`}
                           style={{
-                            left: `${part.position.x}%`,
-                            top: `${part.position.y}%`,
-                            width: `${part.position.width}%`,
-                            height: `${part.position.height}%`,
-                            transform: `rotate(${part.transform.rotation}deg) scale(${part.transform.scaleX}, ${part.transform.scaleY})`,
-                            transformOrigin: 'center',
-                            borderRadius: '8px'
+                            left: `${part.position.x - part.position.radius}%`,
+                            top: `${part.position.y - part.position.radius}%`,
+                            width: `${part.position.radius * 2}%`,
+                            height: `${part.position.radius * 2}%`
                           }}
-                          onClick={() => handleCircleClick(part.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCircleClick(part.id);
+                          }}
                           onMouseDown={(e) => handleMouseDown(e, part.id, 'drag')}
                           onMouseEnter={() => setHoveredPart(part.id)}
                           onMouseLeave={() => setHoveredPart(null)}
                           title={part.displayName}
                         >
-                          {/* Resize handles (show when selected or active) */}
+                          {/* Resize handle (show when selected or active) */}
                           {(isSelected || isActive) && (
-                            <>
-                              {/* Corner resize handles */}
-                              <div 
-                                className="absolute w-3 h-3 bg-primary border-2 border-background rounded-full cursor-nw-resize -top-1 -left-1"
-                                onMouseDown={(e) => handleMouseDown(e, part.id, 'resize', 'nw')}
-                              />
-                              <div 
-                                className="absolute w-3 h-3 bg-primary border-2 border-background rounded-full cursor-ne-resize -top-1 -right-1"
-                                onMouseDown={(e) => handleMouseDown(e, part.id, 'resize', 'ne')}
-                              />
-                              <div 
-                                className="absolute w-3 h-3 bg-primary border-2 border-background rounded-full cursor-sw-resize -bottom-1 -left-1"
-                                onMouseDown={(e) => handleMouseDown(e, part.id, 'resize', 'sw')}
-                              />
-                              <div 
-                                className="absolute w-3 h-3 bg-primary border-2 border-background rounded-full cursor-se-resize -bottom-1 -right-1"
-                                onMouseDown={(e) => handleMouseDown(e, part.id, 'resize', 'se')}
-                              />
-                              
-                              {/* Rotation handle */}
-                              <div 
-                                className="absolute w-4 h-4 bg-green-500 border-2 border-background rounded-full cursor-pointer"
-                                style={{ top: '-20px', left: '50%', transform: 'translateX(-50%)' }}
-                                onMouseDown={(e) => handleMouseDown(e, part.id, 'rotate')}
-                                title="Rotate"
-                              />
-                              
-                              {/* Part label */}
-                              <div className="absolute top-0 left-0 bg-background/90 text-foreground text-xs px-1 rounded transform -translate-y-full whitespace-nowrap">
-                                {part.displayName}
-                              </div>
-                            </>
+                            <div
+                              className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full cursor-pointer"
+                              style={{ bottom: '-6px', right: '-6px' }}
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                handleMouseDown(e, part.id, 'resize');
+                              }}
+                              title="Resize"
+                            />
+                          )}
+                          
+                          {/* Part label */}
+                          {(isSelected || isHovered || isActive) && (
+                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                              {part.displayName}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -459,7 +276,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {showDebug && (
                   <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur p-4 rounded-lg border shadow-lg max-h-96 overflow-y-auto w-80">
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="font-semibold text-sm">Debug Panel</h3>
+                      <h3 className="font-semibold text-sm">Debug Panel (Circles)</h3>
                       <button 
                         onClick={() => setShowDebug(false)}
                         className="text-xs bg-muted px-2 py-1 rounded hover:bg-muted/80"
@@ -469,21 +286,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     </div>
                     
                     <div className="space-y-2 text-xs">
-                      <div className="mb-2">
-                        <button 
-                          onClick={() => {
-                            console.log('=== ANATOMY SELECTOR DEBUG DATA ===');
-                            bodyPartsState.forEach(part => {
-                              console.log(`${part.id}:`, {
-                                position: part.position,
-                                transform: part.transform
-                              });
-                            });
-                          }}
-                          className="bg-primary text-primary-foreground px-2 py-1 rounded text-xs hover:bg-primary/90"
-                        >
-                          Log All Positions
-                        </button>
+                      <div className="mb-2 text-gray-600">
+                        Click anywhere on the body image to place a new circle
                       </div>
                       
                       {bodyPartsState.map(part => (
@@ -492,13 +296,19 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                         }`}>
                           <div className="font-medium">{part.displayName}</div>
                           <div className="text-muted-foreground">
-                            <div>x: {part.position.x.toFixed(1)}%, y: {part.position.y.toFixed(1)}%</div>
-                            <div>w: {part.position.width.toFixed(1)}%, h: {part.position.height.toFixed(1)}%</div>
-                            <div>rotation: {part.transform.rotation.toFixed(1)}°</div>
-                            <div>scale: {part.transform.scaleX.toFixed(2)}, {part.transform.scaleY.toFixed(2)}</div>
+                            <div>Center: ({part.position.x.toFixed(1)}%, {part.position.y.toFixed(1)}%)</div>
+                            <div>Radius: {part.position.radius.toFixed(1)}%</div>
                           </div>
                         </div>
                       ))}
+                      
+                      {activeHandle && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
+                          <div><strong>Active Handle:</strong></div>
+                          <div>Part: {activeHandle.partId}</div>
+                          <div>Type: {activeHandle.type}</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
