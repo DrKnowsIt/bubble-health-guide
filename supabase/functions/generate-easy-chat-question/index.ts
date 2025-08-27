@@ -48,6 +48,7 @@ Analysis Process:
 2. Identify what important information is still missing
 3. Generate a natural follow-up question that explores new territory
 4. Avoid repeating or rephrasing previous questions
+5. IMPORTANT: If specific body areas are mentioned in the context (e.g., "Body areas of interest: head, neck"), DO NOT ask about location - the location is already known. Instead, focus on symptoms, timing, severity, triggers, or other relevant aspects.
 
 Response Format - Return ONLY valid JSON:
 {
