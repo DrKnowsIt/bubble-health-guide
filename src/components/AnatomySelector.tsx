@@ -389,10 +389,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                               : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
                           }`}
                           style={{
-                            left: `${part.position.x * 3}px`,
-                            top: `${part.position.y * 4}px`,
-                            width: `${part.position.width * 3}px`,
-                            height: `${part.position.height * 3}px`,
+                            left: `${part.position.x * 1.5}px`,
+                            top: `${part.position.y * 2}px`,
+                            width: `${part.position.width}px`,
+                            height: `${part.position.height}px`,
                             transform: `rotate(${part.transform.rotation}deg) scale(${part.transform.scaleX}, ${part.transform.scaleY})`,
                             transformOrigin: 'center',
                             borderRadius: '8px'
