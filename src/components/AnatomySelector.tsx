@@ -26,6 +26,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     { id: '2', name: 'Neck', x: 39.67, y: 17, width: 20, height: 5, rotation: 0 },
     { id: '3', name: 'Upper Torso', x: 39, y: 22.33, width: 22, height: 16.78, rotation: 0 },
     { id: '4', name: 'Lower Torso', x: 36.67, y: 39.22, width: 26, height: 13.67, rotation: 0 },
+    { id: '25', name: 'Mid Torso', x: 38, y: 35, width: 24, height: 6, rotation: 0 },
     { id: '5', name: 'Left Shoulder', x: 61, y: 19.67, width: 10.33, height: 7, rotation: 0 },
     { id: '6', name: 'Right Shoulder', x: 28.67, y: 19.67, width: 10.33, height: 7, rotation: 0 },
     { id: '7', name: 'Left Upper Arm', x: 63.83, y: 26.67, width: 8, height: 12, rotation: 0 },
