@@ -206,7 +206,6 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [currentView, setCurrentView] = useState<ViewType>('front');
   const [imageDimensions, setImageDimensions] = useState({ width: 300, height: 600 });
   const imageRef = useRef<HTMLImageElement>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const updateImageDimensions = () => {
@@ -238,33 +237,6 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const toggleView = () => {
     setCurrentView(prev => prev === 'front' ? 'back' : 'front');
   };
-
-  // Debounced hover handlers to prevent rapid switching
-  const handleMouseEnter = useCallback((partId: string) => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    setHoveredPart(partId);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    // Add small delay before clearing to prevent rapid flickering
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredPart(null);
-    }, 100);
-  }, []);
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
     <ScrollArea className="h-full">
@@ -327,8 +299,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                             height: `${part.height}%`,
                           }}
                           onClick={() => toggleBodyPart(part.id)}
-                          onMouseEnter={() => handleMouseEnter(part.id)}
-                          onMouseLeave={handleMouseLeave}
+                          onMouseEnter={() => setHoveredPart(part.id)}
+                          onMouseLeave={() => setHoveredPart(null)}
                         >
                           {/* Part label */}
                           {(isSelected || isHovered) && (
