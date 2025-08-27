@@ -253,7 +253,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-[400px,1fr] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[400px,320px] gap-6 justify-start">
               {/* Left Column - Body Image */}
               <div className="flex justify-center">
                 <div className="relative inline-block">
