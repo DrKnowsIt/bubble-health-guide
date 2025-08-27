@@ -13,363 +13,201 @@ interface BodyPart {
   id: string;
   name: string;
   displayName: string;
-  maskImage?: string; // PNG mask for click detection
   description: string;
   includes: string[];
+  position: { x: number; y: number; size: number }; // Circle position and size (percentages)
 }
 
 const bodyParts: BodyPart[] = [
-  // Head and neck region - Using PNG mask
   {
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    maskImage: '/lovable-uploads/d33da18e-c6a7-4cc0-a3df-aed4a46e3a6e.png',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
-    includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
+    includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine'],
+    position: { x: 50, y: 15, size: 8 }
   },
-  
-  // Other body parts (we'll add PNG masks for these later)
   {
     id: 'chest',
     name: 'chest', 
     displayName: 'Chest',
     description: 'The chest area includes the upper torso, ribcage, and organs within the thoracic cavity.',
-    includes: ['Upper chest', 'Lower chest', 'Ribs', 'Sternum', 'Heart area', 'Lung area', 'Breast area', 'Intercostal muscles']
+    includes: ['Upper chest', 'Lower chest', 'Ribs', 'Sternum', 'Heart area', 'Lung area', 'Breast area', 'Intercostal muscles'],
+    position: { x: 50, y: 35, size: 10 }
   },
   {
     id: 'abdomen',
     name: 'abdomen',
     displayName: 'Abdomen',
     description: 'The abdominal region contains digestive organs and extends from below the ribs to the pelvis.',
-    includes: ['Upper abdomen', 'Lower abdomen', 'Stomach area', 'Sides (flanks)', 'Navel area', 'Digestive organs', 'Abdominal muscles']
+    includes: ['Upper abdomen', 'Lower abdomen', 'Stomach area', 'Sides (flanks)', 'Navel area', 'Digestive organs', 'Abdominal muscles'],
+    position: { x: 50, y: 55, size: 8 }
   },
   {
     id: 'pelvis',
     name: 'pelvis',
     displayName: 'Pelvis & Hips',
     description: 'The pelvic region includes the hip bones, reproductive organs, and lower abdominal structures.',
-    includes: ['Hip bones', 'Groin area', 'Reproductive organs', 'Bladder area', 'Lower back connection', 'Pelvic muscles']
+    includes: ['Hip bones', 'Groin area', 'Reproductive organs', 'Bladder area', 'Lower back connection', 'Pelvic muscles'],
+    position: { x: 50, y: 70, size: 7 }
   },
-
-  // Arms - Right (viewer's left)
+  // Right side (viewer's left)
   {
     id: 'right_shoulder',
     name: 'right_shoulder',
     displayName: 'Right Shoulder',
     description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
-    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle']
+    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
+    position: { x: 25, y: 32, size: 6 }
   },
   {
     id: 'right_upper_arm',
     name: 'right_upper_arm',
     displayName: 'Right Upper Arm',
     description: 'The upper portion of the arm between the shoulder and elbow.',
-    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area']
+    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
+    position: { x: 15, y: 45, size: 5 }
   },
   {
     id: 'right_forearm',
     name: 'right_forearm',
     displayName: 'Right Forearm',
     description: 'The lower arm between the elbow and wrist, containing two main bones.',
-    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection']
+    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
+    position: { x: 10, y: 60, size: 4 }
   },
   {
     id: 'right_hand',
     name: 'right_hand',
     displayName: 'Right Hand',
     description: 'The hand including fingers, thumb, palm, and wrist connection.',
-    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons']
+    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
+    position: { x: 8, y: 72, size: 3 }
   },
-
-  // Arms - Left (viewer's right)
+  // Left side (viewer's right)
   {
     id: 'left_shoulder',
     name: 'left_shoulder',
     displayName: 'Left Shoulder',
     description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
-    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle']
+    includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
+    position: { x: 75, y: 32, size: 6 }
   },
   {
     id: 'left_upper_arm',
     name: 'left_upper_arm',
     displayName: 'Left Upper Arm',
     description: 'The upper portion of the arm between the shoulder and elbow.',
-    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area']
+    includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
+    position: { x: 85, y: 45, size: 5 }
   },
   {
     id: 'left_forearm',
     name: 'left_forearm',
     displayName: 'Left Forearm',
     description: 'The lower arm between the elbow and wrist, containing two main bones.',
-    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection']
+    includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
+    position: { x: 90, y: 60, size: 4 }
   },
   {
     id: 'left_hand',
     name: 'left_hand',
     displayName: 'Left Hand',
     description: 'The hand including fingers, thumb, palm, and wrist connection.',
-    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons']
+    includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
+    position: { x: 92, y: 72, size: 3 }
   },
-
-  // Legs - Right (viewer's left)
+  // Right leg (viewer's left)
   {
     id: 'right_thigh',
     name: 'right_thigh',
     displayName: 'Right Thigh',
     description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
-    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles']
+    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
+    position: { x: 42, y: 78, size: 6 }
   },
   {
     id: 'right_knee',
     name: 'right_knee',
     displayName: 'Right Knee',
     description: 'The knee joint connecting the thigh and lower leg bones.',
-    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles']
+    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
+    position: { x: 42, y: 85, size: 4 }
   },
   {
     id: 'right_shin',
     name: 'right_shin',
     displayName: 'Right Shin',
     description: 'The lower leg between the knee and ankle, containing two main bones.',
-    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons']
+    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
+    position: { x: 42, y: 92, size: 5 }
   },
   {
     id: 'right_foot',
     name: 'right_foot',
     displayName: 'Right Foot',
     description: 'The foot including toes, arch, heel, and ankle connection.',
-    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones']
+    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
+    position: { x: 42, y: 98, size: 3 }
   },
-
-  // Legs - Left (viewer's right)
+  // Left leg (viewer's right)
   {
     id: 'left_thigh',
     name: 'left_thigh',
     displayName: 'Left Thigh',
     description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
-    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles']
+    includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
+    position: { x: 58, y: 78, size: 6 }
   },
   {
     id: 'left_knee',
     name: 'left_knee',
     displayName: 'Left Knee',
     description: 'The knee joint connecting the thigh and lower leg bones.',
-    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles']
+    includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
+    position: { x: 58, y: 85, size: 4 }
   },
   {
     id: 'left_shin',
     name: 'left_shin',
     displayName: 'Left Shin',
     description: 'The lower leg between the knee and ankle, containing two main bones.',
-    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons']
+    includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
+    position: { x: 58, y: 92, size: 5 }
   },
   {
     id: 'left_foot',
     name: 'left_foot',
     displayName: 'Left Foot',
     description: 'The foot including toes, arch, heel, and ankle connection.',
-    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones']
+    includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
+    position: { x: 58, y: 98, size: 3 }
   },
-
-  // Back areas (conceptual for front-view)
+  // Back areas 
   {
     id: 'upper_back',
     name: 'upper_back',
     displayName: 'Upper Back',
     description: 'The upper portion of the back including shoulder blades and upper spine.',
-    includes: ['Shoulder blades', 'Upper spine', 'Thoracic vertebrae', 'Upper back muscles', 'Rhomboids', 'Latissimus dorsi']
+    includes: ['Shoulder blades', 'Upper spine', 'Thoracic vertebrae', 'Upper back muscles', 'Rhomboids', 'Latissimus dorsi'],
+    position: { x: 20, y: 25, size: 4 }
   },
   {
     id: 'lower_back',
     name: 'lower_back',
     displayName: 'Lower Back',
     description: 'The lower portion of the back including the lumbar spine and surrounding muscles.',
-    includes: ['Lumbar spine', 'Lower back muscles', 'Lumbar vertebrae', 'Sacrum', 'Hip connection', 'Core muscles']
+    includes: ['Lumbar spine', 'Lower back muscles', 'Lumbar vertebrae', 'Sacrum', 'Hip connection', 'Core muscles'],
+    position: { x: 80, y: 25, size: 4 }
   }
 ];
 
 export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) => {
   const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const [maskImages, setMaskImages] = useState<Map<string, HTMLImageElement>>(new Map());
-  const [isImagesLoaded, setIsImagesLoaded] = useState(false);
-  const [baseImageLoaded, setBaseImageLoaded] = useState(false);
 
-  // Load mask images
-  useEffect(() => {
-    const loadMaskImages = async () => {
-      const newMaskImages = new Map<string, HTMLImageElement>();
-      let loadedCount = 0;
-      let totalWithMasks = 0;
-      
-      for (const part of bodyParts) {
-        if (part.maskImage) {
-          totalWithMasks++;
-          console.log(`🔄 Loading mask for ${part.id}:`, part.maskImage);
-          const img = new Image();
-          
-          try {
-            await new Promise((resolve, reject) => {
-              img.onload = () => {
-                console.log(`✅ Mask loaded successfully for ${part.id}`);
-                resolve(undefined);
-              };
-              img.onerror = (e) => {
-                console.error(`❌ Failed to load mask for ${part.id}:`, e);
-                reject(e);
-              };
-              img.src = part.maskImage!;
-            });
-            
-            newMaskImages.set(part.id, img);
-            loadedCount++;
-          } catch (error) {
-            console.error(`❌ Error loading mask for ${part.id}:`, error);
-            // Continue loading other masks even if one fails
-          }
-        }
-      }
-      
-      console.log(`📊 Masks loaded: ${loadedCount}/${totalWithMasks}`);
-      setMaskImages(newMaskImages);
-      
-      // Set as loaded even if some masks failed - show canvas with available masks
-      setIsImagesLoaded(true);
-    };
-
-    loadMaskImages().catch((error) => {
-      console.error('❌ Critical error in mask loading:', error);
-      // Still set as loaded to show the base image at least
-      setIsImagesLoaded(true);
-    });
-  }, []);
-
-  // Handle base image loading
-  useEffect(() => {
-    const img = imageRef.current;
-    if (!img) return;
-
-    const handleLoad = () => {
-      console.log('Base image loaded successfully');
-      setBaseImageLoaded(true);
-    };
-    
-    const handleError = (e: Event) => {
-      console.error('Failed to load base image:', e);
-      setBaseImageLoaded(false);
-    };
-
-    img.addEventListener('load', handleLoad);
-    img.addEventListener('error', handleError);
-
-    // If image is already loaded
-    if (img.complete && img.naturalWidth > 0) {
-      handleLoad();
-    }
-
-    return () => {
-      img.removeEventListener('load', handleLoad);
-      img.removeEventListener('error', handleError);
-    };
-  }, []);
-
-  // Update canvas when images load or selection changes
-  useEffect(() => {
-    console.log('🎨 Canvas update check:', {
-      isImagesLoaded,
-      baseImageLoaded,
-      hasCanvas: !!canvasRef.current,
-      hasImage: !!imageRef.current,
-      maskCount: maskImages.size
-    });
-    
-    if (!baseImageLoaded || !canvasRef.current || !imageRef.current) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const baseImage = imageRef.current;
-    canvas.width = baseImage.naturalWidth;
-    canvas.height = baseImage.naturalHeight;
-    
-    // Clear and draw base image
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(baseImage, 0, 0);
-
-    // Draw mask overlays for selected and hovered parts
-    maskImages.forEach((maskImg, partId) => {
-      const isSelected = selectedParts.includes(partId);
-      const isHovered = hoveredPart === partId;
-      
-      if (isSelected || isHovered) {
-        // Save current state
-        ctx.save();
-        
-        // Set transparency and color
-        ctx.globalAlpha = isSelected ? 0.7 : 0.4;
-        
-        // Create a temporary canvas for the colored mask
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        if (!tempCtx) return;
-        
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        
-        // Draw mask to temp canvas
-        tempCtx.drawImage(maskImg, 0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Color the mask
-        tempCtx.globalCompositeOperation = 'source-in';
-        tempCtx.fillStyle = '#3b82f6'; // Primary blue color
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Draw the colored mask to main canvas
-        ctx.drawImage(tempCanvas, 0, 0);
-        
-        // Restore state
-        ctx.restore();
-      }
-    });
-  }, [selectedParts, hoveredPart, isImagesLoaded, baseImageLoaded, maskImages]);
-
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !imageRef.current) return;
-
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
-
-    // Check which body part was clicked using mask detection
-    for (const [partId, maskImg] of maskImages.entries()) {
-      if (isPixelInMask(x, y, maskImg)) {
-        toggleBodyPart(partId);
-        break;
-      }
-    }
-  };
-
-  const isPixelInMask = (x: number, y: number, maskImg: HTMLImageElement): boolean => {
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx || !canvasRef.current) return false;
-
-    tempCanvas.width = canvasRef.current.width;
-    tempCanvas.height = canvasRef.current.height;
-    tempCtx.drawImage(maskImg, 0, 0, tempCanvas.width, tempCanvas.height);
-    
-    const imageData = tempCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1);
-    const alpha = imageData.data[3];
-    
-    return alpha > 128; // Check if pixel is not transparent
+  const handleCircleClick = (partId: string) => {
+    toggleBodyPart(partId);
   };
 
   const toggleBodyPart = (partId: string) => {
@@ -405,49 +243,40 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             {/* Left Column: Human Body with Clickable Areas */}
             <div className="flex justify-center">
               <div className="relative max-w-xs mx-auto">
-                {/* Base image - visible until canvas loads */}
+                {/* Base body image */}
                 <img 
-                  ref={imageRef}
                   src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
-                  className={`max-w-full max-h-full object-contain ${isImagesLoaded && baseImageLoaded ? 'hidden' : 'block'}`}
+                  className="max-w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm"
+                  style={{ maxWidth: '300px' }}
                 />
                 
-                {/* Interactive canvas */}
-                <canvas
-                  ref={canvasRef}
-                  className={`w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm cursor-pointer ${baseImageLoaded ? 'block' : 'hidden'}`}
-                  style={{ maxWidth: '300px' }}
-                  onClick={handleCanvasClick}
-                  onMouseMove={(e) => {
-                    if (!canvasRef.current) return;
-                    const canvas = canvasRef.current;
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    
-                    const x = (e.clientX - rect.left) * scaleX;
-                    const y = (e.clientY - rect.top) * scaleY;
-
-                    console.log('🖱️ Mouse move:', { x: Math.floor(x), y: Math.floor(y), maskCount: maskImages.size });
-
-                    let newHoveredPart: string | null = null;
-                    for (const [partId, maskImg] of maskImages.entries()) {
-                      if (isPixelInMask(x, y, maskImg)) {
-                        console.log(`🎯 Hit detected on ${partId}`);
-                        newHoveredPart = partId;
-                        break;
-                      }
-                    }
-                    
-                    if (newHoveredPart !== hoveredPart) {
-                      console.log('🔄 Hover changed:', hoveredPart, '→', newHoveredPart);
-                    }
-                    
-                    setHoveredPart(newHoveredPart);
-                  }}
-                  onMouseLeave={() => setHoveredPart(null)}
-                />
+                {/* Interactive circles overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {bodyParts.map(part => (
+                    <div
+                      key={part.id}
+                      className={`absolute rounded-full border-2 transition-all duration-200 cursor-pointer pointer-events-auto ${
+                        selectedParts.includes(part.id)
+                          ? 'bg-primary/60 border-primary shadow-lg'
+                          : hoveredPart === part.id
+                          ? 'bg-primary/30 border-primary/70 shadow-md'
+                          : 'bg-primary/10 border-primary/30 hover:bg-primary/20 hover:border-primary/50'
+                      }`}
+                      style={{
+                        left: `${part.position.x}%`,
+                        top: `${part.position.y}%`,
+                        width: `${part.position.size}%`,
+                        height: `${part.position.size}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                      onClick={() => handleCircleClick(part.id)}
+                      onMouseEnter={() => setHoveredPart(part.id)}
+                      onMouseLeave={() => setHoveredPart(null)}
+                      title={part.displayName}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
