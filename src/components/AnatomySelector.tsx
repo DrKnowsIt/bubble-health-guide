@@ -24,7 +24,7 @@ const bodyParts: BodyPart[] = [
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    maskImage: '/lovable-uploads/human-body-head-mask.png',
+    maskImage: '/lovable-uploads/d33da18e-c6a7-4cc0-a3df-aed4a46e3a6e.png',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
