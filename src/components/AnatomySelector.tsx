@@ -377,9 +377,9 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {/* Base image - visible until canvas loads */}
                 <img 
                   ref={imageRef}
-                  src="/lovable-uploads/human-body-base.png" 
+                  src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
-                  className={`max-w-full max-h-full object-contain ${isImagesLoaded ? 'hidden' : 'block'}`}
+                  className={`max-w-full max-h-full object-contain ${isImagesLoaded && baseImageLoaded ? 'hidden' : 'block'}`}
                 />
                 
                 {/* Interactive canvas */}
