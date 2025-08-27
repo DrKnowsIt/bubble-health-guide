@@ -19,12 +19,12 @@ interface BodyPart {
 }
 
 const bodyParts: BodyPart[] = [
-  // Head and neck region - Recalculated for 300x400 viewBox
+  // Head and neck region - Coordinates for 1024x1536 image dimensions
   {
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    coords: '139,19 161,19 171,22 178,28 184,36 186,45 188,56 186,68 184,79 180,89 174,96 165,101 150,105 135,101 126,96 120,89 116,79 114,68 112,56 114,45 116,36 122,28 129,22',
+    coords: '475,65 549,65 583,75 608,95 628,120 640,150 648,185 640,220 628,255 608,285 583,310 549,330 512,340 475,330 441,310 416,285 396,255 384,220 376,185 384,150 396,120 416,95 441,75',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
@@ -285,10 +285,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   style={{ maxWidth: '300px' }}
                 />
                 
-                {/* Interactive SVG overlay - Fixed viewBox to match image aspect ratio */}
+                {/* Interactive SVG overlay - Matching actual image dimensions 1024x1536 */}
                 <svg
                   className="absolute inset-0 w-full h-full cursor-pointer"
-                  viewBox="0 0 300 400"
+                  viewBox="0 0 1024 1536"
                   preserveAspectRatio="xMidYMid meet"
                   style={{ pointerEvents: 'none' }}
                 >
@@ -307,8 +307,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                       onMouseLeave={() => setHoveredPart(null)}
                     />
                   ))}
-                  {/* Debug overlay - temporary */}
-                  <rect x="0" y="0" width="300" height="400" fill="none" stroke="red" strokeWidth="1" opacity="0.3" />
+                  {/* Debug overlay to verify alignment */}
+                  <rect x="0" y="0" width="1024" height="1536" fill="none" stroke="red" strokeWidth="2" opacity="0.2" />
                 </svg>
               </div>
             </div>
