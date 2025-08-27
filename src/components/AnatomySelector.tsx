@@ -202,26 +202,49 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   useEffect(() => {
     const loadMaskImages = async () => {
       const newMaskImages = new Map<string, HTMLImageElement>();
+      let loadedCount = 0;
+      let totalWithMasks = 0;
       
       for (const part of bodyParts) {
         if (part.maskImage) {
+          totalWithMasks++;
+          console.log(`🔄 Loading mask for ${part.id}:`, part.maskImage);
           const img = new Image();
           
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = part.maskImage!;
-          });
-          
-          newMaskImages.set(part.id, img);
+          try {
+            await new Promise((resolve, reject) => {
+              img.onload = () => {
+                console.log(`✅ Mask loaded successfully for ${part.id}`);
+                resolve(undefined);
+              };
+              img.onerror = (e) => {
+                console.error(`❌ Failed to load mask for ${part.id}:`, e);
+                reject(e);
+              };
+              img.src = part.maskImage!;
+            });
+            
+            newMaskImages.set(part.id, img);
+            loadedCount++;
+          } catch (error) {
+            console.error(`❌ Error loading mask for ${part.id}:`, error);
+            // Continue loading other masks even if one fails
+          }
         }
       }
       
+      console.log(`📊 Masks loaded: ${loadedCount}/${totalWithMasks}`);
       setMaskImages(newMaskImages);
+      
+      // Set as loaded even if some masks failed - show canvas with available masks
       setIsImagesLoaded(true);
     };
 
-    loadMaskImages().catch(console.error);
+    loadMaskImages().catch((error) => {
+      console.error('❌ Critical error in mask loading:', error);
+      // Still set as loaded to show the base image at least
+      setIsImagesLoaded(true);
+    });
   }, []);
 
   // Handle base image loading
@@ -255,7 +278,15 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
 
   // Update canvas when images load or selection changes
   useEffect(() => {
-    if (!isImagesLoaded || !baseImageLoaded || !canvasRef.current || !imageRef.current) return;
+    console.log('🎨 Canvas update check:', {
+      isImagesLoaded,
+      baseImageLoaded,
+      hasCanvas: !!canvasRef.current,
+      hasImage: !!imageRef.current,
+      maskCount: maskImages.size
+    });
+    
+    if (!baseImageLoaded || !canvasRef.current || !imageRef.current) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -385,7 +416,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {/* Interactive canvas */}
                 <canvas
                   ref={canvasRef}
-                  className="w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm cursor-pointer"
+                  className={`w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm cursor-pointer ${baseImageLoaded ? 'block' : 'hidden'}`}
                   style={{ maxWidth: '300px' }}
                   onClick={handleCanvasClick}
                   onMouseMove={(e) => {
@@ -398,13 +429,21 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     const x = (e.clientX - rect.left) * scaleX;
                     const y = (e.clientY - rect.top) * scaleY;
 
+                    console.log('🖱️ Mouse move:', { x: Math.floor(x), y: Math.floor(y), maskCount: maskImages.size });
+
                     let newHoveredPart: string | null = null;
                     for (const [partId, maskImg] of maskImages.entries()) {
                       if (isPixelInMask(x, y, maskImg)) {
+                        console.log(`🎯 Hit detected on ${partId}`);
                         newHoveredPart = partId;
                         break;
                       }
                     }
+                    
+                    if (newHoveredPart !== hoveredPart) {
+                      console.log('🔄 Hover changed:', hoveredPart, '→', newHoveredPart);
+                    }
+                    
                     setHoveredPart(newHoveredPart);
                   }}
                   onMouseLeave={() => setHoveredPart(null)}
