@@ -26,7 +26,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Head & Neck',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine'],
-    position: { x: 50, y: 12, width: 16, height: 20 },
+    position: { x: 42, y: 8, width: 16, height: 20 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -35,7 +35,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Chest',
     description: 'The chest area includes the upper torso, ribcage, and organs within the thoracic cavity.',
     includes: ['Upper chest', 'Lower chest', 'Ribs', 'Sternum', 'Heart area', 'Lung area', 'Breast area', 'Intercostal muscles'],
-    position: { x: 50, y: 35, width: 24, height: 15 },
+    position: { x: 38, y: 25, width: 24, height: 15 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -44,7 +44,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Abdomen',
     description: 'The abdominal region contains digestive organs and extends from below the ribs to the pelvis.',
     includes: ['Upper abdomen', 'Lower abdomen', 'Stomach area', 'Sides (flanks)', 'Navel area', 'Digestive organs', 'Abdominal muscles'],
-    position: { x: 50, y: 52, width: 20, height: 12 },
+    position: { x: 40, y: 42, width: 20, height: 12 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -53,7 +53,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Pelvis & Hips',
     description: 'The pelvic region includes the hip bones, reproductive organs, and lower abdominal structures.',
     includes: ['Hip bones', 'Groin area', 'Reproductive organs', 'Bladder area', 'Lower back connection', 'Pelvic muscles'],
-    position: { x: 50, y: 67, width: 18, height: 10 },
+    position: { x: 41, y: 55, width: 18, height: 10 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   // Right side (viewer's left)
@@ -63,7 +63,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Shoulder',
     description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
     includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
-    position: { x: 30, y: 30, width: 12, height: 10 },
+    position: { x: 24, y: 22, width: 12, height: 10 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -72,7 +72,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Upper Arm',
     description: 'The upper portion of the arm between the shoulder and elbow.',
     includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
-    position: { x: 20, y: 42, width: 8, height: 16 },
+    position: { x: 16, y: 32, width: 8, height: 16 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -81,7 +81,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Forearm',
     description: 'The lower arm between the elbow and wrist, containing two main bones.',
     includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
-    position: { x: 12, y: 58, width: 7, height: 14 },
+    position: { x: 8, y: 48, width: 7, height: 14 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -90,7 +90,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Hand',
     description: 'The hand including fingers, thumb, palm, and wrist connection.',
     includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
-    position: { x: 10, y: 72, width: 6, height: 8 },
+    position: { x: 4, y: 62, width: 6, height: 8 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   // Left side (viewer's right)
@@ -100,7 +100,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Shoulder',
     description: 'The shoulder joint and surrounding muscles that connect the arm to the torso.',
     includes: ['Shoulder blade', 'Collarbone area', 'Shoulder joint', 'Rotator cuff', 'Deltoid muscle', 'Upper trap muscle'],
-    position: { x: 70, y: 30, width: 12, height: 10 },
+    position: { x: 64, y: 22, width: 12, height: 10 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -109,7 +109,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Upper Arm',
     description: 'The upper portion of the arm between the shoulder and elbow.',
     includes: ['Bicep muscle', 'Tricep muscle', 'Humerus bone', 'Upper arm muscles', 'Armpit area'],
-    position: { x: 80, y: 42, width: 8, height: 16 },
+    position: { x: 76, y: 32, width: 8, height: 16 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -118,7 +118,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Forearm',
     description: 'The lower arm between the elbow and wrist, containing two main bones.',
     includes: ['Radius bone', 'Ulna bone', 'Forearm muscles', 'Tendons', 'Elbow joint connection'],
-    position: { x: 88, y: 58, width: 7, height: 14 },
+    position: { x: 85, y: 48, width: 7, height: 14 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -127,7 +127,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Hand',
     description: 'The hand including fingers, thumb, palm, and wrist connection.',
     includes: ['Palm', 'Fingers', 'Thumb', 'Wrist', 'Knuckles', 'Hand muscles', 'Tendons'],
-    position: { x: 90, y: 72, width: 6, height: 8 },
+    position: { x: 90, y: 62, width: 6, height: 8 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   // Right leg (viewer's left)
@@ -137,7 +137,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Thigh',
     description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
     includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
-    position: { x: 43, y: 75, width: 9, height: 18 },
+    position: { x: 39, y: 65, width: 9, height: 18 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -146,7 +146,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Knee',
     description: 'The knee joint connecting the thigh and lower leg bones.',
     includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
-    position: { x: 43, y: 84, width: 8, height: 6 },
+    position: { x: 39, y: 78, width: 8, height: 6 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -155,7 +155,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Shin',
     description: 'The lower leg between the knee and ankle, containing two main bones.',
     includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
-    position: { x: 43, y: 88, width: 7, height: 16 },
+    position: { x: 39, y: 84, width: 7, height: 16 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -164,7 +164,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Right Foot',
     description: 'The foot including toes, arch, heel, and ankle connection.',
     includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
-    position: { x: 43, y: 96, width: 8, height: 6 },
+    position: { x: 39, y: 96, width: 8, height: 6 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   // Left leg (viewer's right)
@@ -174,7 +174,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Thigh',
     description: 'The upper leg between the hip and knee, containing the body\'s largest muscles.',
     includes: ['Quadriceps', 'Hamstrings', 'Femur bone', 'Hip joint connection', 'Thigh muscles'],
-    position: { x: 57, y: 75, width: 9, height: 18 },
+    position: { x: 53, y: 65, width: 9, height: 18 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -183,7 +183,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Knee',
     description: 'The knee joint connecting the thigh and lower leg bones.',
     includes: ['Kneecap', 'Knee joint', 'Ligaments', 'Cartilage', 'Surrounding muscles'],
-    position: { x: 57, y: 84, width: 8, height: 6 },
+    position: { x: 53, y: 78, width: 8, height: 6 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -192,7 +192,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Shin',
     description: 'The lower leg between the knee and ankle, containing two main bones.',
     includes: ['Tibia bone', 'Fibula bone', 'Shin muscles', 'Calf muscles', 'Lower leg tendons'],
-    position: { x: 57, y: 88, width: 7, height: 16 },
+    position: { x: 53, y: 84, width: 7, height: 16 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -201,7 +201,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Left Foot',
     description: 'The foot including toes, arch, heel, and ankle connection.',
     includes: ['Toes', 'Arch', 'Heel', 'Ankle', 'Foot muscles', 'Plantar fascia', 'Foot bones'],
-    position: { x: 57, y: 96, width: 8, height: 6 },
+    position: { x: 53, y: 96, width: 8, height: 6 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   // Back areas 
@@ -211,7 +211,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Upper Back',
     description: 'The upper portion of the back including shoulder blades and upper spine.',
     includes: ['Shoulder blades', 'Upper spine', 'Thoracic vertebrae', 'Upper back muscles', 'Rhomboids', 'Latissimus dorsi'],
-    position: { x: 15, y: 25, width: 8, height: 12 },
+    position: { x: 25, y: 30, width: 8, height: 12 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   },
   {
@@ -220,7 +220,7 @@ const bodyParts: BodyPart[] = [
     displayName: 'Lower Back',
     description: 'The lower portion of the back including the lumbar spine and surrounding muscles.',
     includes: ['Lumbar spine', 'Lower back muscles', 'Lumbar vertebrae', 'Sacrum', 'Hip connection', 'Core muscles'],
-    position: { x: 85, y: 25, width: 8, height: 12 },
+    position: { x: 67, y: 30, width: 8, height: 12 },
     transform: { rotation: 0, scaleX: 1, scaleY: 1 }
   }
 ];
