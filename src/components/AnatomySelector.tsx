@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -206,6 +206,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [currentView, setCurrentView] = useState<ViewType>('front');
   const [imageDimensions, setImageDimensions] = useState({ width: 300, height: 600 });
   const imageRef = useRef<HTMLImageElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const updateImageDimensions = () => {
@@ -238,6 +239,33 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     setCurrentView(prev => prev === 'front' ? 'back' : 'front');
   };
 
+  // Debounced hover handlers to prevent rapid switching
+  const handleMouseEnter = useCallback((partId: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setHoveredPart(partId);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    // Add small delay before clearing to prevent rapid flickering
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredPart(null);
+    }, 100);
+  }, []);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <ScrollArea className="h-full">
       <div className="p-3">
@@ -259,7 +287,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 <div className="relative inline-block">
                   {/* View Toggle */}
                   <div 
-                    className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg p-2 border shadow-sm cursor-pointer hover:bg-background/90 transition-colors"
+                    className="absolute top-2 left-2 z-30 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg p-2 border shadow-sm cursor-pointer hover:bg-background/90 transition-colors"
                     onClick={toggleView}
                   >
                     <span className="text-sm font-medium">{currentView === 'front' ? 'Front View' : 'Back View'}</span>
@@ -299,8 +327,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                             height: `${part.height}%`,
                           }}
                           onClick={() => toggleBodyPart(part.id)}
-                          onMouseEnter={() => setHoveredPart(part.id)}
-                          onMouseLeave={() => setHoveredPart(null)}
+                          onMouseEnter={() => handleMouseEnter(part.id)}
+                          onMouseLeave={handleMouseLeave}
                         >
                           {/* Part label */}
                           {(isSelected || isHovered) && (
