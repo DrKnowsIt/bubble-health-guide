@@ -343,30 +343,31 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     )}
 
                     {(() => {
-                      // Filter selections to only show current view
-                      const currentViewSelections = selectedParts.filter(id => id.endsWith(`-${currentView}`));
-                      return currentViewSelections.length > 0 && (
+                      // Show all selected parts from both views in one consolidated list
+                      return selectedParts.length > 0 && (
                         <div>
-                          <h3 className="font-semibold text-primary mb-3">Selected Body Parts ({currentViewSelections.length})</h3>
-                          <div className="space-y-3">
-                            {currentViewSelections.map(viewSpecificId => {
+                          <h3 className="font-semibold text-primary mb-3">Selected Body Parts ({selectedParts.length})</h3>
+                          <div className="space-y-2">
+                            {selectedParts.map(viewSpecificId => {
                               const [partId, view] = viewSpecificId.split('-');
                               const part = BODY_PARTS.find(p => p.id === partId);
                               if (!part) return null;
-                              const description = view === 'front' ? part.frontDescription : part.backDescription;
                               return (
                                 <div 
                                   key={viewSpecificId} 
-                                  className="bg-background/60 rounded-lg p-3 border cursor-pointer hover:bg-background/80 transition-colors"
-                                  onClick={() => toggleBodyPart(partId)}
+                                  className="flex items-center justify-between bg-background/60 rounded-lg p-2 border hover:bg-background/80 transition-colors"
                                 >
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-medium text-sm">{part.name} ({view === 'front' ? 'Front' : 'Back'} View)</h4>
-                                    <span className="text-xs text-muted-foreground hover:text-destructive">Remove ×</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-primary">•</span>
+                                    <span className="text-sm font-medium">{part.name} ({view === 'front' ? 'Front' : 'Back'})</span>
                                   </div>
-                                  <p className="text-xs text-muted-foreground leading-relaxed">
-                                    {description}
-                                  </p>
+                                  <button
+                                    onClick={() => toggleBodyPart(partId)}
+                                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                                    aria-label={`Remove ${part.name}`}
+                                  >
+                                    ×
+                                  </button>
                                 </div>
                               );
                             })}
@@ -378,7 +379,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 )}
 
                 {/* Instructions */}
-                {!hoveredPart && selectedParts.filter(id => id.endsWith(`-${currentView}`)).length === 0 && (
+                {!hoveredPart && selectedParts.length === 0 && (
                   <div className="bg-muted/30 rounded-lg p-4 text-center">
                     <h3 className="font-medium mb-2">How to Use</h3>
                     <div className="space-y-2 text-sm text-muted-foreground">
