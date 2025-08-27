@@ -229,11 +229,23 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     const img = imageRef.current;
     if (!img) return;
 
-    const handleLoad = () => setBaseImageLoaded(true);
-    const handleError = () => console.error('Failed to load base image');
+    const handleLoad = () => {
+      console.log('Base image loaded successfully');
+      setBaseImageLoaded(true);
+    };
+    
+    const handleError = (e: Event) => {
+      console.error('Failed to load base image:', e);
+      setBaseImageLoaded(false);
+    };
 
     img.addEventListener('load', handleLoad);
     img.addEventListener('error', handleError);
+
+    // If image is already loaded
+    if (img.complete && img.naturalWidth > 0) {
+      handleLoad();
+    }
 
     return () => {
       img.removeEventListener('load', handleLoad);
@@ -365,7 +377,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {/* Hidden base image for loading */}
                 <img 
                   ref={imageRef}
-                  src="/lovable-uploads/d85237c6-99f9-4079-9e3f-56f4268c5e4e.png" 
+                  src="/lovable-uploads/2130cbec-920a-4623-8083-cea9b5c75139.png" 
                   alt="Human body silhouette" 
                   className="hidden"
                 />
