@@ -227,15 +227,18 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   }, []);
 
   const toggleBodyPart = (partId: string) => {
+    const viewSpecificId = `${partId}-${currentView}`;
     setSelectedParts(prev => 
-      prev.includes(partId) 
-        ? prev.filter(id => id !== partId)
-        : [...prev, partId]
+      prev.includes(viewSpecificId) 
+        ? prev.filter(id => id !== viewSpecificId)
+        : [...prev, viewSpecificId]
     );
   };
 
   const toggleView = () => {
     setCurrentView(prev => prev === 'front' ? 'back' : 'front');
+    // Clear selections when switching views since they're view-specific
+    setSelectedParts([]);
   };
 
   return (
@@ -279,7 +282,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}
                   >
                     {BODY_PARTS.map(part => {
-                      const isSelected = selectedParts.includes(part.id);
+                      const viewSpecificId = `${part.id}-${currentView}`;
+                      const isSelected = selectedParts.includes(viewSpecificId);
                       const isHovered = hoveredPart === part.id;
                       
                       return (
@@ -305,7 +309,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                           {/* Part label */}
                           {(isSelected || isHovered) && (
                             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-background/95 text-foreground text-xs px-2 py-1 rounded border shadow-sm whitespace-nowrap pointer-events-none z-10 backdrop-blur">
-                              {part.name}
+                              {part.name} ({currentView === 'front' ? 'Front' : 'Back'})
                             </div>
                           )}
                         </div>
@@ -343,18 +347,19 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                       <div>
                         <h3 className="font-semibold text-primary mb-3">Selected Body Parts ({selectedParts.length})</h3>
                         <div className="space-y-3">
-                          {selectedParts.map(partId => {
+                          {selectedParts.map(viewSpecificId => {
+                            const [partId, view] = viewSpecificId.split('-');
                             const part = BODY_PARTS.find(p => p.id === partId);
                             if (!part) return null;
-                            const description = currentView === 'front' ? part.frontDescription : part.backDescription;
+                            const description = view === 'front' ? part.frontDescription : part.backDescription;
                             return (
                               <div 
-                                key={partId} 
+                                key={viewSpecificId} 
                                 className="bg-background/60 rounded-lg p-3 border cursor-pointer hover:bg-background/80 transition-colors"
                                 onClick={() => toggleBodyPart(partId)}
                               >
                                 <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-medium text-sm">{part.name}</h4>
+                                  <h4 className="font-medium text-sm">{part.name} ({view === 'front' ? 'Front' : 'Back'} View)</h4>
                                   <span className="text-xs text-muted-foreground hover:text-destructive">Remove ×</span>
                                 </div>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -385,7 +390,15 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {/* Continue Button */}
                 <div className="pt-4">
                   <Button
-                    onClick={() => onSelectionComplete(selectedParts)}
+                    onClick={() => {
+                      // Convert view-specific IDs to readable format for parent component
+                      const readableSelections = selectedParts.map(viewSpecificId => {
+                        const [partId, view] = viewSpecificId.split('-');
+                        const part = BODY_PARTS.find(p => p.id === partId);
+                        return part ? `${part.name} (${view === 'front' ? 'Front' : 'Back'} View)` : viewSpecificId;
+                      });
+                      onSelectionComplete(readableSelections);
+                    }}
                     disabled={selectedParts.length === 0}
                     className="w-full"
                     size="lg"
