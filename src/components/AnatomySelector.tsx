@@ -381,10 +381,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                         <div
                           className={`absolute border-2 transition-all duration-200 cursor-move ${
                             isSelected
-                              ? 'bg-primary/60 border-primary shadow-lg'
+                              ? 'bg-primary/70 border-primary shadow-lg'
                               : isHovered || isActive
-                              ? 'bg-primary/30 border-primary/70 shadow-md'
-                              : 'bg-primary/10 border-primary/30 hover:bg-primary/20 hover:border-primary/50'
+                              ? 'bg-primary/50 border-primary/80 shadow-md'
+                              : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
                           }`}
                           style={{
                             left: `${part.position.x}%`,
@@ -441,9 +441,9 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   })}
                 </div>
                 
-                {/* Debug Panel */}
+                {/* Debug Panel - Moved to bottom-left */}
                 {showDebug && (
-                  <div className="absolute top-4 right-4 bg-background/95 backdrop-blur p-4 rounded-lg border shadow-lg max-h-96 overflow-y-auto w-80">
+                  <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur p-4 rounded-lg border shadow-lg max-h-96 overflow-y-auto w-80">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="font-semibold text-sm">Debug Panel</h3>
                       <button 
@@ -489,11 +489,11 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   </div>
                 )}
                 
-                {/* Debug Toggle (if hidden) */}
+                {/* Debug Toggle (if hidden) - Moved to bottom-left */}
                 {!showDebug && (
                   <button 
                     onClick={() => setShowDebug(true)}
-                    className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-2 rounded hover:bg-primary/90"
+                    className="absolute bottom-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded hover:bg-primary/90"
                   >
                     Show Debug
                   </button>
