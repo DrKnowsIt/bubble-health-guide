@@ -1,396 +1,345 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
-import { User, ArrowRight, X, Plus, Download, RotateCw } from 'lucide-react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { User, ArrowRight, RotateCcw } from 'lucide-react';
 
 interface AnatomySelectorProps {
   onSelectionComplete: (selectedParts: string[]) => void;
 }
 
-interface Shape {
+interface BodyPart {
   id: string;
   name: string;
   x: number; // percentage from left
   y: number; // percentage from top
   width: number; // percentage of container width
   height: number; // percentage of container height
-  rotation: number; // degrees
+  frontDescription: string;
+  backDescription: string;
 }
 
+type ViewType = 'front' | 'back';
+
+// Saved configuration from the perfect positioning
+const BODY_PARTS: BodyPart[] = [
+  { 
+    id: '1', 
+    name: 'Head', 
+    x: 42, y: 5, width: 15.33, height: 11.67,
+    frontDescription: 'Brain, eyes, nose, mouth, facial muscles, sinuses, jaw',
+    backDescription: 'Back of skull, occipital region, neck base, cerebellum'
+  },
+  { 
+    id: '2', 
+    name: 'Neck', 
+    x: 39.67, y: 17, width: 20, height: 5,
+    frontDescription: 'Throat, thyroid, lymph nodes, trachea, esophagus',
+    backDescription: 'Cervical spine, neck muscles, nerve pathways, vertebrae'
+  },
+  { 
+    id: '3', 
+    name: 'Upper Torso', 
+    x: 39, y: 22.33, width: 22, height: 11,
+    frontDescription: 'Heart, lungs, chest muscles, ribs, sternum, breasts',
+    backDescription: 'Upper spine, shoulder blades, upper back muscles, lung bases'
+  },
+  { 
+    id: '25', 
+    name: 'Mid Torso', 
+    x: 38, y: 33.33, width: 24, height: 5.67,
+    frontDescription: 'Stomach, liver, gallbladder, diaphragm, pancreas, spleen',
+    backDescription: 'Mid spine, kidneys, adrenal glands, middle back muscles'
+  },
+  { 
+    id: '4', 
+    name: 'Lower Torso', 
+    x: 36.67, y: 39, width: 26, height: 13.67,
+    frontDescription: 'Intestines, bladder, reproductive organs, pelvis, appendix',
+    backDescription: 'Lower spine, pelvis (rear), lower back muscles, tailbone'
+  },
+  { 
+    id: '5', 
+    name: 'Left Shoulder', 
+    x: 61, y: 19.67, width: 10.33, height: 7,
+    frontDescription: 'Shoulder joint, deltoid muscle, clavicle, rotator cuff',
+    backDescription: 'Shoulder blade, posterior deltoid, upper trapezius'
+  },
+  { 
+    id: '6', 
+    name: 'Right Shoulder', 
+    x: 28.67, y: 19.67, width: 10.33, height: 7,
+    frontDescription: 'Shoulder joint, deltoid muscle, clavicle, rotator cuff',
+    backDescription: 'Shoulder blade, posterior deltoid, upper trapezius'
+  },
+  { 
+    id: '7', 
+    name: 'Left Upper Arm', 
+    x: 63.83, y: 26.67, width: 8, height: 12,
+    frontDescription: 'Biceps, humerus bone, brachial artery, lymph nodes',
+    backDescription: 'Triceps, posterior humerus, radial nerve'
+  },
+  { 
+    id: '8', 
+    name: 'Right Upper Arm', 
+    x: 28.17, y: 26.67, width: 8, height: 12,
+    frontDescription: 'Biceps, humerus bone, brachial artery, lymph nodes',
+    backDescription: 'Triceps, posterior humerus, radial nerve'
+  },
+  { 
+    id: '9', 
+    name: 'Left Elbow', 
+    x: 65.5, y: 38.67, width: 6, height: 4,
+    frontDescription: 'Elbow joint, ulnar nerve, brachial tendons',
+    backDescription: 'Olecranon process, posterior elbow muscles'
+  },
+  { 
+    id: '10', 
+    name: 'Right Elbow', 
+    x: 28.5, y: 38.67, width: 6, height: 4,
+    frontDescription: 'Elbow joint, ulnar nerve, brachial tendons',
+    backDescription: 'Olecranon process, posterior elbow muscles'
+  },
+  { 
+    id: '11', 
+    name: 'Left Forearm', 
+    x: 67.5, y: 42.67, width: 7, height: 9,
+    frontDescription: 'Radius, ulna bones, wrist flexors, radial artery',
+    backDescription: 'Posterior forearm muscles, wrist extensors'
+  },
+  { 
+    id: '12', 
+    name: 'Right Forearm', 
+    x: 25.5, y: 42.67, width: 7, height: 9,
+    frontDescription: 'Radius, ulna bones, wrist flexors, radial artery',
+    backDescription: 'Posterior forearm muscles, wrist extensors'
+  },
+  { 
+    id: '13', 
+    name: 'Left Hand', 
+    x: 68.5, y: 50.67, width: 7, height: 8,
+    frontDescription: 'Fingers, palm, thumb, metacarpals, tendons',
+    backDescription: 'Back of hand, knuckles, finger extensors'
+  },
+  { 
+    id: '14', 
+    name: 'Right Hand', 
+    x: 24.5, y: 50.67, width: 7, height: 8,
+    frontDescription: 'Fingers, palm, thumb, metacarpals, tendons',
+    backDescription: 'Back of hand, knuckles, finger extensors'
+  },
+  { 
+    id: '15', 
+    name: 'Left Hip', 
+    x: 53, y: 52.89, width: 8, height: 6,
+    frontDescription: 'Hip joint, hip flexors, femoral artery, groin',
+    backDescription: 'Gluteal muscles, hip joint (posterior), piriformis'
+  },
+  { 
+    id: '16', 
+    name: 'Right Hip', 
+    x: 39, y: 52.89, width: 8, height: 6,
+    frontDescription: 'Hip joint, hip flexors, femoral artery, groin',
+    backDescription: 'Gluteal muscles, hip joint (posterior), piriformis'
+  },
+  { 
+    id: '17', 
+    name: 'Left Upper Leg', 
+    x: 53, y: 58.89, width: 9, height: 15,
+    frontDescription: 'Quadriceps, femur bone, femoral vein, thigh muscles',
+    backDescription: 'Hamstrings, posterior femur, sciatic nerve'
+  },
+  { 
+    id: '18', 
+    name: 'Right Upper Leg', 
+    x: 38, y: 58.89, width: 9, height: 15,
+    frontDescription: 'Quadriceps, femur bone, femoral vein, thigh muscles',
+    backDescription: 'Hamstrings, posterior femur, sciatic nerve'
+  },
+  { 
+    id: '19', 
+    name: 'Left Knee', 
+    x: 53.5, y: 73.89, width: 8, height: 4,
+    frontDescription: 'Kneecap, patellar tendon, knee joint, meniscus',
+    backDescription: 'Posterior knee, popliteal fossa, calf attachment'
+  },
+  { 
+    id: '20', 
+    name: 'Right Knee', 
+    x: 38.5, y: 73.89, width: 8, height: 4,
+    frontDescription: 'Kneecap, patellar tendon, knee joint, meniscus',
+    backDescription: 'Posterior knee, popliteal fossa, calf attachment'
+  },
+  { 
+    id: '21', 
+    name: 'Left Lower Leg', 
+    x: 54, y: 77.89, width: 7, height: 13,
+    frontDescription: 'Shin bone, calf muscles, tibia, fibula, circulation',
+    backDescription: 'Calf muscles, Achilles tendon, posterior muscles'
+  },
+  { 
+    id: '22', 
+    name: 'Right Lower Leg', 
+    x: 39, y: 77.89, width: 7, height: 13,
+    frontDescription: 'Shin bone, calf muscles, tibia, fibula, circulation',
+    backDescription: 'Calf muscles, Achilles tendon, posterior muscles'
+  },
+  { 
+    id: '23', 
+    name: 'Left Foot', 
+    x: 54.5, y: 90.89, width: 6, height: 5,
+    frontDescription: 'Toes, arch, ankle, foot bones, plantar fascia',
+    backDescription: 'Heel, Achilles insertion, posterior foot muscles'
+  },
+  { 
+    id: '24', 
+    name: 'Right Foot', 
+    x: 39.5, y: 90.89, width: 6, height: 5,
+    frontDescription: 'Toes, arch, ankle, foot bones, plantar fascia',
+    backDescription: 'Heel, Achilles insertion, posterior foot muscles'
+  }
+];
+
 export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) => {
-  const [shapes, setShapes] = useState<Shape[]>([
-    { id: '1', name: 'Head', x: 42, y: 5, width: 15.33, height: 11.67, rotation: 0 },
-    { id: '2', name: 'Neck', x: 39.67, y: 17, width: 20, height: 5, rotation: 0 },
-    { id: '3', name: 'Upper Torso', x: 39, y: 22.33, width: 22, height: 11, rotation: 0 },
-    { id: '4', name: 'Lower Torso', x: 36.67, y: 39, width: 26, height: 13.67, rotation: 0 },
-    { id: '25', name: 'Mid Torso', x: 38, y: 33.33, width: 24, height: 5.67, rotation: 0 },
-    { id: '5', name: 'Left Shoulder', x: 61, y: 19.67, width: 10.33, height: 7, rotation: 0 },
-    { id: '6', name: 'Right Shoulder', x: 28.67, y: 19.67, width: 10.33, height: 7, rotation: 0 },
-    { id: '7', name: 'Left Upper Arm', x: 63.83, y: 26.67, width: 8, height: 12, rotation: 0 },
-    { id: '8', name: 'Right Upper Arm', x: 28.17, y: 26.67, width: 8, height: 12, rotation: 0 },
-    { id: '9', name: 'Left Elbow', x: 65.5, y: 38.67, width: 6, height: 4, rotation: 0 },
-    { id: '10', name: 'Right Elbow', x: 28.5, y: 38.67, width: 6, height: 4, rotation: 0 },
-    { id: '11', name: 'Left Forearm', x: 67.5, y: 42.67, width: 7, height: 9, rotation: 0 },
-    { id: '12', name: 'Right Forearm', x: 25.5, y: 42.67, width: 7, height: 9, rotation: 0 },
-    { id: '13', name: 'Left Hand', x: 68.5, y: 50.67, width: 7, height: 8, rotation: 0 },
-    { id: '14', name: 'Right Hand', x: 24.5, y: 50.67, width: 7, height: 8, rotation: 0 },
-    { id: '15', name: 'Left Hip', x: 53, y: 52.89, width: 8, height: 6, rotation: 0 },
-    { id: '16', name: 'Right Hip', x: 39, y: 52.89, width: 8, height: 6, rotation: 0 },
-    { id: '17', name: 'Left Upper Leg', x: 53, y: 58.89, width: 9, height: 15, rotation: 0 },
-    { id: '18', name: 'Right Upper Leg', x: 38, y: 58.89, width: 9, height: 15, rotation: 0 },
-    { id: '19', name: 'Left Knee', x: 53.5, y: 73.89, width: 8, height: 4, rotation: 0 },
-    { id: '20', name: 'Right Knee', x: 38.5, y: 73.89, width: 8, height: 4, rotation: 0 },
-    { id: '21', name: 'Left Lower Leg', x: 54, y: 77.89, width: 7, height: 13, rotation: 0 },
-    { id: '22', name: 'Right Lower Leg', x: 39, y: 77.89, width: 7, height: 13, rotation: 0 },
-    { id: '23', name: 'Left Foot', x: 54.5, y: 90.89, width: 6, height: 5, rotation: 0 },
-    { id: '24', name: 'Right Foot', x: 39.5, y: 90.89, width: 6, height: 5, rotation: 0 }
-  ]);
-  const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
-  const [hoveredShape, setHoveredShape] = useState<string | null>(null);
-  const [activeHandle, setActiveHandle] = useState<{ shapeId: string; type: 'drag' | 'resize-width' | 'resize-height' | 'rotate' } | null>(null);
-  const [showDebug, setShowDebug] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number; shapeX: number; shapeY: number; shapeWidth?: number; shapeHeight?: number; shapeRotation?: number } | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
-  const [editingName, setEditingName] = useState<string | null>(null);
-  const [tempName, setTempName] = useState('');
-  const imageRef = useRef<HTMLImageElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [selectedParts, setSelectedParts] = useState<string[]>([]);
+  const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<ViewType>('front');
 
-  // Update image dimensions when image loads
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (imageRef.current) {
-        const { width, height } = imageRef.current.getBoundingClientRect();
-        setImageDimensions({ width, height });
-      }
-    };
-
-    const img = imageRef.current;
-    if (img) {
-      if (img.complete) {
-        updateDimensions();
-      } else {
-        img.addEventListener('load', updateDimensions);
-        return () => img.removeEventListener('load', updateDimensions);
-      }
-    }
-  }, []);
-
-  const createShape = () => {
-    const newId = `shape_${Date.now()}`;
-    const newShape: Shape = {
-      id: newId,
-      name: `Shape ${shapes.length + 1}`,
-      x: 25,
-      y: 25,
-      width: 20,
-      height: 15,
-      rotation: 0
-    };
-    setShapes(prev => [...prev, newShape]);
-    setSelectedShapes(prev => [...prev, newId]);
-  };
-
-  const handleShapeClick = (shapeId: string) => {
-    if (!activeHandle) {
-      toggleShape(shapeId);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent, shapeId: string, handleType: 'drag' | 'resize-width' | 'resize-height' | 'rotate') => {
-    e.stopPropagation();
-    const shape = shapes.find(s => s.id === shapeId);
-    if (!shape) return;
-
-    setActiveHandle({ shapeId, type: handleType });
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY,
-      shapeX: shape.x,
-      shapeY: shape.y,
-      shapeWidth: shape.width,
-      shapeHeight: shape.height,
-      shapeRotation: shape.rotation
-    });
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!activeHandle || !dragStart || !overlayRef.current) return;
-
-    const containerRect = overlayRef.current.getBoundingClientRect();
-    const deltaX = e.clientX - dragStart.x;
-    const deltaY = e.clientY - dragStart.y;
-    
-    const deltaXPercent = (deltaX / containerRect.width) * 100;
-    const deltaYPercent = (deltaY / containerRect.height) * 100;
-    
-    setShapes(prev => prev.map(shape => {
-      if (shape.id !== activeHandle.shapeId) return shape;
-
-      switch (activeHandle.type) {
-        case 'drag':
-          return {
-            ...shape,
-            x: Math.max(0, Math.min(100 - shape.width, dragStart.shapeX + deltaXPercent)),
-            y: Math.max(0, Math.min(100 - shape.height, dragStart.shapeY + deltaYPercent))
-          };
-        case 'resize-width':
-          return {
-            ...shape,
-            width: Math.max(5, Math.min(50, (dragStart.shapeWidth || shape.width) + deltaXPercent))
-          };
-        case 'resize-height':
-          return {
-            ...shape,
-            height: Math.max(5, Math.min(50, (dragStart.shapeHeight || shape.height) + deltaYPercent))
-          };
-        case 'rotate':
-          const rotationDelta = deltaX * 2;
-          return {
-            ...shape,
-            rotation: (dragStart.shapeRotation || 0) + rotationDelta
-          };
-        default:
-          return shape;
-      }
-    }));
-  };
-
-  const handleMouseUp = () => {
-    setActiveHandle(null);
-    setDragStart(null);
-  };
-
-  useEffect(() => {
-    if (activeHandle) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [activeHandle, dragStart, shapes]);
-
-  const toggleShape = (shapeId: string) => {
-    setSelectedShapes(prev => 
-      prev.includes(shapeId) 
-        ? prev.filter(id => id !== shapeId)
-        : [...prev, shapeId]
+  const toggleBodyPart = (partId: string) => {
+    setSelectedParts(prev => 
+      prev.includes(partId) 
+        ? prev.filter(id => id !== partId)
+        : [...prev, partId]
     );
   };
 
-  const removeShape = (shapeId: string) => {
-    setShapes(prev => prev.filter(s => s.id !== shapeId));
-    setSelectedShapes(prev => prev.filter(id => id !== shapeId));
-  };
-
-  const startNameEdit = (shapeId: string, currentName: string) => {
-    setEditingName(shapeId);
-    setTempName(currentName);
-  };
-
-  const saveNameEdit = () => {
-    if (editingName) {
-      setShapes(prev => prev.map(shape => 
-        shape.id === editingName ? { ...shape, name: tempName } : shape
-      ));
-      setEditingName(null);
-      setTempName('');
-    }
-  };
-
-  const captureShapes = () => {
-    const shapeData = shapes.map(shape => ({
-      name: shape.name,
-      x: shape.x,
-      y: shape.y,
-      width: shape.width,
-      height: shape.height,
-      rotation: shape.rotation
-    }));
-    console.log('Captured shapes:', shapeData);
-    alert(`Captured ${shapes.length} shapes - check console for data`);
+  const toggleView = () => {
+    setCurrentView(prev => prev === 'front' ? 'back' : 'front');
   };
 
   return (
     <ScrollArea className="h-full">
       <div className="p-3">
-        <Card className="w-full max-w-3xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95">
+        <Card className="w-full max-w-2xl mx-auto bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95">
           <CardHeader className="text-center pb-3">
             <div className="flex items-center justify-center gap-2 mb-1">
               <User className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Shape Selector</CardTitle>
+              <CardTitle className="text-lg">Select Body Parts</CardTitle>
             </div>
-            <div className="flex justify-center gap-2">
-              <Button size="sm" onClick={createShape} className="h-7 px-2 text-xs">
-                <Plus className="h-3 w-3 mr-1" />
-                Add Shape
-              </Button>
-              <Button size="sm" variant="outline" onClick={captureShapes} className="h-7 px-2 text-xs">
-                <Download className="h-3 w-3 mr-1" />
-                Capture
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowDebug(!showDebug)} className="h-7 px-2 text-xs">
-                Debug
-              </Button>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Click on body parts to select them for analysis
+            </p>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="flex justify-center">
-                <div className="relative inline-block">
-                  <img 
-                    ref={imageRef}
-                    src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
-                    alt="Human body silhouette" 
-                    className="block filter drop-shadow-sm"
-                    style={{ width: '300px', height: 'auto' }}
-                  />
-                  
-                  <div 
-                    ref={overlayRef}
-                    className="absolute top-0 left-0"
-                    style={imageDimensions ? 
-                      { width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` } : 
-                      { width: '300px', height: '600px' }
-                    }
+            <div className="flex justify-center">
+              <div className="relative inline-block">
+                {/* View Toggle */}
+                <div className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg p-2 border shadow-sm">
+                  <span className="text-sm font-medium">{currentView === 'front' ? 'Front View' : 'Back View'}</span>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={toggleView}
+                    className="h-6 w-6 p-0"
                   >
-                    {shapes.map(shape => {
-                      const isSelected = selectedShapes.includes(shape.id);
-                      const isHovered = hoveredShape === shape.id;
-                      const isActive = activeHandle?.shapeId === shape.id;
-                      
-                      return (
-                        <div
-                          key={shape.id}
-                          className={`absolute border-2 transition-all duration-200 cursor-move ${
-                            isSelected
-                              ? 'bg-primary/70 border-primary shadow-lg'
-                              : isHovered || isActive
-                              ? 'bg-primary/50 border-primary/80 shadow-md'
-                              : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
-                          }`}
-                          style={{
-                            left: `${shape.x}%`,
-                            top: `${shape.y}%`,
-                            width: `${shape.width}%`,
-                            height: `${shape.height}%`,
-                            transform: `rotate(${shape.rotation}deg)`,
-                            transformOrigin: 'center'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShapeClick(shape.id);
-                          }}
-                          onMouseDown={(e) => handleMouseDown(e, shape.id, 'drag')}
-                          onMouseEnter={() => setHoveredShape(shape.id)}
-                          onMouseLeave={() => setHoveredShape(null)}
-                          title={shape.name}
-                        >
-                          {/* Width resize handle */}
-                          {(isSelected || isActive) && (
-                            <div
-                              className="absolute w-2 h-2 bg-white border border-primary rounded-full cursor-ew-resize"
-                              style={{ top: '50%', right: '-4px', transform: 'translateY(-50%)' }}
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleMouseDown(e, shape.id, 'resize-width');
-                              }}
-                            />
-                          )}
-                          
-                          {/* Height resize handle */}
-                          {(isSelected || isActive) && (
-                            <div
-                              className="absolute w-2 h-2 bg-white border border-primary rounded-full cursor-ns-resize"
-                              style={{ bottom: '-4px', left: '50%', transform: 'translateX(-50%)' }}
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleMouseDown(e, shape.id, 'resize-height');
-                              }}
-                            />
-                          )}
-                          
-                          {/* Rotate handle */}
-                          {(isSelected || isActive) && (
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-blue-600 rounded-full cursor-crosshair"
-                              style={{ top: '-4px', right: '-4px' }}
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleMouseDown(e, shape.id, 'rotate');
-                              }}
-                            />
-                          )}
-                          
-                          {/* Shape label */}
-                          {(isSelected || isHovered || isActive) && (
-                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-1 py-0.5 rounded whitespace-nowrap pointer-events-none z-10">
-                              {shape.name}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {showDebug && (
-                    <div className="absolute bottom-2 left-2 bg-background/95 backdrop-blur p-2 rounded border shadow-lg max-h-48 overflow-y-auto w-64 text-xs">
-                      <div className="font-medium mb-2">Debug Panel</div>
-                      <div>Shapes: {shapes.length}</div>
-                      <div>Image: {imageDimensions?.width || '?'}×{imageDimensions?.height || '?'}px</div>
-                    </div>
-                  )}
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
                 </div>
-              </div>
 
-              <div className="flex flex-col space-y-4">
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <h3 className="font-medium mb-3">Shapes ({shapes.length})</h3>
-                  <ScrollArea className="max-h-64">
-                    <div className="space-y-2">
-                      {shapes.map(shape => (
-                        <div key={shape.id} className="flex items-center gap-2 p-2 bg-background rounded border">
-                          {editingName === shape.id ? (
-                            <Input
-                              value={tempName}
-                              onChange={(e) => setTempName(e.target.value)}
-                              onBlur={saveNameEdit}
-                              onKeyDown={(e) => e.key === 'Enter' && saveNameEdit()}
-                              className="flex-1 h-6 text-xs"
-                              autoFocus
-                            />
-                          ) : (
-                            <div 
-                              className="flex-1 text-xs cursor-pointer hover:text-primary"
-                              onClick={() => startNameEdit(shape.id, shape.name)}
-                            >
-                              {shape.name}
+                <img 
+                  src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
+                  alt="Human body silhouette" 
+                  className="block filter drop-shadow-sm"
+                  style={{ width: '300px', height: 'auto' }}
+                />
+                
+                <div 
+                  className="absolute top-0 left-0"
+                  style={{ width: '300px', height: '600px' }}
+                >
+                  {BODY_PARTS.map(part => {
+                    const isSelected = selectedParts.includes(part.id);
+                    const isHovered = hoveredPart === part.id;
+                    const description = currentView === 'front' ? part.frontDescription : part.backDescription;
+                    
+                    return (
+                      <HoverCard key={part.id}>
+                        <HoverCardTrigger asChild>
+                          <div
+                            className={`absolute border-2 transition-all duration-200 cursor-pointer ${
+                              isSelected
+                                ? 'bg-primary/70 border-primary shadow-lg'
+                                : isHovered
+                                ? 'bg-primary/50 border-primary/80 shadow-md'
+                                : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
+                            }`}
+                            style={{
+                              left: `${part.x}%`,
+                              top: `${part.y}%`,
+                              width: `${part.width}%`,
+                              height: `${part.height}%`,
+                            }}
+                            onClick={() => toggleBodyPart(part.id)}
+                            onMouseEnter={() => setHoveredPart(part.id)}
+                            onMouseLeave={() => setHoveredPart(null)}
+                          >
+                            {/* Part label */}
+                            {(isSelected || isHovered) && (
+                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-background/95 text-foreground text-xs px-2 py-1 rounded border shadow-sm whitespace-nowrap pointer-events-none z-10 backdrop-blur">
+                                {part.name}
+                              </div>
+                            )}
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">{part.name}</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              <span className="font-medium">Common structures:</span> {description}
+                            </p>
+                            <div className="text-xs text-muted-foreground">
+                              Click to {isSelected ? 'deselect' : 'select'} this body part
                             </div>
-                          )}
-                          <Button size="sm" variant="ghost" onClick={() => removeShape(shape.id)} className="h-6 w-6 p-0">
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
+            {selectedParts.length > 0 && (
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h3 className="font-medium mb-3 text-center">Selected Body Parts ({selectedParts.length})</h3>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {selectedParts.map(partId => {
+                    const part = BODY_PARTS.find(p => p.id === partId);
+                    if (!part) return null;
+                    return (
+                      <div 
+                        key={partId} 
+                        className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs border cursor-pointer hover:bg-primary/20 transition-colors"
+                        onClick={() => toggleBodyPart(partId)}
+                      >
+                        {part.name}
+                        <span className="text-muted-foreground ml-1">×</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-center pt-4">
               <Button
-                onClick={() => onSelectionComplete(selectedShapes)}
-                disabled={selectedShapes.length === 0}
+                onClick={() => onSelectionComplete(selectedParts)}
+                disabled={selectedParts.length === 0}
                 className="min-w-[200px]"
               >
-                Continue with {selectedShapes.length} shape{selectedShapes.length !== 1 ? 's' : ''}
+                Continue with {selectedParts.length} body part{selectedParts.length !== 1 ? 's' : ''}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
