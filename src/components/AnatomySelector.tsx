@@ -19,12 +19,12 @@ interface BodyPart {
 }
 
 const bodyParts: BodyPart[] = [
-  // Head and neck region - Precise coordinates matching uploaded PNG
+  // Head and neck region - Recalculated for 300x400 viewBox
   {
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    coords: '185,25 215,25 228,30 238,38 245,48 248,60 250,75 248,90 245,105 240,118 232,128 220,135 200,140 180,135 168,128 160,118 155,105 152,90 150,75 152,60 155,48 162,38 172,30',
+    coords: '139,19 161,19 171,22 178,28 184,36 186,45 188,56 186,68 184,79 180,89 174,96 165,101 150,105 135,101 126,96 120,89 116,79 114,68 112,56 114,45 116,36 122,28 129,22',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
@@ -285,10 +285,11 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   style={{ maxWidth: '300px' }}
                 />
                 
-                {/* Interactive SVG overlay */}
+                {/* Interactive SVG overlay - Fixed viewBox to match image aspect ratio */}
                 <svg
                   className="absolute inset-0 w-full h-full cursor-pointer"
-                  viewBox="0 0 400 900"
+                  viewBox="0 0 300 400"
+                  preserveAspectRatio="xMidYMid meet"
                   style={{ pointerEvents: 'none' }}
                 >
                   {bodyParts.map((part) => (
@@ -306,6 +307,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                       onMouseLeave={() => setHoveredPart(null)}
                     />
                   ))}
+                  {/* Debug overlay - temporary */}
+                  <rect x="0" y="0" width="300" height="400" fill="none" stroke="red" strokeWidth="1" opacity="0.3" />
                 </svg>
               </div>
             </div>
