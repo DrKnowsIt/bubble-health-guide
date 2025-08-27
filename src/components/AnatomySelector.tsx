@@ -24,7 +24,7 @@ const bodyParts: BodyPart[] = [
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    maskImage: '/lovable-uploads/11c81a08-264a-4238-bb98-fec601b3fba8.png',
+    maskImage: '/lovable-uploads/human-body-head-mask.png',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
@@ -374,12 +374,12 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             {/* Left Column: Human Body with Clickable Areas */}
             <div className="flex justify-center">
               <div className="relative max-w-xs mx-auto">
-                {/* Hidden base image for loading */}
+                {/* Base image - visible until canvas loads */}
                 <img 
                   ref={imageRef}
-                  src="/lovable-uploads/2130cbec-920a-4623-8083-cea9b5c75139.png" 
+                  src="/lovable-uploads/human-body-base.png" 
                   alt="Human body silhouette" 
-                  className="hidden"
+                  className={`max-w-full max-h-full object-contain ${isImagesLoaded ? 'hidden' : 'block'}`}
                 />
                 
                 {/* Interactive canvas */}
