@@ -234,35 +234,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [activeHandle, setActiveHandle] = useState<{ partId: string; type: 'drag' | 'resize' | 'rotate'; corner?: string } | null>(null);
   const [showDebug, setShowDebug] = useState(true);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; partX: number; partY: number; partWidth?: number; partHeight?: number; partRotation?: number } | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-
-  // Track image dimensions when it loads
-  useEffect(() => {
-    const updateImageDimensions = () => {
-      if (imageRef.current) {
-        const rect = imageRef.current.getBoundingClientRect();
-        setImageDimensions({
-          width: rect.width,
-          height: rect.height
-        });
-        console.log('Image dimensions updated:', { width: rect.width, height: rect.height });
-      }
-    };
-
-    const image = imageRef.current;
-    if (image) {
-      if (image.complete) {
-        updateImageDimensions();
-      } else {
-        image.onload = updateImageDimensions;
-      }
-    }
-
-    // Update on window resize
-    window.addEventListener('resize', updateImageDimensions);
-    return () => window.removeEventListener('resize', updateImageDimensions);
-  }, []);
 
   const handleCircleClick = (partId: string) => {
     if (!activeHandle) {
@@ -399,13 +371,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 />
                 
                 {/* Interactive rectangles with handles */}
-                <div 
-                  className="absolute top-0 left-0 pointer-events-none"
-                  style={{
-                    width: imageDimensions?.width || 0,
-                    height: imageDimensions?.height || 0,
-                  }}
-                >
+                <div className="absolute inset-0 pointer-events-none">
                   {bodyPartsState.map(part => {
                     const isSelected = selectedParts.includes(part.id);
                     const isHovered = hoveredPart === part.id;
