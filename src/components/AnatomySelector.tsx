@@ -62,8 +62,29 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [activeHandle, setActiveHandle] = useState<{ partId: string; type: 'drag' | 'resize' } | null>(null);
   const [showDebug, setShowDebug] = useState(true);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; partX: number; partY: number; partRadius?: number } | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Update image dimensions when image loads
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (imageRef.current) {
+        const { width, height } = imageRef.current.getBoundingClientRect();
+        setImageDimensions({ width, height });
+      }
+    };
+
+    const img = imageRef.current;
+    if (img) {
+      if (img.complete) {
+        updateDimensions();
+      } else {
+        img.addEventListener('load', updateDimensions);
+        return () => img.removeEventListener('load', updateDimensions);
+      }
+    }
+  }, []);
 
   const handleCircleClick = (partId: string) => {
     if (!activeHandle) {
@@ -165,7 +186,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [activeHandle, dragStart]);
+  }, [activeHandle, dragStart, bodyPartsState]);
 
   const toggleBodyPart = (partId: string) => {
     setSelectedParts(prev => 
@@ -213,7 +234,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 <div 
                   ref={overlayRef}
                   className="absolute top-0 left-0 cursor-crosshair"
-                  style={{ width: '300px', height: '600px' }}
+                  style={imageDimensions ? 
+                    { width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` } : 
+                    { width: '300px', height: '600px' }
+                  }
                   onClick={handleImageClick}
                 >
                   {bodyPartsState.map(part => {
@@ -286,6 +310,12 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     </div>
                     
                     <div className="space-y-2 text-xs">
+                      <div className="mb-3 p-2 bg-muted/50 rounded">
+                        <div className="font-medium">Container Info:</div>
+                        <div>Image: {imageDimensions?.width || '?'}×{imageDimensions?.height || '?'}px</div>
+                        <div>Overlay: {overlayRef.current?.getBoundingClientRect().width.toFixed(0) || '?'}×{overlayRef.current?.getBoundingClientRect().height.toFixed(0) || '?'}px</div>
+                      </div>
+                      
                       <div className="mb-2 text-gray-600">
                         Click anywhere on the body image to place a new circle
                       </div>
