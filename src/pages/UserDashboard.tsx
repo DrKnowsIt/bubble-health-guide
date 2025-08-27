@@ -213,8 +213,8 @@ export default function UserDashboard() {
             </TooltipContent>
           </Tooltip>
 
-          {/* Export Medical Report Button */}
-          {selectedUser && (
+          {/* Export Medical Report Button - Only for subscribed users */}
+          {selectedUser && hasAccess('basic') && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
