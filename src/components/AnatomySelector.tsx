@@ -252,7 +252,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
                   className="block filter drop-shadow-sm"
-                  style={{ width: '300px', height: 'auto' }}
+                  style={{ width: '300px', height: '600px', objectFit: 'contain' }}
                 />
                 
                 <div 
