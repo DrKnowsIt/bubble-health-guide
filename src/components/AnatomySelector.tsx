@@ -253,7 +253,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[400px,1fr] gap-6">
               {/* Left Column - Body Image */}
               <div className="flex justify-center">
                 <div className="relative inline-block">
@@ -315,8 +315,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 </div>
               </div>
 
-              {/* Right Column - Information Sidebar */}
-              <div className="space-y-4">
+              {/* Right Column - Information Sidebar - Fixed Width */}
+              <div className="space-y-4 min-h-[600px]">
                 {/* Current Part Info */}
                 {(hoveredPart || selectedParts.length > 0) && (
                   <div className="bg-muted/30 rounded-lg p-4">
