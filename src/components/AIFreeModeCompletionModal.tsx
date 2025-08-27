@@ -8,7 +8,7 @@ import { FileDown, X, RefreshCw, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 
-interface EasyChatCompletionModalProps {
+interface AIFreeModeCompletionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStartNewChat: () => void;
@@ -20,12 +20,12 @@ interface EasyChatCompletionModalProps {
   };
 }
 
-export const EasyChatCompletionModal = ({ 
+export const AIFreeModeCompletionModal = ({ 
   isOpen, 
   onClose, 
   onStartNewChat, 
   sessionData 
-}: EasyChatCompletionModalProps) => {
+}: AIFreeModeCompletionModalProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const { toast } = useToast();
 
@@ -40,7 +40,7 @@ export const EasyChatCompletionModal = ({
       // Header
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
-      doc.text('Easy Chat Health Summary', 20, 20);
+      doc.text('AI Free Mode Health Summary', 20, 20);
       
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
@@ -128,7 +128,7 @@ export const EasyChatCompletionModal = ({
       
       toast({
         title: "PDF Generated Successfully",
-        description: "Your Easy Chat summary has been downloaded.",
+        description: "Your AI Free Mode summary has been downloaded.",
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -158,7 +158,7 @@ export const EasyChatCompletionModal = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-success" />
-              <DialogTitle>Easy Chat Complete!</DialogTitle>
+              <DialogTitle>AI Free Mode Complete!</DialogTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -228,7 +228,7 @@ export const EasyChatCompletionModal = ({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Want to save your Easy Chat results? Export to PDF to share with your healthcare provider or keep for your records.
+                Want to save your AI Free Mode results? Export to PDF to share with your healthcare provider or keep for your records.
               </p>
 
               <div className="flex gap-3">
@@ -276,7 +276,7 @@ export const EasyChatCompletionModal = ({
                   className="w-full"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Start New Easy Chat
+                  Start New AI Free Mode
                 </Button>
 
                 <div className="text-center">

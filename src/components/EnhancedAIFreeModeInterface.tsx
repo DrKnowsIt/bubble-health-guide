@@ -1,17 +1,17 @@
 
 import { useState, useEffect } from 'react';
 import { AnatomySelector } from './AnatomySelector';
-import { EasyChatInterface } from './EasyChatInterface';
-import { EasyChatCompletionModal } from './EasyChatCompletionModal';
-import { useEasyChatEnhanced } from '@/hooks/useEasyChatEnhanced';
+import { AIFreeModeInterface } from './AIFreeModeInterface';
+import { AIFreeModeCompletionModal } from './AIFreeModeCompletionModal';
+import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
-interface EnhancedEasyChatInterfaceProps {
+interface EnhancedAIFreeModeInterfaceProps {
   patientId?: string;
 }
 
-export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfaceProps) => {
+export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInterfaceProps) => {
   const [phase, setPhase] = useState<ChatPhase>('anatomy-selection');
   const [selectedAnatomy, setSelectedAnatomy] = useState<string[]>([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -30,13 +30,13 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
     hasResponses,
     completeCurrentSession,
     healthTopics
-  } = useEasyChatEnhanced(patientId, selectedAnatomy);
+  } = useAIFreeModeEnhanced(patientId, selectedAnatomy);
 
   const handleAnatomySelection = (anatomy: string[]) => {
     setSelectedAnatomy(anatomy);
     setPhase('chat');
     // Always force new session when coming from anatomy selection - this ensures fresh start
-    console.log('Starting fresh Easy Chat session from anatomy selection');
+    console.log('Starting fresh AI Free Mode session from anatomy selection');
     startNewSession(true);
   };
 
@@ -84,12 +84,12 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
   if (phase === 'chat') {
     return (
       <>
-        <EasyChatInterface
+        <AIFreeModeInterface
           patientId={patientId}
           selectedAnatomy={selectedAnatomy}
           onFinish={handleFinishChat}
           onRestart={handleRestartAnalysis}
-          useEasyChatHook={{
+          useAIFreeModeHook={{
             currentQuestion,
             currentSession,
             conversationPath,
@@ -105,7 +105,7 @@ export const EnhancedEasyChatInterface = ({ patientId }: EnhancedEasyChatInterfa
           }}
         />
         
-        <EasyChatCompletionModal
+        <AIFreeModeCompletionModal
           isOpen={showCompletionModal}
           onClose={() => setShowCompletionModal(false)}
           onStartNewChat={handleStartNewChat}

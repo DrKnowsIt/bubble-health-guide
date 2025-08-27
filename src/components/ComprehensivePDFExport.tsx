@@ -227,11 +227,11 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
     }
   };
 
-  const formatEasyChatSessions = async () => {
+  const formatAIFreeModeSessions = async () => {
     if (!selectedUser) return '';
     
     try {
-      const { data: easyChatSessions, error } = await supabase
+      const { data: aiFreeModeSessions, error } = await supabase
         .from('easy_chat_sessions')
         .select('*')
         .eq('patient_id', selectedUser.id)
@@ -239,11 +239,11 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (error || !easyChatSessions?.length) return '';
+      if (error || !aiFreeModeSessions?.length) return '';
 
-      let content = 'EASY CHAT GUIDED CONVERSATIONS:\n\n';
+      let content = 'AI FREE MODE GUIDED CONVERSATIONS:\n\n';
       
-      easyChatSessions.forEach((session, index) => {
+      aiFreeModeSessions.forEach((session, index) => {
         const sessionData = session.session_data as any;
         const conversationPath = sessionData?.conversation_path || [];
         const topics = sessionData?.topics_for_doctor || [];
@@ -278,7 +278,7 @@ export const ComprehensivePDFExport: React.FC<ComprehensivePDFExportProps> = ({ 
       
       return content;
     } catch (error) {
-      console.error('Error fetching Easy Chat sessions:', error);
+      console.error('Error fetching AI Free Mode sessions:', error);
       return '';
     }
   };
@@ -701,27 +701,27 @@ We appreciate your time in reviewing this information and hope it provides valua
         addDisclaimerToPage(doc, pageHeight);
       }
       
-      // Page 4.5: Easy Chat Sessions
-      const easyChatContent = await formatEasyChatSessions();
-      if (easyChatContent.trim()) {
+      // Page 4.5: AI Free Mode Sessions
+      const aiFreeModeContent = await formatAIFreeModeSessions();
+      if (aiFreeModeContent.trim()) {
         doc.addPage();
         addHeaderToPage(doc);
         currentY = 40;
         
         doc.setFontSize(16);
         doc.setFont(undefined, 'bold');
-        doc.text('EASY CHAT GUIDED CONVERSATIONS', 20, currentY);
+        doc.text('AI FREE MODE GUIDED CONVERSATIONS', 20, currentY);
         currentY += 12;
         
         doc.setFontSize(9);
         doc.setFont(undefined, 'italic');
-        doc.text('Structured health conversations conducted through DrKnowsIt\'s Easy Chat feature.', 20, currentY);
+        doc.text('Structured health conversations conducted through DrKnowsIt\'s AI Free Mode feature.', 20, currentY);
         currentY += 10;
         
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
-        const splitEasyChat = doc.splitTextToSize(easyChatContent, 170);
-        doc.text(splitEasyChat, 20, currentY);
+        const splitAIFreeMode = doc.splitTextToSize(aiFreeModeContent, 170);
+        doc.text(splitAIFreeMode, 20, currentY);
         
         addDisclaimerToPage(doc, pageHeight);
       }

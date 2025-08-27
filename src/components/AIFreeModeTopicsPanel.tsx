@@ -8,7 +8,7 @@ import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Tar
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 
-interface EasyChatTopicsPanelProps {
+interface AIFreeModeTopicsPanelProps {
   conversationPath: Array<{ question: any; response: string }>;
   patientName: string;
   patientId: string;
@@ -23,7 +23,7 @@ interface GeneratedTopic {
   category: string;
 }
 
-export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
+export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
   conversationPath,
   patientName,
   patientId,
@@ -73,7 +73,7 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
 
     try {
       setLoading(true);
-      console.log('Generating topics for Easy Chat conversation...', { 
+      console.log('Generating topics for AI Free Mode conversation...', { 
         pathLength: conversationPath.length, 
         patientId, 
         sessionId 
@@ -159,7 +159,7 @@ export const EasyChatTopicsPanel: React.FC<EasyChatTopicsPanelProps> = ({
                 <Target className="h-5 w-5 text-primary" />
                 Health Topics
                 <Badge variant="secondary" className="text-xs">
-                  Easy Chat
+                  AI Free Mode
                 </Badge>
               </div>
               <div className="flex items-center gap-2">

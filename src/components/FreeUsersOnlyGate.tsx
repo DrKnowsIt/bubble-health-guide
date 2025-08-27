@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { EnhancedEasyChatInterface } from './EnhancedEasyChatInterface';
+import { EnhancedAIFreeModeInterface } from './EnhancedAIFreeModeInterface';
 
 interface FreeUsersOnlyGateProps {
   children: ReactNode;
@@ -40,7 +40,7 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Easy Chat is designed for free users with limited features. You have access to the full AI experience!
+              AI Free Mode is designed for free users with limited features. You have access to the full AI experience!
             </p>
             <Button 
               onClick={() => navigate('/dashboard?tab=chat')} 
@@ -54,6 +54,6 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
     );
   }
 
-  // Free users get the enhanced easy chat interface
-  return <EnhancedEasyChatInterface />;
+  // Free users get the enhanced AI Free Mode interface
+  return <EnhancedAIFreeModeInterface />;
 };

@@ -19,7 +19,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
-import { EnhancedEasyChatInterface } from '@/components/EnhancedEasyChatInterface';
+import { EnhancedAIFreeModeInterface } from '@/components/EnhancedAIFreeModeInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -115,7 +115,7 @@ export default function UserDashboard() {
       .eq('patient_id', selectedUser.id)
       .order('updated_at', { ascending: false });
 
-    // Get Easy Chat sessions data  
+    // Get AI Free Mode sessions data  
     const { data: easyChatData } = await supabase
       .from('easy_chat_sessions')
       .select('*')
@@ -306,7 +306,7 @@ export default function UserDashboard() {
       
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
-      doc.text('Easy Chat Sessions Summary:', 20, currentY);
+      doc.text('AI Free Mode Sessions Summary:', 20, currentY);
       currentY += 10;
 
       doc.setFont(undefined, 'normal');
@@ -540,7 +540,7 @@ export default function UserDashboard() {
                 {(!subscribed || !subscription_tier) && (
                   <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-2 py-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                     <MessageSquare className="h-6 w-6" />
-                    <span className="text-sm font-medium">Easy Chat</span>
+                    <span className="text-sm font-medium">AI Free Mode</span>
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
@@ -564,7 +564,7 @@ export default function UserDashboard() {
                 {(!subscribed || !subscription_tier) && (
                   <TabsTrigger value="easy-chat" className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    Easy Chat
+                    AI Free Mode
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="chat" className="flex items-center gap-2">
@@ -587,7 +587,7 @@ export default function UserDashboard() {
           <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
             <TabsContent value="easy-chat" className="h-full mt-0 pt-4">
               <FreeUsersOnlyGate>
-                <EnhancedEasyChatInterface patientId={selectedUser?.id} />
+                <EnhancedAIFreeModeInterface patientId={selectedUser?.id} />
               </FreeUsersOnlyGate>
             </TabsContent>
 

@@ -6,27 +6,27 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
-import { useEasyChatEnhanced } from '@/hooks/useEasyChatEnhanced';
-import { EasyChatTopicsPanel } from './EasyChatTopicsPanel';
+import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
+import { AIFreeModeTopicsPanel } from './AIFreeModeTopicsPanel';
 
-interface EasyChatInterfaceProps {
+interface AIFreeModeInterfaceProps {
   patientId?: string;
   selectedAnatomy?: string[];
   onFinish?: () => void;
   onRestart?: () => void;
-  useEasyChatHook?: any; // Allow flexibility for enhanced hook
+  useAIFreeModeHook?: any; // Allow flexibility for enhanced hook
 }
 
-export const EasyChatInterface = ({ 
-  patientId, 
-  selectedAnatomy, 
+export const AIFreeModeInterface = ({ 
+  patientId,
+  selectedAnatomy,
   onFinish,
   onRestart,
-  useEasyChatHook
-}: EasyChatInterfaceProps) => {
+  useAIFreeModeHook
+}: AIFreeModeInterfaceProps) => {
   // Require hook to be provided - no fallback to prevent duplicate hook instances
-  if (!useEasyChatHook) {
-    throw new Error('EasyChatInterface requires useEasyChatHook to be provided');
+  if (!useAIFreeModeHook) {
+    throw new Error('AIFreeModeInterface requires useAIFreeModeHook to be provided');
   }
   
   const {
@@ -42,7 +42,7 @@ export const EasyChatInterface = ({
     hasActiveSession,
     hasResponses,
     healthTopics
-  } = useEasyChatHook;
+  } = useAIFreeModeHook;
 
   // Local state for text input mode
   const [showTextInput, setShowTextInput] = useState(false);
@@ -100,7 +100,7 @@ export const EasyChatInterface = ({
       <div className="flex items-center justify-center h-96">
         <div className="flex items-center gap-2 text-muted-foreground">
           <RefreshCw className="h-4 w-4 animate-spin" />
-          <span>Starting Easy Chat...</span>
+          <span>Starting AI Free Mode...</span>
         </div>
       </div>
     );
@@ -180,7 +180,7 @@ export const EasyChatInterface = ({
                   onClick={handleRestart}
                   className="w-full"
                 >
-                  Start New Easy Chat
+                  Start New AI Free Mode
                 </Button>
               </div>
             ) : currentQuestion ? (
@@ -188,7 +188,7 @@ export const EasyChatInterface = ({
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <MessageCircle className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-lg">Easy Chat</span>
+                    <span className="font-semibold text-lg">AI Free Mode</span>
                     <Badge variant="secondary" className="ml-2">Free</Badge>
                     {hasActiveSession && hasResponses && (
                       <Badge variant="outline" className="ml-1">In Progress</Badge>
@@ -297,7 +297,7 @@ export const EasyChatInterface = ({
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <MessageCircle className="h-8 w-8 text-primary" />
                   <div>
-                    <h3 className="font-semibold text-lg">Easy Chat</h3>
+                    <h3 className="font-semibold text-lg">AI Free Mode</h3>
                     <Badge variant="secondary" className="mt-1">Free</Badge>
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export const EasyChatInterface = ({
                         Starting...
                       </>
                     ) : (
-                      hasActiveSession ? 'New Chat' : 'Begin Easy Chat'
+                      hasActiveSession ? 'New Chat' : 'Begin AI Free Mode'
                     )}
                   </Button>
                   {hasActiveSession && (
@@ -330,7 +330,7 @@ export const EasyChatInterface = ({
 
       {/* Right Sidebar - Health Topics */}
       <div className="w-80 flex-shrink-0">
-        <EasyChatTopicsPanel
+        <AIFreeModeTopicsPanel
           conversationPath={conversationPath}
           patientName={patientId ? "Patient" : "You"}
           patientId={patientId || ""}
