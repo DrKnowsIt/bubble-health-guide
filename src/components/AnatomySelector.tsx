@@ -234,6 +234,35 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [activeHandle, setActiveHandle] = useState<{ partId: string; type: 'drag' | 'resize' | 'rotate'; corner?: string } | null>(null);
   const [showDebug, setShowDebug] = useState(true);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; partX: number; partY: number; partWidth?: number; partHeight?: number; partRotation?: number } | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // Track image dimensions when it loads
+  useEffect(() => {
+    const updateImageDimensions = () => {
+      if (imageRef.current) {
+        const rect = imageRef.current.getBoundingClientRect();
+        setImageDimensions({
+          width: rect.width,
+          height: rect.height
+        });
+        console.log('Image dimensions updated:', { width: rect.width, height: rect.height });
+      }
+    };
+
+    const image = imageRef.current;
+    if (image) {
+      if (image.complete) {
+        updateImageDimensions();
+      } else {
+        image.onload = updateImageDimensions;
+      }
+    }
+
+    // Update on window resize
+    window.addEventListener('resize', updateImageDimensions);
+    return () => window.removeEventListener('resize', updateImageDimensions);
+  }, []);
 
   const handleCircleClick = (partId: string) => {
     if (!activeHandle) {
@@ -362,6 +391,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
               <div className="relative max-w-xs mx-auto">
                 {/* Base body image */}
                 <img 
+                  ref={imageRef}
                   src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
                   className="max-w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm"
@@ -369,7 +399,13 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 />
                 
                 {/* Interactive rectangles with handles */}
-                <div className="absolute inset-0 pointer-events-none">
+                <div 
+                  className="absolute top-0 left-0 pointer-events-none"
+                  style={{
+                    width: imageDimensions?.width || 0,
+                    height: imageDimensions?.height || 0,
+                  }}
+                >
                   {bodyPartsState.map(part => {
                     const isSelected = selectedParts.includes(part.id);
                     const isHovered = hoveredPart === part.id;
