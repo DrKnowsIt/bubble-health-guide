@@ -246,51 +246,53 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     const isActive = activeHandle?.partId === part.id;
                     
                     return (
-                      <div key={part.id} className="absolute">
-                        {/* Main circle */}
-                        <div
-                          className={`absolute border-2 transition-all duration-200 cursor-move rounded-full ${
-                            isSelected
-                              ? 'bg-primary/70 border-primary shadow-lg'
-                              : isHovered || isActive
-                              ? 'bg-primary/50 border-primary/80 shadow-md'
-                              : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
-                          }`}
-                          style={{
-                            left: `${part.position.x - part.position.radius}%`,
-                            top: `${part.position.y - part.position.radius}%`,
-                            width: `${part.position.radius * 2}%`,
-                            height: `${part.position.radius * 2}%`
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCircleClick(part.id);
-                          }}
-                          onMouseDown={(e) => handleMouseDown(e, part.id, 'drag')}
-                          onMouseEnter={() => setHoveredPart(part.id)}
-                          onMouseLeave={() => setHoveredPart(null)}
-                          title={part.displayName}
-                        >
-                          {/* Resize handle (show when selected or active) */}
-                          {(isSelected || isActive) && (
-                            <div
-                              className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full cursor-pointer"
-                              style={{ bottom: '-6px', right: '-6px' }}
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleMouseDown(e, part.id, 'resize');
-                              }}
-                              title="Resize"
-                            />
-                          )}
-                          
-                          {/* Part label */}
-                          {(isSelected || isHovered || isActive) && (
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
-                              {part.displayName}
-                            </div>
-                          )}
-                        </div>
+                      <div
+                        key={part.id}
+                        className={`absolute border-2 transition-all duration-200 cursor-move rounded-full ${
+                          isSelected
+                            ? 'bg-primary/70 border-primary shadow-lg'
+                            : isHovered || isActive
+                            ? 'bg-primary/50 border-primary/80 shadow-md'
+                            : 'bg-primary/30 border-primary/60 hover:bg-primary/40 hover:border-primary/70'
+                        }`}
+                        style={{
+                          left: `${Math.max(0, Math.min(100 - part.position.radius * 2, part.position.x - part.position.radius))}%`,
+                          top: `${Math.max(0, Math.min(100 - part.position.radius * 2, part.position.y - part.position.radius))}%`,
+                          width: `${part.position.radius * 2}%`,
+                          height: `${part.position.radius * 2}%`
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCircleClick(part.id);
+                        }}
+                        onMouseDown={(e) => handleMouseDown(e, part.id, 'drag')}
+                        onMouseEnter={() => setHoveredPart(part.id)}
+                        onMouseLeave={() => setHoveredPart(null)}
+                        title={part.displayName}
+                      >
+                        {/* Resize handle (positioned at bottom-right of circle) */}
+                        {(isSelected || isActive) && (
+                          <div
+                            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full cursor-nw-resize"
+                            style={{ 
+                              bottom: '-6px', 
+                              right: '-6px',
+                              transform: 'translate(50%, 50%)'
+                            }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleMouseDown(e, part.id, 'resize');
+                            }}
+                            title="Resize circle"
+                          />
+                        )}
+                        
+                        {/* Part label */}
+                        {(isSelected || isHovered || isActive) && (
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none z-10">
+                            {part.displayName}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
