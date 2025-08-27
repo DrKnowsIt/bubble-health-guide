@@ -21,7 +21,32 @@ interface Shape {
 }
 
 export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) => {
-  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [shapes, setShapes] = useState<Shape[]>([
+    { id: '1', name: 'Head', x: 42, y: 5, width: 15.33, height: 11.67, rotation: 0 },
+    { id: '2', name: 'Neck', x: 39.67, y: 17, width: 20, height: 5, rotation: 0 },
+    { id: '3', name: 'Upper Torso', x: 39, y: 22.33, width: 22, height: 16.78, rotation: 0 },
+    { id: '4', name: 'Lower Torso', x: 36.67, y: 39.22, width: 26, height: 13.67, rotation: 0 },
+    { id: '5', name: 'Left Shoulder', x: 61, y: 19.67, width: 10.33, height: 7, rotation: 0 },
+    { id: '6', name: 'Right Shoulder', x: 28.67, y: 19.67, width: 10.33, height: 7, rotation: 0 },
+    { id: '7', name: 'Left Upper Arm', x: 71.33, y: 26.67, width: 8, height: 12, rotation: 0 },
+    { id: '8', name: 'Right Upper Arm', x: 20.67, y: 26.67, width: 8, height: 12, rotation: 0 },
+    { id: '9', name: 'Left Elbow', x: 73, y: 38.67, width: 6, height: 4, rotation: 0 },
+    { id: '10', name: 'Right Elbow', x: 21, y: 38.67, width: 6, height: 4, rotation: 0 },
+    { id: '11', name: 'Left Forearm', x: 75, y: 42.67, width: 7, height: 11, rotation: 0 },
+    { id: '12', name: 'Right Forearm', x: 18, y: 42.67, width: 7, height: 11, rotation: 0 },
+    { id: '13', name: 'Left Hand', x: 77, y: 53.67, width: 5, height: 6, rotation: 0 },
+    { id: '14', name: 'Right Hand', x: 18, y: 53.67, width: 5, height: 6, rotation: 0 },
+    { id: '15', name: 'Left Hip', x: 53, y: 52.89, width: 8, height: 6, rotation: 0 },
+    { id: '16', name: 'Right Hip', x: 39, y: 52.89, width: 8, height: 6, rotation: 0 },
+    { id: '17', name: 'Left Upper Leg', x: 53, y: 58.89, width: 9, height: 15, rotation: 0 },
+    { id: '18', name: 'Right Upper Leg', x: 38, y: 58.89, width: 9, height: 15, rotation: 0 },
+    { id: '19', name: 'Left Knee', x: 53.5, y: 73.89, width: 8, height: 4, rotation: 0 },
+    { id: '20', name: 'Right Knee', x: 38.5, y: 73.89, width: 8, height: 4, rotation: 0 },
+    { id: '21', name: 'Left Lower Leg', x: 54, y: 77.89, width: 7, height: 13, rotation: 0 },
+    { id: '22', name: 'Right Lower Leg', x: 39, y: 77.89, width: 7, height: 13, rotation: 0 },
+    { id: '23', name: 'Left Foot', x: 54.5, y: 90.89, width: 6, height: 5, rotation: 0 },
+    { id: '24', name: 'Right Foot', x: 39.5, y: 90.89, width: 6, height: 5, rotation: 0 }
+  ]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [hoveredShape, setHoveredShape] = useState<string | null>(null);
   const [activeHandle, setActiveHandle] = useState<{ shapeId: string; type: 'drag' | 'resize-width' | 'resize-height' | 'rotate' } | null>(null);
