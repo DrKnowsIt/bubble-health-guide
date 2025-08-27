@@ -368,18 +368,21 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column: Human Body with Clickable Areas */}
             <div className="flex justify-center">
-              <div className="relative max-w-xs mx-auto">
+              <div className="relative inline-block">
                 {/* Base body image */}
                 <img 
                   ref={imageRef}
                   src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
-                  className="max-w-full h-auto max-h-[400px] object-contain filter drop-shadow-sm"
-                  style={{ maxWidth: '300px' }}
+                  className="block filter drop-shadow-sm"
+                  style={{ width: '300px', height: 'auto' }}
                 />
                 
-                {/* Interactive rectangles with handles */}
-                <div className="absolute inset-0 pointer-events-none">
+                {/* Interactive rectangles with handles - matches image dimensions exactly */}
+                <div 
+                  className="absolute top-0 left-0 pointer-events-none"
+                  style={{ width: '300px', height: '600px' }}
+                >
                   {bodyPartsState.map(part => {
                     const isSelected = selectedParts.includes(part.id);
                     const isHovered = hoveredPart === part.id;
