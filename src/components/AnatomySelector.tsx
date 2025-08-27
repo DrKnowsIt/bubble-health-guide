@@ -235,6 +235,10 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     );
   };
 
+  const removeBodyPart = (viewSpecificId: string) => {
+    setSelectedParts(prev => prev.filter(id => id !== viewSpecificId));
+  };
+
   const toggleView = () => {
     setCurrentView(prev => prev === 'front' ? 'back' : 'front');
     // Selections are view-specific but persist when returning to a view
@@ -362,7 +366,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                                     <span className="text-sm font-medium">{part.name} ({view === 'front' ? 'Front' : 'Back'})</span>
                                   </div>
                                   <button
-                                    onClick={() => toggleBodyPart(partId)}
+                                    onClick={() => removeBodyPart(viewSpecificId)}
                                     className="text-muted-foreground hover:text-destructive transition-colors p-1"
                                     aria-label={`Remove ${part.name}`}
                                   >
