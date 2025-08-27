@@ -24,7 +24,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [hoveredShape, setHoveredShape] = useState<string | null>(null);
-  const [activeHandle, setActiveHandle] = useState<{ shapeId: string; type: 'drag' | 'resize' | 'rotate' } | null>(null);
+  const [activeHandle, setActiveHandle] = useState<{ shapeId: string; type: 'drag' | 'resize-width' | 'resize-height' | 'rotate' } | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; shapeX: number; shapeY: number; shapeWidth?: number; shapeHeight?: number; shapeRotation?: number } | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -74,7 +74,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent, shapeId: string, handleType: 'drag' | 'resize' | 'rotate') => {
+  const handleMouseDown = (e: React.MouseEvent, shapeId: string, handleType: 'drag' | 'resize-width' | 'resize-height' | 'rotate') => {
     e.stopPropagation();
     const shape = shapes.find(s => s.id === shapeId);
     if (!shape) return;
@@ -111,12 +111,15 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             x: Math.max(0, Math.min(100 - shape.width, dragStart.shapeX + deltaXPercent)),
             y: Math.max(0, Math.min(100 - shape.height, dragStart.shapeY + deltaYPercent))
           };
-        case 'resize':
-          const scaleFactor = 1 + (deltaX / 100);
+        case 'resize-width':
           return {
             ...shape,
-            width: Math.max(5, Math.min(50, (dragStart.shapeWidth || shape.width) * scaleFactor)),
-            height: Math.max(5, Math.min(50, (dragStart.shapeHeight || shape.height) * scaleFactor))
+            width: Math.max(5, Math.min(50, (dragStart.shapeWidth || shape.width) + deltaXPercent))
+          };
+        case 'resize-height':
+          return {
+            ...shape,
+            height: Math.max(5, Math.min(50, (dragStart.shapeHeight || shape.height) + deltaYPercent))
           };
         case 'rotate':
           const rotationDelta = deltaX * 2;
@@ -263,14 +266,26 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                           onMouseLeave={() => setHoveredShape(null)}
                           title={shape.name}
                         >
-                          {/* Resize handle */}
+                          {/* Width resize handle */}
                           {(isSelected || isActive) && (
                             <div
-                              className="absolute w-2 h-2 bg-white border border-primary rounded-full cursor-nw-resize"
-                              style={{ bottom: '-4px', right: '-4px' }}
+                              className="absolute w-2 h-2 bg-white border border-primary rounded-full cursor-ew-resize"
+                              style={{ top: '50%', right: '-4px', transform: 'translateY(-50%)' }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
-                                handleMouseDown(e, shape.id, 'resize');
+                                handleMouseDown(e, shape.id, 'resize-width');
+                              }}
+                            />
+                          )}
+                          
+                          {/* Height resize handle */}
+                          {(isSelected || isActive) && (
+                            <div
+                              className="absolute w-2 h-2 bg-white border border-primary rounded-full cursor-ns-resize"
+                              style={{ bottom: '-4px', left: '50%', transform: 'translateX(-50%)' }}
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                handleMouseDown(e, shape.id, 'resize-height');
                               }}
                             />
                           )}
