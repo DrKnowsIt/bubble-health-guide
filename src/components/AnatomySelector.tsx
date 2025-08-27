@@ -196,6 +196,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const imageRef = useRef<HTMLImageElement>(null);
   const [maskImages, setMaskImages] = useState<Map<string, HTMLImageElement>>(new Map());
   const [isImagesLoaded, setIsImagesLoaded] = useState(false);
+  const [baseImageLoaded, setBaseImageLoaded] = useState(false);
 
   // Load mask images
   useEffect(() => {
@@ -205,7 +206,6 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
       for (const part of bodyParts) {
         if (part.maskImage) {
           const img = new Image();
-          img.crossOrigin = 'anonymous';
           
           await new Promise((resolve, reject) => {
             img.onload = resolve;
@@ -224,9 +224,26 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
     loadMaskImages().catch(console.error);
   }, []);
 
+  // Handle base image loading
+  useEffect(() => {
+    const img = imageRef.current;
+    if (!img) return;
+
+    const handleLoad = () => setBaseImageLoaded(true);
+    const handleError = () => console.error('Failed to load base image');
+
+    img.addEventListener('load', handleLoad);
+    img.addEventListener('error', handleError);
+
+    return () => {
+      img.removeEventListener('load', handleLoad);
+      img.removeEventListener('error', handleError);
+    };
+  }, []);
+
   // Update canvas when images load or selection changes
   useEffect(() => {
-    if (!isImagesLoaded || !canvasRef.current || !imageRef.current) return;
+    if (!isImagesLoaded || !baseImageLoaded || !canvasRef.current || !imageRef.current) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -275,7 +292,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
         ctx.restore();
       }
     });
-  }, [selectedParts, hoveredPart, isImagesLoaded, maskImages]);
+  }, [selectedParts, hoveredPart, isImagesLoaded, baseImageLoaded, maskImages]);
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !imageRef.current) return;
@@ -351,7 +368,6 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                   src="/lovable-uploads/d85237c6-99f9-4079-9e3f-56f4268c5e4e.png" 
                   alt="Human body silhouette" 
                   className="hidden"
-                  crossOrigin="anonymous"
                 />
                 
                 {/* Interactive canvas */}
