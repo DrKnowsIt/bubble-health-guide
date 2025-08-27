@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -205,6 +205,27 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
   const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>('front');
+  const [imageDimensions, setImageDimensions] = useState({ width: 300, height: 600 });
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const updateImageDimensions = () => {
+      if (imageRef.current) {
+        const { offsetWidth, offsetHeight } = imageRef.current;
+        setImageDimensions({ width: offsetWidth, height: offsetHeight });
+      }
+    };
+
+    const image = imageRef.current;
+    if (image) {
+      if (image.complete) {
+        updateImageDimensions();
+      } else {
+        image.addEventListener('load', updateImageDimensions);
+        return () => image.removeEventListener('load', updateImageDimensions);
+      }
+    }
+  }, []);
 
   const toggleBodyPart = (partId: string) => {
     setSelectedParts(prev => 
@@ -249,15 +270,16 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 </div>
 
                 <img 
+                  ref={imageRef}
                   src="/lovable-uploads/84dea027-e4dd-4221-b5fd-fb9d34bf82f8.png" 
                   alt="Human body silhouette" 
                   className="block filter drop-shadow-sm"
-                  style={{ width: '300px', height: '600px', objectFit: 'contain' }}
+                  style={{ width: '300px', height: 'auto' }}
                 />
                 
                 <div 
                   className="absolute top-0 left-0"
-                  style={{ width: '300px', height: '600px' }}
+                  style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}
                 >
                   {BODY_PARTS.map(part => {
                     const isSelected = selectedParts.includes(part.id);
