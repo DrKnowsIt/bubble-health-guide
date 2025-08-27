@@ -24,7 +24,7 @@ const bodyParts: BodyPart[] = [
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    maskImage: '/lovable-uploads/e798ee64-653b-4a57-a5c7-7776827a644e.png',
+    maskImage: '/lovable-uploads/11c81a08-264a-4238-bb98-fec601b3fba8.png',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
@@ -348,7 +348,7 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                 {/* Hidden base image for loading */}
                 <img 
                   ref={imageRef}
-                  src="/lovable-uploads/06c04c75-fcba-4b38-a11b-ec0b46e6d3be.png" 
+                  src="/lovable-uploads/d85237c6-99f9-4079-9e3f-56f4268c5e4e.png" 
                   alt="Human body silhouette" 
                   className="hidden"
                   crossOrigin="anonymous"
