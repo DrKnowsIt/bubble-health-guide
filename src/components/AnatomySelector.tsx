@@ -257,16 +257,12 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
             <div className="flex justify-center">
               <div className="relative inline-block">
                 {/* View Toggle */}
-                <div className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg p-2 border shadow-sm">
+                <div 
+                  className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg p-2 border shadow-sm cursor-pointer hover:bg-background/90 transition-colors"
+                  onClick={toggleView}
+                >
                   <span className="text-sm font-medium">{currentView === 'front' ? 'Front View' : 'Back View'}</span>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={toggleView}
-                    className="h-6 w-6 p-0"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
+                  <RotateCcw className="h-3 w-3" />
                 </div>
 
                 <img 
