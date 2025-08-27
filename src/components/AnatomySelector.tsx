@@ -19,12 +19,12 @@ interface BodyPart {
 }
 
 const bodyParts: BodyPart[] = [
-  // Head and neck region
+  // Head and neck region - Precise coordinates matching uploaded PNG
   {
     id: 'head',
     name: 'head',
     displayName: 'Head & Neck',
-    coords: '170,30 230,30 240,80 230,110 200,120 170,110 160,80',
+    coords: '185,25 215,25 228,30 238,38 245,48 248,60 250,75 248,90 245,105 240,118 232,128 220,135 200,140 180,135 168,128 160,118 155,105 152,90 150,75 152,60 155,48 162,38 172,30',
     description: 'The head and neck region encompasses all areas from the top of the skull down to the base of the neck.',
     includes: ['Forehead', 'Temples', 'Scalp', 'Face', 'Jaw', 'Ears', 'Eyes', 'Nose', 'Throat', 'Neck muscles', 'Cervical spine']
   },
