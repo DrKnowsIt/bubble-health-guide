@@ -391,7 +391,8 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                             top: `${part.position.y}%`,
                             width: `${part.position.width}%`,
                             height: `${part.position.height}%`,
-                            transform: `translate(-50%, -50%) rotate(${part.transform.rotation}deg) scale(${part.transform.scaleX}, ${part.transform.scaleY})`,
+                            transform: `rotate(${part.transform.rotation}deg) scale(${part.transform.scaleX}, ${part.transform.scaleY})`,
+                            transformOrigin: 'center',
                             borderRadius: '8px'
                           }}
                           onClick={() => handleCircleClick(part.id)}
