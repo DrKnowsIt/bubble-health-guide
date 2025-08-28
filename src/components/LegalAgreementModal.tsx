@@ -84,346 +84,239 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-2xl font-bold text-center">
+        <DialogHeader className="p-4 pb-0">
+          <DialogTitle className="text-lg font-semibold text-center">
             Legal Agreement Required
           </DialogTitle>
-          <p className="text-muted-foreground text-center">
+          <p className="text-muted-foreground text-center text-sm">
             Please read all sections completely and scroll to the bottom of each tab to continue
           </p>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-4">
           <Tabs defaultValue="medical-disclaimer" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="medical-disclaimer" className="text-xs">
                 Medical Disclaimer
                 {scrolledTabs.has('medical-disclaimer') && (
-                  <span className="ml-2 text-green-500">✓</span>
+                  <span className="ml-1 text-green-500 text-xs">✓</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="user-agreement" className="text-xs">
                 User Agreement
                 {scrolledTabs.has('user-agreement') && (
-                  <span className="ml-2 text-green-500">✓</span>
+                  <span className="ml-1 text-green-500 text-xs">✓</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="terms-of-service" className="text-xs">
                 Terms of Service
                 {scrolledTabs.has('terms-of-service') && (
-                  <span className="ml-2 text-green-500">✓</span>
+                  <span className="ml-1 text-green-500 text-xs">✓</span>
                 )}
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="medical-disclaimer" className="mt-4">
+            <TabsContent value="medical-disclaimer" className="mt-3">
               <ScrollArea 
-                className="h-[500px] w-full rounded-md border p-4"
+                className="h-[400px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['medical-disclaimer'] = el}
                 onScrollCapture={() => handleScroll('medical-disclaimer')}
               >
-                <div className="space-y-6">
-                  <Card className="border-destructive/20">
-                    <CardHeader>
-                      <CardTitle className="text-destructive flex items-center space-x-2">
-                        <AlertTriangle className="h-5 w-5" />
-                        <span>CRITICAL: NOT A MEDICAL SERVICE</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-destructive/10 p-6 rounded-lg space-y-4">
-                        <p className="text-destructive font-bold text-lg">
-                          DrKnowsIt is NOT a substitute for professional medical care, diagnosis, or treatment.
-                        </p>
-                        <ul className="list-disc list-inside text-destructive space-y-2">
-                          <li>DrKnowsIt cannot diagnose medical conditions</li>
-                          <li>DrKnowsIt cannot prescribe medications or treatments</li>
-                          <li>DrKnowsIt cannot provide emergency medical care</li>
-                          <li>DrKnowsIt responses are for educational purposes only</li>
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="space-y-4 text-sm">
+                  <div className="border-l-4 border-destructive pl-4">
+                    <h3 className="font-semibold text-destructive mb-2 text-sm">
+                      ⚠️ NOT A MEDICAL SERVICE
+                    </h3>
+                    <p className="text-destructive mb-2 text-xs font-medium">
+                      DrKnowsIt is NOT a substitute for professional medical care, diagnosis, or treatment.
+                    </p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Cannot diagnose medical conditions</li>
+                      <li>• Cannot prescribe medications or treatments</li>
+                      <li>• Cannot provide emergency medical care</li>
+                      <li>• Responses are for educational purposes only</li>
+                    </ul>
+                  </div>
 
-                  <Card className="border-warning/20">
-                    <CardHeader>
-                      <CardTitle className="text-warning">Emergency Situations</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-warning/10 p-6 rounded-lg space-y-4">
-                        <p className="text-warning font-bold">
-                          🚨 If you are experiencing a medical emergency, do NOT use DrKnowsIt.
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-foreground">Call Emergency Services:</h3>
-                            <div className="flex items-center space-x-2 text-destructive font-bold">
-                              <Phone className="h-4 w-4" />
-                              <span>911 (US) or your local emergency number</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-foreground">Emergency Signs Include:</h3>
-                            <ul className="text-sm text-muted-foreground space-y-1">
-                              <li>• Chest pain or difficulty breathing</li>
-                              <li>• Severe injuries or bleeding</li>
-                              <li>• Loss of consciousness</li>
-                              <li>• Suicidal thoughts</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="border-l-4 border-orange-500 pl-4">
+                    <h3 className="font-semibold text-orange-600 mb-2 text-sm">
+                      🚨 Emergency Situations
+                    </h3>
+                    <p className="text-orange-600 mb-2 text-xs font-medium">
+                      If you are experiencing a medical emergency, do NOT use DrKnowsIt.
+                    </p>
+                    <div className="text-xs space-y-2">
+                      <p><strong>Call Emergency Services: 911 (US) or your local emergency number</strong></p>
+                      <p className="text-muted-foreground">Emergency signs: chest pain, difficulty breathing, severe injuries, loss of consciousness, suicidal thoughts</p>
+                    </div>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>AI Limitations</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4">
-                        Our AI technology, while advanced, has important limitations you should understand:
-                      </p>
-                      <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                        <li><strong>No physical examination:</strong> Cannot see, touch, or physically examine you</li>
-                        <li><strong>Limited context:</strong> Only knows information you provide in conversations</li>
-                        <li><strong>General information:</strong> Responses are based on general medical knowledge</li>
-                        <li><strong>No real-time updates:</strong> May not have the latest medical research or guidelines</li>
-                        <li><strong>Pattern recognition:</strong> Works on patterns, not individual medical assessment</li>
-                        <li><strong>No liability:</strong> AI responses are suggestions, not medical recommendations</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">AI Limitations</h3>
+                    <p className="text-muted-foreground mb-2 text-xs">
+                      Our AI technology has important limitations:
+                    </p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• No physical examination capability</li>
+                      <li>• Limited to information you provide</li>
+                      <li>• Based on general medical knowledge</li>
+                      <li>• May not have latest research</li>
+                      <li>• Provides suggestions, not medical recommendations</li>
+                    </ul>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Your Responsibility</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4">By using DrKnowsIt, you acknowledge that:</p>
-                      <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                        <li>You understand DrKnowsIt is for educational purposes only</li>
-                        <li>You will not rely solely on DrKnowsIt for medical decisions</li>
-                        <li>You will consult healthcare professionals for medical advice</li>
-                        <li>You will seek immediate medical care for emergencies</li>
-                        <li>You understand AI responses are not medical diagnoses</li>
-                        <li>You will use DrKnowsIt as a supplementary tool, not a replacement for medical care</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Your Responsibility</h3>
+                    <p className="text-muted-foreground mb-2 text-xs">By using DrKnowsIt, you acknowledge:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• You understand this is for educational purposes only</li>
+                      <li>• You will not rely solely on DrKnowsIt for medical decisions</li>
+                      <li>• You will consult healthcare professionals for medical advice</li>
+                      <li>• You will seek immediate medical care for emergencies</li>
+                      <li>• AI responses are not medical diagnoses</li>
+                    </ul>
+                  </div>
                 </div>
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="user-agreement" className="mt-4">
+            <TabsContent value="user-agreement" className="mt-3">
               <ScrollArea 
-                className="h-[500px] w-full rounded-md border p-4"
+                className="h-[400px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['user-agreement'] = el}
                 onScrollCapture={() => handleScroll('user-agreement')}
               >
-                <div className="space-y-6">
-                  <Card className="border-destructive/50">
-                    <CardHeader>
-                      <CardTitle className="flex items-center text-destructive">
-                        <AlertTriangle className="mr-2 h-5 w-5" />
-                        CRITICAL LEGAL NOTICE - READ CAREFULLY
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-destructive/10 p-4 rounded-lg mb-4">
-                        <p className="text-destructive font-bold mb-2">
-                          BY USING DRKNOWSIT, YOU AGREE TO ALL TERMS AND ASSUME ALL RISKS
-                        </p>
-                        <p className="text-destructive text-sm">
-                          This agreement contains important legal provisions that limit our liability and 
-                          require you to take responsibility for your health decisions. If you do not agree 
-                          to these terms, do not use this service.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="space-y-4 text-sm">
+                  <div className="border-l-4 border-destructive pl-4">
+                    <h3 className="font-semibold text-destructive mb-2 text-sm">
+                      CRITICAL LEGAL NOTICE
+                    </h3>
+                    <p className="text-destructive mb-2 text-xs font-medium">
+                      BY USING DRKNOWSIT, YOU AGREE TO ALL TERMS AND ASSUME ALL RISKS
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      This agreement limits our liability and requires you to take responsibility for health decisions.
+                    </p>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Scale className="mr-2 h-5 w-5" />
-                        Limitation of Liability and Legal Protection
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="bg-red-50 border-2 border-red-200 p-4 rounded-lg">
-                          <h4 className="font-bold text-red-800 mb-2">MAXIMUM LIABILITY LIMITATION</h4>
-                          <p className="text-red-700 text-sm">
-                            TO THE FULLEST EXTENT PERMITTED BY LAW, DRKNOWSIT AND ITS CREATORS, 
-                            OPERATORS, EMPLOYEES, AND AFFILIATES SHALL NOT BE LIABLE FOR ANY DAMAGES 
-                            OF ANY KIND ARISING FROM YOUR USE OF THIS SERVICE.
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-semibold mb-2">This includes but is not limited to:</h4>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                            <li>Medical outcomes or health consequences</li>
-                            <li>Decisions made based on AI responses</li>
-                            <li>Delays in seeking professional medical care</li>
-                            <li>Misdiagnosis or missed diagnosis due to AI limitations</li>
-                            <li>Adverse reactions or treatment complications</li>
-                            <li>Financial losses related to health decisions</li>
-                            <li>Emotional distress or psychological harm</li>
-                            <li>Data loss or security breaches</li>
-                            <li>Service interruptions or unavailability</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Limitation of Liability</h3>
+                    <p className="text-xs text-destructive font-medium mb-2">
+                      TO THE FULLEST EXTENT PERMITTED BY LAW, DRKNOWSIT SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM YOUR USE OF THIS SERVICE.
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-2">This includes but is not limited to:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Medical outcomes or health consequences</li>
+                      <li>• Decisions made based on AI responses</li>
+                      <li>• Delays in seeking professional medical care</li>
+                      <li>• Misdiagnosis or missed diagnosis</li>
+                      <li>• Adverse reactions or complications</li>
+                      <li>• Financial losses related to health decisions</li>
+                      <li>• Emotional distress or psychological harm</li>
+                      <li>• Data loss or security breaches</li>
+                    </ul>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Shield className="mr-2 h-5 w-5" />
-                        Data Collection for Medical Research
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-                          <h4 className="font-semibold text-purple-800 mb-2">Research Purpose</h4>
-                          <p className="text-purple-700 text-sm">
-                            We collect and analyze anonymized health conversation data to discover medical 
-                            patterns and correlations that traditional research methods and individual 
-                            healthcare providers might not identify.
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-semibold mb-2">Privacy protections:</h4>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                            <li>All names, addresses, and contact information are completely removed</li>
-                            <li>Data is aggregated to prevent individual identification</li>
-                            <li>Multiple layers of anonymization protect your privacy</li>
-                            <li>Research data cannot be traced back to individual users</li>
-                            <li>We comply with all applicable privacy and research regulations</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Data Collection for Medical Research</h3>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      We collect anonymized health conversation data to discover medical patterns and correlations.
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-2">Privacy protections:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• All personal information completely removed</li>
+                      <li>• Data aggregated to prevent identification</li>
+                      <li>• Multiple anonymization layers protect privacy</li>
+                      <li>• Research data cannot be traced back to users</li>
+                      <li>• Compliance with privacy regulations</li>
+                    </ul>
+                  </div>
                 </div>
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="terms-of-service" className="mt-4">
+            <TabsContent value="terms-of-service" className="mt-3">
               <ScrollArea 
-                className="h-[500px] w-full rounded-md border p-4"
+                className="h-[400px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['terms-of-service'] = el}
                 onScrollCapture={() => handleScroll('terms-of-service')}
               >
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Acceptance of Terms</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground leading-relaxed">
-                        By accessing and using DrKnowsIt ("Service"), you accept and agree to be bound by the 
-                        terms and provision of this agreement. If you do not agree to abide by the above, 
-                        please do not use this service.
-                      </p>
-                    </CardContent>
-                  </Card>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Acceptance of Terms</h3>
+                    <p className="text-xs text-muted-foreground">
+                      By accessing DrKnowsIt, you agree to be bound by these terms. If you disagree, do not use this service.
+                    </p>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>User Responsibilities</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="font-semibold text-foreground mb-2">Account Security</h3>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                            <li>Maintain the confidentiality of your account credentials</li>
-                            <li>Notify us immediately of any unauthorized account use</li>
-                            <li>Use strong, unique passwords for your account</li>
-                            <li>Enable two-factor authentication when available</li>
-                          </ul>
-                        </div>
-                        
-                        <div>
-                          <h3 className="font-semibold text-foreground mb-2">Prohibited Activities</h3>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                            <li>Using the service for any illegal or unauthorized purpose</li>
-                            <li>Attempting to access other users' accounts or data</li>
-                            <li>Uploading malicious code or attempting to harm the system</li>
-                            <li>Using the service to provide medical advice to others</li>
-                          </ul>
-                        </div>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">User Responsibilities</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="font-medium text-xs mb-1">Account Security</h4>
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          <li>• Maintain credential confidentiality</li>
+                          <li>• Report unauthorized access immediately</li>
+                          <li>• Use strong, unique passwords</li>
+                          <li>• Enable two-factor authentication when available</li>
+                        </ul>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Limitation of Liability</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-muted/50 p-4 rounded-lg mb-4">
-                        <p className="text-sm text-muted-foreground font-medium">
-                          To the maximum extent permitted by law, DrKnowsIt shall not be liable for any damages 
-                          arising from your use of the service.
-                        </p>
+                      
+                      <div>
+                        <h4 className="font-medium text-xs mb-1">Prohibited Activities</h4>
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          <li>• No illegal or unauthorized use</li>
+                          <li>• No accessing other users' accounts</li>
+                          <li>• No uploading malicious code</li>
+                          <li>• No providing medical advice to others</li>
+                        </ul>
                       </div>
-                      <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                        <li>We provide the service "as is" without warranties of any kind</li>
-                        <li>We do not guarantee the accuracy or completeness of AI responses</li>
-                        <li>You assume all risks associated with using health guidance information</li>
-                        <li>Our liability is limited to the amount you paid for the service</li>
-                        <li>We are not responsible for decisions made based on AI recommendations</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Data and Privacy</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4">
-                        Your privacy is important to us. Please review our Privacy Policy for detailed 
-                        information about how we collect, use, and protect your data.
-                      </p>
-                      <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                        <li>We follow enterprise-grade security and data protection standards</li>
-                        <li>Your health data is encrypted and securely stored</li>
-                        <li>You have rights to access, correct, and delete your data</li>
-                        <li>We do not sell your personal information to third parties</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Service Limitations</h3>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      To the maximum extent permitted by law, DrKnowsIt shall not be liable for damages arising from service use.
+                    </p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Service provided "as is" without warranties</li>
+                      <li>• No guarantee of AI response accuracy</li>
+                      <li>• You assume all risks with health guidance</li>
+                      <li>• Liability limited to amount paid for service</li>
+                      <li>• Not responsible for AI-based decisions</li>
+                    </ul>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Contact Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4">
-                        If you have any questions about these Terms of Service, please contact us:
-                      </p>
-                      <div className="space-y-2 text-muted-foreground">
-                        <p><strong>Email:</strong> legal@drknowit.com</p>
-                        <p><strong>Phone:</strong> 919-616-6125</p>
-                        <p><strong>Mail:</strong> DrKnowsIt Legal Department<br />123 Health Street<br />Medical City, MC 12345</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Data and Privacy</h3>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Your privacy is important. Please review our Privacy Policy for data handling details.
+                    </p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Enterprise-grade security standards</li>
+                      <li>• Health data encrypted and secure</li>
+                      <li>• Rights to access, correct, delete data</li>
+                      <li>• No selling personal information</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2 text-sm">Contact Information</h3>
+                    <p className="text-xs text-muted-foreground mb-2">Questions about Terms of Service:</p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>Email: legal@drknowit.com</p>
+                      <p>Phone: 919-616-6125</p>
+                      <p>Mail: DrKnowsIt Legal Department, 123 Health Street, Medical City, MC 12345</p>
+                    </div>
+                  </div>
                 </div>
               </ScrollArea>
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-between items-center mt-6 pt-4 border-t">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex justify-between items-center mt-4 pt-3 border-t">
+            <div className="text-xs text-muted-foreground">
               {allTabsScrolled 
                 ? "✓ All sections completed - you may now accept or disagree" 
                 : `Please scroll to the bottom of all tabs (${scrolledTabs.size}/${tabs.length} completed)`
@@ -432,12 +325,14 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
             <div className="flex space-x-3">
               <Button 
                 variant="destructive" 
+                size="sm"
                 onClick={handleDisagree}
                 disabled={isUpdating}
               >
                 Disagree & Sign Out
               </Button>
               <Button 
+                size="sm"
                 onClick={handleAccept} 
                 disabled={!allTabsScrolled || isUpdating}
               >
