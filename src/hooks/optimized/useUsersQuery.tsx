@@ -191,10 +191,21 @@ export const useUsersQuery = () => {
   });
 
   // Effects for handling mutation success/error
+  // Enhanced user selection logic - ensures there's ALWAYS a user selected when users exist
   useEffect(() => {
-    if (users.length > 0 && !selectedUser) {
-      const primaryUser = users.find(p => p.is_primary);
-      setSelectedUser(primaryUser || users[0]);
+    if (users.length > 0) {
+      // If no user is selected, or the selected user is no longer in the users array
+      if (!selectedUser || !users.find(u => u.id === selectedUser.id)) {
+        // Prioritize primary user first, then fallback to first available user
+        const primaryUser = users.find(p => p.is_primary);
+        const userToSelect = primaryUser || users[0];
+        
+        console.log('Auto-selecting user:', userToSelect.first_name, userToSelect.is_primary ? '(primary)' : '(first available)');
+        setSelectedUser(userToSelect);
+      }
+    } else if (users.length === 0 && selectedUser) {
+      // Clear selection if no users exist
+      setSelectedUser(null);
     }
   }, [users, selectedUser]);
 

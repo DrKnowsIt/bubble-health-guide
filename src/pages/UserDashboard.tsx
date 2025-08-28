@@ -61,6 +61,18 @@ export default function UserDashboard() {
       setActiveTab("easy-chat");
     }
   }, [location.search]);
+  
+  // Safety check: Ensure there's always a user selected when users exist
+  // This helps prevent issues when switching between modes or tabs
+  useEffect(() => {
+    if (users.length > 0 && !selectedUser && !loading) {
+      console.log('Dashboard safety check: No user selected but users exist, selecting primary user');
+      const primaryUser = users.find(p => p.is_primary);
+      const userToSelect = primaryUser || users[0];
+      setSelectedUser(userToSelect);
+    }
+  }, [users, selectedUser, loading, setSelectedUser]);
+  
   const healthStats = useHealthStatsQuery(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
