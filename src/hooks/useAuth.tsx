@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
+  const [isIntentionalSignOut, setIsIntentionalSignOut] = useState(false);
   const { toast } = useToast();
 
   // Session monitoring hook
@@ -82,9 +83,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Check for unexpected logouts
       if (event === 'SIGNED_OUT' && session === null) {
         setTimeout(() => {
-          // Check if this was an unexpected logout
+          // Check if this was an unexpected logout (not intentional)
           const currentSession = JSON.parse(localStorage.getItem('sb-lwqfurkfjkilsnjtmemj-auth-token') || 'null');
-          if (!currentSession) {
+          if (!isIntentionalSignOut && !currentSession) {
             console.warn('⚠️ Unexpected logout detected - session lost from storage');
             toast({
               variant: "destructive",
@@ -92,6 +93,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               description: "You were signed out unexpectedly. Please sign in again.",
             });
           }
+          // Reset the intentional sign out flag
+          setIsIntentionalSignOut(false);
         }, 1000);
       }
     };
@@ -287,6 +290,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthLoading(true);
       
+      // Mark this as an intentional sign out to prevent false "session lost" warnings
+      setIsIntentionalSignOut(true);
+      
       // Close legal modal if open
       setShowLegalModal(false);
       
@@ -298,6 +304,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error) {
+      // Reset flag on error
+      setIsIntentionalSignOut(false);
       toast({
         variant: "destructive",
         title: "Sign Out Error",
