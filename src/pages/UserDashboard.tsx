@@ -118,26 +118,13 @@ export default function UserDashboard() {
   };
 
   const handleAddFamilyClick = () => {
-    if (!subscribed) {
+    if (!subscribed || subscription_tier !== 'pro') {
       toast({
-        title: 'Subscription Required',
-        description: 'Family member management is available for Basic and Pro subscribers. Add multiple family members to track everyone\'s health in one place.',
+        title: 'Pro Plan Required',
+        description: 'Adding family members is only available with a Pro plan. Upgrade to manage multiple family members in one place.',
         action: (
-          <ToastAction altText="View pricing" onClick={() => navigate('/pricing')}>
-            View Pricing
-          </ToastAction>
-        ),
-      });
-      return;
-    }
-    
-    if (subscription_tier === 'basic') {
-      toast({
-        title: 'Pro plan required',
-        description: 'Adding family members is a Pro feature.',
-        action: (
-          <ToastAction altText="View plans" onClick={() => navigate('/pricing')}>
-            View plans
+          <ToastAction altText="Upgrade to Pro" onClick={() => navigate('/pricing')}>
+            Upgrade to Pro
           </ToastAction>
         ),
       });
@@ -221,7 +208,7 @@ export default function UserDashboard() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              Add family member
+              Add family member (Pro plan only)
             </TooltipContent>
           </Tooltip>
 
