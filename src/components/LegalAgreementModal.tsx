@@ -80,7 +80,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
   return (
     <Dialog open={isOpen} onOpenChange={() => {}} modal>
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] p-0"
+        className="max-w-2xl max-h-[80vh] p-0"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
