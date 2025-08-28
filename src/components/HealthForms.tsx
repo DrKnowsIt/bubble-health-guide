@@ -1278,7 +1278,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
             }
             {subscription_tier === 'basic' && (
               <span className="block mt-2 text-orange-600">
-                Your Basic plan includes 4 essential forms. Upgrade to Pro for access to all 11 comprehensive forms.
+                Your Basic plan includes 5 essential forms. Upgrade to Pro for access to all 11 comprehensive forms.
               </span>
             )}
           </CardDescription>
