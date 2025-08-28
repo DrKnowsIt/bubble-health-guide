@@ -40,7 +40,7 @@ export const AISettings = () => {
   const [topDiagnosis, setTopDiagnosis] = useState<string>('');
   
   // Use the conversation memory hook for the selected user
-  const { insights, loading: memoryLoading, getMemoryStats } = useConversationMemory(selectedUserId);
+  const { insights, loading: memoryLoading, getMemoryStats, fetchMemories } = useConversationMemory(selectedUserId);
 
   // Format memory insights for display
   const formatMemoryKnowledge = () => {
@@ -516,8 +516,8 @@ export const AISettings = () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['health-stats'] });
       
-      // Keep the user selected but refresh their data
-      // The conversation memory hook will automatically refresh when invalidated
+      // Manually refresh memory data since it doesn't use React Query
+      fetchMemories();
     } catch (error: any) {
       toast({
         variant: "destructive",
