@@ -61,13 +61,11 @@ export const DashboardHeader = ({
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Brand Section */}
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20">
-            <img 
-              src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
-              alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
-              className="h-7 w-7 object-cover"
-            />
-          </div>
+          <img 
+            src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
+            alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
+            className="h-9 w-9 object-cover"
+          />
           <div className="hidden sm:block">
             <h1 className="text-lg font-semibold text-foreground">DrKnowsIt</h1>
             <p className="text-xs text-muted-foreground">Dashboard</p>
