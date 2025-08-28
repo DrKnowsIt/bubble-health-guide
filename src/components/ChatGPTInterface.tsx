@@ -618,7 +618,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                       <img 
                         src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
                         alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
-                        className="h-12 w-12 object-cover"
+                        className="h-24 w-24 object-cover rounded-lg"
                       />
                     </div>
                     <h2 className="text-xl font-semibold mb-2">
