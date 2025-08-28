@@ -7,6 +7,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  authLoading: boolean;
+  showLegalModal: boolean;
+  setShowLegalModal: (show: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string, accessCode?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -18,6 +21,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
   const { toast } = useToast();
 
   // Session monitoring hook
@@ -100,6 +105,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Check legal agreement status after sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            checkLegalAgreementStatus(session.user.id);
+          }, 0);
+        }
+        
         // Storage fallback mechanism
         if (session) {
           try {
@@ -159,8 +171,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [toast]);
 
+  // Function to check legal agreement status
+  const checkLegalAgreementStatus = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('medical_disclaimer_accepted')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error checking legal agreement status:', error);
+        return;
+      }
+
+      const hasAccepted = data?.medical_disclaimer_accepted || false;
+      
+      if (!hasAccepted) {
+        console.log('User has not accepted legal agreement, showing modal');
+        setShowLegalModal(true);
+      } else {
+        console.log('User has accepted legal agreement');
+        setShowLegalModal(false);
+      }
+    } catch (error) {
+      console.error('Error checking legal agreement status:', error);
+    }
+  }, []);
+
   const signIn = async (email: string, password: string) => {
     try {
+      setAuthLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -187,6 +228,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "An unexpected error occurred. Please try again.",
       });
       return { error };
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -242,6 +285,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      setAuthLoading(true);
+      
+      // Close legal modal if open
+      setShowLegalModal(false);
+      
       const { error } = await supabase.auth.signOut();
       if (!error) {
         toast({
@@ -255,6 +303,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Sign Out Error",
         description: "An error occurred while signing out.",
       });
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -262,6 +312,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     session,
     loading,
+    authLoading,
+    showLegalModal,
+    setShowLegalModal,
     signIn,
     signUp,
     signOut,
