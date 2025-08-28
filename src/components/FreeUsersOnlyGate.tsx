@@ -46,8 +46,6 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
               onClick={() => {
                 // Use replace to ensure navigation even if already on dashboard
                 navigate('/dashboard?tab=chat', { replace: true });
-                // Force a page reload to ensure the tab switch happens
-                window.location.href = '/dashboard?tab=chat';
               }} 
               className="w-full"
             >
