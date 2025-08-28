@@ -744,7 +744,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 disabled={!subscribed || isUploading}
                 size="lg"
                 variant="outline"
-                className="rounded-xl px-3"
+                className="rounded-xl px-3 hidden"
                 aria-label="Upload image for analysis"
               >
                 <ImageIcon className="h-4 w-4" />
