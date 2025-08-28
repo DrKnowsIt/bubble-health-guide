@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -29,6 +30,7 @@ export const AISettings = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -509,9 +511,13 @@ export const AISettings = () => {
         description: `All memory and conversation data for ${userName} has been permanently deleted.`,
       });
 
-      // Reset selected user and refresh
-      setSelectedUserId('');
-      window.location.reload();
+      // Invalidate queries to refresh data without page reload
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['health-stats'] });
+      
+      // Keep the user selected but refresh their data
+      // The conversation memory hook will automatically refresh when invalidated
     } catch (error: any) {
       toast({
         variant: "destructive",
