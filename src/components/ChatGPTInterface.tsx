@@ -615,7 +615,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 {messages.length === 0 && (
                   <div className="text-center py-8">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white mx-auto mb-4">
-                      <Bot className="h-6 w-6" />
+                      <img 
+                        src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
+                        alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
+                        className="h-6 w-6 object-cover"
+                      />
                     </div>
                     <h2 className="text-xl font-semibold mb-2">
                       {selectedUser?.is_pet ? "How can I help with your pet today?" : "How can I help you today?"}
