@@ -64,7 +64,7 @@ export const DashboardHeader = ({
           <img 
             src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
             alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
-            className="h-9 w-9 object-cover"
+            className="h-9 w-9 object-cover rounded-md"
           />
           <div className="hidden sm:block">
             <h1 className="text-lg font-semibold text-foreground">DrKnowsIt</h1>
