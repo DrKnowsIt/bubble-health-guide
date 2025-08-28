@@ -307,7 +307,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>Email: legal@drknowit.com</p>
                       <p>Phone: 919-616-6125</p>
-                      <p>Mail: DrKnowsIt Legal Department, 123 Health Street, Medical City, MC 12345</p>
+                      <p>Mail: DrKnowsIt Legal Department, 11201 Tidewater Ln, Raleigh, NC 27614</p>
                     </div>
                   </div>
                 </div>
