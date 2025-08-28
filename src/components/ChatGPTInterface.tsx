@@ -614,11 +614,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             <div className="space-y-4">
                 {messages.length === 0 && (
                   <div className="text-center py-8">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white mx-auto mb-4">
+                    <div className="flex items-center justify-center mx-auto mb-4">
                       <img 
                         src="/lovable-uploads/3e370215-2dd9-49b4-9004-374dd58c0bae.png"
                         alt="DrKnowsIt Logo - Cartoon Doctor with Head Mirror"
-                        className="h-6 w-6 object-cover"
+                        className="h-12 w-12 object-cover"
                       />
                     </div>
                     <h2 className="text-xl font-semibold mb-2">
