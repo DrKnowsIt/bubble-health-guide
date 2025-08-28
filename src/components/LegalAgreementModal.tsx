@@ -147,7 +147,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
                     </p>
                     <div className="text-xs space-y-2">
                       <p><strong>Call Emergency Services: 911 (US) or your local emergency number</strong></p>
-                      <p className="text-muted-foreground">Emergency signs: chest pain, difficulty breathing, severe injuries, loss of consciousness, suicidal thoughts</p>
+                      <p className="text-muted-foreground">Emergency examples: chest pain, difficulty breathing, severe injuries, loss of consciousness, suicidal thoughts</p>
                     </div>
                   </div>
 
