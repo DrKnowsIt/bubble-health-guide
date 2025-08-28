@@ -118,7 +118,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
 
             <TabsContent value="medical-disclaimer" className="mt-3">
               <ScrollArea 
-                className="h-[400px] w-full rounded-md border p-3"
+                className="h-[320px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['medical-disclaimer'] = el}
                 onScrollCapture={() => handleScroll('medical-disclaimer')}
               >
@@ -182,7 +182,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
 
             <TabsContent value="user-agreement" className="mt-3">
               <ScrollArea 
-                className="h-[400px] w-full rounded-md border p-3"
+                className="h-[320px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['user-agreement'] = el}
                 onScrollCapture={() => handleScroll('user-agreement')}
               >
@@ -237,7 +237,7 @@ export const LegalAgreementModal = ({ isOpen, onClose }: LegalAgreementModalProp
 
             <TabsContent value="terms-of-service" className="mt-3">
               <ScrollArea 
-                className="h-[400px] w-full rounded-md border p-3"
+                className="h-[320px] w-full rounded-md border p-3"
                 ref={(el) => scrollRefs.current['terms-of-service'] = el}
                 onScrollCapture={() => handleScroll('terms-of-service')}
               >
