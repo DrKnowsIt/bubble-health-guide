@@ -65,7 +65,7 @@ serve(async (req) => {
       );
     }
 
-    // Get existing diagnoses (high-confidence ones to preserve)
+    // Get ALL existing diagnoses to provide complete context
     const { data: existingDiagnoses } = await supabase
       .from('conversation_diagnoses')
       .select('*')
@@ -75,7 +75,7 @@ serve(async (req) => {
     
     // Separate high-confidence diagnoses to preserve
     const highConfidenceDiagnoses = existingDiagnoses?.filter(d => d.confidence >= 0.7) || [];
-    const lowConfidenceDiagnoses = existingDiagnoses?.filter(d => d.confidence < 0.7) || [];
+    const allExistingDiagnoses = existingDiagnoses || [];
 
     // Build conversation context for analysis - focus on the current conversation topic
     const conversationText = recent_messages
@@ -104,8 +104,13 @@ serve(async (req) => {
 ${isPet ? 'Pet' : 'Patient'}: ${patient.first_name} ${patient.last_name}
 Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
 ${isPet ? `Species: ${patient.species || 'Not specified'}` : `Gender: ${patient.gender || 'Not specified'}`}
-High-confidence diagnoses (preserved): ${highConfidenceDiagnoses?.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}%)`).join(', ') || 'None'}
-Previous low-confidence topics: ${lowConfidenceDiagnoses?.map(d => `${d.diagnosis} (${Math.round(d.confidence * 100)}%)`).join(', ') || 'None'}`;
+
+ALL EXISTING DIAGNOSES (must check against these before creating new ones):
+${allExistingDiagnoses.length > 0 
+  ? allExistingDiagnoses.map(d => `- "${d.diagnosis}" (confidence: ${Math.round(d.confidence * 100)}%, reasoning: ${d.reasoning})`).join('\n')
+  : '- None'}
+
+High-confidence diagnoses (≥70% - MUST preserve): ${highConfidenceDiagnoses?.map(d => `"${d.diagnosis}"`).join(', ') || 'None'}`;
 
     const systemPrompt = isPet 
       ? `You are a veterinary analysis AI that generates potential diagnoses based on conversation context about pets. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
@@ -113,20 +118,28 @@ Previous low-confidence topics: ${lowConfidenceDiagnoses?.map(d => `${d.diagnosi
 PATIENT CONTEXT:
 ${patientContext}
 
+CRITICAL DUPLICATE PREVENTION RULES:
+- BEFORE creating any diagnosis, check if it relates to ANY existing diagnosis above
+- If symptoms support an existing diagnosis, use "relates_to_existing" with the EXACT diagnosis name
+- If you want to suggest "Heart Disease" but "Cardiac Assessment" already exists, set "relates_to_existing": "Cardiac Assessment"
+- If you want to suggest "Respiratory Issue" but "Shortness of Breath" already exists, set "relates_to_existing": "Shortness of Breath"
+- NEVER create similar/related diagnoses as separate entries
+
 ANALYSIS INSTRUCTIONS:
 - High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
 - ONLY generate NEW diagnoses for symptoms explicitly mentioned in the current conversation
-- Check if new symptoms relate to existing high-confidence diagnoses before creating new ones
-- If symptoms clearly relate to existing diagnoses, increase confidence rather than create duplicates
+- Check if new symptoms relate to existing diagnoses before creating new ones
+- If symptoms clearly relate to existing diagnoses, use "relates_to_existing" field
 - Focus on the primary complaint mentioned by the pet owner
 - Generate 1-2 potential diagnoses maximum for new symptoms
 - Base confidence on symptom specificity and veterinary likelihood for the species
 - Use confidence scale 0.3-0.8 (be conservative)
 
-PRESERVATION RULES:
-- If new symptoms support an existing high-confidence diagnosis, return that diagnosis with updated confidence
-- If new symptoms are unrelated, create new separate diagnoses
-- Never duplicate or replace high-confidence diagnoses unless contradicted
+EXAMPLES OF PROPER DUPLICATE HANDLING:
+- Existing: "Chest Pain" → New symptoms about heart → "relates_to_existing": "Chest Pain"
+- Existing: "Digestive Issues" → New symptoms about stomach → "relates_to_existing": "Digestive Issues"
+- Existing: "Anxiety" → New symptoms about stress → "relates_to_existing": "Anxiety"
+- Only create NEW diagnosis if symptoms are completely unrelated to existing ones
 
 CONFIDENCE SCORING:
 - 0.3-0.4: Possible but needs more information
@@ -137,10 +150,10 @@ RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific condition name",
+      "diagnosis": "specific condition name OR existing diagnosis name if updating",
       "confidence": 0.65,
       "reasoning": "clear evidence-based justification",
-      "relates_to_existing": "diagnosis_name_if_related_or_null"
+      "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
   "preserve_existing": true
@@ -152,20 +165,30 @@ Current conversation: "${conversationText}"`
 PATIENT CONTEXT:
 ${patientContext}
 
+CRITICAL DUPLICATE PREVENTION RULES:
+- BEFORE creating any diagnosis, check if it relates to ANY existing diagnosis above
+- If symptoms support an existing diagnosis, use "relates_to_existing" with the EXACT diagnosis name
+- If you want to suggest "Heart Disease" but "Chest Pain" already exists, set "relates_to_existing": "Chest Pain"
+- If you want to suggest "Acute Coronary Syndrome" but "Cardiac Assessment" already exists, set "relates_to_existing": "Cardiac Assessment"
+- If you want to suggest "Panic Attack" but "Anxiety" already exists, set "relates_to_existing": "Anxiety"
+- NEVER create similar/related diagnoses as separate entries
+
 ANALYSIS INSTRUCTIONS:
 - High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
 - ONLY generate NEW diagnoses for symptoms explicitly mentioned in the current conversation
-- Check if new symptoms relate to existing high-confidence diagnoses before creating new ones
-- If symptoms clearly relate to existing diagnoses, increase confidence rather than create duplicates
+- Check if new symptoms relate to existing diagnoses before creating new ones
+- If symptoms clearly relate to existing diagnoses, use "relates_to_existing" field
 - Focus on the primary complaint mentioned by the user
 - Generate 1-2 potential diagnoses maximum for new symptoms
 - Base confidence on symptom specificity and medical likelihood
 - Use confidence scale 0.3-0.8 (be conservative)
 
-PRESERVATION RULES:
-- If new symptoms support an existing high-confidence diagnosis, return that diagnosis with updated confidence
-- If new symptoms are unrelated, create new separate diagnoses
-- Never duplicate or replace high-confidence diagnoses unless contradicted
+EXAMPLES OF PROPER DUPLICATE HANDLING:
+- Existing: "Chest Pain" → New cardiac symptoms → "relates_to_existing": "Chest Pain"
+- Existing: "Digestive Issues" → New GI symptoms → "relates_to_existing": "Digestive Issues"
+- Existing: "Anxiety" → New stress symptoms → "relates_to_existing": "Anxiety"
+- Existing: "Headache" → New head pain → "relates_to_existing": "Headache"
+- Only create NEW diagnosis if symptoms are completely unrelated to existing ones
 
 CONFIDENCE SCORING:
 - 0.3-0.4: Possible but needs more information
@@ -176,10 +199,10 @@ RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific condition name",
+      "diagnosis": "specific condition name OR existing diagnosis name if updating",
       "confidence": 0.65,
       "reasoning": "clear evidence-based justification",
-      "relates_to_existing": "diagnosis_name_if_related_or_null"
+      "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
   "preserve_existing": true
@@ -258,10 +281,12 @@ Current conversation: "${conversationText}"`;
       const finalDiagnoses = [];
       
       for (const newDiag of validDiagnoses) {
-        // Check if this relates to an existing high-confidence diagnosis
-        const relatedExisting = highConfidenceDiagnoses.find(existing => 
+        // Enhanced duplicate detection - check against ALL existing diagnoses
+        const relatedExisting = allExistingDiagnoses.find(existing => 
           existing.diagnosis.toLowerCase() === newDiag.diagnosis.toLowerCase() ||
-          newDiag.relates_to_existing === existing.diagnosis
+          newDiag.relates_to_existing === existing.diagnosis ||
+          (newDiag.relates_to_existing && existing.diagnosis.toLowerCase().includes(newDiag.relates_to_existing.toLowerCase())) ||
+          (newDiag.relates_to_existing && newDiag.relates_to_existing.toLowerCase().includes(existing.diagnosis.toLowerCase()))
         );
         
         if (relatedExisting) {
