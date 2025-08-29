@@ -113,46 +113,47 @@ ${allExistingDiagnoses.length > 0
 High-confidence diagnoses (≥70% - MUST preserve): ${highConfidenceDiagnoses?.map(d => `"${d.diagnosis}"`).join(', ') || 'None'}`;
 
     const systemPrompt = isPet 
-      ? `You are a veterinary analysis AI that generates potential diagnoses based on conversation context about pets. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
+      ? `You are a veterinary analysis AI that generates comprehensive health topic analysis based on conversation context about pets. Analyze all relevant health themes, not just new symptoms.
 
 PATIENT CONTEXT:
 ${patientContext}
 
-CRITICAL DUPLICATE PREVENTION RULES:
-- BEFORE creating any diagnosis, check if it relates to ANY existing diagnosis above
-- If symptoms support an existing diagnosis, use "relates_to_existing" with the EXACT diagnosis name
-- If you want to suggest "Heart Disease" but "Cardiac Assessment" already exists, set "relates_to_existing": "Cardiac Assessment"
-- If you want to suggest "Respiratory Issue" but "Shortness of Breath" already exists, set "relates_to_existing": "Shortness of Breath"
-- NEVER create similar/related diagnoses as separate entries
+NUANCED DUPLICATE PREVENTION RULES:
+- Only prevent TRUE duplicates (identical topics with same focus)
+- Allow related but distinct topics (e.g., "Anxiety" and "Sleep Issues" can coexist)
+- If updating an existing topic with new information, use "relates_to_existing" with EXACT diagnosis name
+- Different aspects of health can be separate topics (behavioral, physical, nutritional, etc.)
 
-ANALYSIS INSTRUCTIONS:
+COMPREHENSIVE ANALYSIS INSTRUCTIONS:
+- Analyze the ENTIRE conversation history and context, not just recent symptoms
+- Generate 3-5 relevant health topics that reflect the complete health picture
 - High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
-- ONLY generate NEW diagnoses for symptoms explicitly mentioned in the current conversation
-- Check if new symptoms relate to existing diagnoses before creating new ones
-- If symptoms clearly relate to existing diagnoses, use "relates_to_existing" field
-- Focus on the primary complaint mentioned by the pet owner
-- Generate 1-2 potential diagnoses maximum for new symptoms
-- Base confidence on symptom specificity and veterinary likelihood for the species
-- Use confidence scale 0.3-0.8 (be conservative)
+- Include topics for patterns, behaviors, and health themes discussed
+- Consider preventive care topics and lifestyle factors mentioned
+- Base confidence on available evidence and veterinary knowledge for the species
+- Use expanded confidence scale 0.4-0.9 for better topic representation
 
-EXAMPLES OF PROPER DUPLICATE HANDLING:
-- Existing: "Chest Pain" → New symptoms about heart → "relates_to_existing": "Chest Pain"
-- Existing: "Digestive Issues" → New symptoms about stomach → "relates_to_existing": "Digestive Issues"
-- Existing: "Anxiety" → New symptoms about stress → "relates_to_existing": "Anxiety"
-- Only create NEW diagnosis if symptoms are completely unrelated to existing ones
+TOPIC CATEGORIES TO CONSIDER:
+- Physical symptoms and conditions
+- Behavioral concerns or changes
+- Preventive care needs
+- Nutritional or dietary topics
+- Environmental factors
+- Breed-specific considerations
+- Age-related health topics
 
 CONFIDENCE SCORING:
-- 0.3-0.4: Possible but needs more information
-- 0.5-0.6: Moderate likelihood based on symptoms
-- 0.7-0.8: Strong evidence supporting this possibility
+- 0.4-0.5: Worth monitoring or discussing with vet
+- 0.6-0.7: Moderate likelihood based on evidence
+- 0.8-0.9: Strong evidence or clear health theme
 
 RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific condition name OR existing diagnosis name if updating",
+      "diagnosis": "specific health topic or condition name",
       "confidence": 0.65,
-      "reasoning": "clear evidence-based justification",
+      "reasoning": "comprehensive evidence-based justification",
       "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
@@ -160,48 +161,49 @@ RESPONSE FORMAT (JSON only):
 }
 
 Current conversation: "${conversationText}"`
-      : `You are a medical analysis AI that generates potential diagnoses based on conversation context. You must be strategic about preserving high-confidence diagnoses while analyzing new symptoms.
+      : `You are a medical analysis AI that generates comprehensive health topic analysis based on conversation context. Analyze all relevant health themes and patterns, not just new symptoms.
 
 PATIENT CONTEXT:
 ${patientContext}
 
-CRITICAL DUPLICATE PREVENTION RULES:
-- BEFORE creating any diagnosis, check if it relates to ANY existing diagnosis above
-- If symptoms support an existing diagnosis, use "relates_to_existing" with the EXACT diagnosis name
-- If you want to suggest "Heart Disease" but "Chest Pain" already exists, set "relates_to_existing": "Chest Pain"
-- If you want to suggest "Acute Coronary Syndrome" but "Cardiac Assessment" already exists, set "relates_to_existing": "Cardiac Assessment"
-- If you want to suggest "Panic Attack" but "Anxiety" already exists, set "relates_to_existing": "Anxiety"
-- NEVER create similar/related diagnoses as separate entries
+NUANCED DUPLICATE PREVENTION RULES:
+- Only prevent TRUE duplicates (identical topics with same focus)
+- Allow related but distinct topics (e.g., "Stress" and "Sleep Problems" can coexist)
+- If updating an existing topic with new information, use "relates_to_existing" with EXACT diagnosis name
+- Different health aspects can be separate topics (mental health, physical symptoms, lifestyle factors)
 
-ANALYSIS INSTRUCTIONS:
+COMPREHENSIVE ANALYSIS INSTRUCTIONS:
+- Analyze the ENTIRE conversation history and context, not just recent symptoms
+- Generate 3-5 relevant health topics that reflect the complete health picture
 - High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
-- ONLY generate NEW diagnoses for symptoms explicitly mentioned in the current conversation
-- Check if new symptoms relate to existing diagnoses before creating new ones
-- If symptoms clearly relate to existing diagnoses, use "relates_to_existing" field
-- Focus on the primary complaint mentioned by the user
-- Generate 1-2 potential diagnoses maximum for new symptoms
-- Base confidence on symptom specificity and medical likelihood
-- Use confidence scale 0.3-0.8 (be conservative)
+- Include topics for patterns, concerns, and health themes discussed throughout conversation
+- Consider preventive care topics, lifestyle factors, and wellness areas mentioned
+- Base confidence on available evidence and medical knowledge
+- Use expanded confidence scale 0.4-0.9 for better topic representation
 
-EXAMPLES OF PROPER DUPLICATE HANDLING:
-- Existing: "Chest Pain" → New cardiac symptoms → "relates_to_existing": "Chest Pain"
-- Existing: "Digestive Issues" → New GI symptoms → "relates_to_existing": "Digestive Issues"
-- Existing: "Anxiety" → New stress symptoms → "relates_to_existing": "Anxiety"
-- Existing: "Headache" → New head pain → "relates_to_existing": "Headache"
-- Only create NEW diagnosis if symptoms are completely unrelated to existing ones
+TOPIC CATEGORIES TO CONSIDER:
+- Physical symptoms and conditions
+- Mental health and emotional wellbeing
+- Lifestyle and environmental factors
+- Preventive care needs
+- Chronic condition management
+- Pain management topics
+- Sleep and fatigue issues
+- Stress and anxiety factors
+- Nutritional or dietary concerns
 
 CONFIDENCE SCORING:
-- 0.3-0.4: Possible but needs more information
-- 0.5-0.6: Moderate likelihood based on symptoms
-- 0.7-0.8: Strong evidence supporting this possibility
+- 0.4-0.5: Worth monitoring or discussing with healthcare provider
+- 0.6-0.7: Moderate likelihood based on evidence
+- 0.8-0.9: Strong evidence or clear health theme
 
 RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific condition name OR existing diagnosis name if updating",
+      "diagnosis": "specific health topic or condition name",
       "confidence": 0.65,
-      "reasoning": "clear evidence-based justification",
+      "reasoning": "comprehensive evidence-based justification",
       "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
@@ -257,12 +259,12 @@ Current conversation: "${conversationText}"`;
       );
     }
 
-    // Validate and process diagnoses
+    // Validate and process diagnoses - more inclusive filtering
     const validDiagnoses = (diagnosisData.diagnoses || [])
-      .filter((d: any) => d.diagnosis && d.confidence >= 0.3)
+      .filter((d: any) => d.diagnosis && d.confidence >= 0.4)
       .map((d: any) => ({
         diagnosis: d.diagnosis,
-        confidence: Math.min(Math.max(d.confidence, 0.3), 0.85),
+        confidence: Math.min(Math.max(d.confidence, 0.4), 0.9),
         reasoning: d.reasoning || 'No reasoning provided',
         relates_to_existing: d.relates_to_existing || null
       }));
@@ -281,12 +283,10 @@ Current conversation: "${conversationText}"`;
       const finalDiagnoses = [];
       
       for (const newDiag of validDiagnoses) {
-        // Enhanced duplicate detection - check against ALL existing diagnoses
+        // More nuanced duplicate detection - only prevent exact matches
         const relatedExisting = allExistingDiagnoses.find(existing => 
           existing.diagnosis.toLowerCase() === newDiag.diagnosis.toLowerCase() ||
-          newDiag.relates_to_existing === existing.diagnosis ||
-          (newDiag.relates_to_existing && existing.diagnosis.toLowerCase().includes(newDiag.relates_to_existing.toLowerCase())) ||
-          (newDiag.relates_to_existing && newDiag.relates_to_existing.toLowerCase().includes(existing.diagnosis.toLowerCase()))
+          newDiag.relates_to_existing === existing.diagnosis
         );
         
         if (relatedExisting) {
