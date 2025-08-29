@@ -162,21 +162,21 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
         <CollapsibleContent>
           <CardContent>
             <Tabs defaultValue="topics" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="topics" className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Topics to Discuss
+              <TabsList className="grid w-full grid-cols-2 h-auto">
+                <TabsTrigger value="topics" className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap min-w-0">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Topics to Discuss</span>
                   {!isEmpty && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 min-w-0 flex-shrink-0">
                       {diagnoses.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Solutions to Try
+                <TabsTrigger value="solutions" className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap min-w-0">
+                  <Target className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Solutions to Try</span>
                   {!solutionsEmpty && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 min-w-0 flex-shrink-0">
                       {solutions.length}
                     </Badge>
                   )}
