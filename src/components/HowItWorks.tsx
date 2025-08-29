@@ -41,61 +41,6 @@ export const HowItWorks = () => {
           </p>
         </div>
 
-        {/* Video Demonstration Section */}
-        <div className="mb-16">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              See DrKnowsIt in Action
-            </h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Watch how our AI processes health questions and provides structured insights to help you prepare for medical consultations.
-            </p>
-          </div>
-          
-          <div className="relative max-w-4xl mx-auto">
-            <div className="medical-card p-0 overflow-hidden group cursor-pointer hover:shadow-elevated transition-all duration-300">
-              {/* Video Placeholder */}
-              <div className="relative aspect-video bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                {/* Play Button Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent"></div>
-                <div className="relative z-10 flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-foreground mb-1">
-                      Interactive Demo
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Click to see how DrKnowsIt works
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Placeholder Content */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <span>Multi-layer processing</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
-                      <span>Real-time validation</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                      <span>Confidence scoring</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Main Content with Image and Steps */}
         <div className="grid lg:grid-cols-2 gap-8 items-center mb-16">
           {/* Left side - Doctor Image */}
