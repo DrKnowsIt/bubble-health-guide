@@ -290,13 +290,48 @@ Current conversation: "${conversationText}"`;
         );
         
         if (relatedExisting) {
-          // Update the existing diagnosis with higher confidence if applicable
+          // Consolidate reasoning using AI instead of simple concatenation
+          const consolidationPrompt = `Consolidate the following health topic information into a single, concise reasoning. Remove redundancy while preserving key insights:
+
+EXISTING: ${relatedExisting.reasoning}
+NEW UPDATE: ${newDiag.reasoning}
+
+Provide a consolidated reasoning that:
+- Combines both insights intelligently
+- Removes redundant information
+- Stays under 200 characters
+- Preserves the most important medical details
+- Uses clear, professional language
+
+Consolidated reasoning:`;
+
+          const consolidationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4.1-2025-04-14',
+              messages: [
+                { role: 'user', content: consolidationPrompt }
+              ],
+              max_completion_tokens: 100
+            }),
+          });
+
+          let consolidatedReasoning = newDiag.reasoning;
+          if (consolidationResponse.ok) {
+            const consolidationData = await consolidationResponse.json();
+            consolidatedReasoning = consolidationData.choices?.[0]?.message?.content?.trim() || newDiag.reasoning;
+          }
+
           const updatedConfidence = Math.max(relatedExisting.confidence, newDiag.confidence);
           await supabase
             .from('conversation_diagnoses')
             .update({
               confidence: updatedConfidence,
-              reasoning: `${relatedExisting.reasoning} | Updated: ${newDiag.reasoning}`,
+              reasoning: consolidatedReasoning,
               updated_at: new Date().toISOString()
             })
             .eq('id', relatedExisting.id);
