@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
-  const [isIntentionalSignOut, setIsIntentionalSignOut] = useState(false);
+  const isIntentionalSignOutRef = useRef(false);
   const { toast } = useToast();
 
   // Session monitoring hook
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           // Check if this was an unexpected logout (not intentional)
           const currentSession = JSON.parse(localStorage.getItem('sb-lwqfurkfjkilsnjtmemj-auth-token') || 'null');
-          if (!isIntentionalSignOut && !currentSession) {
+          if (!isIntentionalSignOutRef.current && !currentSession) {
             console.warn('⚠️ Unexpected logout detected - session lost from storage');
             toast({
               variant: "destructive",
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
           }
           // Reset the intentional sign out flag
-          setIsIntentionalSignOut(false);
+          isIntentionalSignOutRef.current = false;
         }, 1000);
       }
     };
@@ -291,7 +291,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthLoading(true);
       
       // Mark this as an intentional sign out to prevent false "session lost" warnings
-      setIsIntentionalSignOut(true);
+      isIntentionalSignOutRef.current = true;
       
       // Close legal modal if open
       setShowLegalModal(false);
@@ -305,7 +305,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       // Reset flag on error
-      setIsIntentionalSignOut(false);
+      isIntentionalSignOutRef.current = false;
       toast({
         variant: "destructive",
         title: "Sign Out Error",
