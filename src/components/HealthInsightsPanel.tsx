@@ -165,7 +165,7 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
               <TabsList className="grid w-full grid-cols-2 h-auto">
                 <TabsTrigger value="topics" className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap min-w-0">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Topics to Discuss</span>
+                  <span className="truncate">Topics</span>
                   {!isEmpty && (
                     <Badge variant="secondary" className="text-xs px-1.5 py-0.5 min-w-0 flex-shrink-0">
                       {diagnoses.length}
