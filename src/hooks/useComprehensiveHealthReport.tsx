@@ -2,6 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+interface TestRecommendation {
+  test_name: string;
+  test_code?: string;
+  category: string;
+  reason: string;
+  urgency: string;
+  confidence: number;
+  contraindications?: string[];
+  estimated_cost_range?: string;
+  patient_prep_required?: boolean;
+  related_concerns?: string[];
+}
+
 interface ComprehensiveHealthReport {
   id: string;
   user_id: string;
@@ -9,6 +22,7 @@ interface ComprehensiveHealthReport {
   overall_health_status: string;
   key_concerns: string[];
   recommendations: string[];
+  recommended_tests: TestRecommendation[];
   priority_level: string;
   demographics_summary: any;
   health_metrics_summary: any;
@@ -47,7 +61,10 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
       if (error) {
         console.error('Error fetching comprehensive health report:', error);
       } else {
-        setReport(data);
+        setReport(data ? {
+          ...data,
+          recommended_tests: (data.recommended_tests as any) || []
+        } as ComprehensiveHealthReport : null);
       }
     } catch (error) {
       console.error('Error in fetchReport:', error);

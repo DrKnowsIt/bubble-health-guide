@@ -86,6 +86,7 @@ export type Database = {
           patient_id: string | null
           priority_level: string
           recommendations: string[] | null
+          recommended_tests: Json | null
           report_summary: string
           updated_at: string
           user_id: string
@@ -101,6 +102,7 @@ export type Database = {
           patient_id?: string | null
           priority_level?: string
           recommendations?: string[] | null
+          recommended_tests?: Json | null
           report_summary: string
           updated_at?: string
           user_id: string
@@ -116,6 +118,7 @@ export type Database = {
           patient_id?: string | null
           priority_level?: string
           recommendations?: string[] | null
+          recommended_tests?: Json | null
           report_summary?: string
           updated_at?: string
           user_id?: string

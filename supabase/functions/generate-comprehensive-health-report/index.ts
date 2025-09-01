@@ -150,88 +150,75 @@ serve(async (req) => {
     // Check if this is a pet patient
     const isPet = patientData?.is_pet === true;
     
-    let systemPrompt;
-    if (isPet) {
-      systemPrompt = `You are a veterinary AI assistant tasked with creating a comprehensive pet health report summary with advanced abnormality detection. 
+    const systemPrompt = `You are an expert ${isPet ? 'veterinary' : 'medical'} AI assistant analyzing ${isPet ? 'pet' : 'patient'} health data. Please provide a comprehensive analysis in the following JSON format:
 
-Analyze ALL the provided health data holistically and create a comprehensive pet health report that considers:
-1. Pet demographics (age: ${age || 'unknown'}, species/breed: ${patientData?.species || 'unknown'})
-2. All health records together, looking for patterns and connections
-3. CRITICAL: Detect subtle abnormalities including values at edges of normal ranges for the species
-4. Timeline analysis - compare current vs historical values when available
-5. Species and breed-appropriate health considerations
-6. Priority health concerns based on severity and timeline
-
-ABNORMALITY DETECTION RULES:
-- Flag values outside normal ranges for the specific species and breed
-- Identify concerning trends over time (e.g., gradual decline in values)
-- Note breed-specific health predispositions with current health markers
-- Highlight any values approaching abnormal thresholds for the species
-- Consider cumulative risk factors specific to pets
-
-Provide a JSON response with this exact structure:
-{
-  "overall_health_status": "excellent|good|fair|concerning|needs_veterinary_attention",
-  "key_concerns": ["concern1", "concern2", "concern3"],
-  "recommendations": ["recommendation1", "recommendation2", "recommendation3"],
-  "priority_level": "normal|moderate|urgent",
-  "demographics_summary": {
-    "age_group": "appropriate age group for species",
-    "species_considerations": "relevant species and breed-specific health considerations"
-  },
-  "health_metrics_summary": {
-    "strengths": ["positive health indicators"],
-    "areas_for_improvement": ["areas needing attention with specific values and trends"],
-    "borderline_values": ["values at edges of normal ranges with context for species"],
-    "trending_concerns": ["health metrics showing concerning changes over time"],
-    "missing_data": ["types of health data that would be valuable to collect for this species"]
-  },
-  "report_summary": "A comprehensive 2-3 paragraph summary focusing on overall pet health status, subtle abnormalities detected, timeline trends, and recommended veterinary consultation steps",
-  "confidence_score": 0.85
-}
-
-Be thorough in detecting subtle abnormalities. Focus on early detection and prevention for pets.`;
-    } else {
-      systemPrompt = `You are a medical AI assistant tasked with creating a comprehensive health report summary with advanced abnormality detection. 
-
-Analyze ALL the provided health data holistically and create a comprehensive health report that considers:
-1. Patient demographics (age: ${age || 'unknown'}, gender: ${patientContext.gender})
-2. All health records together, looking for patterns and connections
-3. CRITICAL: Detect subtle abnormalities including values at edges of normal ranges
-4. Timeline analysis - compare current vs historical values when available
-5. Age and gender-appropriate health considerations
-6. Priority health concerns based on severity and timeline
-
-ABNORMALITY DETECTION RULES:
-- Flag values in bottom 10% or top 10% of normal ranges as "borderline" (e.g., sodium at 135 mEq/L when normal is 135-145)
-- Identify concerning trends over time (e.g., gradual decline in values)
-- Note family history correlations with current health markers
-- Highlight any values approaching abnormal thresholds
-- Consider cumulative risk factors
-
-Provide a JSON response with this exact structure:
 {
   "overall_health_status": "excellent|good|fair|concerning|critical",
-  "key_concerns": ["concern1", "concern2", "concern3"],
-  "recommendations": ["recommendation1", "recommendation2", "recommendation3"],
+  "key_concerns": ["concern1", "concern2"],
+  "recommendations": ["rec1", "rec2"], 
+  "recommended_tests": [
+    {
+      "test_name": "Complete Blood Count (CBC)",
+      "test_code": "CBC_85025",
+      "category": "blood_work|imaging|specialized|preventive|diagnostic",
+      "reason": "Specific medical reason for this test based on findings",
+      "urgency": "routine|urgent|stat",
+      "confidence": 0.8,
+      "contraindications": [],
+      "estimated_cost_range": "$50-$100",
+      "patient_prep_required": true,
+      "related_concerns": ["fatigue", "anemia_risk"]
+    }
+  ],
   "priority_level": "normal|moderate|urgent",
   "demographics_summary": {
-    "age_group": "appropriate age group",
-    "gender_considerations": "relevant gender-specific health considerations"
+    "age": ${age || 'unknown'},
+    "gender": "${patientData?.gender || 'unspecified'}",
+    ${isPet ? `"species": "${patientData?.species || 'unknown'}", "breed": "${patientData?.breed || 'unknown'}"` : ''}
   },
   "health_metrics_summary": {
-    "strengths": ["positive health indicators"],
-    "areas_for_improvement": ["areas needing attention with specific values and trends"],
-    "borderline_values": ["values at edges of normal ranges with context"],
-    "trending_concerns": ["health metrics showing concerning changes over time"],
-    "missing_data": ["types of health data that would be valuable to collect"]
+    "total_records": ${Object.keys(recordsByType).length},
+    "record_types": ${JSON.stringify(Object.keys(recordsByType))},
+    "latest_update": "${new Date().toISOString()}"
   },
-  "report_summary": "A comprehensive 2-3 paragraph summary focusing on overall health status, subtle abnormalities detected, timeline trends, and recommended next steps",
-  "confidence_score": 0.85
+  "report_summary": "A comprehensive summary of the health analysis",
+  "confidence_score": 0.0-1.0
 }
 
-Be thorough in detecting subtle abnormalities. Focus on early detection and prevention.`;
-    }
+Analysis Guidelines:
+1. Focus on ${isPet ? 'veterinary' : 'medical'} patterns and correlations in the data
+2. Identify potential health risks based on ${isPet ? 'species, breed, and age' : 'age, gender, and medical history'}
+3. Provide actionable recommendations for health improvement
+4. Recommend appropriate tests based on findings and risk factors
+5. Rate overall health status realistically based on available data
+6. Consider ${isPet ? 'veterinary best practices' : 'medical best practices'} in your analysis
+7. Be conservative with critical/concerning ratings - only use when clearly warranted
+8. Provide specific, actionable recommendations rather than generic advice
+
+Test Recommendation Guidelines:
+- Suggest tests that are directly relevant to identified concerns or risk factors
+- Consider patient age, gender, ${isPet ? 'species, breed, ' : ''}and medical history
+- Prioritize tests by urgency and clinical value
+- Avoid recommending tests that were recently performed (within appropriate intervals)
+- Include both diagnostic tests for current concerns and preventive screenings
+- For ${isPet ? 'pets' : 'humans'}, consider ${isPet ? 'species-appropriate veterinary tests' : 'standard medical screening guidelines'}
+- Provide clear reasoning for each test recommendation
+
+${isPet ? 
+`VETERINARY ABNORMALITY DETECTION:
+- Species-specific normal ranges and behaviors
+- Breed-specific health predispositions  
+- Age-related changes in pets
+- Behavioral indicators of health issues
+- Seasonal health patterns
+- Vaccination and preventive care status` :
+`MEDICAL ABNORMALITY DETECTION:
+- Values outside normal clinical ranges
+- Trending patterns indicating deterioration or improvement  
+- Risk factors for common conditions based on demographics
+- Medication interactions and side effects
+- Lifestyle factors affecting health outcomes
+- Preventive care gaps based on age and risk factors`}`;
 
     const userPrompt = `Patient: ${patientContext.name}
 Age: ${age || 'Unknown'}
@@ -241,7 +228,7 @@ Total Health Records: ${patientContext.totalRecords}
 Health Data Summary:
 ${JSON.stringify(healthSummary, null, 2)}
 
-Please analyze this health information comprehensively and provide the requested JSON report.`;
+Please analyze this health information comprehensively and provide the requested JSON report with test recommendations based on the findings and patient demographics.`;
 
     console.log('Sending request to OpenAI for comprehensive health analysis');
 
@@ -293,6 +280,7 @@ Please analyze this health information comprehensively and provide the requested
         overall_health_status: analysisResult.overall_health_status,
         key_concerns: analysisResult.key_concerns,
         recommendations: analysisResult.recommendations,
+        recommended_tests: analysisResult.recommended_tests || [],
         priority_level: analysisResult.priority_level,
         demographics_summary: analysisResult.demographics_summary,
         health_metrics_summary: analysisResult.health_metrics_summary,
