@@ -3,7 +3,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useNavigationDebounce } from "@/hooks/useNavigationDebounce";
 import { EnhancedAIFreeModeInterface } from './EnhancedAIFreeModeInterface';
 
 interface FreeUsersOnlyGateProps {
@@ -12,7 +13,8 @@ interface FreeUsersOnlyGateProps {
 
 export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
   const { subscribed, subscription_tier, loading } = useSubscription();
-  const navigate = useNavigate();
+  const location = useLocation();
+  const { debouncedNavigate, currentPath } = useNavigationDebounce();
 
   // Show loading state while checking subscription
   if (loading) {
@@ -44,8 +46,14 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
             </p>
             <Button 
               onClick={() => {
-                // Use replace to ensure navigation even if already on dashboard
-                navigate('/dashboard?tab=chat', { replace: true });
+                const targetPath = '/dashboard?tab=chat';
+                // Only navigate if not already on the target path
+                if (currentPath !== targetPath) {
+                  console.log('FreeUsersOnlyGate: Navigating to AI Chat from:', currentPath);
+                  debouncedNavigate(targetPath, { replace: true });
+                } else {
+                  console.log('FreeUsersOnlyGate: Already on AI Chat tab');
+                }
               }} 
               className="w-full"
             >

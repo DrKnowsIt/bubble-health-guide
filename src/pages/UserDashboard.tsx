@@ -47,20 +47,23 @@ export default function UserDashboard() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   
-  // Update active tab when subscription changes or URL parameters change
+  // Update active tab when URL parameters change (with debouncing)
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
     
     if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-    // Default to easy-chat if no specific tab is selected
-    // Users can now access all tabs in free mode
-    if (!activeTab) {
+      // Only update if different from current tab to prevent navigation loops
+      if (tabParam !== activeTab) {
+        console.log('UserDashboard: Tab change via URL:', tabParam);
+        setActiveTab(tabParam);
+      }
+    } else if (!tabParam && activeTab !== "easy-chat") {
+      // Default to easy-chat if no specific tab is selected
+      console.log('UserDashboard: Setting default tab to easy-chat');
       setActiveTab("easy-chat");
     }
-  }, [location.search]);
+  }, [location.search, activeTab]);
   
   // Safety check: Ensure there's always a user selected when users exist
   // This helps prevent issues when switching between modes or tabs
@@ -249,7 +252,10 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col min-h-0">
+        <Tabs value={activeTab} onValueChange={(newTab) => {
+          console.log('UserDashboard: Manual tab change:', newTab);
+          setActiveTab(newTab);
+        }} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
             // Mobile: Dynamic tab bottom navigation
