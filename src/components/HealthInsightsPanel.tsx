@@ -51,7 +51,7 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
     if (user && patientId) {
       loadExistingFeedback();
     }
-  }, [user, patientId, diagnoses]);
+  }, [user, patientId]); // Removed diagnoses dependency to prevent constant updates
 
   const loadExistingFeedback = async () => {
     try {

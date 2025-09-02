@@ -379,6 +379,35 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     // Call onSendMessage callback
     onSendMessage?.(textToSend);
 
+    // Run conversation analysis after user sends a message (before AI response)
+    if (conversationId && selectedUser?.id) {
+      const recentMessages = [...messages, userMessage].slice(-6);
+      
+      // Background diagnosis analysis (fire-and-forget)
+      supabase.functions.invoke('analyze-conversation-diagnosis', {
+        body: {
+          conversation_id: conversationId,
+          patient_id: selectedUser.id,
+          recent_messages: recentMessages
+        }
+      }).then(() => {
+        loadDiagnosesForConversation();
+      }).catch(error => {
+        console.error('Error analyzing conversation for diagnosis:', error);
+      });
+
+      // Background solution analysis (fire-and-forget)
+      supabase.functions.invoke('analyze-conversation-solutions', {
+        body: {
+          conversation_id: conversationId,
+          patient_id: selectedUser.id,
+          recent_messages: recentMessages
+        }
+      }).catch(error => {
+        console.error('Error analyzing conversation for solutions:', error);
+      });
+    }
+
     try {
       // Prepare conversation history for context - match mobile/tablet pattern
       const conversationHistory = messages.filter(msg => msg.id !== 'welcome');
@@ -456,30 +485,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           setDiagnoses(mappedDiagnoses);
         }
 
-        // Background analysis for additional diagnoses (fire-and-forget like mobile)
-        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
-        supabase.functions.invoke('analyze-conversation-diagnosis', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          }
-        }).then(() => {
-          loadDiagnosesForConversation();
-        }).catch(error => {
-          console.error('Error analyzing conversation for diagnosis:', error);
-        });
-
-        // Background solution analysis (fire-and-forget)
-        supabase.functions.invoke('analyze-conversation-solutions', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          }
-        }).catch(error => {
-          console.error('Error analyzing conversation for solutions:', error);
-        });
+        // Analysis already done when user sent message - no need to repeat
       }
     } catch (error: any) {
       console.error('Grok chat failed:', error);
@@ -525,49 +531,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       setIsTyping(false);
     }
 
-    // Fire-and-forget background analysis (non-blocking)
-    if (currentConversation && selectedUser?.id) {
-      try {
-        // Get recent messages for analysis
-        const recentMessages = messages.slice(-6);
-        
-        // Always run diagnosis analysis
-        await supabase.functions.invoke('analyze-conversation-diagnosis', {
-          body: {
-            conversation_id: currentConversation,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          },
-        });
-        
-        // Run solutions analysis
-        await supabase.functions.invoke('analyze-conversation-solutions', {
-          body: {
-            conversation_id: currentConversation,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          },
-        });
-        
-        await loadDiagnosesForConversation();
-
-        // Run memory analysis on every AI response for better consistency
-        console.log('Running memory analysis for conversation:', currentConversation);
-        try {
-          await supabase.functions.invoke('analyze-conversation-memory', {
-            body: {
-              conversation_id: currentConversation,
-              patient_id: selectedUser.id,
-            },
-          });
-          console.log('Memory analysis completed successfully');
-        } catch (memoryError) {
-          console.error('Memory analysis failed:', memoryError);
-        }
-      } catch (e) {
-        console.error('Background analysis failed (non-blocking):', e);
-      }
-    }
+    // Analysis already done when user sent message - no need to repeat
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
