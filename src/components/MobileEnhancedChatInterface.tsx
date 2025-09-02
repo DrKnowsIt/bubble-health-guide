@@ -105,7 +105,7 @@ export const MobileEnhancedChatInterface = ({
         .select('*')
         .eq('conversation_id', currentConversation)
         .eq('patient_id', selectedUser.id)
-        .order('updated_at', { ascending: false });
+        .order('confidence', { ascending: false });
 
       if (error) {
         console.error('Error loading diagnoses:', error);

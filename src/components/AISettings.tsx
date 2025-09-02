@@ -155,7 +155,7 @@ export const AISettings = () => {
       .from('conversation_diagnoses')
       .select('*')
       .eq('patient_id', selectedUser.id)
-      .order('created_at', { ascending: false })
+      .order('confidence', { ascending: false })
       .limit(5);
 
     // Get health record summaries (simplified)
