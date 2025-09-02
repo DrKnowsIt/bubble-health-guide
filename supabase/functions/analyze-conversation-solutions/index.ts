@@ -78,29 +78,42 @@ serve(async (req) => {
     // Create prompt for holistic solution analysis
     const systemPrompt = `You are a holistic wellness advisor analyzing a health conversation to suggest non-medical solutions.
 
-CONFIDENCE CALIBRATION GUIDELINES:
-Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH in the conversation:
+STRICT CONFIDENCE CALIBRATION GUIDELINES:
+You must calculate realistic confidence percentages based on ACTUAL EVIDENCE in the conversation. Avoid clustering around 90%.
 
-HIGH CONFIDENCE (70-90%):
-- Patient directly mentions specific problems that have clear holistic solutions
-- Multiple related issues mentioned that point to same lifestyle factor
-- Patient provides detailed context about lifestyle, habits, or environment
-- Clear patterns described that match well-established solution approaches
-Example: "I can't sleep because I drink coffee late and use my phone in bed" = 85% confidence for "Sleep Hygiene Protocol"
+CONFIDENCE DISTRIBUTION REQUIREMENTS:
+- Most solutions should be in the 40-75% range
+- Only use 80-90% confidence when there is EXPLICIT, DETAILED evidence
+- Use 30-50% confidence for moderate evidence
+- Use 10-35% confidence for weak or speculative connections
+- NEVER default to high confidence without clear justification
 
-MEDIUM CONFIDENCE (40-69%):
-- Patient mentions problems with some detail but lacks specificity
-- Issues mentioned have multiple potential holistic approaches
-- Moderate connection between conversation content and suggested solution
-- General lifestyle factors mentioned without clear patterns
-Example: "I'm stressed at work and tired" = 55% confidence for "Stress Management Techniques"
+HIGH CONFIDENCE (75-90%) - Use ONLY when ALL criteria met:
+- Patient explicitly describes specific symptoms/problems with clear details
+- Patient provides comprehensive context about triggers, timing, or circumstances  
+- Multiple conversation exchanges confirm the same issue
+- Solution directly addresses the exact problem mentioned with proven effectiveness
+- Patient shows understanding/awareness of the connection
+Example: "I can't sleep because I drink 3 cups of coffee after 6pm and scroll my phone in bed for hours" = 82% confidence for "Evening Caffeine Reduction + Digital Sunset Protocol"
 
-LOW CONFIDENCE (10-39%):
-- Vague mentions of wellness topics
-- Speculative connections to holistic solutions
-- General health discussions without specific problems
-- Solutions based on indirect inference from conversation
-Example: "I want to be healthier" = 25% confidence for "General Wellness Plan"
+MEDIUM CONFIDENCE (45-74%) - Most solutions should fall here:
+- Patient mentions problems with some specific details
+- Clear connection between conversation content and solution exists
+- Solution addresses mentioned issues but may need refinement
+- Some evidence of lifestyle factors contributing to problems
+Example: "I'm always stressed at work and feel exhausted by evening" = 58% confidence for "Workplace Stress Management Techniques"
+
+LOW CONFIDENCE (15-44%) - Use when evidence is limited:
+- Vague or general mentions of wellness topics
+- Indirect inference from conversation required
+- Limited details about specific problems or circumstances
+- Solution is beneficial but speculative for this specific case
+Example: "I want to feel better overall" = 28% confidence for "Comprehensive Wellness Assessment"
+
+VERY LOW CONFIDENCE (10-25%) - Use for highly speculative:
+- Solution based on assumptions not supported by conversation
+- General health advice not tailored to mentioned issues
+- Minimal or no evidence in conversation to support the solution
 
 CRITICAL RULES:
 - NO medications, prescriptions, or medical treatments
@@ -147,13 +160,12 @@ Return JSON array with this structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this conversation for holistic solutions: ${conversationText}` }
         ],
-        temperature: 0.7,
-        max_tokens: 1500,
+        max_completion_tokens: 1500,
       }),
     });
 
@@ -196,7 +208,18 @@ Return JSON array with this structure:
       confidence: Math.max(0.1, Math.min(0.9, solution.confidence))
     }));
 
+    // Check for confidence clustering and reject if too many high confidence scores
+    const highConfidenceCount = validSolutions.filter(s => s.confidence >= 0.8).length;
+    const totalSolutions = validSolutions.length;
+    
+    if (totalSolutions > 2 && highConfidenceCount / totalSolutions > 0.4) {
+      console.log("Confidence distribution validation failed: too many high confidence scores");
+      console.log("Confidence scores:", validSolutions.map(s => s.confidence));
+      throw new Error('AI generated unrealistic confidence distribution - retrying with stricter guidelines');
+    }
+
     console.log("Valid solutions found:", validSolutions.length);
+    console.log("Confidence distribution:", validSolutions.map(s => ({ solution: s.solution.substring(0, 50) + '...', confidence: s.confidence })));
 
     if (validSolutions.length === 0) {
       console.log("No valid solutions generated");
