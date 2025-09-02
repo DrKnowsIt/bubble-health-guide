@@ -18,7 +18,8 @@ export const exportComprehensivePDFForUser = async (
       { data: easyChatData },
       { data: diagnosesData },
       { data: healthSummaries },
-      { data: solutionsData }
+      { data: solutionsData },
+      { data: comprehensiveReport }
     ] = await Promise.all([
       supabase
         .from('conversation_memory')
@@ -43,7 +44,7 @@ export const exportComprehensivePDFForUser = async (
       
       supabase
         .from('health_record_summaries')
-        .select('created_at')
+        .select('*')
         .eq('user_id', selectedUser.id)
         .order('created_at', { ascending: false }),
       
@@ -52,7 +53,16 @@ export const exportComprehensivePDFForUser = async (
         .select('*')
         .eq('patient_id', selectedUser.id)
         .order('confidence', { ascending: false })
-        .limit(8)
+        .limit(8),
+      
+      supabase
+        .from('comprehensive_health_reports')
+        .select('*')
+        .eq('user_id', selectedUser.id)
+        .eq('patient_id', selectedUser.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
     ]);
 
     // Generate comprehensive PDF
@@ -177,7 +187,131 @@ export const exportComprehensivePDFForUser = async (
       currentY += 10;
     }
 
-    // Add solutions/recommendations
+    // Add recommended tests for healthcare providers
+    if (comprehensiveReport?.recommended_tests && Array.isArray(comprehensiveReport.recommended_tests) && comprehensiveReport.recommended_tests.length > 0) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Recommended Diagnostic Tests', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'italic');
+      doc.text('For Healthcare Provider Consideration', 20, currentY);
+      currentY += 15;
+
+      comprehensiveReport.recommended_tests.forEach((test: any, index: number) => {
+        if (currentY > 260) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${index + 1}. ${test.test_name}`, 25, currentY);
+        currentY += 6;
+
+        doc.setFont(undefined, 'normal');
+        if (test.test_code) {
+          doc.text(`Code: ${test.test_code}`, 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.category) {
+          doc.text(`Category: ${test.category}`, 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.urgency) {
+          doc.text(`Urgency: ${test.urgency}`, 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.reason) {
+          const reasonText = doc.splitTextToSize(`Clinical Rationale: ${test.reason}`, 160);
+          doc.text(reasonText, 30, currentY);
+          currentY += reasonText.length * 4 + 3;
+        }
+
+        if (test.confidence) {
+          doc.text(`AI Confidence: ${Math.round(test.confidence * 100)}%`, 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.estimated_cost_range) {
+          doc.text(`Est. Cost: ${test.estimated_cost_range}`, 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.patient_prep_required) {
+          doc.text('Patient Preparation: Required', 30, currentY);
+          currentY += 5;
+        }
+
+        if (test.contraindications && test.contraindications.length > 0) {
+          const contraindicationsText = doc.splitTextToSize(`Contraindications: ${test.contraindications.join(', ')}`, 160);
+          doc.text(contraindicationsText, 30, currentY);
+          currentY += contraindicationsText.length * 4 + 3;
+        }
+
+        currentY += 8;
+      });
+      currentY += 10;
+    }
+
+    // Add overall health status and summary if available
+    if (comprehensiveReport) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Comprehensive Health Assessment Summary', 20, currentY);
+      currentY += 10;
+
+      if (comprehensiveReport.overall_health_status) {
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Overall Health Status: ${comprehensiveReport.overall_health_status}`, 25, currentY);
+        currentY += 8;
+      }
+
+      if (comprehensiveReport.priority_level) {
+        doc.setFont(undefined, 'bold');
+        doc.text(`Priority Level: ${comprehensiveReport.priority_level}`, 25, currentY);
+        currentY += 8;
+      }
+
+      if (comprehensiveReport.key_concerns && comprehensiveReport.key_concerns.length > 0) {
+        doc.setFont(undefined, 'bold');
+        doc.text('Key Concerns:', 25, currentY);
+        currentY += 6;
+        doc.setFont(undefined, 'normal');
+        comprehensiveReport.key_concerns.forEach((concern: string, index: number) => {
+          doc.text(`• ${concern}`, 30, currentY);
+          currentY += 5;
+        });
+        currentY += 5;
+      }
+
+      if (comprehensiveReport.report_summary) {
+        doc.setFont(undefined, 'bold');
+        doc.text('Clinical Summary:', 25, currentY);
+        currentY += 6;
+        doc.setFont(undefined, 'normal');
+        const summaryText = doc.splitTextToSize(comprehensiveReport.report_summary, 160);
+        doc.text(summaryText, 25, currentY);
+        currentY += summaryText.length * 4 + 10;
+      }
+    }
+
+    // Add holistic solutions/recommendations
     if (solutionsData && solutionsData.length > 0) {
       if (currentY > 250) {
         doc.addPage();
@@ -186,8 +320,13 @@ export const exportComprehensivePDFForUser = async (
 
       doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
-      doc.text('AI-Generated Health Recommendations', 20, currentY);
-      currentY += 10;
+      doc.text('Holistic Health Recommendations', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'italic');
+      doc.text('AI-Generated Patient Guidance', 20, currentY);
+      currentY += 12;
 
       solutionsData.forEach((solution, index) => {
         if (currentY > 270) {
@@ -197,7 +336,7 @@ export const exportComprehensivePDFForUser = async (
 
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
-        doc.text(`${index + 1}. ${solution.category || 'General'}`, 25, currentY);
+        doc.text(`${index + 1}. ${solution.category || 'General Wellness'}`, 25, currentY);
         currentY += 6;
 
         doc.setFont(undefined, 'normal');
