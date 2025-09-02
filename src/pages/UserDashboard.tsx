@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut, FileDown, RefreshCcw } from 'lucide-react';
+import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut, FileDown } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/ChatGPTInterface';
 import { DNAUpload } from '@/components/DNAUpload';
 import { HealthForms } from '@/components/HealthForms';
@@ -24,7 +24,6 @@ import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
 import { EnhancedAIFreeModeInterface } from '@/components/EnhancedAIFreeModeInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
-import { useSolutionRegeneration } from '@/hooks/useSolutionRegeneration';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
@@ -121,18 +120,6 @@ export default function UserDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { generateFinalAnalysis, loading: analysisLoading } = useFinalMedicalAnalysis();
-  const { regenerateSolutions, loading: regenerationLoading } = useSolutionRegeneration();
-
-  // Handle solution regeneration
-  const handleRegenerateSolutions = async () => {
-    if (!selectedUser) return;
-    
-    const result = await regenerateSolutions(selectedUser.id, false);
-    if (result && result.regenerated_count > 0) {
-      // Refresh the page data or trigger a re-fetch if needed
-      // The toast notification is handled by the hook
-    }
-  };
 
   // Enhanced export functionality with progress modal
   const exportToPDF = async () => {
@@ -310,37 +297,6 @@ export default function UserDashboard() {
                </TooltipTrigger>
                <TooltipContent>
                  Export comprehensive medical report
-               </TooltipContent>
-             </Tooltip>
-           )}
-
-           {/* Regenerate Solutions Button - Only for subscribed users */}
-           {selectedUser && hasAccess('basic') && (
-             <Tooltip>
-               <TooltipTrigger asChild>
-                 <Button
-                   onClick={handleRegenerateSolutions}
-                   size="sm"
-                   variant="outline"
-                   className="h-8"
-                   aria-label="Regenerate holistic solutions"
-                   disabled={regenerationLoading}
-                 >
-                   {regenerationLoading ? (
-                     <>
-                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                       Updating...
-                     </>
-                   ) : (
-                     <>
-                       <RefreshCcw className="h-4 w-4 mr-2" />
-                       Fix Confidence Scores
-                     </>
-                   )}
-                 </Button>
-               </TooltipTrigger>
-               <TooltipContent>
-                 Update holistic solutions with realistic confidence scores
                </TooltipContent>
              </Tooltip>
            )}
