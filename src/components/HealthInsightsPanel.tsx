@@ -196,17 +196,17 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
                   <>
                      <div className="space-y-4">
                        {diagnoses.map((diagnosis, index) => (
-                         <div key={index} className={`p-4 rounded-lg border-2 ${diagnosis.confidence >= 0.6 ? 'bg-green-50 border-green-300' : 'bg-card border-border'}`}>
+                          <div key={index} className={`p-4 rounded-lg border-2 ${diagnosis.confidence >= 0.6 ? 'bg-green-900/20 border-green-700' : 'bg-card border-border'}`}>
+                            {diagnosis.confidence >= 0.6 && (
+                              <Badge className="text-xs bg-green-800/30 text-green-400 border-green-700 whitespace-nowrap mb-3 inline-block">
+                                High Confidence
+                              </Badge>
+                            )}
                             <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-2 flex-1 min-w-0 mr-3">
+                              <div className="flex-1 min-w-0 mr-3">
                                 <h3 className="font-semibold text-base leading-tight">
                                   {diagnosis.diagnosis}
                                 </h3>
-                                {diagnosis.confidence >= 0.6 && (
-                                  <Badge className="text-xs bg-green-100 text-green-800 border-green-200 whitespace-nowrap flex-shrink-0">
-                                    High Confidence
-                                  </Badge>
-                                )}
                               </div>
                               <div className="flex flex-col items-end flex-shrink-0 min-w-0">
                                 <div className="text-sm font-medium mb-1">

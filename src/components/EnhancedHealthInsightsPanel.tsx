@@ -274,7 +274,7 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                   <>
                      <div className="space-y-4">
                        {groupedDiagnoses.map((group, groupIndex) => (
-                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-50/80' : 'bg-background/50'}`}>
+                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-900/20' : 'bg-background/50'}`}>
                            <div className="p-4 backdrop-blur">
                              <div className="flex items-start justify-between mb-3">
                                <div className="flex items-center gap-3 flex-1 mr-4">
