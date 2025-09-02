@@ -30,15 +30,24 @@ import { PatientMemoryOverview } from './PatientMemoryOverview';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 
-interface MobileEnhancedOverviewTabProps {
-  onTabChange?: (tab: string) => void;
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  is_primary: boolean;
+  relationship: string;
+  is_pet?: boolean;
 }
 
-export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOverviewTabProps) => {
+interface MobileEnhancedOverviewTabProps {
+  onTabChange?: (tab: string) => void;
+  selectedUser?: User | null;
+}
+
+export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileEnhancedOverviewTabProps) => {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
-  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats();
-  const { selectedUser } = useUsers();
+  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
 

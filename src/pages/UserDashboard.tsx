@@ -409,7 +409,7 @@ export default function UserDashboard() {
 
             <TabsContent value="overview" className="h-full mt-0 pt-4">
               {isMobile ? (
-                <MobileEnhancedOverviewTab onTabChange={setActiveTab} />
+                <MobileEnhancedOverviewTab onTabChange={setActiveTab} selectedUser={selectedUser} />
               ) : (
                 <div className="h-full overflow-y-auto">
                   <div className="space-y-6">
@@ -502,9 +502,9 @@ export default function UserDashboard() {
                               Customize AI behavior and preferences
                             </CardDescription>
                           </CardHeader>
-                          <CardContent>
-                            <AISettings />
-                          </CardContent>
+                           <CardContent>
+                             <AISettings selectedUser={selectedUser || undefined} />
+                           </CardContent>
                         </Card>
                       </div>
 
