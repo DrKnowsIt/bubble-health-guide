@@ -169,7 +169,7 @@ Return JSON array with this structure:
       ['lifestyle', 'stress', 'sleep', 'nutrition', 'exercise', 'mental_health'].includes(solution.category)
     ).map(solution => ({
       ...solution,
-      confidence: Math.max(0.1, Math.min(1.0, solution.confidence))
+      confidence: Math.max(0.1, Math.min(0.9, solution.confidence))
     }));
 
     console.log("Valid solutions found:", validSolutions.length);
