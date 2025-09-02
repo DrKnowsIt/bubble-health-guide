@@ -274,33 +274,36 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                   <>
                      <div className="space-y-4">
                        {groupedDiagnoses.map((group, groupIndex) => (
-                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-50' : ''}`}>
-                           <div className="p-4 bg-background/50 backdrop-blur">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-3">
-                                <span className="text-2xl">{getCategoryIcon(group.category)}</span>
-                                <div>
-                                  <h3 className="font-semibold text-base leading-tight">
-                                    {group.primary.diagnosis}
-                                  </h3>
-                                  <Badge className={`mt-1 text-xs ${getCategoryColor(group.category)}`}>
-                                    {getConfidenceLevel(group.primary.confidence)}
-                                  </Badge>
-                                </div>
-                              </div>
-                            <div className="text-right ml-4 flex-shrink-0">
-                              <Progress 
-                                value={group.primary.confidence * 100} 
-                                className="w-24 h-3"
-                              />
-                              {group.primary.updated_at && (
-                                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {formatDate(group.primary.updated_at)}
-                                </div>
-                              )}
-                            </div>
-                            </div>
+                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-50/80' : 'bg-background/50'}`}>
+                           <div className="p-4 backdrop-blur">
+                             <div className="flex items-start justify-between mb-3">
+                               <div className="flex items-center gap-3 flex-1 mr-4">
+                                 <span className="text-2xl">{getCategoryIcon(group.category)}</span>
+                                 <div>
+                                   <h3 className="font-semibold text-base leading-tight">
+                                     {group.primary.diagnosis}
+                                   </h3>
+                                   <Badge className={`mt-1 text-xs ${getCategoryColor(group.category)}`}>
+                                     {getConfidenceLevel(group.primary.confidence)}
+                                   </Badge>
+                                 </div>
+                               </div>
+                             <div className="text-right flex-shrink-0">
+                               <div className="text-sm font-medium mb-1">
+                                 {Math.round(group.primary.confidence * 100)}%
+                               </div>
+                               <Progress 
+                                 value={group.primary.confidence * 100} 
+                                 className="w-20 h-3"
+                               />
+                               {group.primary.updated_at && (
+                                 <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                   <Clock className="h-3 w-3" />
+                                   {formatDate(group.primary.updated_at)}
+                                 </div>
+                               )}
+                             </div>
+                             </div>
                             
                             {group.primary.reasoning && (
                               <div className="mb-4">
