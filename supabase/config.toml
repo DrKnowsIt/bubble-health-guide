@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.clear-form-memory]
 verify_jwt = true
+
+[functions.regenerate-solution-confidence]
+verify_jwt = true
