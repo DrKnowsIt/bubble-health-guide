@@ -90,57 +90,63 @@ Gender: ${patient.gender || 'Not specified'}`;
       }
     }
 
-    const systemPrompt = `You are a medical analysis AI that generates health topics based on guided conversation responses from an Easy Chat system.
+    const systemPrompt = `You are a medical differential diagnosis AI that generates sophisticated health topics based on guided conversation responses.
 
 PATIENT CONTEXT:
 ${patientContext}
 
-ANALYSIS INSTRUCTIONS:
-- Analyze the guided conversation (questions and answers) to identify relevant health topics
-- Generate 2-4 health topics when conversation has sufficient detail (prefer 3-4 when possible)
-- Use MEDICAL TERMINOLOGY and ICD-10-style classifications where appropriate
-- Include anatomical terms, pathophysiological processes, and clinical descriptors
-- Each topic should be clinically specific and medically accurate
-- Provide detailed reasoning that explains the clinical basis for each topic
-- Prioritize topics by clinical significance and evidence strength from conversation
+CRITICAL REQUIREMENTS:
+- ALWAYS generate EXACTLY 4 health topics - no exceptions
+- Think like a medical professional doing differential diagnosis, not just echoing symptoms
+- Use sophisticated medical terminology and pathophysiological reasoning
+- Each topic should represent a different potential diagnosis or condition
+
+DIFFERENTIAL DIAGNOSIS APPROACH:
+- For "knee pain" → consider: "Patellofemoral Pain Syndrome", "Meniscal Tear", "Osteoarthritis", "Iliotibial Band Syndrome"
+- For "chest pain" → consider: "Costochondritis", "Gastroesophageal Reflux Disease", "Intercostal Neuralgia", "Anxiety-Related Chest Tightness"
+- For "headache" → consider: "Tension-Type Cephalgia", "Cervicogenic Headache", "Temporomandibular Joint Dysfunction", "Medication Overuse Headache"
 
 MEDICAL TERMINOLOGY REQUIREMENTS:
-- Use proper medical nomenclature (e.g., "Patellofemoral Pain Syndrome" not "Knee Pain")
-- Include anatomical specificity (e.g., "Inguinal Dermatitis" not "Itchy Area")
-- Reference relevant systems (e.g., "Musculoskeletal", "Dermatological", "Gastrointestinal")
-- Use clinical descriptors (e.g., "Acute", "Chronic", "Bilateral", "Unilateral")
+- Use precise medical nomenclature with pathophysiological basis
+- Include anatomical specificity and clinical descriptors
+- Reference underlying mechanisms when possible
+- Think about interconnected systems and potential causes
 
-ENHANCED CONFIDENCE SCORING GUIDELINES:
-Analyze these factors to calculate realistic confidence percentages:
+EXAMPLES OF SOPHISTICATED TOPICS:
+❌ BAD: "Knee Pain", "Back Pain", "Stomach Issues"
+✅ GOOD: "Patellofemoral Pain Syndrome with Biomechanical Dysfunction", "Lumbar Facet Joint Syndrome", "Functional Dyspepsia with Gastroparesis"
 
-HIGH CONFIDENCE (70-89%):
-- Multiple specific symptoms described in detail
-- Clear temporal patterns mentioned (duration, frequency)
-- Patient provides unprompted anatomical details
-- Symptoms interfere with daily activities
-- Example: "Sharp stabbing pain in right knee when climbing stairs, lasting 3 weeks"
+REALISTIC CONFIDENCE SCORING GUIDELINES:
+Provide VARIED confidence scores based on conversation depth and specificity:
 
-MEDIUM CONFIDENCE (40-69%):
-- Some symptom specificity but lacking detail
-- General location mentioned without precision
-- Single symptom domain reported
-- Vague temporal information
-- Example: "My knee hurts sometimes when I walk"
+VERY LOW CONFIDENCE (10-25%):
+- Single word responses or minimal information
+- Completely speculative based on limited data
+- Example: User says "uncomfortable" → 15% confidence for differential diagnosis
 
-LOW CONFIDENCE (15-39%):
-- Vague or non-specific mentions
-- Single word responses about symptoms
-- No temporal or severity information
-- Speculative connections based on limited information
-- Example: "Yeah, it's uncomfortable"
+LOW CONFIDENCE (25-45%):
+- Vague symptoms without specificity
+- Limited conversation depth
+- Basic symptom mention without context
+- Example: "My knee hurts" → 35% confidence
 
-CONFIDENCE CALCULATION FACTORS:
-- Conversation depth: More detailed responses = higher confidence
-- Symptom specificity: Precise descriptions = +10-15% confidence
-- Duration mentioned: Time frames provided = +10% confidence
-- Severity indicators: Impact on function = +10-15% confidence
-- Multiple corroborating symptoms: Related findings = +5-10% confidence
-- Anatomical precision: Specific body regions = +5-10% confidence
+MEDIUM CONFIDENCE (45-65%):
+- Some symptom specificity with basic details
+- General location and timing mentioned
+- Moderate conversation engagement
+- Example: "Sharp knee pain when walking upstairs" → 55% confidence
+
+HIGH CONFIDENCE (65-85%):
+- Detailed symptom descriptions with context
+- Multiple corroborating factors mentioned
+- Clear patterns and triggers identified
+- Example: "Sharp stabbing pain in right patella, worse with stairs, 3-week duration" → 75% confidence
+
+CONFIDENCE VARIATION REQUIREMENTS:
+- NEVER cluster all scores around 70-75%
+- Use the FULL range from 10-85%
+- Base scores on actual conversation content depth
+- Be more conservative with confidence - medical diagnosis is inherently uncertain
 
 RESPONSE FORMAT (JSON only):
 {
@@ -209,25 +215,45 @@ ${conversation_context}`;
       );
     }
 
-    // Validate and process topics with prioritization
-    const validTopics = (topicsData.topics || [])
-      .filter((t: any) => t.topic && t.confidence >= 0.15)
+    // Process topics to ensure exactly 4 are returned
+    let processedTopics = (topicsData.topics || [])
+      .filter((t: any) => t.topic) // Only filter out topics without content
       .map((t: any) => ({
         topic: t.topic,
-        confidence: Math.min(Math.max(t.confidence, 0.15), 0.89),
+        confidence: Math.min(Math.max(t.confidence || 0.1, 0.1), 0.85), // Keep realistic range
         reasoning: t.reasoning || 'Based on conversation responses',
         category: t.category || 'other'
       }))
-      .sort((a, b) => b.confidence - a.confidence) // Sort by confidence descending
-      .slice(0, 4); // Limit to top 4 topics
+      .sort((a, b) => b.confidence - a.confidence); // Sort by confidence descending
 
-    console.log(`Generated ${validTopics.length} valid topics`);
+    // Ensure exactly 4 topics - pad with additional differential diagnoses if needed
+    if (processedTopics.length < 4) {
+      console.log(`Only ${processedTopics.length} topics generated, padding to 4`);
+      // Add generic differential diagnoses if we don't have enough
+      const genericTopics = [
+        { topic: 'Functional Symptom Disorder', confidence: 0.25, reasoning: 'General consideration for unexplained symptoms', category: 'other' },
+        { topic: 'Stress-Related Somatic Response', confidence: 0.20, reasoning: 'Psychosomatic contribution to physical symptoms', category: 'psychiatric' },
+        { topic: 'Subclinical Inflammatory Process', confidence: 0.15, reasoning: 'Low-grade inflammation as potential contributing factor', category: 'other' },
+        { topic: 'Environmental Sensitivity Reaction', confidence: 0.12, reasoning: 'Possible environmental trigger involvement', category: 'other' }
+      ];
+      
+      const needed = 4 - processedTopics.length;
+      processedTopics = [...processedTopics, ...genericTopics.slice(0, needed)];
+    }
+
+    // Limit to exactly 4 topics
+    const finalTopics = processedTopics.slice(0, 4);
+
+    console.log(`Returning exactly ${finalTopics.length} topics`);
+    finalTopics.forEach((t, i) => {
+      console.log(`Topic ${i + 1}: ${t.topic} (${Math.round(t.confidence * 100)}%)`);
+    });
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        diagnoses: validTopics, // Keep this field name for compatibility with the panel
-        topics: validTopics,
+        diagnoses: finalTopics, // Keep this field name for compatibility with the panel
+        topics: finalTopics,
         analyzed_context_length: conversation_context.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

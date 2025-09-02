@@ -47,25 +47,25 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
   // Generate topics more frequently for better responsiveness
   useEffect(() => {
-    // Skip if we already have topics from props
-    if (healthTopics && healthTopics.length > 0) return;
+    // Skip if we already have topics from props and they're sufficient
+    if (healthTopics && healthTopics.length >= 4) return;
     
     const shouldAnalyze = conversationPath.length > 0 && 
                          conversationPath.length !== lastAnalyzedCount && 
-                         conversationPath.length >= 2; // Analyze after 2+ responses
+                         conversationPath.length >= 1; // Analyze after 1+ responses for better responsiveness
 
     console.log('Topic generation check (fallback):', { 
       pathLength: conversationPath.length, 
       lastAnalyzed: lastAnalyzedCount, 
       shouldAnalyze, 
       sessionId,
-      hasProvidedTopics: healthTopics && healthTopics.length > 0
+      hasProvidedTopics: healthTopics && healthTopics.length >= 4
     });
 
     if (shouldAnalyze && sessionId) {
       generateTopics();
     }
-  }, [conversationPath.length, sessionId, lastAnalyzedCount]);
+  }, [conversationPath.length, sessionId, lastAnalyzedCount, healthTopics]);
 
   const generateTopics = async () => {
     if (!user || conversationPath.length === 0) return;
@@ -112,19 +112,18 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
       if (data?.diagnoses || data?.topics) {
         const topicsData = data.diagnoses || data.topics;
+        // Show all topics without any filtering - the server ensures exactly 4
         const generatedTopics = topicsData
           .map((item: any) => ({
             topic: item.topic || item.diagnosis,
             confidence: item.confidence || 0.5,
             reasoning: item.reasoning || 'Based on conversation responses',
             category: item.category || 'other'
-          }))
-          .sort((a, b) => b.confidence - a.confidence) // Sort by confidence
-          .slice(0, 4); // Show top 4 topics maximum
+          }));
 
-        setTopics(generatedTopics);
+        setTopics(generatedTopics); // Show all topics returned from server (always 4)
         setLastAnalyzedCount(conversationPath.length);
-        console.log('Generated topics (prioritized):', generatedTopics);
+        console.log('Generated topics (no filtering):', generatedTopics);
       } else {
         console.log('No topics data in response');
       }
