@@ -97,27 +97,59 @@ ${patientContext}
 
 ANALYSIS INSTRUCTIONS:
 - Analyze the guided conversation (questions and answers) to identify relevant health topics
-- Focus on symptoms, conditions, or health concerns mentioned in responses
-- Generate health topics with confidence scores based on the specificity and medical relevance
-- Each topic should have a clear category (symptoms, conditions, wellness, etc.)
-- Provide reasoning that explains why this topic is relevant based on the conversation
-- Generate 3-5 topics maximum, prioritizing the most relevant ones
-- Be conservative with confidence scores - this is preliminary screening
+- Generate 2-4 health topics when conversation has sufficient detail (prefer 3-4 when possible)
+- Use MEDICAL TERMINOLOGY and ICD-10-style classifications where appropriate
+- Include anatomical terms, pathophysiological processes, and clinical descriptors
+- Each topic should be clinically specific and medically accurate
+- Provide detailed reasoning that explains the clinical basis for each topic
+- Prioritize topics by clinical significance and evidence strength from conversation
 
-CONFIDENCE SCORING:
-- 0.3-0.4: Possible concern mentioned but needs more detail
-- 0.5-0.6: Clear symptom or concern identified
-- 0.7-0.8: Well-defined health topic with specific details
-- 0.8+: Reserved for urgent or clearly defined conditions
+MEDICAL TERMINOLOGY REQUIREMENTS:
+- Use proper medical nomenclature (e.g., "Patellofemoral Pain Syndrome" not "Knee Pain")
+- Include anatomical specificity (e.g., "Inguinal Dermatitis" not "Itchy Area")
+- Reference relevant systems (e.g., "Musculoskeletal", "Dermatological", "Gastrointestinal")
+- Use clinical descriptors (e.g., "Acute", "Chronic", "Bilateral", "Unilateral")
+
+ENHANCED CONFIDENCE SCORING GUIDELINES:
+Analyze these factors to calculate realistic confidence percentages:
+
+HIGH CONFIDENCE (70-89%):
+- Multiple specific symptoms described in detail
+- Clear temporal patterns mentioned (duration, frequency)
+- Patient provides unprompted anatomical details
+- Symptoms interfere with daily activities
+- Example: "Sharp stabbing pain in right knee when climbing stairs, lasting 3 weeks"
+
+MEDIUM CONFIDENCE (40-69%):
+- Some symptom specificity but lacking detail
+- General location mentioned without precision
+- Single symptom domain reported
+- Vague temporal information
+- Example: "My knee hurts sometimes when I walk"
+
+LOW CONFIDENCE (15-39%):
+- Vague or non-specific mentions
+- Single word responses about symptoms
+- No temporal or severity information
+- Speculative connections based on limited information
+- Example: "Yeah, it's uncomfortable"
+
+CONFIDENCE CALCULATION FACTORS:
+- Conversation depth: More detailed responses = higher confidence
+- Symptom specificity: Precise descriptions = +10-15% confidence
+- Duration mentioned: Time frames provided = +10% confidence
+- Severity indicators: Impact on function = +10-15% confidence
+- Multiple corroborating symptoms: Related findings = +5-10% confidence
+- Anatomical precision: Specific body regions = +5-10% confidence
 
 RESPONSE FORMAT (JSON only):
 {
   "topics": [
     {
-      "topic": "specific health topic or condition",
-      "confidence": 0.65,
-      "reasoning": "explanation based on conversation responses",
-      "category": "symptoms|conditions|wellness|prevention|lifestyle"
+      "topic": "Medically precise topic using proper terminology",
+      "confidence": 0.XX,
+      "reasoning": "Detailed clinical reasoning referencing specific conversation elements and confidence factors",
+      "category": "musculoskeletal|dermatological|gastrointestinal|cardiovascular|respiratory|neurological|genitourinary|endocrine|psychiatric|other"
     }
   ]
 }
@@ -139,7 +171,7 @@ ${conversation_context}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this Easy Chat conversation and generate health topics: ${conversation_context}` }
         ],
-        max_completion_tokens: 600,
+        max_completion_tokens: 1000,
         response_format: { type: "json_object" }
       }),
     });
@@ -177,16 +209,17 @@ ${conversation_context}`;
       );
     }
 
-    // Validate and process topics
+    // Validate and process topics with prioritization
     const validTopics = (topicsData.topics || [])
-      .filter((t: any) => t.topic && t.confidence >= 0.3)
+      .filter((t: any) => t.topic && t.confidence >= 0.15)
       .map((t: any) => ({
         topic: t.topic,
-        confidence: Math.min(Math.max(t.confidence, 0.3), 0.9),
+        confidence: Math.min(Math.max(t.confidence, 0.15), 0.89),
         reasoning: t.reasoning || 'Based on conversation responses',
-        category: t.category || 'general'
+        category: t.category || 'other'
       }))
-      .slice(0, 5); // Limit to 5 topics
+      .sort((a, b) => b.confidence - a.confidence) // Sort by confidence descending
+      .slice(0, 4); // Limit to top 4 topics
 
     console.log(`Generated ${validTopics.length} valid topics`);
 

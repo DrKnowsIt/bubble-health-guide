@@ -45,15 +45,14 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
     }
   }, [healthTopics, conversationPath.length]);
 
-  // Generate topics when we have enough new responses or conversation is complete
+  // Generate topics more frequently for better responsiveness
   useEffect(() => {
-    // Skip if we already have topics from props or if conversation is too short
+    // Skip if we already have topics from props
     if (healthTopics && healthTopics.length > 0) return;
     
     const shouldAnalyze = conversationPath.length > 0 && 
                          conversationPath.length !== lastAnalyzedCount && 
-                         (conversationPath.length % 2 === 0 || // Every 2 responses
-                          conversationPath.length >= 3); // Or when we have at least 3 responses
+                         conversationPath.length >= 2; // Analyze after 2+ responses
 
     console.log('Topic generation check (fallback):', { 
       pathLength: conversationPath.length, 
@@ -113,17 +112,19 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
       if (data?.diagnoses || data?.topics) {
         const topicsData = data.diagnoses || data.topics;
-        const generatedTopics = topicsData.map((item: any) => ({
-          topic: item.topic || item.diagnosis,
-          confidence: item.confidence || 0.5,
-          reasoning: item.reasoning || 'Based on conversation responses',
-          category: item.category || (item.confidence > 0.7 ? 'high_confidence' : 
-                   item.confidence > 0.4 ? 'moderate_confidence' : 'low_confidence')
-        }));
+        const generatedTopics = topicsData
+          .map((item: any) => ({
+            topic: item.topic || item.diagnosis,
+            confidence: item.confidence || 0.5,
+            reasoning: item.reasoning || 'Based on conversation responses',
+            category: item.category || 'other'
+          }))
+          .sort((a, b) => b.confidence - a.confidence) // Sort by confidence
+          .slice(0, 4); // Show top 4 topics maximum
 
-        setTopics(generatedTopics.slice(0, 5)); // Limit to 5 topics
+        setTopics(generatedTopics);
         setLastAnalyzedCount(conversationPath.length);
-        console.log('Generated topics:', generatedTopics);
+        console.log('Generated topics (prioritized):', generatedTopics);
       } else {
         console.log('No topics data in response');
       }
@@ -142,10 +143,16 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'high_confidence': return <AlertTriangle className="h-4 w-4 text-green-600" />;
-      case 'moderate_confidence': return <Clock className="h-4 w-4 text-amber-600" />;
-      case 'low_confidence': return <Layers className="h-4 w-4 text-red-600" />;
-      default: return <Heart className="h-4 w-4" />;
+      case 'musculoskeletal': return <Target className="h-4 w-4 text-blue-600" />;
+      case 'dermatological': return <Layers className="h-4 w-4 text-green-600" />;
+      case 'gastrointestinal': return <Heart className="h-4 w-4 text-purple-600" />;
+      case 'cardiovascular': return <Heart className="h-4 w-4 text-red-600" />;
+      case 'respiratory': return <AlertTriangle className="h-4 w-4 text-cyan-600" />;
+      case 'neurological': return <Clock className="h-4 w-4 text-indigo-600" />;
+      case 'genitourinary': return <Target className="h-4 w-4 text-pink-600" />;
+      case 'endocrine': return <Layers className="h-4 w-4 text-orange-600" />;
+      case 'psychiatric': return <Heart className="h-4 w-4 text-teal-600" />;
+      default: return <AlertTriangle className="h-4 w-4 text-gray-600" />;
     }
   };
 
