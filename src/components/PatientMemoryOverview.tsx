@@ -48,6 +48,9 @@ export const PatientMemoryOverview = ({ patientId, patientName, conversationId }
     patientId ? { id: patientId, first_name: patientName || 'Patient', last_name: '' } : null
   );
 
+  // Only show health report if it exists and is not loading
+  const shouldShowHealthReport = healthReport && !healthReportLoading;
+
   const stats = getMemoryStats();
   const recentInsights = getRecentInsights(3);
 
@@ -211,19 +214,19 @@ export const PatientMemoryOverview = ({ patientId, patientName, conversationId }
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Health Report Summary */}
-        {healthReport && (
-          <div className="space-y-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
+        {/* Health Report Summary - Only show when stable */}
+        {shouldShowHealthReport && (
+          <div className="space-y-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800 animate-in fade-in-0 slide-in-from-top-1 duration-300">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <Heart className="h-4 w-4 text-green-600" />
               Health Status Overview
             </h4>
             <div className="grid grid-cols-2 gap-2">
-              <div className={cn("text-center p-2 rounded border text-xs", getStatusColor(healthReport.overall_health_status))}>
+              <div className={cn("text-center p-2 rounded border text-xs transition-colors duration-200", getStatusColor(healthReport.overall_health_status))}>
                 <div className="font-medium">{healthReport.overall_health_status.toUpperCase()}</div>
                 <div className="text-xs opacity-80">Health Status</div>
               </div>
-              <div className={cn("text-center p-2 rounded border text-xs", getPriorityColor(healthReport.priority_level))}>
+              <div className={cn("text-center p-2 rounded border text-xs transition-colors duration-200", getPriorityColor(healthReport.priority_level))}>
                 <div className="font-medium">{healthReport.priority_level.toUpperCase()}</div>
                 <div className="text-xs opacity-80">Priority</div>
               </div>
@@ -233,7 +236,7 @@ export const PatientMemoryOverview = ({ patientId, patientName, conversationId }
                 <div className="text-xs font-medium text-muted-foreground mb-1">Key Concerns:</div>
                 <div className="space-y-1">
                   {healthReport.key_concerns.slice(0, 2).map((concern, index) => (
-                    <div key={index} className="text-xs p-1 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 rounded border border-yellow-200 dark:border-yellow-800">
+                    <div key={index} className="text-xs p-1 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 rounded border border-yellow-200 dark:border-yellow-800 transition-colors duration-200">
                       • {concern}
                     </div>
                   ))}
