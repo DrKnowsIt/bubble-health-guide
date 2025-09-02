@@ -283,6 +283,7 @@ export default function UserDashboard() {
         <Tabs value={activeTab} onValueChange={(newTab) => {
           console.log('UserDashboard: Manual tab change:', newTab);
           setActiveTab(newTab);
+          navigate(`/dashboard?tab=${newTab}`, { replace: true });
         }} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
@@ -456,7 +457,10 @@ export default function UserDashboard() {
                             </CardDescription>
                           </CardHeader>
                           <CardContent className="grid gap-4">
-                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('health')}>
+                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => {
+                              setActiveTab('health');
+                              navigate('/dashboard?tab=health', { replace: true });
+                            }}>
                               <Calendar className="h-5 w-5 mb-2" />
                               <span className="font-medium">Complete Health Forms</span>
                               <span className="text-sm text-muted-foreground text-left">
@@ -464,7 +468,10 @@ export default function UserDashboard() {
                               </span>
                             </Button>
 
-                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('health')}>
+                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => {
+                              setActiveTab('health');
+                              navigate('/dashboard?tab=health', { replace: true });
+                            }}>
                               <Upload className="h-5 w-5 mb-2" />
                               <span className="font-medium">Upload Health Records</span>
                               <span className="text-sm text-muted-foreground text-left">
@@ -472,7 +479,10 @@ export default function UserDashboard() {
                               </span>
                             </Button>
 
-                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => setActiveTab('chat')}>
+                            <Button variant="outline" className="h-auto p-4 flex-col items-start" onClick={() => {
+                              setActiveTab('chat');
+                              navigate('/dashboard?tab=chat', { replace: true });
+                            }}>
                               <MessageSquare className="h-5 w-5 mb-2" />
                               <span className="font-medium">Start AI Chat</span>
                               <span className="text-sm text-muted-foreground text-left">
@@ -499,7 +509,10 @@ export default function UserDashboard() {
                       </div>
 
                     {/* Feature Discovery */}
-                    <FeatureDiscovery onNavigateToTab={setActiveTab} />
+                    <FeatureDiscovery onNavigateToTab={(tab) => {
+                      setActiveTab(tab);
+                      navigate(`/dashboard?tab=${tab}`, { replace: true });
+                    }} />
                   </div>
                 </div>
               )}
