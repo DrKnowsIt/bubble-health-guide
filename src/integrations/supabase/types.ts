@@ -456,6 +456,60 @@ export type Database = {
         }
         Relationships: []
       }
+      final_medical_analysis: {
+        Row: {
+          analysis_summary: string
+          clinical_insights: Json | null
+          confidence_score: number | null
+          created_at: string
+          data_sources_analyzed: Json | null
+          doctor_test_recommendations: Json | null
+          follow_up_recommendations: string[] | null
+          holistic_assessment: string | null
+          id: string
+          key_findings: Json | null
+          patient_id: string | null
+          priority_level: string
+          risk_assessment: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_summary: string
+          clinical_insights?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          data_sources_analyzed?: Json | null
+          doctor_test_recommendations?: Json | null
+          follow_up_recommendations?: string[] | null
+          holistic_assessment?: string | null
+          id?: string
+          key_findings?: Json | null
+          patient_id?: string | null
+          priority_level?: string
+          risk_assessment?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_summary?: string
+          clinical_insights?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          data_sources_analyzed?: Json | null
+          doctor_test_recommendations?: Json | null
+          follow_up_recommendations?: string[] | null
+          holistic_assessment?: string | null
+          id?: string
+          key_findings?: Json | null
+          patient_id?: string | null
+          priority_level?: string
+          risk_assessment?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_data_priorities: {
         Row: {
           created_at: string

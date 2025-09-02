@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
 
 export default function UserDashboard() {
   console.log('UserDashboard: Component rendering started');
@@ -116,8 +117,9 @@ export default function UserDashboard() {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { generateFinalAnalysis, loading: analysisLoading } = useFinalMedicalAnalysis();
 
-  // Export functionality with comprehensive validation
+  // Enhanced export functionality with final AI analysis
   const exportToPDF = async () => {
     if (!selectedUser) return;
     
@@ -134,7 +136,22 @@ export default function UserDashboard() {
     }
     
     try {
-      await exportComprehensivePDFForUser(selectedUser, toast);
+      // Show loading toast for final analysis
+      const loadingToast = toast({
+        title: "Generating Medical Report",
+        description: "Performing final AI analysis of all available data...",
+        duration: 0, // Keep showing until we update it
+      });
+
+      // Generate final AI analysis
+      const finalAnalysis = await generateFinalAnalysis(selectedUser);
+      
+      // Dismiss loading toast
+      loadingToast.dismiss?.();
+
+      // Generate PDF with final analysis
+      await exportComprehensivePDFForUser(selectedUser, toast, finalAnalysis);
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
@@ -265,9 +282,19 @@ export default function UserDashboard() {
                   variant="outline"
                   className="h-8"
                   aria-label="Export medical report"
+                  disabled={analysisLoading}
                 >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  Export Medical Report
+                  {analysisLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      Export Medical Report
+                    </>
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

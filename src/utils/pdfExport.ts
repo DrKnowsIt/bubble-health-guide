@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { FinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
 
 export interface User {
   id: string;
@@ -9,7 +10,8 @@ export interface User {
 
 export const exportComprehensivePDFForUser = async (
   selectedUser: User, 
-  toastFn: typeof toast
+  toastFn: typeof toast,
+  finalAnalysis?: FinalMedicalAnalysis | null
 ) => {
   try {
     // Batch all database queries for better performance
@@ -263,8 +265,238 @@ export const exportComprehensivePDFForUser = async (
       currentY += 10;
     }
 
-    // Add overall health status and summary if available
-    if (comprehensiveReport) {
+    // Add Final AI Analysis if available (prioritized)
+    if (finalAnalysis) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Final AI Medical Analysis', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'italic');
+      doc.text('Comprehensive AI Review of All Available Data', 20, currentY);
+      currentY += 15;
+
+      // Analysis Summary
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Executive Summary', 25, currentY);
+      currentY += 8;
+      doc.setFont(undefined, 'normal');
+      const summaryText = doc.splitTextToSize(finalAnalysis.analysis_summary, 160);
+      doc.text(summaryText, 25, currentY);
+      currentY += summaryText.length * 4 + 12;
+
+      // Priority Level & Confidence
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 20;
+      }
+      doc.setFont(undefined, 'bold');
+      doc.text(`Priority Level: ${finalAnalysis.priority_level.toUpperCase()}`, 25, currentY);
+      currentY += 6;
+      doc.text(`AI Confidence: ${Math.round((finalAnalysis.confidence_score || 0) * 100)}%`, 25, currentY);
+      currentY += 15;
+
+      // Key Findings
+      if (finalAnalysis.key_findings && finalAnalysis.key_findings.length > 0) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Key Clinical Findings', 25, currentY);
+        currentY += 10;
+
+        finalAnalysis.key_findings.forEach((finding, index) => {
+          if (currentY > 260) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          doc.text(`${index + 1}. ${finding.finding}`, 30, currentY);
+          currentY += 6;
+
+          doc.setFont(undefined, 'normal');
+          doc.text(`Confidence: ${Math.round((finding.confidence || 0) * 100)}%`, 35, currentY);
+          currentY += 5;
+
+          if (finding.evidence) {
+            const evidenceText = doc.splitTextToSize(`Evidence: ${finding.evidence}`, 155);
+            doc.text(evidenceText, 35, currentY);
+            currentY += evidenceText.length * 4 + 3;
+          }
+
+          if (finding.significance) {
+            const significanceText = doc.splitTextToSize(`Clinical Significance: ${finding.significance}`, 155);
+            doc.text(significanceText, 35, currentY);
+            currentY += significanceText.length * 4 + 8;
+          }
+        });
+        currentY += 10;
+      }
+
+      // Enhanced Doctor Test Recommendations
+      if (finalAnalysis.doctor_test_recommendations && finalAnalysis.doctor_test_recommendations.length > 0) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('AI-Recommended Diagnostic Tests', 25, currentY);
+        currentY += 8;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.text('Based on Comprehensive Data Analysis', 25, currentY);
+        currentY += 12;
+
+        finalAnalysis.doctor_test_recommendations.forEach((test, index) => {
+          if (currentY > 240) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          doc.text(`${index + 1}. ${test.test_name}`, 30, currentY);
+          currentY += 6;
+
+          doc.setFont(undefined, 'normal');
+          if (test.test_code) {
+            doc.text(`Code: ${test.test_code}`, 35, currentY);
+            currentY += 5;
+          }
+
+          doc.text(`Category: ${test.category} | Urgency: ${test.urgency}`, 35, currentY);
+          currentY += 5;
+
+          doc.text(`AI Confidence: ${Math.round((test.confidence || 0) * 100)}%`, 35, currentY);
+          currentY += 5;
+
+          if (test.reason) {
+            const reasonText = doc.splitTextToSize(`Rationale: ${test.reason}`, 155);
+            doc.text(reasonText, 35, currentY);
+            currentY += reasonText.length * 4 + 3;
+          }
+
+          if (test.estimated_cost_range) {
+            doc.text(`Estimated Cost: ${test.estimated_cost_range}`, 35, currentY);
+            currentY += 5;
+          }
+
+          if (test.patient_prep_required) {
+            doc.text('Patient Preparation: Required', 35, currentY);
+            currentY += 5;
+          }
+
+          if (test.contraindications && test.contraindications.length > 0) {
+            const contraindicationsText = doc.splitTextToSize(`Contraindications: ${test.contraindications.join(', ')}`, 155);
+            doc.text(contraindicationsText, 35, currentY);
+            currentY += contraindicationsText.length * 4 + 3;
+          }
+
+          currentY += 8;
+        });
+        currentY += 10;
+      }
+
+      // Risk Assessment
+      if (finalAnalysis.risk_assessment) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Risk Assessment', 25, currentY);
+        currentY += 8;
+        doc.setFont(undefined, 'normal');
+        const riskText = doc.splitTextToSize(finalAnalysis.risk_assessment, 160);
+        doc.text(riskText, 25, currentY);
+        currentY += riskText.length * 4 + 12;
+      }
+
+      // Holistic Assessment
+      if (finalAnalysis.holistic_assessment) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Holistic Health Assessment', 25, currentY);
+        currentY += 8;
+        doc.setFont(undefined, 'normal');
+        const holisticText = doc.splitTextToSize(finalAnalysis.holistic_assessment, 160);
+        doc.text(holisticText, 25, currentY);
+        currentY += holisticText.length * 4 + 12;
+      }
+
+      // Follow-up Recommendations
+      if (finalAnalysis.follow_up_recommendations && finalAnalysis.follow_up_recommendations.length > 0) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Follow-up Recommendations', 25, currentY);
+        currentY += 8;
+        doc.setFont(undefined, 'normal');
+        finalAnalysis.follow_up_recommendations.forEach((rec, index) => {
+          if (currentY > 270) {
+            doc.addPage();
+            currentY = 20;
+          }
+          doc.text(`${index + 1}. ${rec}`, 30, currentY);
+          currentY += 6;
+        });
+        currentY += 10;
+      }
+
+      // Data Sources Analyzed
+      if (finalAnalysis.data_sources_analyzed) {
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text('Data Sources Analyzed:', 25, currentY);
+        currentY += 6;
+        doc.setFont(undefined, 'normal');
+        const sources = finalAnalysis.data_sources_analyzed;
+        doc.text(`• Conversation Memories: ${sources.conversation_memories || 0}`, 30, currentY);
+        currentY += 5;
+        doc.text(`• AI Diagnoses: ${sources.diagnoses || 0}`, 30, currentY);
+        currentY += 5;
+        doc.text(`• Treatment Solutions: ${sources.solutions || 0}`, 30, currentY);
+        currentY += 5;
+        doc.text(`• Health Records: ${sources.health_records || 0}`, 30, currentY);
+        currentY += 5;
+        doc.text(`• Health Insights: ${sources.insights || 0}`, 30, currentY);
+        currentY += 15;
+      }
+    }
+    
+    // Add comprehensive report as fallback if no final analysis
+    else if (comprehensiveReport) {
       if (currentY > 250) {
         doc.addPage();
         currentY = 20;
