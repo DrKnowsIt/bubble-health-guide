@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUsers } from '@/hooks/useUsers';
 import { useAISettings } from '@/hooks/useAISettings';
-import { useConversationMemory } from '@/hooks/useConversationMemory';
+import { PatientMemoryOverview } from './PatientMemoryOverview';
 import { 
   Brain, 
   User, 
@@ -43,81 +43,6 @@ export const AISettings = ({ selectedUser }: AISettingsProps) => {
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [clearingMemory, setClearingMemory] = useState<string | null>(null);
-  const [topDiagnosis, setTopDiagnosis] = useState<string>('');
-  
-  // Use the conversation memory hook for the selected user
-  const { insights, loading: memoryLoading, getMemoryStats, fetchMemories } = useConversationMemory(selectedUser?.id || '');
-
-  // Format memory insights for display
-  const formatMemoryKnowledge = () => {
-    if (!insights || insights.length === 0) {
-      return 'No memory insights available for this user yet.';
-    }
-
-    const stats = getMemoryStats();
-    let knowledgeText = `Memory Insights: ${stats.totalInsights} total\n`;
-    knowledgeText += `Categories: ${Object.keys(stats.categories).join(', ')}\n\n`;
-
-    // Group insights by category
-    const groupedInsights = insights.reduce((acc, insight) => {
-      if (!acc[insight.category]) {
-        acc[insight.category] = [];
-      }
-      acc[insight.category].push(insight);
-      return acc;
-    }, {} as Record<string, any[]>);
-
-    // Display insights by category
-    Object.entries(groupedInsights).forEach(([category, categoryInsights]) => {
-      knowledgeText += `${category.toUpperCase()}:\n`;
-      categoryInsights.slice(0, 3).forEach(insight => {
-        const value = typeof insight.value === 'object' 
-          ? JSON.stringify(insight.value) 
-          : String(insight.value);
-        knowledgeText += `• ${insight.key}: ${value}\n`;
-      });
-      knowledgeText += '\n';
-    });
-
-    if (stats.lastMemoryUpdate) {
-      knowledgeText += `Last updated: ${stats.lastMemoryUpdate.toLocaleDateString()}`;
-    }
-
-    return knowledgeText;
-  };
-
-  // Fetch top diagnosis for the selected user
-  const fetchTopDiagnosis = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('probable_diagnoses')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching top diagnosis:', error);
-        return;
-      }
-
-      if (data?.probable_diagnoses && Array.isArray(data.probable_diagnoses) && data.probable_diagnoses.length > 0) {
-        const sortedDiagnoses = data.probable_diagnoses.sort((a: any, b: any) => (b.confidence || 0) - (a.confidence || 0));
-        const topDiagnosisObj = sortedDiagnoses[0] as any;
-        setTopDiagnosis(topDiagnosisObj?.diagnosis || '');
-      } else {
-        setTopDiagnosis('');
-      }
-    } catch (error) {
-      console.error('Error fetching top diagnosis:', error);
-    }
-  };
-
-  // Fetch data when selected user changes
-  useEffect(() => {
-    if (selectedUser?.id) {
-      fetchTopDiagnosis(selectedUser.id);
-    }
-  }, [selectedUser?.id]);
 
   // Clear user memory
   const clearUserMemory = async (userId: string) => {
@@ -167,9 +92,6 @@ export const AISettings = ({ selectedUser }: AISettingsProps) => {
         console.error('Error clearing probable diagnoses:', patientsError);
         throw patientsError;
       }
-
-      // Refresh the conversation memory data
-      await fetchMemories();
       
       // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: ['conversation-memory', userId] });
@@ -178,9 +100,6 @@ export const AISettings = ({ selectedUser }: AISettingsProps) => {
       sonnerToast.success('Memory cleared successfully', {
         description: 'All conversation memory and diagnoses have been cleared for this user.'
       });
-
-      // Reset states
-      setTopDiagnosis('');
       
     } catch (error: any) {
       console.error('Error clearing user memory:', error);
@@ -442,45 +361,19 @@ export const AISettings = ({ selectedUser }: AISettingsProps) => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {memoryLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-pulse text-sm text-muted-foreground">Loading AI knowledge...</div>
-                  </div>
-                ) : !selectedUser ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Brain className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">No user selected</p>
-                  </div>
-                ) : insights && insights.length > 0 ? (
-                  <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
-                        {formatMemoryKnowledge()}
-                      </pre>
-                      {topDiagnosis && (
-                        <div className="mt-4 pt-4 border-t border-border">
-                          <div className="text-sm font-medium text-foreground mb-2">Top Diagnosis:</div>
-                          <div className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-md">
-                            {topDiagnosis}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Brain className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">No AI knowledge available yet for {selectedUser.first_name}</p>
-                    <p className="text-xs">Start a conversation to build AI memory</p>
-                  </div>
-                )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-primary">User Knowledge for {selectedUser.first_name} {selectedUser.last_name}</h4>
+                <div className="text-xs text-muted-foreground">
+                  This shows what DrKnowsIt has learned about the selected user based on your conversations. 
+                  The AI uses this information to provide more relevant health guidance.
+                </div>
               </div>
-
-              <div className="text-xs text-muted-foreground">
-                This shows what DrKnowsIt has learned about the selected user based on your conversations. 
-                The AI uses this information to provide more relevant health guidance.
-              </div>
+              <PatientMemoryOverview 
+                patientId={selectedUser.id}
+                patientName={`${selectedUser.first_name} ${selectedUser.last_name}`}
+              />
+            </div>
             </div>
           )}
 
