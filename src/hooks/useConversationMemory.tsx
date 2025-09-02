@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -25,17 +25,38 @@ export const useConversationMemory = (patientId?: string) => {
   const [memories, setMemories] = useState<ConversationMemory[]>([]);
   const [insights, setInsights] = useState<MemoryInsight[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const previousPatientIdRef = useRef<string | undefined>();
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const fetchMemories = useCallback(async () => {
-    if (!user || !patientId) {
-      console.log('🔍 ConversationMemory: No user or patientId', { user: !!user, patientId });
+    // Early return if no user
+    if (!user) {
+      console.log('🔍 ConversationMemory: No user', { user: !!user });
       setMemories([]);
       setInsights([]);
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Early return if no patientId
+    if (!patientId) {
+      console.log('🔍 ConversationMemory: No patientId', { patientId });
+      setMemories([]);
+      setInsights([]);
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Skip fetch if same patient (prevents unnecessary re-fetches)
+    if (previousPatientIdRef.current === patientId && !isInitialLoad) {
+      console.log('🔍 ConversationMemory: Same patient, skipping fetch', { patientId });
       return;
     }
 
     console.log('🔍 ConversationMemory: Fetching memories for', { userId: user.id, patientId });
     setLoading(true);
+    
     try {
       const { data, error } = await supabase
         .from('conversation_memory')
@@ -126,12 +147,16 @@ export const useConversationMemory = (patientId?: string) => {
 
       console.log('🔍 ConversationMemory: Extracted insights', { count: extractedInsights.length, insights: extractedInsights });
       setInsights(extractedInsights);
+      
+      // Update refs
+      previousPatientIdRef.current = patientId;
     } catch (error) {
       console.error('❌ ConversationMemory: Error fetching conversation memory:', error);
     } finally {
       setLoading(false);
+      setIsInitialLoad(false);
     }
-  }, [user, patientId]);
+  }, [user?.id, patientId, isInitialLoad]);
 
   const categorizeInsight = (key: string): MemoryInsight['category'] => {
     const keyLower = key.toLowerCase();
@@ -186,18 +211,70 @@ export const useConversationMemory = (patientId?: string) => {
     return String(value);
   };
 
+  // Debounced effect to prevent rapid fetches on user selection changes
   useEffect(() => {
-    fetchMemories();
+    // Clear any existing timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Reset initial load state when patient changes
+    if (previousPatientIdRef.current !== patientId) {
+      setIsInitialLoad(true);
+    }
+
+    // Debounce the fetch call
+    fetchTimeoutRef.current = setTimeout(() => {
+      fetchMemories();
+    }, 150); // 150ms debounce
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
   }, [fetchMemories]);
+
+  // Memoize utility functions to prevent unnecessary re-renders
+  const memoizedUtils = useMemo(() => ({
+    getMemoryStats: () => {
+      const totalMemories = memories.length;
+      const totalInsights = insights.length;
+      const categories = insights.reduce((acc, insight) => {
+        acc[insight.category] = (acc[insight.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const lastMemoryUpdate = memories.length > 0 
+        ? new Date(memories[0].updated_at) 
+        : null;
+
+      return {
+        totalMemories,
+        totalInsights,
+        categories,
+        lastMemoryUpdate,
+        hasMemories: totalMemories > 0
+      };
+    },
+    getRecentInsights: (limit: number = 5) => insights.slice(0, limit),
+    getInsightsByCategory: (category: MemoryInsight['category']) => 
+      insights.filter(insight => insight.category === category),
+    formatInsightValue: (value: any): string => {
+      if (typeof value === 'string') return value;
+      if (Array.isArray(value)) return value.join(', ');
+      if (typeof value === 'object') return JSON.stringify(value);
+      return String(value);
+    }
+  }), [memories, insights]);
 
   return {
     memories,
     insights,
-    loading,
+    loading: loading || isInitialLoad,
+    isInitialLoad,
     fetchMemories,
-    getMemoryStats,
-    getRecentInsights,
-    getInsightsByCategory,
-    formatInsightValue
+    ...memoizedUtils
   };
 };

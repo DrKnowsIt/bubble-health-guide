@@ -27,7 +27,8 @@ interface PatientMemoryOverviewProps {
 export const PatientMemoryOverview = ({ patientId, patientName, conversationId }: PatientMemoryOverviewProps) => {
   const { 
     insights, 
-    loading, 
+    loading,
+    isInitialLoad,
     getMemoryStats, 
     getRecentInsights,
     formatInsightValue 
@@ -126,18 +127,46 @@ export const PatientMemoryOverview = ({ patientId, patientName, conversationId }
 
   if (loading) {
     return (
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <CardHeader>
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 transition-all duration-300">
+        <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Brain className="h-5 w-5 text-primary" />
+            <Brain className="h-5 w-5 text-primary animate-pulse" />
             AI Memory
+            {patientName && (
+              <Badge variant="outline" className="ml-2 text-xs animate-pulse">
+                {patientName}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="h-4 bg-muted animate-pulse rounded" />
-            <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-            <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+        <CardContent className="space-y-4">
+          {/* Loading skeleton with consistent heights */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center p-3 bg-background/50 rounded-lg border border-primary/10">
+              <div className="h-6 bg-muted animate-pulse rounded mb-1" />
+              <div className="h-4 bg-muted animate-pulse rounded w-3/4 mx-auto" />
+            </div>
+            <div className="text-center p-3 bg-background/50 rounded-lg border border-primary/10">
+              <div className="h-6 bg-muted animate-pulse rounded mb-1" />
+              <div className="h-4 bg-muted animate-pulse rounded w-3/4 mx-auto" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="h-5 bg-muted animate-pulse rounded w-1/3" />
+            <div className="flex flex-wrap gap-1">
+              <div className="h-6 bg-muted animate-pulse rounded w-20" />
+              <div className="h-6 bg-muted animate-pulse rounded w-16" />
+              <div className="h-6 bg-muted animate-pulse rounded w-24" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="h-5 bg-muted animate-pulse rounded w-1/4" />
+            <div className="space-y-2">
+              <div className="h-16 bg-muted animate-pulse rounded" />
+              <div className="h-16 bg-muted animate-pulse rounded" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -169,7 +198,7 @@ export const PatientMemoryOverview = ({ patientId, patientName, conversationId }
   }
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-2">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
