@@ -85,8 +85,34 @@ serve(async (req) => {
 
     console.log('Analyzing conversation text:', conversationText);
 
+    // Create content hash to detect changes and prevent unnecessary re-analysis
+    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(conversationText));
+    const contentHashString = Array.from(new Uint8Array(contentHash))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // Check if we've already analyzed this exact content recently
+    const { data: recentAnalysis } = await supabase
+      .from('conversation_diagnoses')
+      .select('updated_at')
+      .eq('conversation_id', conversation_id)
+      .eq('patient_id', patient_id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // Skip analysis if content hasn't changed and we analyzed recently (within 2 minutes)
+    if (recentAnalysis && 
+        Date.now() - new Date(recentAnalysis.updated_at).getTime() < 120000 &&
+        conversationText.length < 50) {
+      return new Response(
+        JSON.stringify({ success: true, diagnoses: [], message: 'No significant content changes detected' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Only proceed if we have meaningful user input
-    if (!conversationText.trim() || conversationText.length < 5) {
+    if (!conversationText.trim() || conversationText.length < 10) {
       return new Response(
         JSON.stringify({ success: true, diagnoses: [], message: 'Insufficient conversation data' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -113,47 +139,38 @@ ${allExistingDiagnoses.length > 0
 High-confidence diagnoses (≥70% - MUST preserve): ${highConfidenceDiagnoses?.map(d => `"${d.diagnosis}"`).join(', ') || 'None'}`;
 
     const systemPrompt = isPet 
-      ? `You are a veterinary analysis AI that generates comprehensive health topic analysis based on conversation context about pets. Analyze all relevant health themes, not just new symptoms.
+      ? `You are a veterinary analysis AI that generates comprehensive health topic analysis based on conversation context about pets. PREVENT DUPLICATES using the provided context.
 
 PATIENT CONTEXT:
 ${patientContext}
 
-NUANCED DUPLICATE PREVENTION RULES:
-- Only prevent TRUE duplicates (identical topics with same focus)
-- Allow related but distinct topics (e.g., "Anxiety" and "Sleep Issues" can coexist)
-- If updating an existing topic with new information, use "relates_to_existing" with EXACT diagnosis name
-- Different aspects of health can be separate topics (behavioral, physical, nutritional, etc.)
+CRITICAL DUPLICATE PREVENTION RULES:
+- BEFORE creating any diagnosis, check the existing diagnoses list above
+- Use STANDARDIZED naming: "Migraine" not "Possible Migraine Headache" or "Migraine Headache"
+- If a similar topic exists, use "relates_to_existing" with the EXACT existing name
+- Avoid vague qualifiers like "Possible", "Potential", "Suspected" - be direct
+- Use medical terminology consistently (e.g., "Headache" not "Head Pain")
 
-COMPREHENSIVE ANALYSIS INSTRUCTIONS:
-- Analyze the ENTIRE conversation history and context, not just recent symptoms
-- Generate 3-5 relevant health topics that reflect the complete health picture
-- High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
-- Include topics for patterns, behaviors, and health themes discussed
-- Consider preventive care topics and lifestyle factors mentioned
-- Base confidence on available evidence and veterinary knowledge for the species
-- Use expanded confidence scale 0.4-0.9 for better topic representation
+NAMING STANDARDS:
+- Use concise, medical terms: "Migraine", "Anxiety", "Arthritis"
+- Avoid redundant words: "Pain Management" not "Pain Management Issues"
+- Be specific but not verbose: "Sleep Disorder" not "Possible Sleep-Related Problems"
+- Remove uncertainty language from names but reflect it in confidence scores
 
-TOPIC CATEGORIES TO CONSIDER:
-- Physical symptoms and conditions
-- Behavioral concerns or changes
-- Preventive care needs
-- Nutritional or dietary topics
-- Environmental factors
-- Breed-specific considerations
-- Age-related health topics
-
-CONFIDENCE SCORING:
-- 0.4-0.5: Worth monitoring or discussing with vet
-- 0.6-0.7: Moderate likelihood based on evidence
-- 0.8-0.9: Strong evidence or clear health theme
+DUPLICATE CONSOLIDATION LOGIC:
+- If ANY existing diagnosis relates to your new finding, use "relates_to_existing"
+- Examples of what should consolidate:
+  * "Migraine" + "Headache" → update "Migraine" via relates_to_existing  
+  * "Anxiety" + "Stress" → update "Anxiety" via relates_to_existing
+  * "Joint Pain" + "Arthritis" → update "Arthritis" via relates_to_existing
 
 RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific health topic or condition name",
+      "diagnosis": "standardized_medical_term",
       "confidence": 0.65,
-      "reasoning": "comprehensive evidence-based justification",
+      "reasoning": "evidence-based justification",
       "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
@@ -161,49 +178,39 @@ RESPONSE FORMAT (JSON only):
 }
 
 Current conversation: "${conversationText}"`
-      : `You are a medical analysis AI that generates comprehensive health topic analysis based on conversation context. Analyze all relevant health themes and patterns, not just new symptoms.
+      : `You are a medical analysis AI that generates comprehensive health topic analysis based on conversation context. PREVENT DUPLICATES using the provided context.
 
 PATIENT CONTEXT:
 ${patientContext}
 
-NUANCED DUPLICATE PREVENTION RULES:
-- Only prevent TRUE duplicates (identical topics with same focus)
-- Allow related but distinct topics (e.g., "Stress" and "Sleep Problems" can coexist)
-- If updating an existing topic with new information, use "relates_to_existing" with EXACT diagnosis name
-- Different health aspects can be separate topics (mental health, physical symptoms, lifestyle factors)
+CRITICAL DUPLICATE PREVENTION RULES:
+- BEFORE creating any diagnosis, check the existing diagnoses list above
+- Use STANDARDIZED naming: "Migraine" not "Possible Migraine Headache" or "Migraine Headache"  
+- If a similar topic exists, use "relates_to_existing" with the EXACT existing name
+- Avoid vague qualifiers like "Possible", "Potential", "Suspected" - be direct
+- Use medical terminology consistently (e.g., "Headache" not "Head Pain")
 
-COMPREHENSIVE ANALYSIS INSTRUCTIONS:
-- Analyze the ENTIRE conversation history and context, not just recent symptoms
-- Generate 3-5 relevant health topics that reflect the complete health picture
-- High-confidence diagnoses (≥70%) should be PRESERVED unless directly contradicted
-- Include topics for patterns, concerns, and health themes discussed throughout conversation
-- Consider preventive care topics, lifestyle factors, and wellness areas mentioned
-- Base confidence on available evidence and medical knowledge
-- Use expanded confidence scale 0.4-0.9 for better topic representation
+NAMING STANDARDS:
+- Use concise, medical terms: "Migraine", "Anxiety", "Depression", "Hypertension"
+- Avoid redundant words: "Pain Management" not "Pain Management Issues"
+- Be specific but not verbose: "Sleep Disorder" not "Possible Sleep-Related Problems"
+- Remove uncertainty language from names but reflect it in confidence scores
 
-TOPIC CATEGORIES TO CONSIDER:
-- Physical symptoms and conditions
-- Mental health and emotional wellbeing
-- Lifestyle and environmental factors
-- Preventive care needs
-- Chronic condition management
-- Pain management topics
-- Sleep and fatigue issues
-- Stress and anxiety factors
-- Nutritional or dietary concerns
-
-CONFIDENCE SCORING:
-- 0.4-0.5: Worth monitoring or discussing with healthcare provider
-- 0.6-0.7: Moderate likelihood based on evidence
-- 0.8-0.9: Strong evidence or clear health theme
+DUPLICATE CONSOLIDATION LOGIC:
+- If ANY existing diagnosis relates to your new finding, use "relates_to_existing"
+- Examples of what should consolidate:
+  * "Migraine" + "Headache" → update "Migraine" via relates_to_existing
+  * "Anxiety" + "Stress" → update "Anxiety" via relates_to_existing  
+  * "Depression" + "Mood Issues" → update "Depression" via relates_to_existing
+  * "Hypertension" + "High Blood Pressure" → update "Hypertension" via relates_to_existing
 
 RESPONSE FORMAT (JSON only):
 {
   "diagnoses": [
     {
-      "diagnosis": "specific health topic or condition name",
+      "diagnosis": "standardized_medical_term",
       "confidence": 0.65,
-      "reasoning": "comprehensive evidence-based justification",
+      "reasoning": "evidence-based justification",
       "relates_to_existing": "exact_existing_diagnosis_name_or_null"
     }
   ],
@@ -283,11 +290,45 @@ Current conversation: "${conversationText}"`;
       const finalDiagnoses = [];
       
       for (const newDiag of validDiagnoses) {
-        // More nuanced duplicate detection - only prevent exact matches
-        const relatedExisting = allExistingDiagnoses.find(existing => 
-          existing.diagnosis.toLowerCase() === newDiag.diagnosis.toLowerCase() ||
-          newDiag.relates_to_existing === existing.diagnosis
-        );
+        // Enhanced duplicate detection with fuzzy matching for medical terms
+        const relatedExisting = allExistingDiagnoses.find(existing => {
+          const existingLower = existing.diagnosis.toLowerCase();
+          const newLower = newDiag.diagnosis.toLowerCase();
+          
+          // Direct match check
+          if (existingLower === newLower) return true;
+          
+          // Explicit relates_to_existing field check
+          if (newDiag.relates_to_existing === existing.diagnosis) return true;
+          
+          // Common medical term variations and synonyms
+          const medicalSynonyms = [
+            ['migraine', 'headache'],
+            ['anxiety', 'stress', 'worry'],
+            ['depression', 'mood', 'sadness'],
+            ['hypertension', 'high blood pressure'],
+            ['arthritis', 'joint pain'],
+            ['insomnia', 'sleep disorder', 'sleep problem'],
+            ['gastritis', 'stomach pain', 'stomach problem'],
+            ['dermatitis', 'skin condition', 'rash']
+          ];
+          
+          // Check if terms are in the same synonym group
+          for (const synonymGroup of medicalSynonyms) {
+            const existingInGroup = synonymGroup.some(term => existingLower.includes(term));
+            const newInGroup = synonymGroup.some(term => newLower.includes(term));
+            if (existingInGroup && newInGroup) return true;
+          }
+          
+          // Partial match check (one contains the other, at least 4 chars)
+          if (existingLower.length >= 4 && newLower.length >= 4) {
+            if (existingLower.includes(newLower) || newLower.includes(existingLower)) {
+              return true;
+            }
+          }
+          
+          return false;
+        });
         
         if (relatedExisting) {
           // Consolidate reasoning using AI instead of simple concatenation
