@@ -278,7 +278,13 @@ export default function UserDashboard() {
                    onClick={exportToPDF}
                    size="sm"
                    variant="outline"
-                   className="h-8"
+                   className={cn(
+                     "h-8",
+                     // Flash green when there's high confidence and enough data
+                     healthStats.totalRecords >= 2 && healthStats.totalConversations >= 3 && !analysisLoading
+                       ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                       : ""
+                   )}
                    aria-label="Export medical report"
                    disabled={analysisLoading}
                  >
