@@ -14,33 +14,39 @@ import { useAISettings } from '@/hooks/useAISettings';
 import { useConversationMemory } from '@/hooks/useConversationMemory';
 import { 
   Brain, 
-  HardDrive, 
   User, 
   Users, 
   Settings, 
   Trash2, 
-  AlertTriangle, 
-  FileDown 
+  AlertTriangle 
 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ComprehensivePDFExport } from "./ComprehensivePDFExport";
 import { toast as sonnerToast } from 'sonner';
 
-export const AISettings = () => {
+interface AISettingsProps {
+  selectedUser?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    is_primary: boolean;
+    relationship: string;
+    is_pet?: boolean;
+  };
+}
+
+export const AISettings = ({ selectedUser }: AISettingsProps) => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [clearingMemory, setClearingMemory] = useState<string | null>(null);
-  const [hasExportableData, setHasExportableData] = useState<boolean>(false);
   const [topDiagnosis, setTopDiagnosis] = useState<string>('');
   
   // Use the conversation memory hook for the selected user
-  const { insights, loading: memoryLoading, getMemoryStats, fetchMemories } = useConversationMemory(selectedUserId);
+  const { insights, loading: memoryLoading, getMemoryStats, fetchMemories } = useConversationMemory(selectedUser?.id || '');
 
   // Format memory insights for display
   const formatMemoryKnowledge = () => {
@@ -80,489 +86,135 @@ export const AISettings = () => {
     return knowledgeText;
   };
 
-  // Fetch top diagnosis for selected user
-  const fetchTopDiagnosis = async () => {
-    if (!selectedUserId || !user) return;
-    
+  // Fetch top diagnosis for the selected user
+  const fetchTopDiagnosis = async (userId: string) => {
     try {
-      const { data: diagnoses, error } = await supabase
-        .from('conversation_diagnoses')
-        .select('diagnosis, confidence, created_at')
-        .eq('user_id', user.id)
-        .eq('patient_id', selectedUserId)
-        .order('confidence', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(1);
+      const { data, error } = await supabase
+        .from('patients')
+        .select('probable_diagnoses')
+        .eq('id', userId)
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching top diagnosis:', error);
+        return;
+      }
 
-      if (diagnoses && diagnoses.length > 0) {
-        const topDx = diagnoses[0];
-        setTopDiagnosis(`${topDx.diagnosis} (${Math.round((topDx.confidence || 0) * 100)}% confidence)`);
+      if (data?.probable_diagnoses && Array.isArray(data.probable_diagnoses) && data.probable_diagnoses.length > 0) {
+        const sortedDiagnoses = data.probable_diagnoses.sort((a: any, b: any) => (b.confidence || 0) - (a.confidence || 0));
+        const topDiagnosisObj = sortedDiagnoses[0] as any;
+        setTopDiagnosis(topDiagnosisObj?.diagnosis || '');
       } else {
-        setTopDiagnosis('No diagnoses available yet');
+        setTopDiagnosis('');
       }
     } catch (error) {
       console.error('Error fetching top diagnosis:', error);
-      setTopDiagnosis('Error loading diagnosis');
     }
   };
 
-  // Export comprehensive PDF report with validation
-  const exportToPDF = async () => {
-    if (!selectedUserId) return;
-    
-    const selectedUser = users.find(u => u.id === selectedUserId);
-    if (!selectedUser) return;
-
-    // Check if there's enough data for a meaningful report
-    const memoryStats = getMemoryStats();
-    if (!insights?.length && memoryStats.totalInsights === 0) {
-      toast({
-        title: "Not enough data yet",
-        description: "DrKnowsIt doesn't know much about this patient yet to generate a comprehensive medical report. Try having some conversations first.",
-        variant: "default",
-      });
-      return;
-    }
-
-    try {
-      await exportComprehensivePDFForUser(selectedUser, toast);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate PDF report. Please try again.",
-      });
-    }
-  };
-
-  // Standalone function for comprehensive PDF export
-  const exportComprehensivePDFForUser = async (
-    selectedUser: { id: string; first_name: string; last_name: string }, 
-    toastFn: typeof toast
-  ) => {
-    // Get memory data
-    const { data: memoryData } = await supabase
-      .from('conversation_memory')
-      .select('*')
-      .eq('patient_id', selectedUser.id)
-      .order('updated_at', { ascending: false });
-
-    // Get diagnoses
-    const { data: diagnosesData } = await supabase
-      .from('conversation_diagnoses')
-      .select('*')
-      .eq('patient_id', selectedUser.id)
-      .order('confidence', { ascending: false })
-      .limit(5);
-
-    // Get health record summaries (simplified)
-    const { data: healthSummaries } = await supabase
-      .from('health_record_summaries')
-      .select('created_at')
-      .eq('user_id', selectedUser.id)
-      .order('created_at', { ascending: false });
-
-    // Get conversation solutions for holistic approaches
-    const { data: solutionsData } = await supabase
-      .from('conversation_solutions')
-      .select('*')
-      .eq('patient_id', selectedUser.id)
-      .order('confidence', { ascending: false })
-      .limit(8);
-
-    // Generate comprehensive PDF
-    const doc = new (await import('jspdf')).default();
-    const userName = `${selectedUser.first_name} ${selectedUser.last_name}`;
-    const currentDate = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-
-    let currentY = 40;
-
-    // Add header
-    doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
-    doc.text('DrKnowsIt', 20, 20);
-    
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text('AI-Powered Health Assistant | www.drknowsit.com', 20, 28);
-    doc.line(20, 32, 190, 32);
-
-    // Report title
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('Comprehensive Clinical Health Report', 20, currentY);
-    currentY += 15;
-
-    // Patient info
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Patient: ${userName}`, 20, currentY);
-    currentY += 6;
-    doc.text(`Generated: ${currentDate}`, 20, currentY);
-    currentY += 15;
-
-    // Provider note
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Dear Healthcare Provider,', 20, currentY);
-    currentY += 10;
-
-    doc.setFont(undefined, 'normal');
-    const providerNote = `This comprehensive report summarizes ${selectedUser.first_name}'s health information and AI-assisted analysis from our platform. The data includes patient-reported symptoms, historical health records, and AI-generated insights to support your clinical assessment.`;
-    const splitNote = doc.splitTextToSize(providerNote, 170);
-    doc.text(splitNote, 20, currentY);
-    currentY += splitNote.length * 4 + 15;
-
-    // Add diagnoses section
-    if (diagnosesData && diagnosesData.length > 0) {
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('AI-Identified Health Topics:', 20, currentY);
-      currentY += 10;
-
-      doc.setFont(undefined, 'normal');
-      diagnosesData.forEach((diagnosis, index) => {
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-        
-        doc.text(`${index + 1}. ${diagnosis.diagnosis}`, 25, currentY);
-        currentY += 6;
-        doc.text(`   Confidence: ${Math.round(diagnosis.confidence * 100)}%`, 25, currentY);
-        currentY += 6;
-        if (diagnosis.reasoning) {
-          const reasoning = doc.splitTextToSize(`   Analysis: ${diagnosis.reasoning}`, 165);
-          doc.text(reasoning, 25, currentY);
-          currentY += reasoning.length * 4 + 5;
-        }
-      });
-      currentY += 10;
-    }
-
-    // Add health records summary
-    if (healthSummaries && healthSummaries.length > 0) {
-      if (currentY > 220) {
-        doc.addPage();
-        currentY = 20;
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Health Records Summary:', 20, currentY);
-      currentY += 10;
-
-      doc.setFont(undefined, 'normal');
-      healthSummaries.forEach((record) => {
-        if (currentY > 240) {
-          doc.addPage();
-          currentY = 20;
-        }
-        
-        const conditions = 'Health records available for review';
-        const summary = doc.splitTextToSize(conditions, 170);
-        doc.text(summary, 20, currentY);
-        currentY += summary.length * 4 + 8;
-      });
-    }
-
-    // Add memory insights
-    if (memoryData && memoryData.length > 0) {
-      if (currentY > 220) {
-        doc.addPage();
-        currentY = 20;
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Clinical Memory Summary:', 20, currentY);
-      currentY += 10;
-
-      doc.setFont(undefined, 'normal');
-      memoryData.slice(0, 3).forEach((memory) => {
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-        
-        const memoryText = memory.summary || 'Memory entry recorded';
-        const text = doc.splitTextToSize(`• ${memoryText}`, 170);
-        doc.text(text, 20, currentY);
-        currentY += text.length * 4 + 5;
-      });
-    }
-
-    // Add holistic solutions section
-    if (solutionsData && solutionsData.length > 0) {
-      if (currentY > 200) {
-        doc.addPage();
-        currentY = 20;
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Holistic Solutions & Wellness Approaches:', 20, currentY);
-      currentY += 10;
-
-      doc.setFont(undefined, 'normal');
-      const introText = 'Based on symptom analysis, the following holistic approaches may complement medical treatment:';
-      const splitIntro = doc.splitTextToSize(introText, 170);
-      doc.text(splitIntro, 20, currentY);
-      currentY += splitIntro.length * 4 + 8;
-
-      solutionsData.forEach((solution, index) => {
-        if (currentY > 240) {
-          doc.addPage();
-          currentY = 20;
-        }
-        
-        doc.text(`${index + 1}. ${solution.solution}`, 25, currentY);
-        currentY += 6;
-        
-        if (solution.category) {
-          doc.text(`   Category: ${solution.category}`, 25, currentY);
-          currentY += 6;
-        }
-        
-        if (solution.confidence && solution.confidence > 0) {
-          doc.text(`   Confidence: ${Math.round(solution.confidence * 100)}%`, 25, currentY);
-          currentY += 6;
-        }
-        
-        if (solution.reasoning) {
-          const reasoning = doc.splitTextToSize(`   Rationale: ${solution.reasoning}`, 165);
-          doc.text(reasoning, 25, currentY);
-          currentY += reasoning.length * 4 + 5;
-        }
-        
-        currentY += 3; // Add spacing between solutions
-      });
-      
-      currentY += 10; // Extra spacing after solutions section
-    }
-
-    // Add recommendations
-    if (currentY > 200) {
-      doc.addPage();
-      currentY = 20;
-    }
-    
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Clinical Recommendations:', 20, currentY);
-    currentY += 10;
-
-    doc.setFont(undefined, 'normal');
-    const recommendations = [
-      'Complete physical examination with vital signs',
-      'Review of current medications and potential interactions',
-      'Laboratory tests based on reported symptoms and history',
-      'Consider specialist referral if symptoms persist',
-      'Patient education on symptom monitoring and when to seek care'
-    ];
-
-    recommendations.forEach((rec) => {
-      doc.text(`• ${rec}`, 20, currentY);
-      currentY += 6;
-    });
-
-    // Add disclaimer
-    const pageHeight = doc.internal.pageSize.height;
-    const disclaimerY = pageHeight - 25;
-    doc.setFontSize(7);
-    doc.setFont(undefined, 'italic');
-    doc.text('DrKnowsIt AI-Generated Report - Not a substitute for professional medical advice.', 20, disclaimerY);
-    doc.text('Please consult with your healthcare provider for medical decisions.', 20, disclaimerY + 4);
-
-    // Save PDF
-    const fileName = `DrKnowsIt_Clinical_Report_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
-
-    toastFn({
-      title: "Clinical Report Exported",
-      description: "Comprehensive clinical health report has been downloaded successfully.",
-    });
-  };
-
-  // Check if user has exportable data
-  const checkExportableData = async () => {
-    if (!selectedUserId || !user) {
-      setHasExportableData(false);
-      return;
-    }
-
-    try {
-      // Check for memory insights
-      if (insights && insights.length > 0) {
-        setHasExportableData(true);
-        return;
-      }
-
-      // Check for diagnoses
-      const { data: diagnoses } = await supabase
-        .from('conversation_diagnoses')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('patient_id', selectedUserId)
-        .limit(1);
-
-      if (diagnoses && diagnoses.length > 0) {
-        setHasExportableData(true);
-        return;
-      }
-
-      // Check for health record summaries
-      const { data: healthSummaries } = await supabase
-        .from('health_record_summaries')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if (healthSummaries && healthSummaries.length > 0) {
-        setHasExportableData(true);
-        return;
-      }
-
-      // Check for conversation solutions
-      const { data: solutions } = await supabase
-        .from('conversation_solutions')
-        .select('id')
-        .eq('patient_id', selectedUserId)
-        .limit(1);
-
-      if (solutions && solutions.length > 0) {
-        setHasExportableData(true);
-        return;
-      }
-
-      setHasExportableData(false);
-    } catch (error) {
-      console.error('Error checking exportable data:', error);
-      setHasExportableData(false);
-    }
-  };
-
-  // Update top diagnosis when user changes
+  // Fetch data when selected user changes
   useEffect(() => {
-    if (selectedUserId) {
-      fetchTopDiagnosis();
-      checkExportableData();
-    } else {
-      setTopDiagnosis('');
-      setHasExportableData(false);
+    if (selectedUser?.id) {
+      fetchTopDiagnosis(selectedUser.id);
     }
-  }, [selectedUserId, insights]);
+  }, [selectedUser?.id]);
 
-
-  const clearUserMemory = async (userId: string, userName: string) => {
-    if (!user) return;
-    
+  // Clear user memory
+  const clearUserMemory = async (userId: string) => {
     setClearingMemory(userId);
+    
     try {
-      // Delete conversation memory for this specific user
+      // Delete conversation memory
       const { error: memoryError } = await supabase
         .from('conversation_memory')
         .delete()
-        .eq('user_id', user.id)
         .eq('patient_id', userId);
 
-      if (memoryError) throw memoryError;
+      if (memoryError) {
+        console.error('Error clearing conversation memory:', memoryError);
+        throw memoryError;
+      }
 
-      // Delete diagnoses for this specific user
+      // Delete conversation diagnoses
       const { error: diagnosesError } = await supabase
         .from('conversation_diagnoses')
         .delete()
-        .eq('user_id', user.id)
         .eq('patient_id', userId);
 
-      if (diagnosesError) throw diagnosesError;
-
-      // Get conversations for this specific user
-      const { data: userConversations, error: conversationsQueryError } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('patient_id', userId);
-
-      if (conversationsQueryError) throw conversationsQueryError;
-
-      const conversationIds = userConversations?.map(c => c.id) || [];
-
-      if (conversationIds.length > 0) {
-        // Delete messages for this user's conversations
-        const { error: messagesError } = await supabase
-          .from('messages')
-          .delete()
-          .in('conversation_id', conversationIds);
-
-        if (messagesError) throw messagesError;
-
-        // Delete conversations for this specific user
-        const { error: conversationsError } = await supabase
-          .from('conversations')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('patient_id', userId);
-
-        if (conversationsError) throw conversationsError;
+      if (diagnosesError) {
+        console.error('Error clearing conversation diagnoses:', diagnosesError);
+        throw diagnosesError;
       }
 
-      toast({
-        title: "Memory Cleared",
-        description: `All memory and conversation data for ${userName} has been permanently deleted.`,
+      // Delete conversation solutions
+      const { error: solutionsError } = await supabase
+        .from('conversation_solutions')
+        .delete()
+        .eq('patient_id', userId);
+
+      if (solutionsError) {
+        console.error('Error clearing conversation solutions:', solutionsError);
+        throw solutionsError;
+      }
+
+      // Clear probable diagnoses from patients table
+      const { error: patientsError } = await supabase
+        .from('patients')
+        .update({ probable_diagnoses: [] })
+        .eq('id', userId);
+
+      if (patientsError) {
+        console.error('Error clearing probable diagnoses:', patientsError);
+        throw patientsError;
+      }
+
+      // Refresh the conversation memory data
+      await fetchMemories();
+      
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ['conversation-memory', userId] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      
+      sonnerToast.success('Memory cleared successfully', {
+        description: 'All conversation memory and diagnoses have been cleared for this user.'
       });
 
-      // Invalidate queries to refresh data without page reload
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['health-stats'] });
+      // Reset states
+      setTopDiagnosis('');
       
-      // Manually refresh memory data since it doesn't use React Query
-      fetchMemories();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to clear user memory. Please try again.",
+      console.error('Error clearing user memory:', error);
+      sonnerToast.error('Failed to clear memory', {
+        description: error.message || 'An unexpected error occurred while clearing memory.'
       });
     } finally {
       setClearingMemory(null);
     }
   };
 
+  // Handle user delete  
+  const handleDeleteUser = async (userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (!userToDelete) return;
 
-  const handleDeleteUser = async (userId: string, userName: string) => {
     setDeletingUserId(userId);
+    
     try {
       await deleteUser(userId);
-      // Reset selected user if it was the deleted one
-      if (selectedUserId === userId) {
-        setSelectedUserId('');
-      }
-      toast({
-        title: "User Deleted",
-        description: `${userName} and all associated data has been permanently deleted.`,
+      
+      sonnerToast.success('User deleted successfully', {
+        description: `${userToDelete.first_name} ${userToDelete.last_name} has been removed.`
       });
+      
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to delete user. Please try again.",
+      console.error('Error deleting user:', error);
+      sonnerToast.error('Failed to delete user', {
+        description: error.message || 'An unexpected error occurred while deleting the user.'
       });
     } finally {
       setDeletingUserId(null);
     }
   };
-
 
   // Show loading state or restricted access for non-subscribers
   if (!subscribed) {
@@ -584,7 +236,7 @@ export const AISettings = () => {
             AI Memory
           </CardTitle>
           <CardDescription>
-            Configure how DrKnowItAll remembers your health information across conversations.
+            Configure how DrKnowsIt remembers your health information across conversations.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -594,7 +246,7 @@ export const AISettings = () => {
                 Enable AI Memory
               </Label>
               <div className="text-sm text-muted-foreground">
-                Allow DrKnowItAll to remember your health information and preferences across conversations.
+                Allow DrKnowsIt to remember your health information and preferences across conversations.
               </div>
             </div>
             <Switch
@@ -657,10 +309,8 @@ export const AISettings = () => {
               </SelectContent>
             </Select>
           </div>
-
         </CardContent>
       </Card>
-
 
       <Card>
         <CardHeader>
@@ -669,74 +319,38 @@ export const AISettings = () => {
             User Knowledge
           </CardTitle>
           <CardDescription>
-            View what DrKnowsIt has learned about each user from your conversations.
+            View what DrKnowsIt has learned about the selected user from your conversations.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <Label>Select User</Label>
-            <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-              disabled={usersLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a user to view AI knowledge" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {user.first_name} {user.last_name}
-                      {user.is_primary && (
-                        <span className="text-xs text-muted-foreground">(Primary)</span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-
           {/* User Management Actions */}
-          {selectedUserId && (
+          {selectedUser && (
             <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
               <div className="flex items-center gap-3">
-                {(() => {
-                  const selectedUser = users.find(u => u.id === selectedUserId);
-                  return selectedUser ? (
-                    <>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <User className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-sm">
-                          {selectedUser.first_name} {selectedUser.last_name}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {selectedUser.is_primary ? 'Primary User' : selectedUser.relationship}
-                        </div>
-                      </div>
-                    </>
-                  ) : null;
-                })()}
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm">
+                    {selectedUser.first_name} {selectedUser.last_name}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {selectedUser.is_primary ? 'Primary User' : selectedUser.relationship}
+                  </div>
+                </div>
               </div>
-              
-              {(() => {
-                const selectedUser = users.find(u => u.id === selectedUserId);
-                return selectedUser && canDeleteUser(selectedUser) ? (
+              <div className="flex gap-2">
+                {selectedUser && users.find(u => u.id === selectedUser.id) && canDeleteUser(users.find(u => u.id === selectedUser.id)!) ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
-                        variant="outline"
                         size="sm"
-                        className="text-destructive hover:text-destructive"
+                        variant="outline"
+                        className="h-8 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
                         disabled={deletingUserId === selectedUser.id}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        {deletingUserId === selectedUser.id ? "Deleting..." : "Delete User"}
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {deletingUserId === selectedUser.id ? "Deleting..." : "Delete"}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -747,132 +361,134 @@ export const AISettings = () => {
                         </AlertDialogTitle>
                         <AlertDialogDescription className="space-y-2">
                           <p>
-                            <strong>This action cannot be undone.</strong> This will permanently delete:
+                            This will permanently delete <strong>{selectedUser.first_name} {selectedUser.last_name}</strong> and all their associated data including:
                           </p>
                           <ul className="list-disc list-inside space-y-1 text-sm">
-                            <li><strong>{selectedUser.first_name} {selectedUser.last_name}</strong>'s profile</li>
-                            <li>All their health records and documents</li>
-                            <li>All conversation history with AI</li>
-                            <li>All diagnoses and health data</li>
-                            <li>All doctor notes and feedback</li>
-                            <li>All AI knowledge about this user</li>
+                            <li>All health records and forms</li>
+                            <li>All conversation history</li>
+                            <li>All AI memory and insights</li>
+                            <li>All diagnoses and recommendations</li>
                           </ul>
+                          <p className="font-medium text-destructive">
+                            This action cannot be undone.
+                          </p>
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDeleteUser(selectedUser.id, `${selectedUser.first_name} ${selectedUser.last_name}`)}
+                          onClick={() => handleDeleteUser(selectedUser.id)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Permanently
+                          Delete Forever
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                ) : selectedUser && !canDeleteUser(selectedUser) ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <AlertTriangle className="h-4 w-4" />
-                    Cannot delete primary user
-                  </div>
-                ) : null;
-              })()}
+                ) : null}
+              </div>
             </div>
           )}
 
-          {selectedUserId && (
+          {selectedUser && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>AI Knowledge Summary</Label>
                 <div className="flex gap-2">
-                  <Button
-                    onClick={exportToPDF}
-                    size="sm"
-                    variant="outline"
-                    className="h-8"
-                    disabled={memoryLoading || !insights?.length}
-                  >
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Export PDF
-                  </Button>
-                  {(() => {
-                    const selectedUser = users.find(u => u.id === selectedUserId);
-                    return selectedUser ? (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
-                            disabled={clearingMemory === selectedUser.id}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {clearingMemory === selectedUser.id ? "Clearing..." : "Clear Memory"}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2">
-                              <AlertTriangle className="h-5 w-5 text-destructive" />
-                              Clear Memory - Are You Sure?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="space-y-2">
-                              <p>
-                                <strong>This action cannot be undone.</strong> This will permanently delete:
-                              </p>
-                              <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>All conversation history with <strong>{selectedUser.first_name} {selectedUser.last_name}</strong></li>
-                                <li>All AI memory and insights for this user</li>
-                                <li>All diagnoses and analysis data</li>
-                                <li>All chat messages and interactions</li>
-                              </ul>
-                              <p className="text-sm mt-3">
-                                The user profile and health records will remain intact. Only conversation data and AI memory will be cleared.
-                              </p>
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => clearUserMemory(selectedUser.id, `${selectedUser.first_name} ${selectedUser.last_name}`)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Clear Memory
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    ) : null;
-                  })()}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
+                        disabled={clearingMemory === selectedUser.id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {clearingMemory === selectedUser.id ? "Clearing..." : "Clear Memory"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          Clear Memory - Are You Sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>
+                            This will permanently delete all AI memory for <strong>{selectedUser.first_name} {selectedUser.last_name}</strong>, including:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>All conversation insights and memory</li>
+                            <li>All probable diagnoses</li>
+                            <li>All suggested solutions</li>
+                            <li>All health pattern recognition</li>
+                          </ul>
+                          <p className="font-medium text-destructive">
+                            This action cannot be undone. Health records and conversations will remain, but AI memory will be cleared.
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => clearUserMemory(selectedUser.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Clear Memory
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
-              <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
+
+              <div className="space-y-4">
                 {memoryLoading ? (
-                  <div className="flex items-center justify-center h-32">
-                    <div className="text-sm text-muted-foreground">Loading memory insights...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-pulse text-sm text-muted-foreground">Loading AI knowledge...</div>
+                  </div>
+                ) : !selectedUser ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Brain className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No user selected</p>
+                  </div>
+                ) : insights && insights.length > 0 ? (
+                  <div className="p-4 border rounded-lg bg-muted/20 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
+                        {formatMemoryKnowledge()}
+                      </pre>
+                      {topDiagnosis && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <div className="text-sm font-medium text-foreground mb-2">Top Diagnosis:</div>
+                          <div className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-md">
+                            {topDiagnosis}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm text-foreground bg-transparent border-0 p-0 font-sans">
-                      {formatMemoryKnowledge()}
-                    </pre>
-                    {topDiagnosis && (
-                      <div className="mt-4 pt-4 border-t border-border">
-                        <div className="text-sm font-medium text-foreground mb-2">Top Diagnosis:</div>
-                        <div className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-md">
-                          {topDiagnosis}
-                        </div>
-                      </div>
-                    )}
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Brain className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No AI knowledge available yet for {selectedUser.first_name}</p>
+                    <p className="text-xs">Start a conversation to build AI memory</p>
                   </div>
                 )}
               </div>
+
               <div className="text-xs text-muted-foreground">
                 This shows what DrKnowsIt has learned about the selected user based on your conversations. 
                 The AI uses this information to provide more relevant health guidance.
               </div>
+            </div>
+          )}
+
+          {!selectedUser && (
+            <div className="text-center py-8 text-muted-foreground">
+              <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <div className="text-sm">No user selected</div>
+              <div className="text-xs">Select a user from the dropdown above to view their AI knowledge.</div>
             </div>
           )}
 

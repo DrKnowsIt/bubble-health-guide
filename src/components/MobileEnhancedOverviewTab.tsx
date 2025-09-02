@@ -248,7 +248,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange }: MobileEnhancedOvervie
                     <Brain className="h-4 w-4" />
                     AI Preferences
                   </h4>
-                  <AISettings />
+                  <AISettings selectedUser={selectedUser || undefined} />
                 </div>
 
                 {/* Account Settings Sheet */}
