@@ -108,15 +108,25 @@ export const AISettings = () => {
     }
   };
 
-  // Export comprehensive PDF report
+  // Export comprehensive PDF report with validation
   const exportToPDF = async () => {
     if (!selectedUserId) return;
     
     const selectedUser = users.find(u => u.id === selectedUserId);
     if (!selectedUser) return;
 
+    // Check if there's enough data for a meaningful report
+    const memoryStats = getMemoryStats();
+    if (!insights?.length && memoryStats.totalInsights === 0) {
+      toast({
+        title: "Not enough data yet",
+        description: "DrKnowsIt doesn't know much about this patient yet to generate a comprehensive medical report. Try having some conversations first.",
+        variant: "default",
+      });
+      return;
+    }
+
     try {
-      // Call the comprehensive PDF export directly
       await exportComprehensivePDFForUser(selectedUser, toast);
     } catch (error) {
       console.error('Error generating PDF:', error);

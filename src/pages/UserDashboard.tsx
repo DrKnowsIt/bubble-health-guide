@@ -101,15 +101,17 @@ export default function UserDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Export functionality
+  // Export functionality with comprehensive validation
   const exportToPDF = async () => {
     if (!selectedUser) return;
     
-    // Check if user has enough data to generate a meaningful report
-    if (healthStats.totalRecords === 0 && healthStats.totalConversations === 0) {
+    // Check if user has enough conversation/health data
+    const hasHealthData = healthStats.totalRecords > 0 || healthStats.totalConversations > 0;
+    
+    if (!hasHealthData) {
       toast({
         title: "Not enough data yet",
-        description: "DrKnowsIt doesn't know much about you yet to generate a medical report. Try having some conversations or adding health records first.",
+        description: "DrKnowsIt doesn't know much about you yet to generate a comprehensive medical report. Try having some conversations or adding health records first.",
         variant: "default",
       });
       return;
@@ -121,7 +123,7 @@ export default function UserDashboard() {
       console.error('Error generating PDF:', error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Error", 
         description: "Failed to generate PDF report. Please try again.",
       });
     }
