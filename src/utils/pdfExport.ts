@@ -155,38 +155,43 @@ export const exportComprehensivePDFForUser = async (
       currentY += 10;
     }
 
-    // Add AI Free Mode sessions summary
+    // Add AI Free Mode sessions summary - Only show completed sessions with meaningful content
     if (easyChatData && easyChatData.length > 0) {
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
+      // Filter to only show completed sessions with final summaries
+      const completedSessions = easyChatData.filter(session => 
+        session.completed && session.final_summary && session.final_summary.trim() !== ''
+      );
 
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Recent AI Free Mode Sessions', 20, currentY);
-      currentY += 10;
-
-      easyChatData.forEach((session, index) => {
-        if (currentY > 270) {
+      if (completedSessions.length > 0) {
+        if (currentY > 250) {
           doc.addPage();
           currentY = 20;
         }
 
-        doc.setFontSize(11);
+        doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        const sessionDate = new Date(session.created_at).toLocaleDateString();
-        doc.text(`Session ${index + 1} - ${sessionDate}`, 25, currentY);
-        currentY += 6;
+        doc.text('Recent AI Health Assessments', 20, currentY);
+        currentY += 10;
 
-        if (session.final_summary) {
+        completedSessions.forEach((session, index) => {
+          if (currentY > 270) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          const sessionDate = new Date(session.created_at).toLocaleDateString();
+          doc.text(`Assessment ${index + 1} - ${sessionDate}`, 25, currentY);
+          currentY += 6;
+
           doc.setFont(undefined, 'normal');
           const summaryText = doc.splitTextToSize(session.final_summary, 160);
           doc.text(summaryText, 30, currentY);
           currentY += summaryText.length * 4 + 8;
-        }
-      });
-      currentY += 10;
+        });
+        currentY += 10;
+      }
     }
 
     // Add recommended tests for healthcare providers
