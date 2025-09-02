@@ -23,6 +23,7 @@ import { UserDropdown } from '@/components/UserDropdown';
 import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
 import { EnhancedAIFreeModeInterface } from '@/components/EnhancedAIFreeModeInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
+import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
@@ -37,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
-import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
+import { ExportProgressModal } from '@/components/ExportProgressModal';
 
 export default function UserDashboard() {
   console.log('UserDashboard: Component rendering started');
@@ -49,6 +50,7 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState("easy-chat"); // Default to easy-chat for all users
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   
   console.log('UserDashboard: State initialized', {
     user: !!user,
@@ -119,7 +121,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const { generateFinalAnalysis, loading: analysisLoading } = useFinalMedicalAnalysis();
 
-  // Enhanced export functionality with final AI analysis
+  // Enhanced export functionality with progress modal
   const exportToPDF = async () => {
     if (!selectedUser) return;
     
@@ -136,19 +138,12 @@ export default function UserDashboard() {
     }
     
     try {
-      // Show loading toast for final analysis
-      const loadingToast = toast({
-        title: "Generating Medical Report",
-        description: "Performing final AI analysis of all available data...",
-        duration: 0, // Keep showing until we update it
-      });
+      // Show progress modal
+      setExportModalOpen(true);
 
       // Generate final AI analysis
       const finalAnalysis = await generateFinalAnalysis(selectedUser);
       
-      // Dismiss loading toast
-      loadingToast.dismiss?.();
-
       // Generate PDF with final analysis
       await exportComprehensivePDFForUser(selectedUser, toast, finalAnalysis);
       
@@ -159,6 +154,9 @@ export default function UserDashboard() {
         title: "Error", 
         description: "Failed to generate PDF report. Please try again.",
       });
+    } finally {
+      // Close progress modal
+      setExportModalOpen(false);
     }
   };
 
@@ -552,6 +550,12 @@ export default function UserDashboard() {
       <AddFamilyMemberDialog 
         open={addFamilyDialogOpen} 
         onOpenChange={setAddFamilyDialogOpen} 
+      />
+
+      {/* Export Progress Modal */}
+      <ExportProgressModal 
+        open={exportModalOpen} 
+        onOpenChange={setExportModalOpen} 
       />
     </div>
   );

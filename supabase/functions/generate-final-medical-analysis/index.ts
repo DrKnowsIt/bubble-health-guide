@@ -92,6 +92,14 @@ Available Data Sources:
 - AI chat sessions: ${easyChatSessions?.length || 0} completed sessions
 - Previous comprehensive reports: ${comprehensiveReports?.length || 0} reports
 
+CRITICAL INSTRUCTIONS FOR CONFIDENCE SCORING:
+- DO NOT use fixed confidence scores like 0.90 or 0.85 for everything
+- Base confidence scores on the actual quality and quantity of available evidence
+- Use confidence ranges: 0.30-0.50 (low evidence), 0.50-0.75 (moderate evidence), 0.75-0.95 (strong evidence)  
+- Lower confidence when data is sparse, contradictory, or unclear
+- Higher confidence only when multiple data sources strongly support the finding
+- Vary the scores realistically based on clinical certainty
+
 Provide a comprehensive final medical analysis in the following JSON format:
 {
   "analysis_summary": "Comprehensive synthesis of all patient data and key clinical findings",
@@ -100,7 +108,7 @@ Provide a comprehensive final medical analysis in the following JSON format:
       "finding": "Primary clinical finding",
       "evidence": "Supporting evidence from data",
       "significance": "Clinical significance",
-      "confidence": 0.85
+      "confidence": 0.65
     }
   ],
   "doctor_test_recommendations": [
@@ -110,7 +118,7 @@ Provide a comprehensive final medical analysis in the following JSON format:
       "category": "Lab/Imaging/Specialty",
       "urgency": "Routine/Urgent/Emergent", 
       "reason": "Clinical rationale for this test",
-      "confidence": 0.90,
+      "confidence": 0.75,
       "estimated_cost_range": "$50-150",
       "patient_prep_required": true,
       "contraindications": ["List any contraindications"]
@@ -127,7 +135,7 @@ Provide a comprehensive final medical analysis in the following JSON format:
     "Specific follow-up recommendations for ongoing care"
   ],
   "priority_level": "low/normal/high/critical",
-  "confidence_score": 0.88,
+  "confidence_score": 0.72,
   "data_sources_analyzed": {
     "conversation_memories": ${conversationMemory?.length || 0},
     "diagnoses": ${diagnoses?.length || 0},
@@ -137,7 +145,7 @@ Provide a comprehensive final medical analysis in the following JSON format:
   }
 }
 
-Focus on clinical accuracy, evidence-based recommendations, and providing actionable insights for healthcare providers.`;
+Focus on clinical accuracy, evidence-based recommendations, and providing actionable insights for healthcare providers. Ensure confidence scores reflect the true strength of evidence available.`;
 
     const userPrompt = `Please analyze the following comprehensive patient data:
 

@@ -315,7 +315,12 @@ export const exportComprehensivePDFForUser = async (
         doc.text('Key Clinical Findings', 25, currentY);
         currentY += 10;
 
-        finalAnalysis.key_findings.forEach((finding, index) => {
+        // Sort findings by confidence score (highest first)
+        const sortedFindings = [...finalAnalysis.key_findings].sort((a, b) => 
+          (b.confidence || 0) - (a.confidence || 0)
+        );
+
+        sortedFindings.forEach((finding, index) => {
           if (currentY > 260) {
             doc.addPage();
             currentY = 20;
@@ -362,7 +367,12 @@ export const exportComprehensivePDFForUser = async (
         doc.text('Based on Comprehensive Data Analysis', 25, currentY);
         currentY += 12;
 
-        finalAnalysis.doctor_test_recommendations.forEach((test, index) => {
+        // Sort recommendations by confidence score (highest first)
+        const sortedRecommendations = [...finalAnalysis.doctor_test_recommendations].sort((a, b) => 
+          (b.confidence || 0) - (a.confidence || 0)
+        );
+
+        sortedRecommendations.forEach((test, index) => {
           if (currentY > 240) {
             doc.addPage();
             currentY = 20;
