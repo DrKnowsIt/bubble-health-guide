@@ -17,16 +17,26 @@ const SPACING = {
   LINE: 6
 } as const;
 
-// Text sanitization function to prevent corruption
+// Enhanced text sanitization function to prevent corruption and character spacing issues
 const sanitizeText = (text: string): string => {
   if (!text) return '';
   
   return text
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
+    // Remove invisible and zero-width characters that cause spacing issues
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces, joiners, BOM
+    .replace(/[\u00A0\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ') // Various spaces to regular space
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Control characters
+    .replace(/[\u200E\u200F\u202A-\u202E]/g, '') // Text direction marks
+    .replace(/[\uE000-\uF8FF]/g, '') // Private use area characters
+    // Normalize Unicode composition
+    .normalize('NFKC')
+    // Fix common typography issues
     .replace(/[""]/g, '"') // Normalize quotes
     .replace(/['']/g, "'") // Normalize apostrophes
     .replace(/–/g, '-') // Normalize dashes
     .replace(/…/g, '...') // Normalize ellipsis
+    // Remove multiple spaces and normalize whitespace
+    .replace(/\s+/g, ' ')
     .trim();
 };
 
