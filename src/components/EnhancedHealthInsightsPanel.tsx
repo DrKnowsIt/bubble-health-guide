@@ -181,7 +181,7 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'high_confidence': return 'bg-red-100 text-red-800 border-red-300';
+      case 'high_confidence': return 'bg-green-100 text-green-800 border-green-300';
       case 'moderate_confidence': return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'low_confidence': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
@@ -272,10 +272,10 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-4">
-                      {groupedDiagnoses.map((group, groupIndex) => (
-                        <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)}`}>
-                          <div className="p-4 bg-background/50 backdrop-blur">
+                     <div className="space-y-4">
+                       {groupedDiagnoses.map((group, groupIndex) => (
+                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-50' : ''}`}>
+                           <div className="p-4 bg-background/50 backdrop-blur">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-3">
                                 <span className="text-2xl">{getCategoryIcon(group.category)}</span>

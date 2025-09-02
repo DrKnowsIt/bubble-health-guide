@@ -194,23 +194,30 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-4">
-                      {diagnoses.map((diagnosis, index) => (
-                        <div key={index} className="p-4 border rounded-lg bg-card">
-                          <div className="flex items-start justify-between mb-3">
-                            <h3 className="font-semibold text-base leading-tight">
-                              {diagnosis.diagnosis}
-                            </h3>
-                            <div className="text-right ml-4 flex-shrink-0">
-                              <div className="text-sm font-medium mb-1">
-                                Confidence: {getConfidenceLevel(diagnosis.confidence)}
-                              </div>
-                              <Progress 
-                                value={diagnosis.confidence * 100} 
-                                className="w-24 h-2"
-                              />
-                            </div>
-                          </div>
+                     <div className="space-y-4">
+                       {diagnoses.map((diagnosis, index) => (
+                         <div key={index} className={`p-4 border rounded-lg ${diagnosis.confidence >= 0.7 ? 'bg-green-50 border-green-200' : 'bg-card'}`}>
+                           <div className="flex items-start justify-between mb-3">
+                             <div className="flex items-center gap-2">
+                               <h3 className="font-semibold text-base leading-tight">
+                                 {diagnosis.diagnosis}
+                               </h3>
+                               {diagnosis.confidence >= 0.7 && (
+                                 <Badge className="text-xs bg-green-100 text-green-800 border-green-200">
+                                   High Confidence
+                                 </Badge>
+                               )}
+                             </div>
+                             <div className="text-right ml-4 flex-shrink-0">
+                               <div className="text-sm font-medium mb-1">
+                                 Confidence: {getConfidenceLevel(diagnosis.confidence)}
+                               </div>
+                               <Progress 
+                                 value={diagnosis.confidence * 100} 
+                                 className="w-24 h-2"
+                               />
+                             </div>
+                           </div>
                           
                           {diagnosis.reasoning && (
                             <div className="mb-4">
