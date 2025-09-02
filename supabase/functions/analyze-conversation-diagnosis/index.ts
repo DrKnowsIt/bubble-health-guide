@@ -144,6 +144,33 @@ High-confidence diagnoses (≥70% - MUST preserve): ${highConfidenceDiagnoses?.m
 PATIENT CONTEXT:
 ${patientContext}
 
+CONFIDENCE CALIBRATION GUIDELINES:
+Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH in the conversation:
+
+HIGH CONFIDENCE (70-90%):
+- Multiple specific symptoms clearly described
+- Owner provides detailed behavioral observations  
+- Clear duration/frequency mentioned ("for 3 weeks", "every morning")
+- Specific triggers identified ("after eating", "during storms")
+- Owner uses precise descriptive language
+Example: "My dog has been limping on his front right paw for 2 weeks, worse in mornings, refuses to put weight on it" = 85% confidence for "Limb Injury"
+
+MEDIUM CONFIDENCE (40-69%):
+- Some symptoms mentioned but lacking detail
+- General behavioral changes noted
+- Vague timeframes ("recently", "sometimes")  
+- Owner uses uncertain language ("seems like", "might be")
+- Single symptom with moderate description
+Example: "My cat seems more tired lately and eating less" = 55% confidence for "Fatigue"
+
+LOW CONFIDENCE (10-39%):
+- Vague mentions without specific symptoms
+- Passing references to health topics
+- Highly speculative connections
+- Very brief mentions without context
+- General wellness discussions
+Example: "Should I be worried about my pet's health?" = 25% confidence for "General Health Concern"
+
 CRITICAL DUPLICATE PREVENTION RULES:
 - BEFORE creating any diagnosis, check the existing diagnoses list above
 - Use STANDARDIZED naming: "Migraine" not "Possible Migraine Headache" or "Migraine Headache"
@@ -182,6 +209,33 @@ Current conversation: "${conversationText}"`
 
 PATIENT CONTEXT:
 ${patientContext}
+
+CONFIDENCE CALIBRATION GUIDELINES:
+Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH in the conversation:
+
+HIGH CONFIDENCE (70-90%):
+- Multiple specific symptoms clearly described by patient
+- Detailed symptom descriptions with specifics
+- Clear duration/frequency mentioned ("for 2 months", "every day")
+- Specific triggers or patterns identified
+- Patient uses precise medical language or detailed descriptions
+Example: "I've had severe throbbing headaches on my left temple for 3 weeks, triggered by bright lights, lasting 4-6 hours" = 85% confidence for "Migraine"
+
+MEDIUM CONFIDENCE (40-69%):
+- Some symptoms mentioned but lacking detail
+- General complaints without specific patterns
+- Vague timeframes ("recently", "sometimes")
+- Patient uses uncertain language ("I think", "maybe")
+- Single symptom with moderate description
+Example: "I've been feeling more anxious lately and having trouble sleeping" = 55% confidence for "Anxiety"
+
+LOW CONFIDENCE (10-39%):
+- Vague mentions without specific symptoms  
+- Passing references to health topics
+- Highly speculative connections
+- Very brief mentions without context
+- General wellness discussions
+Example: "I sometimes wonder about my heart health" = 25% confidence for "Cardiac Concern"
 
 CRITICAL DUPLICATE PREVENTION RULES:
 - BEFORE creating any diagnosis, check the existing diagnoses list above

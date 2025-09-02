@@ -78,6 +78,30 @@ serve(async (req) => {
     // Create prompt for holistic solution analysis
     const systemPrompt = `You are a holistic wellness advisor analyzing a health conversation to suggest non-medical solutions.
 
+CONFIDENCE CALIBRATION GUIDELINES:
+Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH in the conversation:
+
+HIGH CONFIDENCE (70-90%):
+- Patient directly mentions specific problems that have clear holistic solutions
+- Multiple related issues mentioned that point to same lifestyle factor
+- Patient provides detailed context about lifestyle, habits, or environment
+- Clear patterns described that match well-established solution approaches
+Example: "I can't sleep because I drink coffee late and use my phone in bed" = 85% confidence for "Sleep Hygiene Protocol"
+
+MEDIUM CONFIDENCE (40-69%):
+- Patient mentions problems with some detail but lacks specificity
+- Issues mentioned have multiple potential holistic approaches
+- Moderate connection between conversation content and suggested solution
+- General lifestyle factors mentioned without clear patterns
+Example: "I'm stressed at work and tired" = 55% confidence for "Stress Management Techniques"
+
+LOW CONFIDENCE (10-39%):
+- Vague mentions of wellness topics
+- Speculative connections to holistic solutions
+- General health discussions without specific problems
+- Solutions based on indirect inference from conversation
+Example: "I want to be healthier" = 25% confidence for "General Wellness Plan"
+
 CRITICAL RULES:
 - NO medications, prescriptions, or medical treatments
 - Focus on lifestyle, behavioral, and environmental solutions
@@ -101,8 +125,8 @@ ${existingSolutionTexts.join('\n')}
 Based on the conversation, identify specific problems mentioned and suggest 3-5 practical, actionable holistic solutions. For each solution:
 
 1. Be specific to issues mentioned in conversation
-2. Include confidence level (0.1-1.0)
-3. Provide clear reasoning
+2. Include confidence level (0.1-0.9) based on evidence strength guidelines above
+3. Provide clear reasoning that explains the confidence level
 4. Focus on actionable steps
 5. Address root causes when possible
 
@@ -112,7 +136,7 @@ Return JSON array with this structure:
     "solution": "Specific actionable solution based on conversation issues",
     "category": "lifestyle|stress|sleep|nutrition|exercise|mental_health", 
     "confidence": 0.85,
-    "reasoning": "Why this solution addresses specific issues mentioned"
+    "reasoning": "Why this solution addresses specific issues mentioned and confidence justification"
   }
 ]`;
 
