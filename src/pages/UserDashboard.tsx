@@ -39,6 +39,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 
 export default function UserDashboard() {
+  console.log('UserDashboard: Component rendering started');
+  
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
   const { users, selectedUser, setSelectedUser, loading } = useUsersQuery();
@@ -46,6 +48,17 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState("easy-chat"); // Default to easy-chat for all users
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
+  
+  console.log('UserDashboard: State initialized', {
+    user: !!user,
+    subscribed,
+    subscription_tier,
+    usersCount: users.length,
+    selectedUser: !!selectedUser,
+    loading,
+    activeTab,
+    currentPath: location.pathname
+  });
   
   // Update active tab when URL parameters change (with debouncing)
   useEffect(() => {
@@ -179,6 +192,21 @@ export default function UserDashboard() {
     }
     return false;
   };
+
+  console.log('UserDashboard: About to render main component');
+
+  // Emergency fallback for debugging
+  if (loading) {
+    console.log('UserDashboard: Still loading, showing loading state');
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col">
