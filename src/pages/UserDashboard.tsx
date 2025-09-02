@@ -279,7 +279,7 @@ export default function UserDashboard() {
                    size="sm"
                    variant="outline"
                    className={cn(
-                     "h-8",
+                     "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
                      // Flash green when there's high confidence and enough data
                      healthStats.totalRecords >= 2 && healthStats.totalConversations >= 3 && !analysisLoading
                        ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
