@@ -111,7 +111,7 @@ serve(async (req) => {
 
     // Get patient info to determine if this is a pet
     const { data: patient, error: patientError } = await supabase
-      .from('users')
+      .from('patients')
       .select('is_pet')
       .eq('id', patient_id)
       .single();
