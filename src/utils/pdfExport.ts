@@ -8,6 +8,49 @@ export interface User {
   last_name: string;
 }
 
+// Standardized spacing constants for consistent PDF formatting
+const SPACING = {
+  SMALL: 5,
+  MEDIUM: 8,
+  LARGE: 12,
+  SECTION: 15,
+  LINE: 6
+} as const;
+
+// Text sanitization function to prevent corruption
+const sanitizeText = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
+    .replace(/[""]/g, '"') // Normalize quotes
+    .replace(/['']/g, "'") // Normalize apostrophes
+    .replace(/–/g, '-') // Normalize dashes
+    .replace(/…/g, '...') // Normalize ellipsis
+    .trim();
+};
+
+// Deduplicate solutions by category, keeping the most confident and recent
+const deduplicateSolutions = (solutions: any[]): any[] => {
+  const solutionMap = new Map();
+  
+  solutions.forEach(solution => {
+    const category = solution.category || 'general';
+    const existing = solutionMap.get(category);
+    
+    if (!existing || 
+        solution.confidence > existing.confidence || 
+        (solution.confidence === existing.confidence && 
+         new Date(solution.created_at) > new Date(existing.created_at))) {
+      solutionMap.set(category, solution);
+    }
+  });
+  
+  return Array.from(solutionMap.values())
+    .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+    .slice(0, 6); // Limit to 6 diverse solutions
+};
+
 export const exportComprehensivePDFForUser = async (
   selectedUser: User, 
   toastFn: typeof toast,
@@ -147,11 +190,11 @@ export const exportComprehensivePDFForUser = async (
         }
 
         if (diagnosis.reasoning) {
-          const reasoningText = doc.splitTextToSize(`Reasoning: ${diagnosis.reasoning}`, 160);
+          const reasoningText = doc.splitTextToSize(`Reasoning: ${sanitizeText(diagnosis.reasoning)}`, 160);
           doc.text(reasoningText, 30, currentY);
-          currentY += reasoningText.length * 5 + 3;
+          currentY += reasoningText.length * SPACING.SMALL + 3;
         }
-        currentY += 6;
+        currentY += SPACING.LINE;
       });
       currentY += 10;
     }
@@ -295,11 +338,11 @@ export const exportComprehensivePDFForUser = async (
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('Executive Summary', 25, currentY);
-      currentY += 8;
+      currentY += SPACING.MEDIUM;
       doc.setFont(undefined, 'normal');
-      const summaryText = doc.splitTextToSize(finalAnalysis.analysis_summary, 160);
+      const summaryText = doc.splitTextToSize(sanitizeText(finalAnalysis.analysis_summary), 160);
       doc.text(summaryText, 25, currentY);
-      currentY += summaryText.length * 5 + 12;
+      currentY += summaryText.length * SPACING.SMALL + SPACING.LARGE;
 
       // Priority Level & Confidence
       if (currentY > 270) {
@@ -564,43 +607,49 @@ export const exportComprehensivePDFForUser = async (
 
     // Add holistic solutions/recommendations
     if (solutionsData && solutionsData.length > 0) {
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Holistic Health Recommendations', 20, currentY);
-      currentY += 8;
+      // Deduplicate and improve solution variety
+      const deduplicatedSolutions = deduplicateSolutions(solutionsData);
       
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'italic');
-      doc.text('AI-Generated Patient Guidance', 20, currentY);
-      currentY += 12;
-
-      solutionsData.forEach((solution, index) => {
-        if (currentY > 270) {
+      if (deduplicatedSolutions.length > 0) {
+        if (currentY > 250) {
           doc.addPage();
           currentY = 20;
         }
 
-        doc.setFontSize(11);
+        doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text(`${index + 1}. ${solution.category || 'General Wellness'}`, 25, currentY);
-        currentY += 6;
+        doc.text('Holistic Health Recommendations', 20, currentY);
+        currentY += SPACING.MEDIUM;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.text('AI-Generated Patient Guidance', 20, currentY);
+        currentY += SPACING.LARGE;
 
-        doc.setFont(undefined, 'normal');
-        if (solution.confidence) {
-          doc.text(`Confidence: ${Math.round(solution.confidence * 100)}%`, 30, currentY);
-          currentY += 5;
-        }
+        deduplicatedSolutions.forEach((solution, index) => {
+          if (currentY > 270) {
+            doc.addPage();
+            currentY = 20;
+          }
 
-        const solutionText = doc.splitTextToSize(solution.solution, 160);
-        doc.text(solutionText, 30, currentY);
-        currentY += solutionText.length * 5 + 6;
-      });
-      currentY += 10;
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          const categoryText = solution.category || 'General Wellness';
+          doc.text(`${index + 1}. ${categoryText}`, 25, currentY);
+          currentY += SPACING.LINE;
+
+          doc.setFont(undefined, 'normal');
+          if (solution.confidence) {
+            doc.text(`Confidence: ${Math.round(solution.confidence * 100)}%`, 30, currentY);
+            currentY += SPACING.SMALL;
+          }
+
+          const solutionText = doc.splitTextToSize(sanitizeText(solution.solution), 160);
+          doc.text(solutionText, 30, currentY);
+          currentY += solutionText.length * SPACING.SMALL + SPACING.LINE;
+        });
+        currentY += SPACING.MEDIUM;
+      }
     }
 
     // Add memory insights if available
