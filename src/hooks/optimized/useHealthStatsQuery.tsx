@@ -91,11 +91,20 @@ export const useHealthStatsQuery = (selectedUser?: User | null): HealthStats => 
         throw lastActivityError;
       }
 
-      return {
+      const result = {
         totalRecords: recordsCount || 0,
         totalConversations: conversationsCount || 0,
         lastActivityTime: lastConversation?.[0]?.updated_at || null,
       };
+
+      console.log('🔍 HealthStats: Query result for user', { 
+        userId: user.id, 
+        selectedUserId: selectedUser?.id,
+        selectedUserName: selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'none',
+        result 
+      });
+
+      return result;
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 minutes

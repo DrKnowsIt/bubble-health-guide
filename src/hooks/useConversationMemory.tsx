@@ -28,11 +28,13 @@ export const useConversationMemory = (patientId?: string) => {
 
   const fetchMemories = useCallback(async () => {
     if (!user || !patientId) {
+      console.log('🔍 ConversationMemory: No user or patientId', { user: !!user, patientId });
       setMemories([]);
       setInsights([]);
       return;
     }
 
+    console.log('🔍 ConversationMemory: Fetching memories for', { userId: user.id, patientId });
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -45,6 +47,7 @@ export const useConversationMemory = (patientId?: string) => {
       if (error) throw error;
 
       const memoryData = data || [];
+      console.log('🔍 ConversationMemory: Found memories', { count: memoryData.length, memories: memoryData });
       setMemories(memoryData);
 
       // Extract insights from memory objects
@@ -121,9 +124,10 @@ export const useConversationMemory = (patientId?: string) => {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
+      console.log('🔍 ConversationMemory: Extracted insights', { count: extractedInsights.length, insights: extractedInsights });
       setInsights(extractedInsights);
     } catch (error) {
-      console.error('Error fetching conversation memory:', error);
+      console.error('❌ ConversationMemory: Error fetching conversation memory:', error);
     } finally {
       setLoading(false);
     }

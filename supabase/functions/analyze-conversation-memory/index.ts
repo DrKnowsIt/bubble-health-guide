@@ -252,16 +252,39 @@ Only return the JSON object. If no new memory-worthy information is found, retur
         ...memoryUpdates
       };
 
-      // Upsert conversation memory
-      const { error: memoryError } = await supabase
+      // Upsert conversation memory - handle existing records properly
+      const { data: existingRecord } = await supabase
         .from('conversation_memory')
-        .upsert({
-          conversation_id,
-          patient_id,
-          user_id: user.id,
-          memory: updatedMemory,
-          updated_at: new Date().toISOString(),
-        });
+        .select('id')
+        .eq('conversation_id', conversation_id)
+        .eq('patient_id', patient_id)
+        .single();
+
+      let memoryError;
+      if (existingRecord) {
+        // Update existing record
+        const { error } = await supabase
+          .from('conversation_memory')
+          .update({
+            memory: updatedMemory,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('conversation_id', conversation_id)
+          .eq('patient_id', patient_id);
+        memoryError = error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('conversation_memory')
+          .insert({
+            conversation_id,
+            patient_id,
+            user_id: user.id,
+            memory: updatedMemory,
+            updated_at: new Date().toISOString(),
+          });
+        memoryError = error;
+      }
 
       if (memoryError) {
         logStep('Failed to save memory', { error: memoryError });
