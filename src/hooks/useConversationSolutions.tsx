@@ -102,6 +102,36 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
     loadExistingFeedback();
   }, [patientId, user]);
 
+  // Set up real-time subscription for new solutions
+  useEffect(() => {
+    if (!conversationId || !user) return;
+
+    console.log('[useConversationSolutions] Setting up real-time subscription for solutions:', conversationId);
+
+    const channel = supabase
+      .channel('conversation-solutions-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversation_solutions',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          console.log('[useConversationSolutions] Real-time solution added:', payload.new);
+          // Refetch solutions to get the latest data
+          fetchSolutions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[useConversationSolutions] Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, user]);
+
   // Immediately clear state when switching patients to prevent stale data
   useEffect(() => {
     setSolutions([]);
