@@ -10,12 +10,14 @@ import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
 import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
 import { SubscriptionGate } from './SubscriptionGate';
 import { ChatMessage } from './ChatMessage';
+import { ChatAnalysisNotification } from './ChatAnalysisNotification';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +65,17 @@ export const MobileEnhancedChatInterface = ({
   // Stale reply guard
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
+
+  // Analysis notifications
+  const {
+    pendingAnalysis,
+    analysisHistory,
+    startAnalysis,
+    performDiagnosisAnalysis,
+    performSolutionAnalysis,
+    performMemoryAnalysis,
+    clearPendingAnalysis
+  } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
 
 
   const {
@@ -216,25 +229,24 @@ export const MobileEnhancedChatInterface = ({
         console.error('Error analyzing conversation for diagnosis:', error);
       });
 
-      // Background solution analysis (fire-and-forget)
-      supabase.functions.invoke('analyze-conversation-solutions', {
-        body: {
-          conversation_id: conversationId,
-          patient_id: selectedUser.id,
-          recent_messages: recentMessages
-        }
-      }).catch(error => {
-        console.error('Error analyzing conversation for solutions:', error);
-      });
-
-      // Background memory analysis (fire-and-forget)
-      supabase.functions.invoke('analyze-conversation-memory', {
-        body: {
-          conversation_id: conversationId,
-          patient_id: selectedUser.id,
-        }
-      }).catch(error => {
-        console.error('Error analyzing conversation for memory:', error);
+      // Enhanced background analysis with notifications
+      const messageId = aiMessage.id;
+      
+      // Start analysis tracking
+      const { updateResult, completeAnalysis } = startAnalysis(messageId);
+      
+      // Run all analyses in parallel with proper tracking
+      Promise.allSettled([
+        performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
+          .then(result => updateResult('diagnosis', result)),
+        
+        performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
+          .then(result => updateResult('solution', result)),
+        
+        performMemoryAnalysis(conversationId, selectedUser.id)
+          .then(result => updateResult('memory', result))
+      ]).finally(() => {
+        completeAnalysis();
       });
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -403,9 +415,22 @@ export const MobileEnhancedChatInterface = ({
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                 {messages.map((message) => (
-                   <ChatMessage key={message.id} message={message} />
-                 ))}
+              {messages.map((message) => (
+                <div key={message.id} className="mb-4">
+                  <ChatMessage
+                    message={message}
+                  />
+                  
+                  {/* Show analysis notifications after AI messages */}
+                  {message.type === 'ai' && (
+                    <ChatAnalysisNotification
+                      results={pendingAnalysis}
+                      onResultsProcessed={clearPendingAnalysis}
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+              ))}
 
                 {isTyping && (
                   <div className="flex justify-start">

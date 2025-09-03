@@ -10,6 +10,7 @@ import { useUsers, User } from '@/hooks/useUsers';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
 import { UserSelector } from './UserSelector';
 import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { TierStatus } from './TierStatus';
@@ -18,6 +19,7 @@ import { UserDropdown } from './UserDropdown';
 import { MobileEnhancedChatInterface } from './MobileEnhancedChatInterface';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { ChatMessage } from './ChatMessage';
+import { ChatAnalysisNotification } from './ChatAnalysisNotification';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,6 +59,17 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   // Stale reply guard
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
+
+  // Analysis notifications
+  const {
+    pendingAnalysis,
+    analysisHistory,
+    startAnalysis,
+    performDiagnosisAnalysis,
+    performSolutionAnalysis,
+    performMemoryAnalysis,
+    clearPendingAnalysis
+  } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
 
 
   const {
@@ -184,40 +197,26 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       await saveMessage(conversationId, 'ai', aiMessage.content);
       onSendMessage?.(currentInput);
 
-      // Background analysis for diagnoses and solutions (fire-and-forget)
+      // Enhanced background analysis with notifications
       if (user && conversationId && selectedUser?.id) {
         const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
+        const messageId = aiMessage.id;
         
-        // Background diagnosis analysis (fire-and-forget)
-        supabase.functions.invoke('analyze-conversation-diagnosis', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          }
-        }).catch(error => {
-          console.error('Error analyzing conversation for diagnosis:', error);
-        });
-
-        // Background solution analysis (fire-and-forget)
-        supabase.functions.invoke('analyze-conversation-solutions', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-            recent_messages: recentMessages
-          }
-        }).catch(error => {
-          console.error('Error analyzing conversation for solutions:', error);
-        });
-
-        // Background memory analysis (fire-and-forget)
-        supabase.functions.invoke('analyze-conversation-memory', {
-          body: {
-            conversation_id: conversationId,
-            patient_id: selectedUser.id,
-          }
-        }).catch(error => {
-          console.error('Error analyzing conversation for memory:', error);
+        // Start analysis tracking
+        const { updateResult, completeAnalysis } = startAnalysis(messageId);
+        
+        // Run all analyses in parallel with proper tracking
+        Promise.allSettled([
+          performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
+            .then(result => updateResult('diagnosis', result)),
+          
+          performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
+            .then(result => updateResult('solution', result)),
+          
+          performMemoryAnalysis(conversationId, selectedUser.id)
+            .then(result => updateResult('memory', result))
+        ]).finally(() => {
+          completeAnalysis();
         });
       }
     } catch (error: any) {
@@ -356,15 +355,25 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                   </div>
                 </div>
               ) : (
-                <>
-                  {messages.map((message) => (
-                    <ChatMessage
-                      key={message.id}
-                      message={message}
-                    />
-                  ))}
+                  <>
+                    {messages.map((message) => (
+                      <div key={message.id} className="mb-6">
+                        <ChatMessage
+                          message={message}
+                        />
+                        
+                        {/* Show analysis notifications after AI messages */}
+                        {message.type === 'ai' && (
+                          <ChatAnalysisNotification
+                            results={pendingAnalysis}
+                            onResultsProcessed={clearPendingAnalysis}
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+                    ))}
 
-                  {isTyping && (
+                    {isTyping && (
                     <div className="flex justify-start">
                       <div className="flex space-x-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
