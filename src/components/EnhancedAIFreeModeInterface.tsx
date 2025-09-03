@@ -5,6 +5,7 @@ import { AIFreeModeInterface } from './AIFreeModeInterface';
 import { AIFreeModeCompletionModal } from './AIFreeModeCompletionModal';
 import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
 import { useSessionPersistence } from '@/hooks/useSessionPersistence';
+import { supabase } from '@/integrations/supabase/client';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
@@ -102,9 +103,33 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     setSessionRecovered(false);
   };
 
-  const handleRestartAnalysis = () => {
-    console.log('Restarting analysis - clearing saved data');
+  const handleRestartAnalysis = async () => {
+    console.log('Restarting analysis - clearing saved data and abandoning active session');
+    
+    // Clear localStorage first
     clearSessionData();
+    
+    // Abandon any active database session
+    if (hasActiveSession) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          await supabase
+            .from('easy_chat_sessions')
+            .update({ 
+              completed: true, 
+              final_summary: 'Session restarted by user',
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('completed', false);
+        }
+      } catch (error) {
+        console.error('Error abandoning session during restart:', error);
+      }
+    }
+    
+    // Reset all state
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
@@ -125,21 +150,25 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     }
   }, [isCompleted, phase]);
 
-  // Session recovery - restore active sessions on page refresh
+  // Session recovery - restore active sessions on page refresh (but not during intentional restarts)
   useEffect(() => {
     if (hasActiveSession && currentSession && !sessionRecovered && phase === 'anatomy-selection') {
-      console.log('Recovering active session from page refresh');
-      
-      // Extract selected anatomy from session data
-      const sessionData = currentSession.session_data as any;
-      if (sessionData?.selected_anatomy) {
-        setSelectedAnatomy(sessionData.selected_anatomy);
-        setPhase('chat');
-        setSessionRecovered(true);
-        console.log('Session recovered with anatomy:', sessionData.selected_anatomy);
+      // Only recover if this isn't a fresh restart (check if we have saved session data)
+      const savedData = loadSessionData();
+      if (savedData && savedData.phase === 'chat') {
+        console.log('Recovering active session from page refresh');
+        
+        // Extract selected anatomy from session data
+        const sessionData = currentSession.session_data as any;
+        if (sessionData?.selected_anatomy) {
+          setSelectedAnatomy(sessionData.selected_anatomy);
+          setPhase('chat');
+          setSessionRecovered(true);
+          console.log('Session recovered with anatomy:', sessionData.selected_anatomy);
+        }
       }
     }
-  }, [hasActiveSession, currentSession, sessionRecovered, phase]);
+  }, [hasActiveSession, currentSession, sessionRecovered, phase, loadSessionData]);
 
   if (phase === 'anatomy-selection') {
     return (
