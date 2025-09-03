@@ -37,54 +37,16 @@ export const MedicalImageConfirmationModal = ({
   const [selectedImage, setSelectedImage] = useState<MedicalImage | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
-  // Generate medical names based on search terms and image data
-  const getMedicalName = (image: MedicalImage, index: number) => {
-    const searchLower = searchTerm.toLowerCase();
-    const titleLower = image.title.toLowerCase();
-    const descLower = image.description.toLowerCase();
-    
-    // Map search terms to proper medical names
-    if (searchLower.includes('bed bug') || searchLower.includes('bite') || titleLower.includes('bite')) {
-      return `Arthropod Bite Reaction #${index + 1}`;
-    }
-    if (searchLower.includes('dermatitis') || titleLower.includes('dermatitis')) {
-      return `Contact Dermatitis #${index + 1}`;
-    }
-    if (searchLower.includes('eczema') || titleLower.includes('eczema')) {
-      return `Atopic Dermatitis #${index + 1}`;
-    }
-    if (searchLower.includes('melanoma') || titleLower.includes('melanoma')) {
-      return `Malignant Melanoma #${index + 1}`;
-    }
-    if (searchLower.includes('nevus') || titleLower.includes('nevus') || searchLower.includes('mole')) {
-      return `Melanocytic Nevus #${index + 1}`;
-    }
-    if (searchLower.includes('psoriasis') || titleLower.includes('psoriasis')) {
-      return `Psoriasis Vulgaris #${index + 1}`;
-    }
-    if (searchLower.includes('acne') || titleLower.includes('acne')) {
-      return `Acne Vulgaris #${index + 1}`;
-    }
-    if (searchLower.includes('urticaria') || searchLower.includes('hives')) {
-      return `Urticaria (Hives) #${index + 1}`;
-    }
-    if (searchLower.includes('rash') || searchLower.includes('inflammatory')) {
-      return `Inflammatory Dermatosis #${index + 1}`;
-    }
-    if (searchLower.includes('larva migrans') || searchLower.includes('track')) {
-      return `Cutaneous Larva Migrans #${index + 1}`;
+  // Generate simple descriptive names for each image
+  const getImageName = (image: MedicalImage, index: number) => {
+    // Use the image title if it's descriptive enough
+    if (image.title && image.title !== 'Clinical Image' && !image.title.includes('Image')) {
+      return image.title;
     }
     
-    // Fallback based on diagnosis in description
-    if (descLower.includes('diagnosis:')) {
-      const diagnosisMatch = descLower.match(/diagnosis:\s*([^,]+)/);
-      if (diagnosisMatch) {
-        return `${diagnosisMatch[1].trim()} #${index + 1}`;
-      }
-    }
-    
-    // Final fallback
-    return `Clinical Case #${index + 1}`;
+    // Otherwise generate from search term + number
+    const baseName = searchTerm.replace(/_/g, ' ').toLowerCase();
+    return `${baseName} ${index + 1}`;
   };
 
   // Get context-aware button labels and modal content
@@ -199,12 +161,12 @@ export const MedicalImageConfirmationModal = ({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="mb-2">
-                          <h4 className="font-medium text-sm line-clamp-2 mb-1">
+                          <Badge variant="outline" className="text-xs font-medium mb-1">
+                            {getImageName(image, images.indexOf(image))}
+                          </Badge>
+                          <h4 className="font-medium text-sm line-clamp-2">
                             {image.title}
                           </h4>
-                          <Badge variant="outline" className="text-xs font-medium">
-                            {getMedicalName(image, images.indexOf(image))}
-                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-3">
                           {image.description}
