@@ -94,14 +94,29 @@ serve(async (req) => {
             searchResults = await searchNIHImages(term, 2);
           }
           
-          // Filter out previously shown images using cache
-          const newImages = searchResults.filter(img => !IMAGE_CACHE[cacheKey].includes(img.imageUrl));
+          // Filter out previously shown images AND excluded terms
+          let filteredImages = searchResults.filter(img => !IMAGE_CACHE[cacheKey].includes(img.imageUrl));
           
-          console.log(`✅ Got ${searchResults.length} total, ${newImages.length} new results for "${term}"`);
-          images.push(...newImages);
+          // Apply intelligent filtering based on AI analysis
+          filteredImages = filteredImages.filter(img => {
+            const titleLower = img.title.toLowerCase();
+            const descLower = img.description.toLowerCase();
+            
+            // Check if image matches excluded terms
+            for (const excludeTerm of searchTermData.excludeTerms) {
+              if (titleLower.includes(excludeTerm.toLowerCase()) || descLower.includes(excludeTerm.toLowerCase())) {
+                console.log(`🚫 Filtering out image with excluded term "${excludeTerm}": ${img.title}`);
+                return false;
+              }
+            }
+            return true;
+          });
+          
+          console.log(`✅ Got ${searchResults.length} total, ${filteredImages.length} new filtered results for "${term}"`);
+          images.push(...filteredImages);
           
           // Update cache with new images
-          newImages.forEach(img => IMAGE_CACHE[cacheKey].push(img.imageUrl));
+          filteredImages.forEach(img => IMAGE_CACHE[cacheKey].push(img.imageUrl));
           
         } catch (error) {
           console.error(`❌ Error searching ${source.type.toUpperCase()} for term "${term}":`, error);
