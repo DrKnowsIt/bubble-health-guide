@@ -118,6 +118,7 @@ export const exportComprehensivePDFForUser = async (
 
     // Generate comprehensive PDF
     const doc = new (await import('jspdf')).default();
+    doc.setCharSpace(0); // Fix excessive character spacing between letters
     const userName = `${selectedUser.first_name} ${selectedUser.last_name}`;
     const currentDate = new Date().toLocaleDateString('en-US', { 
       year: 'numeric', 
