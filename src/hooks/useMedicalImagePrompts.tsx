@@ -96,11 +96,50 @@ export const useMedicalImagePrompts = () => {
   const [currentPrompt, setCurrentPrompt] = useState<MedicalImagePrompt | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Build smart search terms from detected medical terms
+  const buildSearchTerm = useCallback((detectedTerms: string[]): string => {
+    // Priority categories for search term construction
+    const highPriority = MEDICAL_TERMS_CATEGORIES.skin_conditions.filter(term => 
+      !['itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling'].includes(term)
+    );
+    const bodyParts = MEDICAL_TERMS_CATEGORIES.body_parts;
+    const symptoms = ['itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling'];
+    
+    const conditionTerms = detectedTerms.filter(term => highPriority.includes(term));
+    const bodyPartTerms = detectedTerms.filter(term => bodyParts.includes(term));
+    const symptomTerms = detectedTerms.filter(term => symptoms.includes(term));
+    
+    console.log('🔧 Building search term from:', { conditionTerms, bodyPartTerms, symptomTerms });
+    
+    // Priority 1: Specific medical conditions
+    if (conditionTerms.length > 0) {
+      // If we have a body part + condition, combine them
+      if (bodyPartTerms.length > 0) {
+        return `${bodyPartTerms[0]} ${conditionTerms[0]}`;
+      }
+      return conditionTerms[0];
+    }
+    
+    // Priority 2: Body part + symptom combinations
+    if (bodyPartTerms.length > 0 && symptomTerms.length > 0) {
+      return `${bodyPartTerms[0]} ${symptomTerms[0]}`;
+    }
+    
+    // Priority 3: Single terms (only if high confidence)
+    if (detectedTerms.length > 0) {
+      return detectedTerms[0];
+    }
+    
+    return '';
+  }, []);
+
   const analyzeMessageContext = useCallback((message: string): {
     category: string | null;
     intent: string | null;
     confidence: number;
     shouldTrigger: boolean;
+    detectedTerms: string[];
+    searchTerm: string;
   } => {
     const lowerMessage = message.toLowerCase();
     
@@ -110,7 +149,7 @@ export const useMedicalImagePrompts = () => {
     for (const pattern of EXCLUSION_PATTERNS) {
       if (pattern.test(message)) {
         console.log('❌ Message excluded by pattern:', pattern);
-        return { category: null, intent: null, confidence: 0, shouldTrigger: false };
+        return { category: null, intent: null, confidence: 0, shouldTrigger: false, detectedTerms: [], searchTerm: '' };
       }
     }
     
@@ -122,7 +161,7 @@ export const useMedicalImagePrompts = () => {
     for (const [category, terms] of Object.entries(MEDICAL_TERMS_CATEGORIES)) {
       for (const term of terms) {
         if (lowerMessage.includes(term)) {
-          detectedCategory = category;
+          if (!detectedCategory) detectedCategory = category;
           termCount++;
           detectedTerms.push(term);
         }
@@ -131,10 +170,14 @@ export const useMedicalImagePrompts = () => {
     
     console.log('🏷️ Detected medical terms:', detectedTerms, 'Category:', detectedCategory);
     
-    if (!detectedCategory) {
+    if (!detectedCategory || detectedTerms.length === 0) {
       console.log('❌ No medical terms detected');
-      return { category: null, intent: null, confidence: 0, shouldTrigger: false };
+      return { category: null, intent: null, confidence: 0, shouldTrigger: false, detectedTerms: [], searchTerm: '' };
     }
+    
+    // Build smart search term from detected terms
+    const searchTerm = buildSearchTerm(detectedTerms);
+    console.log('🔧 Built search term:', searchTerm);
     
     // Detect intent
     let detectedIntent: string | null = null;
@@ -154,7 +197,7 @@ export const useMedicalImagePrompts = () => {
     const baseConfidence = termCount * 0.2;
     const totalConfidence = Math.min(baseConfidence + intentConfidence, 1.0);
     
-    // Enhanced trigger logic: Allow simple medical term queries
+    // Enhanced trigger logic with higher thresholds for precision
     const isSimpleMedicalQuery = detectedTerms.length > 0 && message.trim().split(' ').length <= 5;
     const hasBodyPartAndSymptom = detectedTerms.some(term => 
       MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
@@ -162,29 +205,48 @@ export const useMedicalImagePrompts = () => {
       MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term)
     );
     
-    const shouldTrigger = (totalConfidence > 0.2 && (
-      detectedIntent === 'symptom_description' ||
-      detectedIntent === 'educational_query' ||
-      detectedIntent === 'diagnostic_understanding' ||
-      detectedIntent === 'comparison_request' ||
-      detectedIntent === 'uncertainty_indicators'
-    )) || (isSimpleMedicalQuery && totalConfidence > 0.1) || hasBodyPartAndSymptom;
+    // Only generic body parts require very high confidence
+    const hasOnlyBodyParts = detectedTerms.every(term => 
+      MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
+    ) && !hasBodyPartAndSymptom;
+    
+    const shouldTrigger = (
+      // High confidence intent-based triggers
+      (totalConfidence > 0.4 && (
+        detectedIntent === 'symptom_description' ||
+        detectedIntent === 'educational_query' ||
+        detectedIntent === 'diagnostic_understanding' ||
+        detectedIntent === 'comparison_request' ||
+        detectedIntent === 'uncertainty_indicators'
+      )) ||
+      // Simple medical queries with medium confidence
+      (isSimpleMedicalQuery && totalConfidence > 0.3 && !hasOnlyBodyParts) ||
+      // Body part + symptom combinations with medium confidence  
+      (hasBodyPartAndSymptom && totalConfidence > 0.3) ||
+      // Only body parts require very high confidence
+      (hasOnlyBodyParts && totalConfidence > 0.7)
+    ) && searchTerm.length > 0;
     
     console.log('📊 Analysis result:', {
       category: detectedCategory,
       intent: detectedIntent,
       confidence: totalConfidence,
       shouldTrigger,
-      isSimpleMedicalQuery
+      isSimpleMedicalQuery,
+      hasBodyPartAndSymptom,
+      hasOnlyBodyParts,
+      searchTerm
     });
     
     return {
       category: detectedCategory,
       intent: detectedIntent,
       confidence: totalConfidence,
-      shouldTrigger
+      shouldTrigger,
+      detectedTerms,
+      searchTerm
     };
-  }, []);
+  }, [buildSearchTerm]);
 
   const fetchMedicalImages = useCallback(async (searchTerm: string): Promise<MedicalImage[]> => {
     try {
@@ -229,7 +291,7 @@ export const useMedicalImagePrompts = () => {
       console.log('🔍 Analyzing message context...');
       const analysis = analyzeMessageContext(message);
       shouldShow = analysis.shouldTrigger;
-      searchTerm = analysis.category || '';
+      searchTerm = analysis.searchTerm || '';
       intent = analysis.intent || '';
       console.log('📊 Message analysis result:', analysis);
     }
