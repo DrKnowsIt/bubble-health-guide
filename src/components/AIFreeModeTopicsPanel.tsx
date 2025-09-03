@@ -171,7 +171,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
     <Card className="h-full flex flex-col">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+          <CardHeader className="px-6 py-4 cursor-pointer hover:bg-muted/50 transition-colors border-b">
             <CardTitle className="flex items-center justify-between text-lg">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
