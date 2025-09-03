@@ -428,25 +428,6 @@ Remember:
 - Ask clarifying questions when needed to better understand the user's situation
 - ${memoryEnabled ? 'Use the conversation memory to provide personalized responses based on past interactions' : 'Treat each message independently without referencing past conversations'}
 
-**IMAGE SUGGESTION SYSTEM**:
-If the user is describing visual symptoms, asking educational questions about medical conditions, 
-or needs help understanding diagnostic results, you can suggest showing relevant medical images.
-
-To suggest images, include at the END of your response:
-[IMAGE_SUGGESTION: {\"shouldShow\": true, \"searchTerm\": \"condition_name\", \"intent\": \"symptom_description|educational_query|diagnostic_understanding\", \"reasoning\": \"Brief explanation why images would help\"}]
-
-Only suggest images when:
-- User describes new visual symptoms they're experiencing
-- User asks "what does X look like?" or educational questions
-- User needs help understanding their test results or scans
-- User expresses uncertainty about identifying a condition
-
-DO NOT suggest images for:
-- Past conditions they've already been treated for
-- General health discussions without visual components
-- Questions about other people's conditions
-- Purely hypothetical concerns
-
 Current conversation context:
 ${conversationHistory}
 
@@ -543,30 +524,19 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
     // Process the AI response and return to client
     const responseText = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
     
-    // Clean the response text
+    // Clean the response text and remove any image suggestions
     const cleanedResponse = responseText
       .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1');
-
-    // Check if AI suggests showing medical images
-    let imageSuggestion = null;
-    try {
-      // Look for image suggestion in AI response (if AI was prompted to include it)
-      const imageSuggestionMatch = responseText.match(/\[IMAGE_SUGGESTION:\s*({[^}]+})\]/);
-      if (imageSuggestionMatch) {
-        imageSuggestion = JSON.parse(imageSuggestionMatch[1]);
-      }
-    } catch (error) {
-      console.log('No image suggestion found in AI response');
-    }
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/\[IMAGE_SUGGESTION:.*?\]/g, '')
+      .trim();
 
     console.log('Grok response generated successfully');
     
     return new Response(
       JSON.stringify({ 
         message: cleanedResponse,
-        usage: data.usage,
-        imageSuggestion 
+        usage: data.usage
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
