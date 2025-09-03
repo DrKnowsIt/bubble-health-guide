@@ -446,7 +446,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         throw error;
       }
 
-      const responseContent = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const responseContent = data.message || 'I apologize, but I am unable to process your request at the moment.';
 
       // Extract and clean diagnoses (preserve advanced features)
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);

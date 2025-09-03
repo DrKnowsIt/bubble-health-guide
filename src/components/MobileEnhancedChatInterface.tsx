@@ -193,7 +193,7 @@ export const MobileEnhancedChatInterface = ({
 
       if (error) throw error;
 
-      const aiResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const aiResponse = data.message || 'I apologize, but I am unable to process your request at the moment.';
 
       // Guard against stale responses
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {

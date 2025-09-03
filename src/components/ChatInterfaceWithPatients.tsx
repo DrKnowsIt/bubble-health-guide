@@ -174,7 +174,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
 
       if (error) throw error;
 
-      const rawResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const rawResponse = data.message || 'I apologize, but I am unable to process your request at the moment.';
       const cleanResponse = rawResponse
         .replace(/\{[\s\S]*?"diagnosis"[\s\S]*?\}/gi, '')
         .replace(/\{[\s\S]*?"suggested_forms"[\s\S]*?\}/gi, '')
