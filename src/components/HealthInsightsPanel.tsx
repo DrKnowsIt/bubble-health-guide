@@ -47,6 +47,13 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
     handleFeedback: handleSolutionFeedback 
   } = useConversationSolutions(conversationId, patientId);
 
+  // Debug logging to track conversation ID mismatch
+  useEffect(() => {
+    console.log('[HealthInsightsPanel] Debug - conversationId:', conversationId);
+    console.log('[HealthInsightsPanel] Debug - solutions count:', solutions.length);
+    console.log('[HealthInsightsPanel] Debug - solutions:', solutions);
+  }, [conversationId, solutions]);
+
   useEffect(() => {
     if (user && patientId) {
       loadExistingFeedback();

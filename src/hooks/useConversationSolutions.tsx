@@ -25,12 +25,14 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
 
   const fetchSolutions = async () => {
     if (!conversationId || !user) {
+      console.log('[useConversationSolutions] No conversationId or user, clearing solutions');
       setSolutions([]);
       return;
     }
 
     try {
       setLoading(true);
+      console.log('[useConversationSolutions] Fetching solutions for conversation:', conversationId);
       const { data, error } = await supabase
         .from('conversation_solutions')
         .select('*')
@@ -38,6 +40,7 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
         .order('confidence', { ascending: false });
 
       if (error) throw error;
+      console.log('[useConversationSolutions] Found', data?.length || 0, 'solutions for conversation:', conversationId);
       setSolutions(data || []);
     } catch (error) {
       console.error('Error fetching solutions:', error);

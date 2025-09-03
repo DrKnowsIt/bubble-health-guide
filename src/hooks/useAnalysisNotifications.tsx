@@ -182,17 +182,28 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
 
       if (error) throw error;
 
-      console.log('[AnalysisNotifications] Solution analysis result:', data);
+    console.log('[AnalysisNotifications] Solution analysis result:', data);
+    
+    // Verify the actual count from database
+    if (conversationId && patientId) {
+      const { data: actualSolutions } = await supabase
+        .from('conversation_solutions')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .eq('patient_id', patientId);
       
-      return {
-        type: 'solution',
-        status: 'success',
-        data: {
-          added: data?.count || 0,
-          updated: data?.count || 0,
-          items: data?.solutions || []
-        }
-      };
+      console.log('[AnalysisNotifications] Actual solutions in DB for conversation:', conversationId, 'count:', actualSolutions?.length || 0);
+    }
+    
+    return {
+      type: 'solution',
+      status: 'success',
+      data: {
+        added: data?.count || 0,
+        updated: data?.count || 0,
+        items: data?.solutions || []
+      }
+    };
     } catch (error) {
       console.error('[AnalysisNotifications] Solution analysis failed:', error);
       return {
