@@ -298,19 +298,6 @@ export const AIFreeModeInterface = ({
                   </Button>
                 </div>
 
-                {loading && !showTextInput && (
-                  <div className="flex items-center justify-center py-4 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">
-                        {conversationPath.length >= 3 
-                          ? 'AI is analyzing your responses and preparing the next question...' 
-                          : 'Processing your response and generating next question...'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="text-center py-8">
