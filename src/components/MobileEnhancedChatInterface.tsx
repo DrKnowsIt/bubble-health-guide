@@ -238,7 +238,7 @@ export const MobileEnhancedChatInterface = ({
       const recentMessages = [...messages, 
         { type: 'user', content: messageContent },
         { type: 'ai', content: aiResponse }
-      ].slice(-6);
+      ]; // Use full conversation instead of slice(-6)
 
       supabase.functions.invoke('analyze-conversation-diagnosis', {
         body: {

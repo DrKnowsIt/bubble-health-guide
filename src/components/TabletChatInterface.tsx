@@ -203,7 +203,7 @@ export const TabletChatInterface = ({
 
       // Background analysis for diagnoses and solutions (fire-and-forget)
       if (user && conversationId && selectedUser?.id) {
-        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
+        const recentMessages = [...messages, userMessage, aiMessage]; // Use full conversation instead of slice(-6)
         
         // Background diagnosis analysis (fire-and-forget)
         supabase.functions.invoke('analyze-conversation-diagnosis', {

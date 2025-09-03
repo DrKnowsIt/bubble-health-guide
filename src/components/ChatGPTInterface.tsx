@@ -511,7 +511,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       
       if (conversationId && selectedUser?.id && user && shouldAnalyze) {
         setIsAnalyzing(true);
-        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
+        const recentMessages = [...messages, userMessage, aiMessage]; // Use full conversation instead of slice(-6)
         const messageId = aiMessage.id;
         
         console.log('[ChatGPTInterface] Starting scheduled analysis for message:', messageId, 'at count:', newMessageCount);
@@ -667,7 +667,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (!currentConversation || !selectedUser?.id || !user || isAnalyzing) return;
 
     setIsAnalyzing(true);
-    const recentMessages = messages.slice(-6);
+    const recentMessages = messages; // Use full conversation instead of slice(-6)
     const analysisId = `manual-${Date.now()}`;
     
     console.log('[ChatGPTInterface] Starting manual analysis:', analysisId);

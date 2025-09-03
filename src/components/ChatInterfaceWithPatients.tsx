@@ -211,7 +211,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
               .order('created_at', { ascending: true })
               .limit(10);
             
-            const recentMessages = (freshMessages || []).slice(-6).map(msg => ({
+            const recentMessages = (freshMessages || []).map(msg => ({ // Use full conversation instead of slice(-6)
               type: msg.type,
               content: msg.content,
               timestamp: new Date(msg.created_at)
