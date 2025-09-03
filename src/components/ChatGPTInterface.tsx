@@ -630,6 +630,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', errorMessage.content);
       }
+    } finally {
+      // Always clear typing state regardless of success or error
+      setIsTyping(false);
     }
   };
 
