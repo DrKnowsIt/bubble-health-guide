@@ -60,21 +60,23 @@ serve(async (req) => {
 
     // Map search term to ISIC terminology
     const mappedTerms = getMappedSearchTerms(searchTerm.toLowerCase());
-    console.log(`Mapped search terms: ${mappedTerms.join(', ')}`);
+    console.log(`📋 Mapped search terms: [${mappedTerms.join(', ')}]`);
 
     const images: ClinicalImage[] = [];
 
     // Try each mapped term until we get results
     for (const term of mappedTerms.slice(0, 2)) { // Limit to 2 terms to avoid too many requests
       try {
+        console.log(`🔄 Trying search term: "${term}"`);
         const searchResults = await searchISICImages(term, maxResults);
+        console.log(`✅ Got ${searchResults.length} results for "${term}"`);
         images.push(...searchResults);
         
         if (images.length >= maxResults) {
           break;
         }
       } catch (error) {
-        console.error(`Error searching for term "${term}":`, error);
+        console.error(`❌ Error searching for term "${term}":`, error);
         continue;
       }
     }
@@ -82,14 +84,17 @@ serve(async (req) => {
     // If no results from ISIC, try a direct search
     if (images.length === 0) {
       try {
+        console.log(`🎯 Trying direct search for: "${searchTerm}"`);
         const directResults = await searchISICImages(searchTerm, maxResults);
+        console.log(`✅ Direct search got ${directResults.length} results`);
         images.push(...directResults);
       } catch (error) {
-        console.error('Direct search also failed:', error);
+        console.error('❌ Direct search also failed:', error);
       }
     }
 
-    console.log(`Found ${images.length} clinical images`);
+    console.log(`🏁 Final result: Found ${images.length} clinical images for "${searchTerm}"`);
+    console.log(`📑 Image titles: [${images.map(img => `"${img.title}"`).join(', ')}]`);
 
     return new Response(
       JSON.stringify({ 
