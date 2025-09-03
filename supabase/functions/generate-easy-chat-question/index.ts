@@ -94,11 +94,11 @@ ${fullContext}
 
 Based on this conversation history, what should the next logical question be? Generate a question that explores new information not already covered in the conversation above.`;
 
-    console.log('Making OpenAI API call with model gpt-5-2025-08-07');
+    console.log('Making OpenAI API call with model gpt-5-mini-2025-08-07');
     
-    // Add timeout to prevent hanging requests
+    // Add timeout to prevent hanging requests - reduced for faster responses
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -107,12 +107,13 @@ Based on this conversation history, what should the next logical question be? Ge
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-5-mini-2025-08-07', // Faster model for simple question generation
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 1000,
+        max_completion_tokens: 300, // Reduced tokens - sufficient for questions
+        temperature: 0.3, // More consistent question generation
         stream: false
       }),
       signal: controller.signal

@@ -56,6 +56,9 @@ export const AIFreeModeInterface = ({
   }, [currentSession, loading, hasActiveSession]); // Remove startNewSession from dependencies
 
   const handleResponseClick = (value: string, text: string) => {
+    // Prevent interaction during loading
+    if (loading) return;
+    
     if (value === 'other_concerns') {
       setShowTextInput(true);
       return;
@@ -242,12 +245,24 @@ export const AIFreeModeInterface = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
+                    {/* Loading overlay for response options */}
+                    {loading && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Generating next question...</span>
+                        </div>
+                      </div>
+                    )}
+                    
                     {getResponseOptions().map((option, index) => (
                       <Button
                         key={index}
                         variant="outline"
-                        className="justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full"
+                        className={`justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full transition-all ${
+                          loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         onClick={() => handleResponseClick(option.value, option.text)}
                         disabled={loading}
                       >
@@ -283,11 +298,16 @@ export const AIFreeModeInterface = ({
                   </Button>
                 </div>
 
-                {loading && (
-                  <div className="flex items-center justify-center py-4">
+                {loading && !showTextInput && (
+                  <div className="flex items-center justify-center py-4 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span>{conversationPath.length >= 3 ? 'Analyzing your responses for health topics...' : 'Processing your response...'}</span>
+                      <span className="text-sm">
+                        {conversationPath.length >= 3 
+                          ? 'AI is analyzing your responses and preparing the next question...' 
+                          : 'Processing your response and generating next question...'
+                        }
+                      </span>
                     </div>
                   </div>
                 )}
