@@ -202,76 +202,74 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
         <CollapsibleContent className="flex-1 flex flex-col min-h-0">
           <CardContent className="flex-1">
-            <ScrollArea className="h-full">
-              <Tabs defaultValue="topics" className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-1">
-                  <TabsTrigger value="topics" className="text-sm">
-                    Health Topics
-                  </TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="topics" className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="topics" className="text-sm">
+                  Health Topics
+                </TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="topics" className="flex-1 mt-3">
-                  <ScrollArea className="max-h-[400px]">
-                    <div className="space-y-3">
-                      {loading && conversationPath.length > 0 && (
-                        <div className="text-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                          <p className="text-xs text-muted-foreground">Analyzing conversation...</p>
-                        </div>
-                      )}
+              <TabsContent value="topics" className="flex-1 mt-3">
+                <ScrollArea className="max-h-[400px]">
+                  <div className="space-y-3">
+                    {loading && conversationPath.length > 0 && (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-xs text-muted-foreground">Analyzing conversation...</p>
+                      </div>
+                    )}
 
-                      {topics.length === 0 && !loading && conversationPath.length > 0 && (
-                        <div className="text-center py-8">
-                          <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            Keep answering questions to see health topics
-                          </p>
-                        </div>
-                      )}
+                    {topics.length === 0 && !loading && conversationPath.length > 0 && (
+                      <div className="text-center py-8">
+                        <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Keep answering questions to see health topics
+                        </p>
+                      </div>
+                    )}
 
-                      {topics.length === 0 && conversationPath.length === 0 && (
-                        <div className="text-center py-8">
-                          <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            Health topics will appear as you progress through the guided chat
-                          </p>
-                        </div>
-                      )}
+                    {topics.length === 0 && conversationPath.length === 0 && (
+                      <div className="text-center py-8">
+                        <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Health topics will appear as you progress through the guided chat
+                        </p>
+                      </div>
+                    )}
 
-                      {topics.map((topic, index) => (
-                        <div key={index} className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2 min-w-0 flex-1">
-                              {getCategoryIcon(topic.category)}
-                              <div className="min-w-0 flex-1">
-                                <h4 className="font-medium text-sm leading-tight">
-                                  {topic.topic}
-                                </h4>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {topic.reasoning}
-                                </p>
-                              </div>
+                    {topics.map((topic, index) => (
+                      <div key={index} className="border rounded-lg p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 min-w-0 flex-1">
+                            {getCategoryIcon(topic.category)}
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-sm leading-tight">
+                                {topic.topic}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {topic.reasoning}
+                              </p>
                             </div>
-                            <Badge 
-                              variant="secondary" 
-                              className={`text-xs px-2 py-1 border ${getConfidenceColor(topic.confidence)}`}
-                            >
-                              {Math.round(topic.confidence * 100)}%
-                            </Badge>
                           </div>
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-xs px-2 py-1 border ${getConfidenceColor(topic.confidence)}`}
+                          >
+                            {Math.round(topic.confidence * 100)}%
+                          </Badge>
                         </div>
-                      ))}
+                      </div>
+                    ))}
 
-                      {topics.length > 0 && (
-                        <div className="text-xs text-muted-foreground text-center py-2 border-t">
-                          💡 These topics are based on your responses in the guided conversation
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-            </ScrollArea>
+                    {topics.length > 0 && (
+                      <div className="text-xs text-muted-foreground text-center py-2 border-t">
+                        💡 These topics are based on your responses in the guided conversation
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
