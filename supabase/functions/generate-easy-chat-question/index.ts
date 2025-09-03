@@ -94,6 +94,8 @@ ${fullContext}
 
 Based on this conversation history, what should the next logical question be? Generate a question that explores new information not already covered in the conversation above.`;
 
+    console.log('Making OpenAI API call with model gpt-5-2025-08-07');
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -110,16 +112,25 @@ Based on this conversation history, what should the next logical question be? Ge
       }),
     });
 
+    console.log('OpenAI API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`OpenAI API error: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('OpenAI API response data:', JSON.stringify(data, null, 2));
+    
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
+      console.error('No content in OpenAI response. Full data:', JSON.stringify(data, null, 2));
       throw new Error('No content received from OpenAI');
     }
+    
+    console.log('Generated content from OpenAI:', content);
 
     let questionData;
     try {
@@ -146,19 +157,94 @@ Based on this conversation history, what should the next logical question be? Ge
   } catch (error) {
     console.error('Error generating question:', error);
     
-    // Fallback question for errors
-    const fallbackQuestion = {
-      question: "How would you describe your main health concern today?",
-      options: [
-        "Pain or discomfort",
-        "Changes in how I feel",
-        "Stomach or digestive discomfort",
-        "Sleep problems",
-        "Mood or energy changes", 
-        "Skin or appearance concerns",
-        "I have other concerns as well"
-      ]
-    };
+    // Create anatomy-aware fallback based on selected anatomy
+    let fallbackQuestion;
+    
+    if (anatomyContext && anatomyContext.includes('anatomy')) {
+      // Extract anatomy areas from context for more relevant fallback
+      const anatomyMatch = anatomyContext.match(/Selected anatomy areas: ([^.]+)/);
+      const selectedAreas = anatomyMatch ? anatomyMatch[1].split(', ') : [];
+      
+      if (selectedAreas.length > 0) {
+        const primaryArea = selectedAreas[0].toLowerCase();
+        
+        // Create anatomy-specific fallback questions
+        if (primaryArea.includes('head') || primaryArea.includes('brain')) {
+          fallbackQuestion = {
+            question: "What symptoms are you experiencing in your head area?",
+            options: [
+              "Headaches or head pain",
+              "Dizziness or balance issues",
+              "Memory or concentration problems",
+              "Vision or hearing changes",
+              "Sleep disturbances",
+              "I have other concerns as well"
+            ]
+          };
+        } else if (primaryArea.includes('chest') || primaryArea.includes('heart')) {
+          fallbackQuestion = {
+            question: "What are you noticing with your chest or breathing?",
+            options: [
+              "Chest pain or discomfort",
+              "Shortness of breath",
+              "Heart rhythm changes",
+              "Coughing or wheezing",
+              "Fatigue with activity",
+              "I have other concerns as well"
+            ]
+          };
+        } else if (primaryArea.includes('stomach') || primaryArea.includes('abdomen')) {
+          fallbackQuestion = {
+            question: "How would you describe your stomach or digestive symptoms?",
+            options: [
+              "Stomach pain or cramping",
+              "Nausea or vomiting",
+              "Changes in bowel habits",
+              "Bloating or gas",
+              "Loss of appetite",
+              "I have other concerns as well"
+            ]
+          };
+        } else {
+          fallbackQuestion = {
+            question: `What symptoms are you experiencing in the ${primaryArea} area?`,
+            options: [
+              "Pain or discomfort",
+              "Swelling or changes in appearance",
+              "Limited movement or function",
+              "Numbness or tingling",
+              "Changes from normal",
+              "I have other concerns as well"
+            ]
+          };
+        }
+      } else {
+        fallbackQuestion = {
+          question: "What brings you here today?",
+          options: [
+            "Pain or discomfort",
+            "Changes in how I feel",
+            "Digestive concerns",
+            "Sleep or energy issues",
+            "Mood changes",
+            "I have other concerns as well"
+          ]
+        };
+      }
+    } else {
+      // Generic fallback when no anatomy context
+      fallbackQuestion = {
+        question: "How would you describe your main health concern today?",
+        options: [
+          "Pain or discomfort",
+          "Changes in how I feel",
+          "Stomach or digestive discomfort",
+          "Sleep problems",
+          "Mood or energy changes", 
+          "I have other concerns as well"
+        ]
+      };
+    }
 
     return new Response(JSON.stringify(fallbackQuestion), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

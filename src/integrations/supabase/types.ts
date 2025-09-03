@@ -127,6 +127,7 @@ export type Database = {
       }
       conversation_diagnoses: {
         Row: {
+          category: string
           confidence: number | null
           conversation_id: string
           created_at: string
@@ -138,6 +139,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string
           confidence?: number | null
           conversation_id: string
           created_at?: string
@@ -149,6 +151,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string
           confidence?: number | null
           conversation_id?: string
           created_at?: string
