@@ -398,15 +398,15 @@ export const exportComprehensivePDFForUser = async (
           currentY += 5;
 
           if (finding.evidence) {
-            const evidenceText = doc.splitTextToSize(`Evidence: ${finding.evidence}`, 155);
+            const evidenceText = doc.splitTextToSize(`Evidence: ${sanitizeText(finding.evidence)}`, 155);
             doc.text(evidenceText, 35, currentY);
-            currentY += evidenceText.length * 5 + 3;
+            currentY += evidenceText.length * SPACING.SMALL + SPACING.SMALL;
           }
 
           if (finding.significance) {
-            const significanceText = doc.splitTextToSize(`Clinical Significance: ${finding.significance}`, 155);
+            const significanceText = doc.splitTextToSize(`Clinical Significance: ${sanitizeText(finding.significance)}`, 155);
             doc.text(significanceText, 35, currentY);
-            currentY += significanceText.length * 5 + 6;
+            currentY += significanceText.length * SPACING.SMALL + SPACING.LINE;
           }
         });
         currentY += 10;
