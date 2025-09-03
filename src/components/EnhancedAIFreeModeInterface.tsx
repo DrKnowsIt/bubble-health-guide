@@ -15,6 +15,7 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
   const [phase, setPhase] = useState<ChatPhase>('anatomy-selection');
   const [selectedAnatomy, setSelectedAnatomy] = useState<string[]>([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [sessionRecovered, setSessionRecovered] = useState(false);
 
   const {
     currentQuestion,
@@ -50,6 +51,7 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
+    setSessionRecovered(false);
   };
 
   const handleRestartAnalysis = () => {
@@ -57,6 +59,7 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
+    setSessionRecovered(false);
   };
 
   const sessionData = {
@@ -72,6 +75,22 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
       setShowCompletionModal(true);
     }
   }, [isCompleted, phase]);
+
+  // Session recovery - restore active sessions on page refresh
+  useEffect(() => {
+    if (hasActiveSession && currentSession && !sessionRecovered && phase === 'anatomy-selection') {
+      console.log('Recovering active session from page refresh');
+      
+      // Extract selected anatomy from session data
+      const sessionData = currentSession.session_data as any;
+      if (sessionData?.selected_anatomy) {
+        setSelectedAnatomy(sessionData.selected_anatomy);
+        setPhase('chat');
+        setSessionRecovered(true);
+        console.log('Session recovered with anatomy:', sessionData.selected_anatomy);
+      }
+    }
+  }, [hasActiveSession, currentSession, sessionRecovered, phase]);
 
   if (phase === 'anatomy-selection') {
     return (
