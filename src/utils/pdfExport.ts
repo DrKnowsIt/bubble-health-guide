@@ -35,8 +35,13 @@ const sanitizeText = (text: string): string => {
     .replace(/['']/g, "'") // Normalize apostrophes
     .replace(/–/g, '-') // Normalize dashes
     .replace(/…/g, '...') // Normalize ellipsis
-    // Remove multiple spaces and normalize whitespace
-    .replace(/\s+/g, ' ')
+    // Preserve sentence structure while normalizing whitespace
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .replace(/\n{3,}/g, '\n\n') // Limit multiple line breaks to maximum 2
+    .replace(/\n\s*\n/g, '\n\n') // Clean up whitespace around line breaks
+    .replace(/\n(?=[A-Z])/g, ' ') // Convert line breaks before capital letters to spaces (likely sentence continuations)
+    .replace(/\n/g, ' ') // Convert remaining line breaks to spaces
+    .replace(/[ \t]{2,}/g, ' ') // Replace multiple spaces/tabs with single space
     .trim();
 };
 
