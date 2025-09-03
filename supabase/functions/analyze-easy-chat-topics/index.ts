@@ -54,13 +54,15 @@ serve(async (req) => {
       );
     }
 
-    // Try to get patient info if patient_id provided, otherwise use generic context
+    // Get patient info, conversation memory, and full conversation history
     let patientContext = 'Patient: Anonymous user';
+    let memoryContext = '';
+    let conversationHistory = '';
     
     if (patient_id) {
       console.log('Looking up patient with ID:', patient_id);
       
-      // Try to find patient in patients table first
+      // Get patient info
       const { data: patient } = await supabase
         .from('patients')
         .select('*')
@@ -77,7 +79,51 @@ serve(async (req) => {
         patientContext = `
 Patient: ${patient.first_name} ${patient.last_name}
 Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
-Gender: ${patient.gender || 'Not specified'}`;
+Gender: ${patient.gender || 'Not specified'}
+Species: ${patient.species || 'Human'}`;
+
+        // Get conversation memory for this patient
+        const { data: memory } = await supabase
+          .from('conversation_memory')
+          .select('memory_data')
+          .eq('patient_id', patient_id)
+          .eq('user_id', userData.user.id)
+          .maybeSingle();
+
+        if (memory?.memory_data) {
+          console.log('Found conversation memory for patient');
+          const memoryData = memory.memory_data;
+          
+          // Extract relevant memory sections
+          const symptoms = memoryData.symptoms ? JSON.stringify(memoryData.symptoms) : '';
+          const medicalHistory = memoryData.medical_history ? JSON.stringify(memoryData.medical_history) : '';
+          const environmentalFactors = memoryData.environmental_factors ? JSON.stringify(memoryData.environmental_factors) : '';
+          const behaviors = memoryData.behaviors ? JSON.stringify(memoryData.behaviors) : '';
+          
+          memoryContext = `
+CONVERSATION MEMORY:
+- Symptoms: ${symptoms}
+- Medical History: ${medicalHistory}
+- Environmental Factors: ${environmentalFactors}
+- Behaviors: ${behaviors}`;
+        }
+
+        // Get recent conversation messages for context
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('content, role, created_at')
+          .eq('patient_id', patient_id)
+          .eq('user_id', userData.user.id)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (messages && messages.length > 0) {
+          console.log(`Found ${messages.length} recent messages`);
+          conversationHistory = messages
+            .reverse() // Show in chronological order
+            .map(m => `${m.role}: ${m.content}`)
+            .join('\n');
+        }
       } else {
         // If patient_id matches user_id, use that
         if (patient_id === userData.user.id) {
@@ -95,29 +141,46 @@ Gender: ${patient.gender || 'Not specified'}`;
 PATIENT CONTEXT:
 ${patientContext}
 
+${memoryContext}
+
+${conversationHistory ? `RECENT CONVERSATION HISTORY:\n${conversationHistory}` : ''}
+
 CRITICAL REQUIREMENTS:
 - ALWAYS generate EXACTLY 4 health topics - no exceptions
 - Think like a medical professional doing differential diagnosis, not just echoing symptoms
 - Use sophisticated medical terminology and pathophysiological reasoning
 - Each topic should represent a different potential diagnosis or condition
+- Consider environmental factors, pest infestations, and infectious diseases
 
 DIFFERENTIAL DIAGNOSIS APPROACH:
 - For "knee pain" → consider: "Patellofemoral Pain Syndrome", "Meniscal Tear", "Osteoarthritis", "Iliotibial Band Syndrome"
 - For "chest pain" → consider: "Costochondritis", "Gastroesophageal Reflux Disease", "Intercostal Neuralgia", "Anxiety-Related Chest Tightness"
 - For "headache" → consider: "Tension-Type Cephalgia", "Cervicogenic Headache", "Temporomandibular Joint Dysfunction", "Medication Overuse Headache"
 
+ENVIRONMENTAL & PEST-RELATED DIFFERENTIAL DIAGNOSIS:
+- For "tiny crosses marks under mattress" + "bites on arms" → consider: "Bed Bug Infestation", "Flea Infestation", "Scabies Infestation", "Contact Dermatitis from Mattress Materials"
+- For "trail of bites" + "bed issues" → consider: "Bed Bug Bite Pattern", "Flea Bite Dermatitis", "Mite Infestation", "Delayed Hypersensitivity Reaction"
+- For "seeing things under bed/mattress" → consider: "Bed Bug Evidence", "Dust Mite Allergen Exposure", "Environmental Contamination", before considering psychiatric causes
+- For environmental symptoms → PRIORITIZE infectious/environmental causes over psychiatric explanations
+
 MEDICAL TERMINOLOGY REQUIREMENTS:
 - Use precise medical nomenclature with pathophysiological basis
 - Include anatomical specificity and clinical descriptors
 - Reference underlying mechanisms when possible
 - Think about interconnected systems and potential causes
+- Consider environmental health factors and pest-related conditions
 
 EXAMPLES OF SOPHISTICATED TOPICS:
-❌ BAD: "Knee Pain", "Back Pain", "Stomach Issues"
-✅ GOOD: "Patellofemoral Pain Syndrome with Biomechanical Dysfunction", "Lumbar Facet Joint Syndrome", "Functional Dyspepsia with Gastroparesis"
+❌ BAD: "Knee Pain", "Back Pain", "Stomach Issues", "Delusional Disorder" (for bed bug signs)
+✅ GOOD: "Patellofemoral Pain Syndrome with Biomechanical Dysfunction", "Lumbar Facet Joint Syndrome", "Functional Dyspepsia with Gastroparesis", "Bed Bug Infestation with Delayed Hypersensitivity"
 
 REALISTIC CONFIDENCE SCORING GUIDELINES:
 Provide VARIED confidence scores based on conversation depth and specificity:
+
+ENVIRONMENTAL HEALTH CONFIDENCE SCORING:
+- Classic bed bug indicators ("tiny crosses under mattress", "trail of bites") → HIGH confidence (65-80%)
+- Environmental symptoms with physical evidence → MEDIUM-HIGH confidence (55-75%)
+- Pest-related symptoms without clear evidence → MEDIUM confidence (35-55%)
 
 VERY LOW CONFIDENCE (10-25%):
 - Single word responses or minimal information
@@ -140,13 +203,16 @@ HIGH CONFIDENCE (65-85%):
 - Detailed symptom descriptions with context
 - Multiple corroborating factors mentioned
 - Clear patterns and triggers identified
+- Classic diagnostic indicators present
 - Example: "Sharp stabbing pain in right patella, worse with stairs, 3-week duration" → 75% confidence
+- Example: "Tiny crosses marks under mattress with arm bites" → 75% confidence for bed bug infestation
 
 CONFIDENCE VARIATION REQUIREMENTS:
 - NEVER cluster all scores around 70-75%
 - Use the FULL range from 10-85%
 - Base scores on actual conversation content depth
 - Be more conservative with confidence - medical diagnosis is inherently uncertain
+- Give HIGH confidence to classic environmental health indicators
 
 RESPONSE FORMAT (JSON only):
 {
@@ -155,12 +221,12 @@ RESPONSE FORMAT (JSON only):
       "topic": "Medically precise topic using proper terminology",
       "confidence": 0.XX,
       "reasoning": "Detailed clinical reasoning referencing specific conversation elements and confidence factors",
-      "category": "musculoskeletal|dermatological|gastrointestinal|cardiovascular|respiratory|neurological|genitourinary|endocrine|psychiatric|other"
+      "category": "musculoskeletal|dermatological|gastrointestinal|cardiovascular|respiratory|neurological|genitourinary|endocrine|psychiatric|environmental|infectious|other"
     }
   ]
 }
 
-Easy Chat Conversation:
+Easy Chat Conversation Context:
 ${conversation_context}`;
 
     console.log('Sending request to OpenAI for Easy Chat analysis...');
