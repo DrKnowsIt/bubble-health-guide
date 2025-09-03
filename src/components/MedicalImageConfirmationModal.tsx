@@ -20,6 +20,8 @@ interface MedicalImageConfirmationModalProps {
   images: MedicalImage[];
   onFeedback: (imageId: string, matches: boolean, searchTerm: string) => void;
   loading?: boolean;
+  intent?: string;
+  aiSuggestion?: string;
 }
 
 export const MedicalImageConfirmationModal = ({
@@ -28,10 +30,48 @@ export const MedicalImageConfirmationModal = ({
   searchTerm,
   images,
   onFeedback,
-  loading = false
+  loading = false,
+  intent,
+  aiSuggestion
 }: MedicalImageConfirmationModalProps) => {
   const [selectedImage, setSelectedImage] = useState<MedicalImage | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+  // Get context-aware button labels and modal content
+  const getModalContent = () => {
+    switch (intent) {
+      case 'educational_query':
+        return {
+          title: `Medical Images: ${searchTerm.replace('_', ' ')}`,
+          subtitle: aiSuggestion || 'Here are some medical images to help you understand this condition.',
+          positiveButton: 'This helps me understand',
+          negativeButton: 'Show me different examples'
+        };
+      case 'diagnostic_understanding':
+        return {
+          title: `Understanding Your Results: ${searchTerm.replace('_', ' ')}`,
+          subtitle: aiSuggestion || 'These images show what doctors look for in diagnostic results.',
+          positiveButton: 'This explains my results',
+          negativeButton: 'I need more clarification'
+        };
+      case 'comparison_request':
+        return {
+          title: `Reference Images: ${searchTerm.replace('_', ' ')}`,
+          subtitle: aiSuggestion || 'Compare these images with what you\'re seeing.',
+          positiveButton: 'This looks similar',
+          negativeButton: 'This looks different'
+        };
+      default: // symptom_description, uncertainty_indicators
+        return {
+          title: `Does this match your symptoms?`,
+          subtitle: aiSuggestion || `Here are images related to ${searchTerm.replace('_', ' ')} to help identify your condition.`,
+          positiveButton: 'This matches my condition',
+          negativeButton: 'This doesn\'t match'
+        };
+    }
+  };
+
+  const modalContent = getModalContent();
 
   const handleFeedback = async (matches: boolean) => {
     if (!selectedImage) return;
@@ -42,8 +82,9 @@ export const MedicalImageConfirmationModal = ({
       onClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
+    } finally {
+      setSubmittingFeedback(false);
     }
-    setSubmittingFeedback(false);
   };
 
   const resetSelection = () => {
@@ -75,10 +116,10 @@ export const MedicalImageConfirmationModal = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-center">
-            {selectedImage ? 'Does this match what you see?' : 'Is this what you\'re describing?'}
+            {selectedImage ? modalContent.title : (modalContent.title || 'Is this what you\'re describing?')}
           </DialogTitle>
           <p className="text-sm text-muted-foreground text-center">
-            Searching for: "{searchTerm}"
+            {modalContent.subtitle}
           </p>
         </DialogHeader>
 
@@ -156,7 +197,7 @@ export const MedicalImageConfirmationModal = ({
                   className="flex-1 max-w-40"
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Doesn't look like this
+                  {modalContent.negativeButton}
                 </Button>
                 <Button
                   onClick={() => handleFeedback(true)}
@@ -168,7 +209,7 @@ export const MedicalImageConfirmationModal = ({
                   ) : (
                     <Check className="h-4 w-4 mr-2" />
                   )}
-                  Looks like this
+                  {modalContent.positiveButton}
                 </Button>
               </div>
 

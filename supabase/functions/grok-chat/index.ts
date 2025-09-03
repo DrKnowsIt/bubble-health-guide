@@ -19,7 +19,7 @@ serve(async (req) => {
     if (!message) {
       return new Response(
         JSON.stringify({ error: 'Message is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       );
     }
 
@@ -351,6 +351,11 @@ PATIENT PROFILE:
 
     const communicationRules = isPet ? petRules : humanRules;
     
+    // Build conversation history string for the prompt
+    const conversationHistory = effectiveHistory.map((msg: any) => 
+      `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+    ).join('\n');
+    
     let systemPrompt;
     if (isPet) {
       const rulesText = communicationRules
@@ -414,9 +419,40 @@ You: "That sounds uncomfortable. What kind of pain is it - sharp, dull, or achin
 User: "I have a headache"  
 You: "How long have you had it?"
 
-Remember: Just have a natural conversation to understand their situation better.`;
-    }
+Remember:
+- You are a helpful medical AI assistant designed to support users with health-related questions
+- Always be empathetic, professional, and supportive
+- Provide accurate medical information but always remind users to consult healthcare professionals
+- If discussing serious symptoms or conditions, encourage seeking medical attention
+- Be conversational and warm while maintaining medical accuracy
+- Ask clarifying questions when needed to better understand the user's situation
+- ${memoryEnabled ? 'Use the conversation memory to provide personalized responses based on past interactions' : 'Treat each message independently without referencing past conversations'}
 
+**IMAGE SUGGESTION SYSTEM**:
+If the user is describing visual symptoms, asking educational questions about medical conditions, 
+or needs help understanding diagnostic results, you can suggest showing relevant medical images.
+
+To suggest images, include at the END of your response:
+[IMAGE_SUGGESTION: {\"shouldShow\": true, \"searchTerm\": \"condition_name\", \"intent\": \"symptom_description|educational_query|diagnostic_understanding\", \"reasoning\": \"Brief explanation why images would help\"}]
+
+Only suggest images when:
+- User describes new visual symptoms they're experiencing
+- User asks "what does X look like?" or educational questions
+- User needs help understanding their test results or scans
+- User expresses uncertainty about identifying a condition
+
+DO NOT suggest images for:
+- Past conditions they've already been treated for
+- General health discussions without visual components
+- Questions about other people's conditions
+- Purely hypothetical concerns
+
+Current conversation context:
+${conversationHistory}
+
+User message: ${message}
+${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
+    }
 
     // Build messages array with effective conversation history
     const messages = [
@@ -455,16 +491,6 @@ Remember: Just have a natural conversation to understand their situation better.
         return userMessage;
       })()
     ];
-
-    // Check for medical terms that should trigger image prompts
-    const medicalTerms = ['bite', 'bites', 'rash', 'wound', 'burn', 'bruise', 'acne', 'eczema', 'hives', 'mole', 'infection', 'lesion'];
-    const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    const hasMedicalTerm = medicalTerms.some(term => userMessage.includes(term));
-    
-    let shouldTriggerImagePrompt = false;
-    if (hasMedicalTerm && !userMessage.includes('image') && !userMessage.includes('picture')) {
-      shouldTriggerImagePrompt = true;
-    }
 
     console.log('Sending request to Grok API with', messages.length, 'messages');
 
@@ -514,25 +540,33 @@ Remember: Just have a natural conversation to understand their situation better.
     const data = await response.json();
     console.log('Grok API response received');
 
-    const aiResponse = data.choices?.[0]?.message?.content;
+    // Process the AI response and return to client
+    const responseText = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
     
-    if (!aiResponse) {
-      return new Response(
-        JSON.stringify({ error: 'No response content from Grok AI' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Clean the response text
+    const cleanedResponse = responseText
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1');
+
+    // Check if AI suggests showing medical images
+    let imageSuggestion = null;
+    try {
+      // Look for image suggestion in AI response (if AI was prompted to include it)
+      const imageSuggestionMatch = responseText.match(/\[IMAGE_SUGGESTION:\s*({[^}]+})\]/);
+      if (imageSuggestionMatch) {
+        imageSuggestion = JSON.parse(imageSuggestionMatch[1]);
+      }
+    } catch (error) {
+      console.log('No image suggestion found in AI response');
     }
 
-    // Clean the response - Grok now focuses only on conversation
-    const cleanedResponse = aiResponse.trim();
-
+    console.log('Grok response generated successfully');
+    
     return new Response(
       JSON.stringify({ 
-        response: cleanedResponse,
-        model: 'grok-2',
+        message: cleanedResponse,
         usage: data.usage,
-        triggerImagePrompt: shouldTriggerImagePrompt,
-        detectedMedicalTerm: hasMedicalTerm ? medicalTerms.find(term => userMessage.includes(term)) : null
+        imageSuggestion 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

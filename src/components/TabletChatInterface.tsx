@@ -165,11 +165,11 @@ export const TabletChatInterface = ({
 
       if (error) throw error;
 
-      const rawResponse = data.response || 'I apologize, but I am unable to process your request at the moment.';
+      const rawResponse = data.message || 'I apologize, but I am unable to process your request at the moment.';
       const cleanResponse = rawResponse
         .replace(/\{[\s\S]*?"diagnosis"[\s\S]*?\}/gi, '')
         .replace(/\{[\s\S]*?"suggested_forms"[\s\S]*?\}/gi, '')
-        .replace(/\[[\s\S]*?\]/g, '')
+        .replace(/\[IMAGE_SUGGESTION:[\s\S]*?\]/gi, '') // Remove image suggestion from display
         .replace(/\s{2,}/g, ' ')
         .replace(/\s+,/g, ',')
         .replace(/,\s+\./g, '.')
@@ -190,8 +190,10 @@ export const TabletChatInterface = ({
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
       
-      // Check if we should trigger an image prompt
-      if (data.triggerImagePrompt && currentInput) {
+      // Check for AI image suggestion or trigger based on user message
+      if (data.imageSuggestion) {
+        await triggerImagePrompt(currentInput, data.imageSuggestion);
+      } else {
         await triggerImagePrompt(currentInput);
       }
 
@@ -507,16 +509,18 @@ export const TabletChatInterface = ({
       </div>
 
       {/* Medical Image Confirmation Modal */}
-      <MedicalImageConfirmationModal
-        isOpen={currentPrompt?.isVisible || false}
-        onClose={closeImagePrompt}
-        searchTerm={currentPrompt?.searchTerm || ''}
-        images={currentPrompt?.images || []}
-        onFeedback={(imageId, matches, searchTerm) => 
-          handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
-        }
-        loading={imagePromptLoading}
-      />
+        <MedicalImageConfirmationModal
+          isOpen={currentPrompt?.isVisible || false}
+          onClose={closeImagePrompt}
+          searchTerm={currentPrompt?.searchTerm || ''}
+          images={currentPrompt?.images || []}
+          onFeedback={(imageId, matches, searchTerm) => 
+            handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
+          }
+          loading={imagePromptLoading}
+          intent={currentPrompt?.intent}
+          aiSuggestion={currentPrompt?.aiSuggestion}
+        />
     </SubscriptionGate>
   );
 };
