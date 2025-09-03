@@ -125,7 +125,40 @@ serve(async (req) => {
       }
     }
 
-    // If still no results, clear cache and try again (reset rotation)
+    // If still no results, try broader fallback terms
+    if (images.length === 0) {
+      console.log(`🔄 No images found, trying broader fallback terms for: "${searchTerm}"`);
+      
+      const fallbackTerms = [];
+      if (searchTerm.toLowerCase().includes('bite') || searchTerm.toLowerCase().includes('arthropod')) {
+        fallbackTerms.push('bite', 'lesion', 'rash');
+      } else if (searchTerm.toLowerCase().includes('dermatitis') || searchTerm.toLowerCase().includes('eczema')) {
+        fallbackTerms.push('dermatitis', 'eczema', 'inflammatory');
+      } else {
+        fallbackTerms.push('lesion', 'rash', 'dermatitis');
+      }
+      
+      for (const fallbackTerm of fallbackTerms) {
+        if (images.length >= maxResults) break;
+        
+        try {
+          console.log(`🎯 Trying fallback term: "${fallbackTerm}"`);
+          const fallbackResults = await searchISICImages(fallbackTerm, 2);
+          console.log(`✅ Fallback got ${fallbackResults.length} results for "${fallbackTerm}"`);
+          
+          // Filter out cached images
+          const newFallbackImages = fallbackResults.filter(img => !IMAGE_CACHE[cacheKey].includes(img.imageUrl));
+          images.push(...newFallbackImages);
+          newFallbackImages.forEach(img => IMAGE_CACHE[cacheKey].push(img.imageUrl));
+          
+          if (images.length > 0) break; // Stop after finding some images
+        } catch (error) {
+          console.error(`❌ Fallback term "${fallbackTerm}" also failed:`, error);
+        }
+      }
+    }
+
+    // Original retry logic if cache clearing is needed
     if (images.length === 0 && IMAGE_CACHE[cacheKey].length > 0) {
       console.log(`🔄 No new images found, clearing cache and retrying...`);
       IMAGE_CACHE[cacheKey] = [];
@@ -186,10 +219,12 @@ function getMappedSearchTerms(searchTerm: string): string[] {
   }
   
   // Add partial matches for better coverage
-  const partialMatches = ['dermatitis', 'eczema', 'rash', 'lesion', 'inflammatory', 'allergic reaction'];
+  const partialMatches = ['bite', 'lesion', 'rash', 'dermatitis', 'eczema', 'inflammatory', 'reaction'];
   if (terms.length === 0) {
     // If no direct mapping, try related terms
-    if (searchTerm.includes('skin') || searchTerm.includes('red') || searchTerm.includes('irritat')) {
+    if (searchTerm.includes('bite') || searchTerm.includes('sting') || searchTerm.includes('arthropod')) {
+      terms.push('bite', 'lesion', 'rash', 'inflammatory');
+    } else if (searchTerm.includes('skin') || searchTerm.includes('red') || searchTerm.includes('irritat')) {
       terms.push(...partialMatches.slice(0, 3));
     }
     terms.push(searchTerm);
