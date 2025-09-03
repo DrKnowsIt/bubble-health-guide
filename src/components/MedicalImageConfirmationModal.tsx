@@ -136,7 +136,7 @@ export const MedicalImageConfirmationModal = ({
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted">
+                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
                           <img
                             src={image.imageUrl}
                             alt={image.title}
@@ -145,12 +145,17 @@ export const MedicalImageConfirmationModal = ({
                               e.currentTarget.src = '/placeholder.svg';
                             }}
                           />
+                          <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                            #{images.indexOf(image) + 1}
+                          </div>
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm mb-2 line-clamp-2">
-                          {image.title}
-                        </h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium text-sm line-clamp-2">
+                            Image {images.indexOf(image) + 1}: {image.title}
+                          </h4>
+                        </div>
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-3">
                           {image.description}
                         </p>
