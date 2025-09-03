@@ -334,6 +334,9 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
                     <p className="text-sm mt-1">
                       Continue your conversation to receive personalized wellness suggestions.
                     </p>
+                    <div className="text-xs mt-2 bg-muted/30 rounded p-2">
+                      💡 Solutions are generated after 4+ messages in this conversation
+                    </div>
                   </div>
                 ) : (
                   <>
