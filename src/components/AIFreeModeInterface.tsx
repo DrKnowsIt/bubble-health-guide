@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
 import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
-import { AIFreeModeTopicsPanel } from './AIFreeModeTopicsPanel';
+import { HealthTopicsPanel } from './HealthTopicsPanel';
 
 interface AIFreeModeInterfaceProps {
   patientId?: string;
@@ -330,13 +330,17 @@ export const AIFreeModeInterface = ({
 
       {/* Right Sidebar - Health Topics */}
       <div className="w-80 flex-shrink-0">
-        <AIFreeModeTopicsPanel
-          conversationPath={conversationPath}
-          patientName={patientId ? "Patient" : "You"}
+        <HealthTopicsPanel
+          conversationId={undefined}
           patientId={patientId || ""}
-          sessionId={currentSession?.id}
-          healthTopics={healthTopics || []}
-          key={`topics-${conversationPath.length}-${(healthTopics || []).length}`}
+          patientName={patientId ? "Patient" : "You"}
+          conversationContext={conversationPath.map(item => 
+            `Q: ${item.question?.question_text || 'Question'} A: ${item.response}`
+          ).join('\n\n')}
+          conversationType="easy_chat"
+          selectedAnatomy={[]}
+          includeSolutions={true}
+          mode="free"
         />
       </div>
     </div>
