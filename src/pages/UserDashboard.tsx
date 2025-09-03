@@ -95,6 +95,36 @@ export default function UserDashboard() {
   const healthStats = useHealthStatsQuery(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
+  const { currentConversation, messages } = useConversations(selectedUser);
+  
+  // State for tracking high confidence diagnoses
+  const [currentConversationDiagnoses, setCurrentConversationDiagnoses] = useState<any[]>([]);
+  
+  // Fetch diagnoses for current conversation
+  useEffect(() => {
+    const fetchCurrentConversationDiagnoses = async () => {
+      if (!currentConversation || !selectedUser?.id) {
+        setCurrentConversationDiagnoses([]);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('conversation_diagnoses')
+          .select('*')
+          .eq('conversation_id', currentConversation)
+          .eq('patient_id', selectedUser.id);
+          
+        if (error) throw error;
+        setCurrentConversationDiagnoses(data || []);
+      } catch (error) {
+        console.error('Error fetching conversation diagnoses:', error);
+        setCurrentConversationDiagnoses([]);
+      }
+    };
+    
+    fetchCurrentConversationDiagnoses();
+  }, [currentConversation, selectedUser?.id]);
   
   
   const formatLastActivity = (timestamp: string | null) => {
@@ -278,10 +308,12 @@ export default function UserDashboard() {
                    onClick={exportToPDF}
                    size="sm"
                    variant="outline"
-                   className={cn(
+                    className={cn(
                      "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
-                     // Flash green when there's high confidence and enough data
-                     healthStats.totalRecords >= 2 && healthStats.totalConversations >= 3 && !analysisLoading
+                     // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
+                     (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                      messages.length >= 10 && 
+                      !analysisLoading)
                        ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
                        : ""
                    )}
