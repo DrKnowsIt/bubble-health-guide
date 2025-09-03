@@ -60,6 +60,7 @@ export const MobileEnhancedChatInterface = ({
   const [patientSelectorCollapsed, setPatientSelectorCollapsed] = useState(true);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const [diagnoses, setDiagnoses] = useState<any[]>([]);
+  const [messageAnalysis, setMessageAnalysis] = useState<{[key: string]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Stale reply guard
@@ -68,13 +69,10 @@ export const MobileEnhancedChatInterface = ({
 
   // Analysis notifications
   const {
-    pendingAnalysis,
-    analysisHistory,
     startAnalysis,
     performDiagnosisAnalysis,
     performSolutionAnalysis,
-    performMemoryAnalysis,
-    clearPendingAnalysis
+    performMemoryAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
 
 
@@ -136,6 +134,8 @@ export const MobileEnhancedChatInterface = ({
     convAtRef.current = currentConversation;
     requestSeqRef.current += 1;
     setIsTyping(false);
+    // Clear analysis state when conversation changes to prevent stale notifications
+    setMessageAnalysis({});
   }, [currentConversation]);
 
 
@@ -232,21 +232,58 @@ export const MobileEnhancedChatInterface = ({
       // Enhanced background analysis with notifications
       const messageId = aiMessage.id;
       
+      // Initialize analysis state for this message
+      setMessageAnalysis(prev => ({
+        ...prev,
+        [messageId]: { isAnalyzing: true, results: {} }
+      }));
+      
       // Start analysis tracking
       const { updateResult, completeAnalysis } = startAnalysis(messageId);
       
       // Run all analyses in parallel with proper tracking
       Promise.allSettled([
         performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
-          .then(result => updateResult('diagnosis', result)),
+          .then(result => {
+            updateResult('diagnosis', result);
+            setMessageAnalysis(prev => ({
+              ...prev,
+              [messageId]: {
+                ...prev[messageId],
+                results: { ...prev[messageId]?.results, diagnosis: result }
+              }
+            }));
+          }),
         
         performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
-          .then(result => updateResult('solution', result)),
+          .then(result => {
+            updateResult('solution', result);
+            setMessageAnalysis(prev => ({
+              ...prev,
+              [messageId]: {
+                ...prev[messageId],
+                results: { ...prev[messageId]?.results, solution: result }
+              }
+            }));
+          }),
         
         performMemoryAnalysis(conversationId, selectedUser.id)
-          .then(result => updateResult('memory', result))
+          .then(result => {
+            updateResult('memory', result);
+            setMessageAnalysis(prev => ({
+              ...prev,
+              [messageId]: {
+                ...prev[messageId],
+                results: { ...prev[messageId]?.results, memory: result }
+              }
+            }));
+          })
       ]).finally(() => {
         completeAnalysis();
+        setMessageAnalysis(prev => ({
+          ...prev,
+          [messageId]: { ...prev[messageId], isAnalyzing: false }
+        }));
       });
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -422,10 +459,15 @@ export const MobileEnhancedChatInterface = ({
                   />
                   
                   {/* Show analysis notifications after AI messages */}
-                  {message.type === 'ai' && (
+                  {message.type === 'ai' && messageAnalysis[message.id] && (
                     <ChatAnalysisNotification
-                      results={pendingAnalysis}
-                      onResultsProcessed={clearPendingAnalysis}
+                      results={messageAnalysis[message.id].results || {}}
+                      onResultsProcessed={() => {
+                        setMessageAnalysis(prev => {
+                          const { [message.id]: removed, ...rest } = prev;
+                          return rest;
+                        });
+                      }}
                       className="mt-2"
                     />
                   )}
