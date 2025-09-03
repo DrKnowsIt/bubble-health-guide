@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GENERATE-DIAGNOSIS] ${step}${detailsStr}`);
@@ -49,65 +51,24 @@ serve(async (req) => {
 
     // Extract user messages for analysis
     const userMessages = messages.filter((msg: any) => msg.type === 'user').map((msg: any) => msg.content);
-    const conversationText = userMessages.join(' ').toLowerCase();
+    const conversationText = userMessages.join(' ');
 
-    // Generate diagnoses based on conversation content
-    const diagnoses = [];
+    logStep("Analyzing conversation text", { text: conversationText.substring(0, 200) });
 
-    // Check for various health topics and symptoms
-    const healthKeywords = {
-      headache: {
-        confidence: 0.8,
-        reasoning: "Patient reported headache symptoms that should be evaluated by a healthcare professional for proper diagnosis and treatment."
-      },
-      fever: {
-        confidence: 0.75,
-        reasoning: "Fever symptoms mentioned require medical assessment to determine underlying cause and appropriate treatment."
-      },
-      'chest pain': {
-        confidence: 0.9,
-        reasoning: "Chest pain symptoms mentioned - important to rule out serious conditions and get urgent medical evaluation."
-      },
-      'stomach pain': {
-        confidence: 0.7,
-        reasoning: "Abdominal pain symptoms should be assessed by a healthcare provider to determine cause and treatment."
-      },
-      cough: {
-        confidence: 0.65,
-        reasoning: "Persistent cough mentioned - important to evaluate for respiratory conditions or infections."
-      },
-      fatigue: {
-        confidence: 0.6,
-        reasoning: "Fatigue symptoms reported - could indicate various conditions that should be discussed with a doctor."
-      },
-      dizziness: {
-        confidence: 0.7,
-        reasoning: "Dizziness symptoms can have multiple causes and should be evaluated by a healthcare professional."
-      },
-      nausea: {
-        confidence: 0.65,
-        reasoning: "Nausea symptoms mentioned - important to determine underlying cause through medical evaluation."
+    // Use AI to generate diverse, relevant diagnoses
+    let diagnoses = [];
+    
+    if (!openAIApiKey) {
+      logStep("No OpenAI API key - using fallback diagnosis generation");
+      diagnoses = generateFallbackDiagnoses(conversationText);
+    } else {
+      try {
+        diagnoses = await generateAIDiagnoses(conversationText);
+        logStep("AI diagnosis generation completed", { count: diagnoses.length });
+      } catch (error) {
+        logStep("AI diagnosis failed, using fallback", error.message);
+        diagnoses = generateFallbackDiagnoses(conversationText);
       }
-    };
-
-    // Analyze conversation for health keywords
-    for (const [keyword, info] of Object.entries(healthKeywords)) {
-      if (conversationText.includes(keyword)) {
-        diagnoses.push({
-          diagnosis: `${keyword.charAt(0).toUpperCase() + keyword.slice(1)} Assessment`,
-          confidence: info.confidence,
-          reasoning: info.reasoning
-        });
-      }
-    }
-
-    // Always add a general assessment if user has asked health-related questions
-    if (userMessages.length > 0) {
-      diagnoses.push({
-        diagnosis: "General Health Consultation",
-        confidence: 0.7,
-        reasoning: "Based on the health discussion, these topics should be reviewed with your healthcare provider during your next visit."
-      });
     }
 
     // Remove existing diagnoses for this conversation
@@ -158,3 +119,146 @@ serve(async (req) => {
     });
   }
 });
+
+async function generateAIDiagnoses(conversationText: string) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a medical analysis assistant. Given a health conversation, generate 3-4 diverse, relevant diagnostic topics that should be explored.
+
+IMPORTANT GUIDELINES:
+- Generate PRACTICAL, specific diagnoses relevant to the exact symptoms/situations mentioned
+- Use realistic confidence scores (15-85%) with good variation
+- Each diagnosis should be DISTINCT and cover different possibilities
+- Focus on common, actionable conditions rather than rare diseases
+- Include environmental/lifestyle causes when relevant (bed bugs, allergies, dermatitis, etc.)
+- Be specific (e.g., "Bed Bug Infestation" not "General Skin Issues")
+
+For skin/bite issues, consider: Bed Bug Bites, Flea Dermatitis, Scabies, Contact Dermatitis, Eczema Flare-up, Allergic Reaction
+For respiratory issues: Asthma, Allergies, Upper Respiratory Infection, Bronchitis
+For digestive issues: Food Poisoning, IBS, Gastritis, Lactose Intolerance
+
+Return JSON array with format:
+[{
+  "diagnosis": "Specific Condition Name",
+  "confidence": 0.65,
+  "reasoning": "Brief, specific explanation based on the conversation"
+}]`
+        },
+        {
+          role: 'user',
+          content: `Analyze this health conversation and generate relevant diagnostic topics: "${conversationText}"`
+        }
+      ],
+      max_tokens: 800,
+      temperature: 0.7,
+    }),
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${data.error?.message || response.statusText}`);
+  }
+
+  const content = data.choices[0]?.message?.content;
+  if (!content) {
+    throw new Error('No content from OpenAI response');
+  }
+
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    logStep("Failed to parse AI response, using text extraction", content.substring(0, 100));
+    // Fallback: try to extract diagnoses from text response
+    return parseTextDiagnoses(content);
+  }
+}
+
+function parseTextDiagnoses(text: string) {
+  const diagnoses = [];
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  for (const line of lines) {
+    if (line.includes('"diagnosis"') || line.includes('diagnosis:')) {
+      // Try to extract structured data from text
+      const diagnosisMatch = line.match(/diagnosis["']?\s*:\s*["']([^"']+)["']/i);
+      if (diagnosisMatch) {
+        diagnoses.push({
+          diagnosis: diagnosisMatch[1],
+          confidence: Math.random() * 0.4 + 0.3, // 30-70%
+          reasoning: "Generated from conversation analysis"
+        });
+      }
+    }
+  }
+  
+  return diagnoses.length > 0 ? diagnoses : generateFallbackDiagnoses(text);
+}
+
+function generateFallbackDiagnoses(conversationText: string) {
+  const text = conversationText.toLowerCase();
+  const diagnoses = [];
+  
+  // Specific condition mapping with varied confidence
+  const conditionMap = [
+    {
+      keywords: ['bite', 'bites', 'bed bug', 'flea', 'mosquito', 'trail', 'red bump'],
+      diagnosis: 'Arthropod Bite Reaction',
+      confidence: 0.72,
+      reasoning: 'Pattern of bites suggests arthropod exposure (bed bugs, fleas, or other insects)'
+    },
+    {
+      keywords: ['smell', 'odor', 'blanket', 'environmental'],
+      diagnosis: 'Environmental Allergen Exposure',
+      confidence: 0.58,
+      reasoning: 'Unusual odors and environmental changes may indicate allergen exposure'
+    },
+    {
+      keywords: ['rash', 'red', 'itchy', 'bumps', 'skin'],
+      diagnosis: 'Contact Dermatitis',
+      confidence: 0.65,
+      reasoning: 'Skin irritation symptoms suggest possible contact dermatitis from new materials'
+    },
+    {
+      keywords: ['homeless', 'blanket', 'bedding'],
+      diagnosis: 'Scabies Screening',
+      confidence: 0.43,
+      reasoning: 'Shared bedding items warrant screening for scabies and other transmissible conditions'
+    }
+  ];
+  
+  // Add relevant diagnoses based on conversation content
+  for (const condition of conditionMap) {
+    if (condition.keywords.some(keyword => text.includes(keyword))) {
+      diagnoses.push(condition);
+    }
+  }
+  
+  // Add general consultation if no specific matches or if we need more
+  if (diagnoses.length < 2) {
+    diagnoses.push({
+      diagnosis: 'Dermatological Consultation',
+      confidence: 0.55,
+      reasoning: 'Skin symptoms warrant professional dermatological evaluation'
+    });
+  }
+  
+  if (diagnoses.length < 3) {
+    diagnoses.push({
+      diagnosis: 'Allergy Assessment',
+      confidence: 0.41,
+      reasoning: 'Consider evaluation for environmental or contact allergies'
+    });
+  }
+  
+  return diagnoses.slice(0, 4); // Limit to 4 diagnoses
+}
