@@ -136,7 +136,7 @@ export const MedicalImageConfirmationModal = ({
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
+                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted">
                           <img
                             src={image.imageUrl}
                             alt={image.title}
@@ -145,16 +145,29 @@ export const MedicalImageConfirmationModal = ({
                               e.currentTarget.src = '/placeholder.svg';
                             }}
                           />
-                          <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                            #{images.indexOf(image) + 1}
-                          </div>
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-medium text-sm line-clamp-2">
-                            Image {images.indexOf(image) + 1}: {image.title}
+                        <div className="mb-2">
+                          <h4 className="font-medium text-sm line-clamp-2 mb-1">
+                            {image.title}
                           </h4>
+                          <Badge variant="outline" className="text-xs font-medium">
+                            {image.title.includes('bite') || image.title.includes('Bite') ? 
+                              'Arthropod Bite Reaction' : 
+                              image.title.includes('dermatitis') || image.title.includes('Dermatitis') ?
+                              'Contact Dermatitis' :
+                              image.title.includes('eczema') || image.title.includes('Eczema') ?
+                              'Atopic Dermatitis' :
+                              image.title.includes('rash') || image.title.includes('Rash') ?
+                              'Inflammatory Dermatosis' :
+                              image.title.includes('melanoma') || image.title.includes('Melanoma') ?
+                              'Malignant Melanoma' :
+                              image.title.includes('nevus') || image.title.includes('Nevus') ?
+                              'Melanocytic Nevus' :
+                              'Clinical Manifestation'
+                            }
+                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-3">
                           {image.description}
