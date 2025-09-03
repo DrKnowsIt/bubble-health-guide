@@ -15,18 +15,30 @@ interface ClinicalImage {
 
 // Map common conditions to ISIC search terms
 const CONDITION_MAPPING: Record<string, string[]> = {
-  'bed bug': ['arthropod bite reaction', 'insect bite', 'bite reaction'],
+  'bed bug': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'inflammatory reaction'],
+  'bed bugs': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'inflammatory reaction'],
+  'bites': ['arthropod bite reaction', 'insect bite', 'bite reaction'],
+  'bite': ['arthropod bite reaction', 'insect bite', 'bite reaction'],
   'flea': ['arthropod bite reaction', 'insect bite', 'flea bite'],
   'mosquito': ['arthropod bite reaction', 'insect bite', 'mosquito bite'],
   'spider': ['arthropod bite reaction', 'spider bite', 'bite reaction'],
-  'rash': ['dermatitis', 'eczema', 'rash', 'inflammatory'],
+  'tick': ['arthropod bite reaction', 'tick bite', 'bite reaction'],
+  'rash': ['dermatitis', 'eczema', 'rash', 'inflammatory', 'erythema'],
+  'red bumps': ['dermatitis', 'papule', 'inflammatory reaction', 'erythema'],
+  'bumps': ['papule', 'nodule', 'inflammatory reaction'],
+  'itchy': ['dermatitis', 'eczema', 'pruritic', 'inflammatory'],
   'acne': ['acne', 'comedone', 'pustule'],
   'mole': ['nevus', 'mole', 'melanocytic'],
   'wart': ['wart', 'verruca', 'viral'],
   'psoriasis': ['psoriasis', 'plaque', 'scaling'],
   'eczema': ['eczema', 'dermatitis', 'atopic'],
   'hives': ['urticaria', 'hives', 'wheals'],
-  'burn': ['burn', 'thermal injury', 'scald']
+  'burn': ['burn', 'thermal injury', 'scald'],
+  'melanoma': ['melanoma', 'malignant', 'pigmented lesion'],
+  'cancer': ['malignant', 'carcinoma', 'tumor'],
+  'lesion': ['lesion', 'growth', 'neoplasm'],
+  'cutaneous larva migrans': ['larva migrans', 'parasitic', 'track'],
+  'trail': ['larva migrans', 'track', 'linear lesion']
 };
 
 serve(async (req) => {

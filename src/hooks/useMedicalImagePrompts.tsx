@@ -24,7 +24,7 @@ interface ImageSearchIntent {
   primarySearchTerm: string;
   confidence: number;
   intent: 'symptom_description' | 'educational_query' | 'comparison' | 'diagnosis_support';
-  preferredAPI: 'clinical' | 'research' | 'both';
+  preferredAPI: 'clinical';
   reasoning: string;
   aiSuggestion?: string;
 }
@@ -51,7 +51,7 @@ export const useMedicalImagePrompts = () => {
           primarySearchTerm: '',
           confidence: 0,
           intent: 'symptom_description',
-          preferredAPI: 'research',
+          preferredAPI: 'clinical',
           reasoning: 'Analysis function error'
         };
       }
@@ -66,68 +66,59 @@ export const useMedicalImagePrompts = () => {
         primarySearchTerm: '',
         confidence: 0,
         intent: 'symptom_description',
-        preferredAPI: 'research',
+        preferredAPI: 'clinical',
         reasoning: 'Analysis failed'
       };
     }
   }, []);
 
-  // Enhanced image fetching based on AI recommendations
+  // Enhanced image fetching using only clinical API
   const fetchMedicalImages = useCallback(async (searchIntent: ImageSearchIntent): Promise<MedicalImage[]> => {
-    console.log('Fetching medical images based on AI analysis:', searchIntent);
+    console.log('Fetching clinical medical images based on AI analysis:', searchIntent);
     
     try {
-      const { primarySearchTerm, searchTerms, preferredAPI } = searchIntent;
+      const { primarySearchTerm, searchTerms } = searchIntent;
       let allImages: MedicalImage[] = [];
       
-      // Try primary search term with preferred API
-      if (preferredAPI === 'clinical' || preferredAPI === 'both') {
-        console.log('Trying clinical API with term:', primarySearchTerm);
-        
-        const { data: clinicalData, error: clinicalError } = await supabase.functions.invoke('clinical-image-search', {
-          body: { 
-            searchTerm: primarySearchTerm,
-            maxResults: preferredAPI === 'both' ? 4 : 6
-          }
-        });
-
-        if (!clinicalError && clinicalData?.images?.length > 0) {
-          console.log('Clinical API returned', clinicalData.images.length, 'images');
-          allImages = [...allImages, ...clinicalData.images];
-        }
-      }
+      // Try primary search term with clinical API
+      console.log('Trying clinical API with primary term:', primarySearchTerm);
       
-      if (preferredAPI === 'research' || preferredAPI === 'both') {
-        console.log('Trying research API with term:', primarySearchTerm);
-        
-        const { data: researchData, error: researchError } = await supabase.functions.invoke('research-paper-search', {
-          body: { 
-            searchTerm: primarySearchTerm,
-            maxResults: preferredAPI === 'both' ? 4 : 6
-          }
-        });
-
-        if (!researchError && researchData?.images?.length > 0) {
-          console.log('Research API returned', researchData.images.length, 'images');
-          allImages = [...allImages, ...researchData.images];
+      const { data: clinicalData, error: clinicalError } = await supabase.functions.invoke('clinical-image-search', {
+        body: { 
+          searchTerm: primarySearchTerm,
+          maxResults: 6
         }
+      });
+
+      if (clinicalError) {
+        console.error('Clinical API error:', clinicalError);
+      } else if (clinicalData?.images?.length > 0) {
+        console.log('✅ Clinical API returned', clinicalData.images.length, 'images');
+        allImages = [...allImages, ...clinicalData.images];
+      } else {
+        console.log('❌ Clinical API returned no images for:', primarySearchTerm);
       }
       
       // If primary term didn't yield enough results, try alternative search terms
       if (allImages.length < 3 && searchTerms.length > 1) {
+        console.log('Trying alternative search terms for more results...');
+        
         for (const altTerm of searchTerms.slice(1, 3)) {
           if (allImages.length >= 6) break;
           
-          console.log('Trying alternative search term:', altTerm);
+          console.log('Trying alternative clinical search term:', altTerm);
           
-          const { data: altData, error: altError } = await supabase.functions.invoke('research-paper-search', {
+          const { data: altData, error: altError } = await supabase.functions.invoke('clinical-image-search', {
             body: { 
               searchTerm: altTerm,
               maxResults: 3
             }
           });
 
-          if (!altError && altData?.images?.length > 0) {
+          if (altError) {
+            console.error('Alternative clinical search error:', altError);
+          } else if (altData?.images?.length > 0) {
+            console.log('✅ Alternative term returned', altData.images.length, 'images');
             allImages = [...allImages, ...altData.images];
           }
         }
@@ -138,11 +129,16 @@ export const useMedicalImagePrompts = () => {
         index === self.findIndex(i => i.imageUrl === image.imageUrl)
       ).slice(0, 8);
 
-      console.log('Total unique images found:', uniqueImages.length);
+      console.log('🎯 Total unique clinical images found:', uniqueImages.length);
+      
+      if (uniqueImages.length === 0) {
+        console.log('⚠️ No clinical images found for any search terms:', [primarySearchTerm, ...searchTerms]);
+      }
+      
       return uniqueImages;
       
     } catch (error) {
-      console.error('Error fetching medical images:', error);
+      console.error('❌ Error fetching clinical medical images:', error);
       return [];
     }
   }, []);
@@ -177,7 +173,7 @@ export const useMedicalImagePrompts = () => {
           primarySearchTerm: aiSuggestion.searchTerm,
           confidence: 90,
           intent: (aiSuggestion.intent as any) || 'diagnosis_support',
-          preferredAPI: 'both',
+          preferredAPI: 'clinical',
           reasoning: 'AI suggested search term',
           aiSuggestion: aiSuggestion.reasoning
         };

@@ -37,29 +37,30 @@ serve(async (req) => {
 
     console.log('Analyzing message for image search intent:', message);
 
-    const systemPrompt = `You are a medical AI assistant that analyzes user messages to determine when medical images would be helpful and what search terms to use.
+const systemPrompt = `You are a medical AI assistant that analyzes user messages to determine when medical images would be helpful and what search terms to use.
 
 Analyze the user's message and determine:
 1. Whether medical images would be helpful (shouldTrigger: boolean)
-2. Generate 1-3 optimal search terms for medical image databases
+2. Generate 1-3 optimal search terms for clinical medical image databases
 3. Choose the primary search term (most specific and relevant)
 4. Confidence level (0-100) - how certain you are that images would help
 5. Intent category: symptom_description, educational_query, comparison, diagnosis_support
-6. Preferred API: "clinical" for real patient images (ISIC Archive), "research" for educational/textbook images (NIH), "both" for comprehensive results
-7. Brief reasoning for your decision
-8. Optional AI suggestion for what the user might want to see
+6. Brief reasoning for your decision
+7. Optional AI suggestion for what the user might want to see
 
 Guidelines:
+- Only use clinical medical terminology for ISIC Archive database
 - Trigger for: visible symptoms, skin conditions, anatomical questions, injury descriptions, pest bites, rashes, lesions
 - Don't trigger for: general health advice, medication questions, purely internal symptoms without visual component
-- For clinical API: use medical terminology (e.g., "arthropod bite reaction", "erythematous papule")
-- For research API: use descriptive terms (e.g., "bed bug bites", "insect bite reaction")
+- Use medical terminology (e.g., "arthropod bite reaction", "dermatitis", "nevus", "melanoma")
+- For insect/pest bites: use "arthropod bite reaction", "insect bite", "bite reaction"
+- For skin conditions: use clinical terms like "dermatitis", "eczema", "psoriasis", "urticaria"
 - High confidence (80+) for clear visual symptoms, medium (50-79) for educational needs, low (30-49) for uncertain cases
 - Don't trigger below 30 confidence
 
 Examples:
-- "I have red bumps from bed bug bites" → clinical API, high confidence, terms: ["arthropod bite reaction", "bed bug bites", "insect bite"]
-- "What does melanoma look like?" → research API, medium confidence, terms: ["melanoma", "skin cancer", "malignant lesion"]
+- "I have red bumps from bed bug bites" → high confidence, terms: ["arthropod bite reaction", "insect bite", "bite reaction"]
+- "What does melanoma look like?" → medium confidence, terms: ["melanoma", "nevus", "skin cancer"]
 - "I feel tired all the time" → don't trigger (no visual component)
 
 Respond with valid JSON only.`;
@@ -94,7 +95,7 @@ Respond with valid JSON only.`;
         primarySearchTerm: '',
         confidence: 0,
         intent: 'symptom_description',
-        preferredAPI: 'research',
+      preferredAPI: 'clinical',
         reasoning: 'OpenAI API unavailable, using fallback',
         error: 'AI analysis unavailable'
       }), {
@@ -120,7 +121,7 @@ Respond with valid JSON only.`;
         primarySearchTerm: '',
         confidence: 0,
         intent: 'symptom_description',
-        preferredAPI: 'research',
+      preferredAPI: 'clinical',
         reasoning: 'Failed to parse AI response',
         error: 'AI analysis parsing failed'
       }), {
@@ -136,8 +137,7 @@ Respond with valid JSON only.`;
       confidence: Math.max(0, Math.min(100, Number(result.confidence) || 0)),
       intent: ['symptom_description', 'educational_query', 'comparison', 'diagnosis_support'].includes(result.intent) 
         ? result.intent as any : 'symptom_description',
-      preferredAPI: ['clinical', 'research', 'both'].includes(result.preferredAPI) 
-        ? result.preferredAPI as any : 'research',
+      preferredAPI: 'clinical', // Always use clinical API only
       reasoning: typeof result.reasoning === 'string' ? result.reasoning : 'No reasoning provided',
       aiSuggestion: typeof result.aiSuggestion === 'string' ? result.aiSuggestion : undefined
     };
@@ -157,7 +157,7 @@ Respond with valid JSON only.`;
       primarySearchTerm: '',
       confidence: 0,
       intent: 'symptom_description',
-      preferredAPI: 'research',
+      preferredAPI: 'clinical',
       reasoning: 'System error occurred'
     }), {
       status: 500,
