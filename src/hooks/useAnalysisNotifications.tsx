@@ -149,9 +149,9 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
         type: 'diagnosis',
         status: 'success',
         data: {
-          added: data?.diagnoses_added || 0,
-          updated: data?.diagnoses_updated || 0,
-          items: data?.new_diagnoses || []
+          added: data?.updated_count || 0,
+          updated: data?.updated_count || 0,
+          items: data?.diagnoses || []
         }
       };
     } catch (error) {
@@ -188,9 +188,9 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
         type: 'solution',
         status: 'success',
         data: {
-          added: data?.solutions_added || 0,
-          updated: data?.solutions_updated || 0,
-          items: data?.new_solutions || []
+          added: data?.count || 0,
+          updated: data?.count || 0,
+          items: data?.solutions || []
         }
       };
     } catch (error) {
@@ -225,7 +225,7 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
         type: 'memory',
         status: 'success',
         data: {
-          updated: data?.memory_updated ? 1 : 0
+          updated: data?.memoryUpdated ? 1 : 0
         }
       };
     } catch (error) {
