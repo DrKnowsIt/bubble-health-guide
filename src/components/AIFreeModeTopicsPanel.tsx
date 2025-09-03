@@ -200,7 +200,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
         </CollapsibleTrigger>
 
         <CollapsibleContent className="flex-1 flex flex-col min-h-0">
-          <CardContent className="flex-1 overflow-hidden">
+          <CardContent className="flex-1 overflow-y-auto">
             <Tabs defaultValue="topics" className="h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="topics" className="text-sm">
