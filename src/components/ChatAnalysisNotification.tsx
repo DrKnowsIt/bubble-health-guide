@@ -57,13 +57,13 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'loading':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
+        return 'text-primary bg-primary/10 border-primary/20';
       case 'success':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'text-green-400 bg-green-500/10 border-green-500/20';
       case 'error':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'text-muted-foreground bg-muted/50 border-border';
     }
   };
 
@@ -100,8 +100,8 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
 
   return (
     <div className={cn(
-      "mt-2 mb-3 rounded-lg border transition-all duration-200",
-      hasContent ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200",
+      "mt-2 mb-3 rounded-lg border transition-all duration-200 bg-card",
+      hasContent ? "border-green-500/20" : "border-primary/20",
       className
     )}>
       <button
@@ -109,18 +109,18 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
           setIsExpanded(!isExpanded);
           setAutoCollapse(false);
         }}
-        className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/50 rounded-lg transition-colors"
+        className="w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
       >
         <div className="flex items-center gap-2">
           {results.some(r => r.status === 'loading') ? (
-            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
           ) : (
             <div className={cn(
               "h-2 w-2 rounded-full",
-              hasContent ? "bg-green-500" : "bg-blue-500"
+              hasContent ? "bg-green-400" : "bg-primary"
             )} />
           )}
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-card-foreground">
             {results.some(r => r.status === 'loading') 
               ? 'Analyzing conversation...' 
               : `Analysis complete${hasContent ? ' - New insights found!' : ''}`
@@ -151,25 +151,25 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
           </div>
           
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-500" />
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
       </button>
 
       {isExpanded && (
-        <div className="px-3 pb-3 border-t border-gray-200/50 bg-white/30 rounded-b-lg">
+        <div className="px-3 pb-3 border-t border-border/50 bg-muted/30 rounded-b-lg">
           <div className="mt-2 space-y-2">
             {results.map((result, index) => (
               <div key={index} className="text-sm">
-                <div className="flex items-center gap-2 font-medium text-gray-700 mb-1">
+                <div className="flex items-center gap-2 font-medium text-card-foreground mb-1">
                   {getIcon(result.type)}
                   {result.type.charAt(0).toUpperCase() + result.type.slice(1)} Analysis
                 </div>
                 
                 {result.status === 'error' && (
-                  <div className="text-red-600 text-xs pl-6">
+                  <div className="text-destructive text-xs pl-6">
                     Error: {result.error || 'Analysis failed'}
                   </div>
                 )}
@@ -177,26 +177,26 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
                 {result.status === 'success' && result.data?.items && result.data.items.length > 0 && (
                   <div className="pl-6 space-y-1">
                     {result.data.items.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="text-xs text-gray-600 bg-white/50 rounded px-2 py-1">
+                      <div key={idx} className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
                         <div className="flex items-center justify-between">
                           <span className="flex-1 truncate">{item.text}</span>
                           {item.confidence && (
                             <span className={cn(
                               "ml-2 text-xs font-medium",
-                              item.confidence >= 0.8 ? "text-green-600" :
-                              item.confidence >= 0.6 ? "text-yellow-600" : "text-gray-500"
+                              item.confidence >= 0.8 ? "text-green-400" :
+                              item.confidence >= 0.6 ? "text-yellow-400" : "text-muted-foreground"
                             )}>
                               {Math.round(item.confidence * 100)}%
                             </span>
                           )}
                         </div>
                         {item.category && (
-                          <div className="text-xs text-gray-500 mt-1">{item.category}</div>
+                          <div className="text-xs text-muted-foreground mt-1">{item.category}</div>
                         )}
                       </div>
                     ))}
                     {result.data.items.length > 3 && (
-                      <div className="text-xs text-gray-500 pl-2">
+                      <div className="text-xs text-muted-foreground pl-2">
                         +{result.data.items.length - 3} more...
                       </div>
                     )}
@@ -204,7 +204,7 @@ export const ChatAnalysisNotification: React.FC<ChatAnalysisNotificationProps> =
                 )}
                 
                 {result.status === 'success' && (!result.data?.items || result.data.items.length === 0) && (
-                  <div className="text-xs text-gray-500 pl-6">
+                  <div className="text-xs text-muted-foreground pl-6">
                     No new insights found in this exchange.
                   </div>
                 )}
