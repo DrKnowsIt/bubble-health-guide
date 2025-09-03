@@ -37,16 +37,15 @@ export const MedicalImageConfirmationModal = ({
   const [selectedImage, setSelectedImage] = useState<MedicalImage | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
-  // Generate simple descriptive names for each image
-  const getImageName = (image: MedicalImage, index: number) => {
-    // Use the image title if it's descriptive enough
-    if (image.title && image.title !== 'Clinical Image' && !image.title.includes('Image')) {
+  // Use the actual medical diagnosis from the API
+  const getImageName = (image: MedicalImage) => {
+    // Return the actual diagnosis from the ISIC API title
+    if (image.title && image.title.trim()) {
       return image.title;
     }
     
-    // Otherwise generate from search term + number
-    const baseName = searchTerm.replace(/_/g, ' ').toLowerCase();
-    return `${baseName} ${index + 1}`;
+    // Only fallback if no title exists
+    return 'Medical Image';
   };
 
   // Get context-aware button labels and modal content
@@ -162,7 +161,7 @@ export const MedicalImageConfirmationModal = ({
                       <div className="flex-1 min-w-0">
                         <div className="mb-2">
                           <Badge variant="outline" className="text-xs font-medium mb-1">
-                            {getImageName(image, images.indexOf(image))}
+                            {getImageName(image)}
                           </Badge>
                           <h4 className="font-medium text-sm line-clamp-2">
                             {image.title}
