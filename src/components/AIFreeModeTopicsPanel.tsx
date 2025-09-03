@@ -208,7 +208,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="topics" className="flex-1 overflow-y-auto mt-3 space-y-3">
+              <TabsContent value="topics" className="flex-1 overflow-y-auto mt-3 space-y-3 max-h-[400px]">
                 {loading && conversationPath.length > 0 && (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
