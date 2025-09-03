@@ -141,6 +141,17 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
   const isEmpty = !diagnoses || diagnoses.length === 0;
   const solutionsEmpty = !solutions || solutions.length === 0;
 
+  // Debug logging to help identify the conversation ID mismatch
+  console.log('[HealthInsightsPanel] Current state:', {
+    conversationId,
+    patientId,
+    solutionsCount: solutions.length,
+    solutionsEmpty,
+    solutionsLoading,
+    isEmpty,
+    diagnosesCount: diagnoses.length
+  });
+
   const getConfidenceColor = (confidence: number): string => {
     if (confidence >= 0.8) return "bg-red-500";
     if (confidence >= 0.6) return "bg-orange-500";
