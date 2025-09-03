@@ -44,9 +44,11 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
       phase,
       selectedAnatomy,
       conversationPath,
+      healthTopics: healthTopics || [],
+      sessionComplete: showCompletionModal,
       timestamp: Date.now()
     });
-  }, [phase, selectedAnatomy, conversationPath, saveSessionData]);
+  }, [phase, selectedAnatomy, conversationPath, healthTopics, showCompletionModal, saveSessionData]);
 
   // Load session data on mount
   useEffect(() => {
@@ -54,10 +56,19 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     if (savedData && !sessionRecovered) {
       console.log('Loading saved session data:', savedData);
       
-      if (savedData.phase && savedData.selectedAnatomy) {
+      if (savedData.phase) {
         setPhase(savedData.phase as ChatPhase);
-        setSelectedAnatomy(savedData.selectedAnatomy);
+        
+        if (savedData.selectedAnatomy) {
+          setSelectedAnatomy(savedData.selectedAnatomy);
+        }
+        
+        if (savedData.sessionComplete) {
+          setShowCompletionModal(true);
+        }
+        
         setSessionRecovered(true);
+        console.log('Session state restored from localStorage');
       }
     }
   }, [loadSessionData, sessionRecovered]);

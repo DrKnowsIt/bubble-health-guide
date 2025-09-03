@@ -6,6 +6,12 @@ interface SessionData {
   conversationPath?: any[];
   sessionId?: string;
   timestamp?: number;
+  // Enhanced session data for AI Free Mode
+  healthTopics?: any[];
+  dynamicQuestion?: any;
+  useDynamicQuestions?: boolean;
+  currentQuestionId?: string;
+  sessionComplete?: boolean;
 }
 
 export const useSessionPersistence = (sessionId: string) => {
@@ -21,7 +27,11 @@ export const useSessionPersistence = (sessionId: string) => {
         sessionId
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      console.log('Session data saved:', updated);
+      console.log('Session data saved:', {
+        ...updated,
+        conversationPath: updated.conversationPath?.length || 0,
+        healthTopics: updated.healthTopics?.length || 0
+      });
     } catch (error) {
       console.error('Failed to save session data:', error);
     }
@@ -40,7 +50,11 @@ export const useSessionPersistence = (sessionId: string) => {
         return null;
       }
       
-      console.log('Session data loaded:', data);
+      console.log('Session data loaded:', {
+        ...data,
+        conversationPath: data.conversationPath?.length || 0,
+        healthTopics: data.healthTopics?.length || 0
+      });
       return data;
     } catch (error) {
       console.error('Failed to load session data:', error);
