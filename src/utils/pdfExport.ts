@@ -163,7 +163,7 @@ export const exportComprehensivePDFForUser = async (
     const providerNote = `This comprehensive report summarizes ${selectedUser.first_name}'s health information and AI-assisted analysis from our platform. The data includes patient-reported symptoms, historical health records, and AI-generated insights to support your clinical assessment.`;
     const splitNote = doc.splitTextToSize(providerNote, 170);
     doc.text(splitNote, 20, currentY);
-    currentY += splitNote.length * 5 + 12;
+    currentY += splitNote.length * 12 + 12;
 
     // Add diagnoses section
     if (diagnosesData && diagnosesData.length > 0) {
@@ -240,7 +240,7 @@ export const exportComprehensivePDFForUser = async (
           doc.setFont(undefined, 'normal');
           const summaryText = doc.splitTextToSize(session.final_summary, 160);
           doc.text(summaryText, 30, currentY);
-          currentY += summaryText.length * 5 + 6;
+          currentY += summaryText.length * 12 + 6;
         });
         currentY += 10;
       }
@@ -293,7 +293,7 @@ export const exportComprehensivePDFForUser = async (
         if (test.reason) {
           const reasonText = doc.splitTextToSize(`Clinical Rationale: ${test.reason}`, 160);
           doc.text(reasonText, 30, currentY);
-          currentY += reasonText.length * 5 + 3;
+          currentY += reasonText.length * 12 + 3;
         }
 
         if (test.confidence) {
@@ -314,7 +314,7 @@ export const exportComprehensivePDFForUser = async (
         if (test.contraindications && test.contraindications.length > 0) {
           const contraindicationsText = doc.splitTextToSize(`Contraindications: ${test.contraindications.join(', ')}`, 160);
           doc.text(contraindicationsText, 30, currentY);
-          currentY += contraindicationsText.length * 5 + 3;
+          currentY += contraindicationsText.length * 12 + 3;
         }
 
         currentY += 6;
@@ -455,7 +455,7 @@ export const exportComprehensivePDFForUser = async (
           if (test.reason) {
             const reasonText = doc.splitTextToSize(`Rationale: ${test.reason}`, 155);
             doc.text(reasonText, 35, currentY);
-            currentY += reasonText.length * 5 + 3;
+            currentY += reasonText.length * 12 + 3;
           }
 
           if (test.estimated_cost_range) {
@@ -471,7 +471,7 @@ export const exportComprehensivePDFForUser = async (
           if (test.contraindications && test.contraindications.length > 0) {
             const contraindicationsText = doc.splitTextToSize(`Contraindications: ${test.contraindications.join(', ')}`, 155);
             doc.text(contraindicationsText, 35, currentY);
-            currentY += contraindicationsText.length * 5 + 3;
+            currentY += contraindicationsText.length * 12 + 3;
           }
 
           currentY += 6;
@@ -493,7 +493,7 @@ export const exportComprehensivePDFForUser = async (
         doc.setFont(undefined, 'normal');
         const riskText = doc.splitTextToSize(finalAnalysis.risk_assessment, 160);
         doc.text(riskText, 25, currentY);
-        currentY += riskText.length * 5 + 12;
+        currentY += riskText.length * 12 + 12;
       }
 
       // Holistic Assessment
@@ -510,7 +510,7 @@ export const exportComprehensivePDFForUser = async (
         doc.setFont(undefined, 'normal');
         const holisticText = doc.splitTextToSize(finalAnalysis.holistic_assessment, 160);
         doc.text(holisticText, 25, currentY);
-        currentY += holisticText.length * 5 + 12;
+        currentY += holisticText.length * 12 + 12;
       }
 
       // Follow-up Recommendations
@@ -606,7 +606,7 @@ export const exportComprehensivePDFForUser = async (
         doc.setFont(undefined, 'normal');
         const summaryText = doc.splitTextToSize(comprehensiveReport.report_summary, 160);
         doc.text(summaryText, 25, currentY);
-        currentY += summaryText.length * 5 + 10;
+        currentY += summaryText.length * 12 + 10;
       }
     }
 
@@ -685,7 +685,7 @@ export const exportComprehensivePDFForUser = async (
           doc.setFont(undefined, 'normal');
           const summaryText = doc.splitTextToSize(memory.summary, 160);
           doc.text(summaryText, 30, currentY);
-          currentY += summaryText.length * 5 + 6;
+          currentY += summaryText.length * 12 + 6;
         }
       });
       currentY += 10;
