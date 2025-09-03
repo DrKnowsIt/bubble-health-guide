@@ -19,7 +19,7 @@ import { UserDropdown } from './UserDropdown';
 import { MobileEnhancedChatInterface } from './MobileEnhancedChatInterface';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { ChatMessage } from './ChatMessage';
-import { ChatAnalysisNotification } from './ChatAnalysisNotification';
+import { ChatAnalysisNotification, AnalysisResult } from './ChatAnalysisNotification';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -53,6 +53,8 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  // State for analysis tracking per message
+  const [messageAnalysis, setMessageAnalysis] = useState<Record<string, any[]>>({});
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -202,21 +204,67 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
         const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
         const messageId = aiMessage.id;
         
-        // Start analysis tracking
-        const { updateResult, completeAnalysis } = startAnalysis(messageId);
+        console.log('[ChatInterface] Starting analysis for message:', messageId);
+        
+        // Initialize analysis state for this message
+        setMessageAnalysis(prev => ({
+          ...prev,
+          [messageId]: [
+            { type: 'diagnosis', status: 'loading' },
+            { type: 'solution', status: 'loading' },
+            { type: 'memory', status: 'loading' }
+          ]
+        }));
         
         // Run all analyses in parallel with proper tracking
         Promise.allSettled([
           performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => updateResult('diagnosis', result)),
+            .then(result => {
+              console.log('[ChatInterface] Diagnosis analysis result:', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: prev[messageId]?.map(r => 
+                  r.type === 'diagnosis' ? result : r
+                ) || [result]
+              }));
+              return result;
+            }),
           
           performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => updateResult('solution', result)),
+            .then(result => {
+              console.log('[ChatInterface] Solution analysis result:', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: prev[messageId]?.map(r => 
+                  r.type === 'solution' ? result : r
+                ) || [result]
+              }));
+              return result;
+            }),
           
           performMemoryAnalysis(conversationId, selectedUser.id)
-            .then(result => updateResult('memory', result))
-        ]).finally(() => {
-          completeAnalysis();
+            .then(result => {
+              console.log('[ChatInterface] Memory analysis result:', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: prev[messageId]?.map(r => 
+                  r.type === 'memory' ? result : r
+                ) || [result]
+              }));
+              return result;
+            })
+        ]).then(results => {
+          console.log('[ChatInterface] All analyses complete for message:', messageId, results);
+          // Auto-clear after 10 seconds
+          setTimeout(() => {
+            setMessageAnalysis(prev => {
+              const newState = { ...prev };
+              delete newState[messageId];
+              return newState;
+            });
+          }, 10000);
+        }).catch(error => {
+          console.error('[ChatInterface] Analysis error:', error);
         });
       }
     } catch (error: any) {
@@ -362,14 +410,20 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                           message={message}
                         />
                         
-                        {/* Show analysis notifications after AI messages */}
-                        {message.type === 'ai' && (
-                          <ChatAnalysisNotification
-                            results={pendingAnalysis}
-                            onResultsProcessed={clearPendingAnalysis}
-                            className="mt-2"
-                          />
-                        )}
+                         {/* Show analysis notifications after AI messages */}
+                         {message.type === 'ai' && messageAnalysis[message.id] && (
+                           <ChatAnalysisNotification
+                             results={messageAnalysis[message.id]}
+                             onResultsProcessed={() => {
+                               setMessageAnalysis(prev => {
+                                 const newState = { ...prev };
+                                 delete newState[message.id];
+                                 return newState;
+                               });
+                             }}
+                             className="mt-2"
+                           />
+                         )}
                       </div>
                     ))}
 
