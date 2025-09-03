@@ -293,19 +293,53 @@ function shuffleArray<T>(array: T[]): T[] {
 function buildEnhancedDescription(item: any, diagnosis: string, searchTerm: string): string {
   const parts: string[] = [];
   
-  // Add contextual description based on search term
+  // Add contextual description based on medical specialty and condition
   const contextMap: Record<string, string> = {
-    'arthropod bite reaction': 'Common reaction to insect bites, often presenting as grouped or linear lesions',
-    'insect bite': 'Typical inflammatory response to arthropod bites',
-    'bite reaction': 'Characteristic skin reaction pattern following arthropod exposure',
+    // Dermatology
     'dermatitis': 'Inflammatory skin condition with characteristic erythema and scaling patterns',
     'eczema': 'Chronic inflammatory dermatosis with typical morphology and distribution',
-    'contact dermatitis': 'Allergic or irritant reaction to environmental exposures',
-    'atopic dermatitis': 'Chronic eczematous condition often with characteristic distribution',
-    'rash': 'Generalized skin eruption requiring clinical correlation and evaluation'
+    'rash': 'Generalized skin eruption requiring clinical correlation and evaluation',
+    'lesion': 'Localized pathological change in tissue structure',
+    
+    // Cardiology
+    'myocardial infarction': 'Acute coronary syndrome with myocardial necrosis',
+    'heart attack': 'Acute coronary event requiring immediate medical evaluation',
+    'arrhythmia': 'Abnormal heart rhythm pattern requiring ECG correlation',
+    
+    // Pulmonology
+    'pneumonia': 'Inflammatory pulmonary infection with consolidation pattern',
+    'asthma': 'Chronic airway inflammatory condition with bronchial hyperreactivity',
+    'copd': 'Chronic obstructive pulmonary disease with airflow limitation',
+    
+    // Ophthalmology
+    'conjunctivitis': 'Inflammatory condition of the conjunctival membrane',
+    'retinopathy': 'Pathological changes in retinal vasculature and structure',
+    
+    // Orthopedics
+    'fracture': 'Disruption in bone cortical continuity requiring imaging correlation',
+    'arthritis': 'Joint inflammatory process with structural changes',
+    
+    // Gastroenterology  
+    'ulcer': 'Mucosal defect extending into deeper tissue layers',
+    'colitis': 'Inflammatory bowel condition with mucosal involvement',
+    
+    // Neurology
+    'stroke': 'Cerebrovascular accident with potential neurological deficits',
+    'seizure': 'Abnormal electrical brain activity requiring neurological assessment',
+    
+    // Oncology
+    'tumor': 'Abnormal tissue growth requiring histopathological evaluation',
+    'cancer': 'Malignant neoplastic process with metastatic potential'
   };
   
-  const contextDesc = contextMap[searchTerm.toLowerCase()] || `Clinical presentation of ${diagnosis.toLowerCase()}`;
+  // Find best matching description
+  let contextDesc = `Clinical presentation of ${diagnosis.toLowerCase()}`;
+  for (const [key, desc] of Object.entries(contextMap)) {
+    if (searchTerm.toLowerCase().includes(key) || diagnosis.toLowerCase().includes(key)) {
+      contextDesc = desc;
+      break;
+    }
+  }
   parts.push(contextDesc);
   
   // Add clinical details with variation
@@ -326,14 +360,18 @@ function buildEnhancedDescription(item: any, diagnosis: string, searchTerm: stri
     parts.push(`[${clinicalDetails.join(', ')}]`);
   }
   
-  // Add educational context with more variety
+  // Add educational context with more variety across specialties
   const educationalNotes = [
     'Note characteristic distribution and morphology',
     'Observe lesion size, shape, and arrangement patterns', 
     'Consider differential diagnoses and clinical correlation',
     'Evaluate for associated symptoms and history',
     'Assessment requires professional medical evaluation',
-    'Compare with patient presentation and clinical findings'
+    'Compare with patient presentation and clinical findings',
+    'Review anatomical landmarks and tissue characteristics',
+    'Consider pathophysiology and disease progression',
+    'Correlate with laboratory and imaging findings',
+    'Assess severity and staging criteria'
   ];
   
   if (Math.random() > 0.4) { // 60% chance to add educational note
