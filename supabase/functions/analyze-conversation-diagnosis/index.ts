@@ -105,6 +105,7 @@ serve(async (req) => {
     if (recentAnalysis && 
         Date.now() - new Date(recentAnalysis.updated_at).getTime() < 120000 &&
         conversationText.length < 50) {
+      console.log('Skipping analysis - content unchanged');
       return new Response(
         JSON.stringify({ success: true, diagnoses: [], message: 'No significant content changes detected' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -112,12 +113,15 @@ serve(async (req) => {
     }
 
     // Only proceed if we have meaningful user input
-    if (!conversationText.trim() || conversationText.length < 10) {
+    if (!conversationText.trim() || conversationText.length < 5) {
+      console.log('Skipping analysis - insufficient content:', conversationText);
       return new Response(
         JSON.stringify({ success: true, diagnoses: [], message: 'Insufficient conversation data' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Proceeding with diagnosis analysis for content:', conversationText);
 
     // Get patient context
     const patientAge = patient.date_of_birth 
@@ -322,13 +326,15 @@ Current conversation: "${conversationText}"`;
 
     // Validate and process diagnoses - more inclusive filtering
     const validDiagnoses = (diagnosisData.diagnoses || [])
-      .filter((d: any) => d.diagnosis && d.confidence >= 0.4)
+      .filter((d: any) => d.diagnosis && d.confidence >= 0.2) // Lower threshold
       .map((d: any) => ({
         diagnosis: d.diagnosis,
-        confidence: Math.min(Math.max(d.confidence, 0.4), 0.9),
+        confidence: Math.min(Math.max(d.confidence, 0.2), 0.9),
         reasoning: d.reasoning || 'No reasoning provided',
         relates_to_existing: d.relates_to_existing || null
       }));
+
+    console.log('Valid diagnoses after filtering:', validDiagnoses.length, validDiagnoses);
 
     // Smart diagnosis management: preserve high-confidence, update related, add new
     if (diagnosisData.preserve_existing && highConfidenceDiagnoses.length > 0) {
@@ -451,7 +457,12 @@ Consolidated reasoning:`;
 
         if (insertError) {
           console.error('Failed to insert new diagnoses:', insertError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to save diagnoses' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
+        console.log('Successfully inserted', finalDiagnoses.length, 'new diagnoses');
       }
     } else {
       // Fallback: replace all diagnoses (original behavior for simple cases)
@@ -482,9 +493,12 @@ Consolidated reasoning:`;
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        console.log('Successfully inserted', diagnosesToInsert.length, 'diagnoses via fallback');
       }
     }
 
+    console.log('Diagnosis analysis completed successfully. Returning:', validDiagnoses.length, 'diagnoses');
+    
     return new Response(
       JSON.stringify({ 
         success: true, 
