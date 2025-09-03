@@ -456,6 +456,16 @@ Remember: Just have a natural conversation to understand their situation better.
       })()
     ];
 
+    // Check for medical terms that should trigger image prompts
+    const medicalTerms = ['bite', 'bites', 'rash', 'wound', 'burn', 'bruise', 'acne', 'eczema', 'hives', 'mole', 'infection', 'lesion'];
+    const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const hasMedicalTerm = medicalTerms.some(term => userMessage.includes(term));
+    
+    let shouldTriggerImagePrompt = false;
+    if (hasMedicalTerm && !userMessage.includes('image') && !userMessage.includes('picture')) {
+      shouldTriggerImagePrompt = true;
+    }
+
     console.log('Sending request to Grok API with', messages.length, 'messages');
 
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -520,7 +530,9 @@ Remember: Just have a natural conversation to understand their situation better.
       JSON.stringify({ 
         response: cleanedResponse,
         model: 'grok-2',
-        usage: data.usage
+        usage: data.usage,
+        triggerImagePrompt: shouldTriggerImagePrompt,
+        detectedMedicalTerm: hasMedicalTerm ? medicalTerms.find(term => userMessage.includes(term)) : null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

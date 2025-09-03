@@ -17,6 +17,8 @@ import { UserDropdown } from './UserDropdown';
 import { UserSelectionGuide } from './UserSelectionGuide';
 import { SubscriptionGate } from './SubscriptionGate';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
+import { MedicalImageConfirmationModal } from '@/components/MedicalImageConfirmationModal';
 import { ChatMessage } from './ChatMessage';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -77,6 +79,14 @@ export const TabletChatInterface = ({
       setPendingImageUrl(imageUrl);
     }
   });
+
+  const { 
+    currentPrompt, 
+    loading: imagePromptLoading, 
+    triggerImagePrompt, 
+    handleImageFeedback, 
+    closeImagePrompt 
+  } = useMedicalImagePrompts();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,6 +179,7 @@ export const TabletChatInterface = ({
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+      
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
@@ -178,6 +189,11 @@ export const TabletChatInterface = ({
 
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
+      
+      // Check if we should trigger an image prompt
+      if (data.triggerImagePrompt && currentInput) {
+        await triggerImagePrompt(currentInput);
+      }
 
       // Background analysis for diagnoses and solutions (fire-and-forget)
       if (user && conversationId && selectedUser?.id) {
@@ -489,6 +505,18 @@ export const TabletChatInterface = ({
           </div>
         </div>
       </div>
+
+      {/* Medical Image Confirmation Modal */}
+      <MedicalImageConfirmationModal
+        isOpen={currentPrompt?.isVisible || false}
+        onClose={closeImagePrompt}
+        searchTerm={currentPrompt?.searchTerm || ''}
+        images={currentPrompt?.images || []}
+        onFeedback={(imageId, matches, searchTerm) => 
+          handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
+        }
+        loading={imagePromptLoading}
+      />
     </SubscriptionGate>
   );
 };

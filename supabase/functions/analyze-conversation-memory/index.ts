@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { conversation_id, patient_id } = await req.json();
+    const { conversation_id, patient_id, image_feedback } = await req.json();
     
     if (!conversation_id || !patient_id) {
       throw new Error('Missing required parameters: conversation_id and patient_id');
@@ -242,6 +242,19 @@ Only return the JSON object. If no new memory-worthy information is found, retur
         logStep('No valid JSON found in response');
         memoryUpdates = {};
       }
+    }
+
+    // Handle image feedback if provided
+    if (image_feedback) {
+      logStep('Processing image feedback', image_feedback);
+      
+      const feedbackKey = `visual_confirmation_${image_feedback.searchTerm}`;
+      memoryUpdates[feedbackKey] = {
+        matches: image_feedback.matches,
+        imageId: image_feedback.imageId,
+        timestamp: image_feedback.timestamp,
+        confidence: image_feedback.matches ? 'high' : 'low'
+      };
     }
 
     // Only update if we have new memory information

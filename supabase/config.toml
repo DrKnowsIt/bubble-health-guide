@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.clear-form-memory]
 verify_jwt = true
+
+[functions.medical-image-search]
+verify_jwt = true
