@@ -199,10 +199,25 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       await saveMessage(conversationId, 'ai', aiMessage.content);
       onSendMessage?.(currentInput);
 
-      // Enhanced background analysis with notifications
-      if (user && conversationId && selectedUser?.id) {
-        const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
-        const messageId = aiMessage.id;
+        // Enhanced background analysis with notifications - add delay for database sync
+        if (user && conversationId && selectedUser?.id) {
+          // Wait for messages to be properly saved before analysis
+          setTimeout(async () => {
+            // Fetch fresh messages from database to ensure consistency
+            const { data: freshMessages } = await supabase
+              .from('messages')
+              .select('*')
+              .eq('conversation_id', conversationId)
+              .order('created_at', { ascending: true })
+              .limit(10);
+            
+            const recentMessages = (freshMessages || []).slice(-6).map(msg => ({
+              type: msg.type,
+              content: msg.content,
+              timestamp: new Date(msg.created_at)
+            }));
+            
+            const messageId = aiMessage.id;
         
         console.log('[ChatInterface] Starting analysis for message:', messageId);
         
@@ -266,6 +281,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
         }).catch(error => {
           console.error('[ChatInterface] Analysis error:', error);
         });
+          }, 2000); // 2 second delay to ensure database consistency
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
