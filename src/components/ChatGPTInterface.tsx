@@ -487,12 +487,18 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       // Check for AI image suggestion or trigger based on user message
       console.log('🖼️ ChatGPTInterface: About to trigger image prompt with message:', textToSend);
+      
+      // Get recent conversation context (last 4 messages)
+      const recentContext = messages.slice(-4).map(msg => 
+        `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      );
+      
       if (data.imageSuggestion) {
         console.log('🤖 ChatGPTInterface: Using AI image suggestion:', data.imageSuggestion);
-        await triggerImagePrompt(textToSend, data.imageSuggestion);
+        await triggerImagePrompt(textToSend, data.imageSuggestion, recentContext);
       } else {
         console.log('🔍 ChatGPTInterface: Analyzing user message for medical images');
-        await triggerImagePrompt(textToSend);
+        await triggerImagePrompt(textToSend, undefined, recentContext);
       }
 
       // Update message count and check if analysis should be triggered

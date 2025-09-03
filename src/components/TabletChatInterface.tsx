@@ -191,10 +191,14 @@ export const TabletChatInterface = ({
       await saveMessage(conversationId, 'ai', aiMessage.content);
       
       // Check for AI image suggestion or trigger based on user message
+      const recentContext = [...messages, userMessage].slice(-4).map(msg => 
+        `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      );
+      
       if (data.imageSuggestion) {
-        await triggerImagePrompt(currentInput, data.imageSuggestion);
+        await triggerImagePrompt(currentInput, data.imageSuggestion, recentContext);
       } else {
-        await triggerImagePrompt(currentInput);
+        await triggerImagePrompt(currentInput, undefined, recentContext);
       }
 
       // Background analysis for diagnoses and solutions (fire-and-forget)

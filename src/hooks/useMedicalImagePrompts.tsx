@@ -34,13 +34,17 @@ export const useMedicalImagePrompts = () => {
   const [currentPrompt, setCurrentPrompt] = useState<MedicalImagePrompt | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // AI-powered message analysis using LLM
-  const analyzeMessageContext = useCallback(async (message: string): Promise<ImageSearchIntent> => {
+  // AI-powered message analysis using LLM with conversation context
+  const analyzeMessageContext = useCallback(async (message: string, conversationContext?: string[]): Promise<ImageSearchIntent> => {
     try {
       console.log('Analyzing message with AI:', message);
+      console.log('🔍 Conversation context provided:', conversationContext?.length || 0, 'recent messages');
       
       const { data, error } = await supabase.functions.invoke('analyze-image-search-intent', {
-        body: { message }
+        body: { 
+          message,
+          conversationContext: conversationContext || []
+        }
       });
 
       if (error) {
@@ -146,7 +150,8 @@ export const useMedicalImagePrompts = () => {
   // Main function to trigger image prompt with AI analysis
   const triggerImagePrompt = useCallback(async (
     message: string, 
-    aiSuggestion?: { shouldShow: boolean; searchTerm?: string; intent?: string; reasoning?: string }
+    aiSuggestion?: { shouldShow: boolean; searchTerm?: string; intent?: string; reasoning?: string },
+    conversationContext?: string[]
   ): Promise<boolean> => {
     if (!user) {
       console.log('❌ No user found, cannot trigger image prompt');
@@ -191,12 +196,12 @@ export const useMedicalImagePrompts = () => {
           return true;
         }
       } else {
-        // Use AI to analyze the message
-        const searchIntent = await analyzeMessageContext(message);
+        // Use AI to analyze the message with conversation context
+        const searchIntent = await analyzeMessageContext(message, conversationContext);
         console.log('AI analysis result:', searchIntent);
         
-        if (searchIntent.shouldTrigger && searchIntent.confidence >= 30) {
-          console.log('AI recommends showing images with confidence:', searchIntent.confidence);
+        if (searchIntent.shouldTrigger && searchIntent.confidence >= 80) {
+          console.log('✅ High confidence - AI recommends showing images with confidence:', searchIntent.confidence);
           
           const images = await fetchMedicalImages(searchIntent);
           
@@ -213,7 +218,8 @@ export const useMedicalImagePrompts = () => {
             console.log('❌ No images found for searchTerm:', searchIntent.primarySearchTerm);
           }
         } else {
-          console.log('AI analysis: No images needed -', searchIntent.reasoning);
+          console.log('❌ Low confidence or not relevant - AI analysis: No images needed -', 
+            `Confidence: ${searchIntent.confidence}, Reasoning: ${searchIntent.reasoning}`);
         }
       }
     } catch (error) {

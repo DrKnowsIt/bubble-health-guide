@@ -222,10 +222,16 @@ export const MobileEnhancedChatInterface = ({
       await saveMessage(conversationId, 'ai', aiMessage.content);
 
       // Check for AI image suggestion or trigger based on user message
+      const recentContext = [...messages, 
+        { type: 'user', content: messageContent }
+      ].slice(-4).map(msg => 
+        `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      );
+      
       if (data.imageSuggestion) {
-        await triggerImagePrompt(messageContent, data.imageSuggestion);
+        await triggerImagePrompt(messageContent, data.imageSuggestion, recentContext);
       } else {
-        await triggerImagePrompt(messageContent);
+        await triggerImagePrompt(messageContent, undefined, recentContext);
       }
 
       // Call separate diagnosis analysis (background)

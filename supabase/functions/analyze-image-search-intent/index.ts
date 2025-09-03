@@ -26,7 +26,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, conversationContext } = await req.json();
 
     if (!message || typeof message !== 'string') {
       return new Response(
@@ -35,11 +35,14 @@ serve(async (req) => {
       );
     }
 
-    console.log('Analyzing message for image search intent:', message);
+    console.log('🔍 Analyzing message for image search intent:', message);
+    console.log('📋 Conversation context provided:', Array.isArray(conversationContext) ? conversationContext.length : 0, 'messages');
 
-const systemPrompt = `You are a medical AI assistant that analyzes user messages to determine when medical images would be helpful and what search terms to use.
+const systemPrompt = `You are a medical AI assistant that analyzes user messages and conversation context to determine when medical images would be helpful and what search terms to use.
 
-Analyze the user's message and determine:
+CRITICAL: Medical images should ONLY be shown when highly confident (80+) and truly relevant to the current conversation.
+
+Analyze the user's current message AND recent conversation context to determine:
 1. Whether medical images would be helpful (shouldTrigger: boolean)
 2. Generate 1-3 optimal search terms for clinical medical image databases
 3. Choose the primary search term (most specific and relevant)
@@ -48,22 +51,50 @@ Analyze the user's message and determine:
 6. Brief reasoning for your decision
 7. Optional AI suggestion for what the user might want to see
 
-Guidelines:
+STRICT TRIGGERING GUIDELINES:
+- HIGH CONFIDENCE ONLY (80+): Clear visual symptoms currently being discussed, specific skin conditions, visible injuries
+- MEDIUM CONFIDENCE (50-79): Educational questions about visual medical conditions when conversation is medically focused
+- LOW CONFIDENCE (<50): Uncertain cases, off-topic conversations, non-visual symptoms
+- NEVER TRIGGER for: general health advice, medication questions, purely internal symptoms, casual conversations, greetings, non-medical topics
+
+CONVERSATION RELEVANCE CHECK:
+- If recent conversation is about non-medical topics (general chat, greetings, other subjects), LOWER confidence significantly
+- If conversation has shifted away from medical topics, don't trigger
+- Only trigger if current message AND conversation context suggest medical visual content would be valuable
+- If user is asking about something completely different from previous medical discussion, don't trigger
+
+SEARCH TERM GUIDELINES:
 - Only use clinical medical terminology for ISIC Archive database
-- Trigger for: visible symptoms, skin conditions, anatomical questions, injury descriptions, pest bites, rashes, lesions
-- Don't trigger for: general health advice, medication questions, purely internal symptoms without visual component
-- Use medical terminology (e.g., "arthropod bite reaction", "dermatitis", "nevus", "melanoma")
 - For insect/pest bites: use "arthropod bite reaction", "insect bite", "bite reaction"
 - For skin conditions: use clinical terms like "dermatitis", "eczema", "psoriasis", "urticaria"
-- High confidence (80+) for clear visual symptoms, medium (50-79) for educational needs, low (30-49) for uncertain cases
-- Don't trigger below 30 confidence
+- For cancer concerns: use "melanoma", "nevus", "skin cancer", "carcinoma"
+- For injuries: use "laceration", "contusion", "burn", "wound"
 
-Examples:
-- "I have red bumps from bed bug bites" → high confidence, terms: ["arthropod bite reaction", "insect bite", "bite reaction"]
-- "What does melanoma look like?" → medium confidence, terms: ["melanoma", "nevus", "skin cancer"]
-- "I feel tired all the time" → don't trigger (no visual component)
+EXAMPLES:
+- "I have red bumps from bed bug bites" (in medical conversation) → confidence: 85, terms: ["arthropod bite reaction", "insect bite"]
+- "What does melanoma look like?" (in medical conversation) → confidence: 75, terms: ["melanoma", "nevus", "skin cancer"]
+- "How are you today?" (after medical discussion) → confidence: 0, don't trigger (casual greeting)
+- "I feel tired all the time" → confidence: 0, don't trigger (no visual component)
+- "Thanks for the help with my rash, by the way what's the weather like?" → confidence: 0, don't trigger (topic changed)
 
 Respond with valid JSON only.`;
+
+    // Prepare messages for OpenAI
+    const messages = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    // Add conversation context if provided
+    if (Array.isArray(conversationContext) && conversationContext.length > 0) {
+      const contextMessage = `Recent conversation context (last ${conversationContext.length} messages):\n${conversationContext.join('\n---\n')}`;
+      messages.push({ role: 'user', content: contextMessage });
+      messages.push({ role: 'assistant', content: 'I understand the conversation context. Now analyze the current message:' });
+    }
+
+    // Add the current message to analyze
+    messages.push({ role: 'user', content: `Current message to analyze: "${message}"` });
+
+    console.log('🤖 Sending to OpenAI with', messages.length, 'messages');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -73,12 +104,9 @@ Respond with valid JSON only.`;
       },
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
+        messages: messages,
         max_tokens: 500,
-        temperature: 0.3,
+        temperature: 0.2,
         response_format: { type: "json_object" }
       }),
     });
