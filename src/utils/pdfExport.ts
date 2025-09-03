@@ -30,9 +30,11 @@ const sanitizeText = (text: string): string => {
     .replace(/['']/g, "'") // Normalize apostrophes
     .replace(/–/g, '-') // Normalize dashes
     .replace(/…/g, '...') // Normalize ellipsis
-    // Clean up whitespace
+    // Clean up whitespace and normalize to ASCII
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    // Ensure only standard ASCII characters for consistent font rendering
+    .replace(/[^\x20-\x7E]/g, ''); // Remove non-ASCII characters that might cause font issues
 };
 
 // Deduplicate solutions by category, keeping the most confident and recent
@@ -133,23 +135,23 @@ export const exportComprehensivePDFForUser = async (
 
     // Add header
     doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('DrKnowsIt', 20, 20);
     
     doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text('AI-Powered Health Assistant | www.drknowsit.com', 20, 28);
     doc.line(20, 32, 190, 32);
 
     // Report title
     doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('Comprehensive Clinical Health Report', 20, currentY);
     currentY += 15;
 
     // Patient info
     doc.setFontSize(11);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(`Patient: ${userName}`, 20, currentY);
     currentY += 6;
     doc.text(`Generated: ${currentDate}`, 20, currentY);
@@ -157,11 +159,11 @@ export const exportComprehensivePDFForUser = async (
 
     // Provider note
     doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('Dear Healthcare Provider,', 20, currentY);
     currentY += 10;
 
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
     const providerNote = `This comprehensive report summarizes ${selectedUser.first_name}'s health information and AI-assisted analysis from our platform. The data includes patient-reported symptoms, historical health records, and AI-generated insights to support your clinical assessment.`;
     const splitNote = doc.splitTextToSize(providerNote, 170);
     doc.text(splitNote, 20, currentY);
@@ -175,7 +177,7 @@ export const exportComprehensivePDFForUser = async (
       }
 
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('AI-Identified Health Concerns', 20, currentY);
       currentY += 10;
 
@@ -224,7 +226,7 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Recent AI Health Assessments', 20, currentY);
         currentY += 10;
 
@@ -235,12 +237,12 @@ export const exportComprehensivePDFForUser = async (
           }
 
           doc.setFontSize(11);
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
           const sessionDate = new Date(session.created_at).toLocaleDateString();
           doc.text(`Assessment ${index + 1} - ${sessionDate}`, 25, currentY);
           currentY += 6;
 
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
           const summaryText = doc.splitTextToSize(session.final_summary, 160);
           doc.text(summaryText, 30, currentY);
           currentY += summaryText.length * 7 + 4;
@@ -257,12 +259,12 @@ export const exportComprehensivePDFForUser = async (
       }
 
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Recommended Diagnostic Tests', 20, currentY);
       currentY += 8;
       
       doc.setFontSize(10);
-      doc.setFont(undefined, 'italic');
+      doc.setFont('helvetica', 'italic');
       doc.text('For Healthcare Provider Consideration', 20, currentY);
       currentY += 15;
 
@@ -273,11 +275,11 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text(`${index + 1}. ${test.test_name}`, 25, currentY);
         currentY += 6;
 
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         if (test.test_code) {
           doc.text(`Code: ${test.test_code}`, 30, currentY);
           currentY += 5;
@@ -333,21 +335,21 @@ export const exportComprehensivePDFForUser = async (
       }
 
       doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Final AI Medical Analysis', 20, currentY);
       currentY += 8;
       
       doc.setFontSize(10);
-      doc.setFont(undefined, 'italic');
+      doc.setFont('helvetica', 'italic');
       doc.text('Comprehensive AI Review of All Available Data', 20, currentY);
       currentY += 15;
 
       // Analysis Summary
       doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Executive Summary', 25, currentY);
       currentY += SPACING.MEDIUM;
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       const summaryText = doc.splitTextToSize(sanitizeText(finalAnalysis.analysis_summary), 160);
       doc.text(summaryText, 25, currentY);
       currentY += summaryText.length * 7 + SPACING.MEDIUM;
@@ -357,7 +359,7 @@ export const exportComprehensivePDFForUser = async (
         doc.addPage();
         currentY = 20;
       }
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text(`Priority Level: ${finalAnalysis.priority_level.toUpperCase()}`, 25, currentY);
       currentY += 6;
       doc.text(`AI Confidence: ${Math.round((finalAnalysis.confidence_score || 0) * 100)}%`, 25, currentY);
@@ -371,7 +373,7 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Key Clinical Findings', 25, currentY);
         currentY += 10;
 
@@ -419,12 +421,12 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('AI-Recommended Diagnostic Tests', 25, currentY);
         currentY += 8;
         
         doc.setFontSize(10);
-        doc.setFont(undefined, 'italic');
+        doc.setFont('helvetica', 'italic');
         doc.text('Based on Comprehensive Data Analysis', 25, currentY);
         currentY += 12;
 
@@ -440,11 +442,11 @@ export const exportComprehensivePDFForUser = async (
           }
 
           doc.setFontSize(11);
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
           doc.text(`${index + 1}. ${test.test_name}`, 30, currentY);
           currentY += 6;
 
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
           if (test.test_code) {
             doc.text(`Code: ${test.test_code}`, 35, currentY);
             currentY += 5;
@@ -491,10 +493,10 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Risk Assessment', 25, currentY);
         currentY += 8;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         const riskText = doc.splitTextToSize(finalAnalysis.risk_assessment, 160);
         doc.text(riskText, 25, currentY);
         currentY += riskText.length * 7 + 8;
@@ -508,10 +510,10 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Holistic Health Assessment', 25, currentY);
         currentY += 8;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         const holisticText = doc.splitTextToSize(finalAnalysis.holistic_assessment, 160);
         doc.text(holisticText, 25, currentY);
         currentY += holisticText.length * 7 + 8;
@@ -525,10 +527,10 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Follow-up Recommendations', 25, currentY);
         currentY += 8;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         finalAnalysis.follow_up_recommendations.forEach((rec, index) => {
           if (currentY > 270) {
             doc.addPage();
@@ -548,10 +550,10 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Data Sources Analyzed:', 25, currentY);
         currentY += 6;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         const sources = finalAnalysis.data_sources_analyzed;
         doc.text(`• Conversation Memories: ${sources.conversation_memories || 0}`, 30, currentY);
         currentY += 5;
@@ -574,28 +576,28 @@ export const exportComprehensivePDFForUser = async (
       }
 
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Comprehensive Health Assessment Summary', 20, currentY);
       currentY += 10;
 
       if (comprehensiveReport.overall_health_status) {
         doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text(`Overall Health Status: ${comprehensiveReport.overall_health_status}`, 25, currentY);
         currentY += 8;
       }
 
       if (comprehensiveReport.priority_level) {
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text(`Priority Level: ${comprehensiveReport.priority_level}`, 25, currentY);
         currentY += 8;
       }
 
       if (comprehensiveReport.key_concerns && comprehensiveReport.key_concerns.length > 0) {
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Key Concerns:', 25, currentY);
         currentY += 6;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         comprehensiveReport.key_concerns.forEach((concern: string, index: number) => {
           doc.text(`• ${concern}`, 30, currentY);
           currentY += 5;
@@ -604,10 +606,10 @@ export const exportComprehensivePDFForUser = async (
       }
 
       if (comprehensiveReport.report_summary) {
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Clinical Summary:', 25, currentY);
         currentY += 6;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         const summaryText = doc.splitTextToSize(comprehensiveReport.report_summary, 160);
         doc.text(summaryText, 25, currentY);
         currentY += summaryText.length * 7 + 6;
@@ -626,12 +628,12 @@ export const exportComprehensivePDFForUser = async (
         }
 
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Holistic Health Recommendations', 20, currentY);
         currentY += SPACING.MEDIUM;
         
         doc.setFontSize(10);
-        doc.setFont(undefined, 'italic');
+        doc.setFont('helvetica', 'italic');
         doc.text('AI-Generated Patient Guidance', 20, currentY);
         currentY += SPACING.LARGE;
 
@@ -642,12 +644,12 @@ export const exportComprehensivePDFForUser = async (
           }
 
           doc.setFontSize(11);
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
           const categoryText = solution.category || 'General Wellness';
           doc.text(`${index + 1}. ${categoryText}`, 25, currentY);
           currentY += SPACING.LINE;
 
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
           if (solution.confidence) {
             doc.text(`Confidence: ${Math.round(solution.confidence * 100)}%`, 30, currentY);
             currentY += SPACING.SMALL;
@@ -669,7 +671,7 @@ export const exportComprehensivePDFForUser = async (
       }
 
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Conversation Memory & Context', 20, currentY);
       currentY += 10;
 
@@ -681,12 +683,12 @@ export const exportComprehensivePDFForUser = async (
 
         if (memory.summary) {
           doc.setFontSize(11);
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
           const memoryDate = new Date(memory.updated_at).toLocaleDateString();
           doc.text(`Memory ${index + 1} - ${memoryDate}`, 25, currentY);
           currentY += 6;
 
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
           const summaryText = doc.splitTextToSize(memory.summary, 160);
           doc.text(summaryText, 30, currentY);
           currentY += summaryText.length * 7 + 4;
@@ -702,12 +704,12 @@ export const exportComprehensivePDFForUser = async (
     }
 
     doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('Important Medical Disclaimer', 20, currentY);
     currentY += 10;
 
     doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
     const disclaimer = `This report is generated by AI and is intended for informational purposes only. It should not replace professional medical advice, diagnosis, or treatment. The AI analysis is based on patient-reported information and may not reflect the complete clinical picture. Please use this information as a supplementary tool in your clinical assessment and always rely on your professional judgment and additional diagnostic methods as appropriate.
 
 All data in this report was collected through patient interactions with our AI system. The confidence scores and reasoning provided are algorithmic assessments and should be interpreted within the context of your clinical expertise.
