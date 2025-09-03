@@ -63,7 +63,13 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const [isUploading, setIsUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<{ path: string; signedUrl: string; desc: string } | null>(null);
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, AnalysisResult[]>>({});
+  const [messageCount, setMessageCount] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Analysis configuration
+  const ANALYSIS_INTERVAL = 4; // Trigger analysis every 4 messages
+  const messagesUntilAnalysis = ANALYSIS_INTERVAL - (messageCount % ANALYSIS_INTERVAL);
   
   // Analysis notifications
   const {
@@ -91,6 +97,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     convAtRef.current = currentConversation;
     requestSeqRef.current += 1; // bump sequence to mark previous requests as stale
     setIsTyping(false);
+    setMessageCount(0); // Reset message count for new conversation
   }, [currentConversation]);
 
   // Load diagnoses when conversation or patient changes
@@ -100,6 +107,38 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     } else {
       setDiagnoses([]);
     }
+  }, [currentConversation, selectedUser?.id]);
+
+  // Real-time subscription for diagnosis updates
+  useEffect(() => {
+    if (!currentConversation || !selectedUser?.id) return;
+
+    console.log('[ChatInterface] Setting up real-time subscription for diagnoses:', currentConversation);
+
+    const diagnosisChannel = supabase
+      .channel('diagnosis-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_diagnoses',
+          filter: `conversation_id=eq.${currentConversation}`
+        },
+        (payload) => {
+          console.log('[ChatInterface] Real-time diagnosis update:', payload);
+          // Reload diagnoses when there's a database change
+          setTimeout(() => {
+            loadDiagnosesForConversation();
+          }, 1000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[ChatInterface] Cleaning up diagnosis real-time subscription');
+      supabase.removeChannel(diagnosisChannel);
+    };
   }, [currentConversation, selectedUser?.id]);
 
   const loadDiagnosesForConversation = async () => {
@@ -435,12 +474,20 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
 
+      // Update message count and check if analysis should be triggered
+      const newMessageCount = messageCount + 1;
+      setMessageCount(newMessageCount);
+      
       // Enhanced background analysis with notifications - AFTER AI message is created
-      if (conversationId && selectedUser?.id && user) {
+      // Only run analysis every ANALYSIS_INTERVAL messages
+      const shouldAnalyze = newMessageCount % ANALYSIS_INTERVAL === 0;
+      
+      if (conversationId && selectedUser?.id && user && shouldAnalyze) {
+        setIsAnalyzing(true);
         const recentMessages = [...messages, userMessage, aiMessage].slice(-6);
         const messageId = aiMessage.id;
         
-        console.log('[ChatGPTInterface] Starting analysis for message:', messageId);
+        console.log('[ChatGPTInterface] Starting scheduled analysis for message:', messageId, 'at count:', newMessageCount);
         
         // Initialize analysis state for this message
         setMessageAnalysis(prev => ({
@@ -459,52 +506,55 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
               console.log('[ChatGPTInterface] Diagnosis analysis result:', result);
               setMessageAnalysis(prev => ({
                 ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'diagnosis' ? result : r
-                ) || [result]
+                [messageId]: prev[messageId]?.map(analysis => 
+                  analysis.type === 'diagnosis' ? result : analysis
+                ) || []
               }));
               return result;
             }),
-          
           performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
             .then(result => {
               console.log('[ChatGPTInterface] Solution analysis result:', result);
               setMessageAnalysis(prev => ({
                 ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'solution' ? result : r
-                ) || [result]
+                [messageId]: prev[messageId]?.map(analysis => 
+                  analysis.type === 'solution' ? result : analysis
+                ) || []
               }));
               return result;
             }),
-          
           performMemoryAnalysis(conversationId, selectedUser.id)
             .then(result => {
               console.log('[ChatGPTInterface] Memory analysis result:', result);
               setMessageAnalysis(prev => ({
                 ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'memory' ? result : r
-                ) || [result]
+                [messageId]: prev[messageId]?.map(analysis => 
+                  analysis.type === 'memory' ? result : analysis
+                ) || []
               }));
               return result;
             })
         ]).then(results => {
-          console.log('[ChatGPTInterface] All analyses complete for message:', messageId, results);
-          // Auto-clear after 10 seconds
+          console.log('[ChatGPTInterface] All analyses completed for message:', messageId, results);
+          setIsAnalyzing(false);
+          // Reload diagnoses after all analysis completes to sync with sidebar
           setTimeout(() => {
-            setMessageAnalysis(prev => {
-              const newState = { ...prev };
-              delete newState[messageId];
-              return newState;
-            });
-          }, 10000);
+            loadDiagnosesForConversation();
+          }, 1500);
         }).catch(error => {
           console.error('[ChatGPTInterface] Analysis error:', error);
+          setIsAnalyzing(false);
+          setMessageAnalysis(prev => ({
+            ...prev,
+            [messageId]: prev[messageId]?.map(analysis => ({
+              ...analysis,
+              status: 'error',
+              error: error.message
+            })) || []
+          }));
         });
-        
-        // Also trigger the legacy diagnosis loading for the sidebar
-        loadDiagnosesForConversation();
+      } else if (conversationId && selectedUser?.id && user) {
+        console.log('[ChatGPTInterface] Skipping analysis - next analysis in', ANALYSIS_INTERVAL - (newMessageCount % ANALYSIS_INTERVAL), 'messages');
       }
 
       // Background diagnosis analysis (preserve advanced features)
@@ -580,11 +630,122 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', errorMessage.content);
       }
-    } finally {
-      setIsTyping(false);
     }
+  };
 
-    // Analysis already done when user sent message - no need to repeat
+  const handleManualAnalysis = async () => {
+    if (!currentConversation || !selectedUser?.id || !user || isAnalyzing) return;
+
+    setIsAnalyzing(true);
+    const recentMessages = messages.slice(-6);
+    const analysisId = `manual-${Date.now()}`;
+    
+    console.log('[ChatGPTInterface] Starting manual analysis:', analysisId);
+    
+    // Initialize analysis state
+    setMessageAnalysis(prev => ({
+      ...prev,
+      [analysisId]: [
+        { type: 'diagnosis', status: 'loading' },
+        { type: 'solution', status: 'loading' },
+        { type: 'memory', status: 'loading' }
+      ]
+    }));
+    
+    // Run all analyses in parallel
+    Promise.allSettled([
+      performDiagnosisAnalysis(currentConversation, selectedUser.id, recentMessages)
+        .then(result => {
+          setMessageAnalysis(prev => ({
+            ...prev,
+            [analysisId]: prev[analysisId]?.map(analysis => 
+              analysis.type === 'diagnosis' ? result : analysis
+            ) || []
+          }));
+          return result;
+        }),
+      performSolutionAnalysis(currentConversation, selectedUser.id, recentMessages)
+        .then(result => {
+          setMessageAnalysis(prev => ({
+            ...prev,
+            [analysisId]: prev[analysisId]?.map(analysis => 
+              analysis.type === 'solution' ? result : analysis
+            ) || []
+          }));
+          return result;
+        }),
+      performMemoryAnalysis(currentConversation, selectedUser.id)
+        .then(result => {
+          setMessageAnalysis(prev => ({
+            ...prev,
+            [analysisId]: prev[analysisId]?.map(analysis => 
+              analysis.type === 'memory' ? result : analysis
+            ) || []
+          }));
+          return result;
+        })
+    ]).then(results => {
+      console.log('[ChatGPTInterface] Manual analysis completed:', analysisId, results);
+      setIsAnalyzing(false);
+      // Reset message count after manual analysis
+      setMessageCount(0);
+      // Reload diagnoses after analysis completes
+      setTimeout(() => {
+        loadDiagnosesForConversation();
+      }, 1500);
+      
+      toast({
+        title: "Analysis Complete",
+        description: "Health insights have been updated based on your conversation.",
+      });
+      
+      // Auto-clear after a delay
+      setTimeout(() => {
+        setMessageAnalysis(prev => {
+          const updated = { ...prev };
+          delete updated[analysisId];
+          return updated;
+        });
+      }, 15000);
+    }).catch(error => {
+      console.error('[ChatGPTInterface] Manual analysis error:', error);
+      setIsAnalyzing(false);
+      setMessageAnalysis(prev => ({
+        ...prev,
+        [analysisId]: prev[analysisId]?.map(analysis => ({
+          ...analysis,
+          status: 'error',
+          error: error.message
+        })) || []
+      }));
+      
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze conversation. Please try again.",
+        variant: "destructive"
+      });
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!user || !selectedUser?.id) {
+      toast({
+        title: "Select a patient",
+        description: "Please select a patient before uploading an image.",
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    const result = await uploadImageToHealthRecords(file);
+    if (result?.path && result?.signedUrl) {
+      const aiDesc = await describeImageWithAI(result.signedUrl);
+      setPendingAttachment({ path: result.path, signedUrl: result.signedUrl, desc: aiDesc });
+      toast({ title: "Image ready to send", description: aiDesc });
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -698,27 +859,50 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                       )}
                     </div>
                     
-                    {/* Show analysis notifications after AI messages */}
-                    {message.type === 'ai' && messageAnalysis[message.id] && (
-                      <div className="flex justify-start">
-                        <div className="w-8"></div> {/* Spacer to align with message */}
-                        <div className="max-w-[85%]">
-                          <ChatAnalysisNotification
-                            results={messageAnalysis[message.id]}
-                            onResultsProcessed={() => {
-                              setMessageAnalysis(prev => {
-                                const newState = { ...prev };
-                                delete newState[message.id];
-                                return newState;
-                              });
-                            }}
-                            className="mt-2"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                     {/* Show analysis notifications after AI messages */}
+                     {message.type === 'ai' && messageAnalysis[message.id] && (
+                       <div className="flex justify-start">
+                         <div className="w-8"></div> {/* Spacer to align with message */}
+                         <div className="max-w-[85%]">
+                           <ChatAnalysisNotification
+                             results={messageAnalysis[message.id]}
+                             onResultsProcessed={() => {
+                               setMessageAnalysis(prev => {
+                                 const newState = { ...prev };
+                                 delete newState[message.id];
+                                 return newState;
+                               });
+                             }}
+                             className="mt-2"
+                           />
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                 ))}
+
+                 {/* Manual analysis results - show separately */}
+                 {Object.entries(messageAnalysis).map(([id, results]) => {
+                   if (!id.startsWith('manual-')) return null;
+                   return (
+                     <div key={id} className="flex justify-start">
+                       <div className="w-8"></div> {/* Spacer to align with messages */}
+                       <div className="max-w-[85%]">
+                         <ChatAnalysisNotification
+                           results={results}
+                           onResultsProcessed={() => {
+                             setMessageAnalysis(prev => {
+                               const newState = { ...prev };
+                               delete newState[id];
+                               return newState;
+                             });
+                           }}
+                           className="mt-2"
+                         />
+                       </div>
+                     </div>
+                   );
+                 })}
 
                 {/* Typing Indicator */}
                 {isTyping && (
@@ -744,6 +928,40 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
           <div className="max-w-4xl mx-auto p-4">
+            {/* Analysis progress indicator */}
+            {selectedUser && currentConversation && (
+              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
+                <div className="flex items-center gap-2">
+                  {isAnalyzing ? (
+                    <>
+                      <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full"></div>
+                      <span>Analyzing conversation...</span>
+                    </>
+                  ) : messagesUntilAnalysis === ANALYSIS_INTERVAL ? (
+                    <span>⚡ Next analysis: now</span>
+                  ) : (
+                    <span>🔍 Next analysis in {messagesUntilAnalysis} message{messagesUntilAnalysis !== 1 ? 's' : ''}</span>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualAnalysis}
+                  disabled={isAnalyzing || !selectedUser || !currentConversation}
+                  className="h-6 px-2 text-xs"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full mr-1"></div>
+                      Analyzing...
+                    </>
+                  ) : (
+                    'Analyze Now'
+                  )}
+                </Button>
+              </div>
+            )}
+            
             {pendingAttachment && (
               <div className="mb-3 flex items-center gap-3 border border-border rounded-xl p-2 bg-muted/30">
                 <div className="relative">
@@ -773,7 +991,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleFileChange}
+                onChange={handleImageUpload}
                 className="hidden"
               />
 

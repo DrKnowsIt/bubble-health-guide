@@ -53,6 +53,38 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
     }
   }, [user, patientId]); // Removed diagnoses dependency to prevent constant updates
 
+  // Real-time subscription for diagnosis updates
+  useEffect(() => {
+    if (!conversationId || !patientId) return;
+
+    console.log('[HealthInsightsPanel] Setting up real-time subscription for conversation:', conversationId);
+
+    // Set up real-time subscription for diagnoses
+    const diagnosisChannel = supabase
+      .channel('diagnosis-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_diagnoses',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          console.log('[HealthInsightsPanel] Real-time diagnosis update:', payload);
+          // The parent component should handle reloading diagnoses
+          // This component receives diagnoses as props, so we just need to notify
+          // For now, we don't need to do anything here as the parent handles the real-time updates
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[HealthInsightsPanel] Cleaning up real-time subscription');
+      supabase.removeChannel(diagnosisChannel);
+    };
+  }, [conversationId, patientId]);
+
   const loadExistingFeedback = async () => {
     try {
       const { data, error } = await supabase
