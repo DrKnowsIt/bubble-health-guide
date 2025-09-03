@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Clock, Layers, RefreshCw } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useHealthTopics } from '@/hooks/useHealthTopics';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface HealthTopicsPanelProps {
   conversationId?: string;
@@ -31,6 +32,10 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
   mode = 'basic'
 }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const { subscription_tier } = useSubscription();
+  
+  // Determine actual mode based on subscription
+  const actualMode = subscription_tier || 'free';
 
   const {
     topics,
@@ -52,16 +57,37 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
     minContextLength: conversationType === 'easy_chat' ? 10 : 20
   });
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.7) return 'text-emerald-400 bg-emerald-950/30 border-emerald-800/50';
-    if (confidence >= 0.4) return 'text-amber-400 bg-amber-950/30 border-amber-800/50';
-    return 'text-red-400 bg-red-950/30 border-red-800/50';
+  const getConfidenceColor = (confidence: number, tier: string = actualMode) => {
+    // Tier-aware confidence styling
+    if (tier === 'pro') {
+      if (confidence >= 0.7) return 'text-emerald-400 bg-emerald-950/30 border-emerald-800/50 font-semibold';
+      if (confidence >= 0.5) return 'text-amber-400 bg-amber-950/30 border-amber-800/50 font-medium';
+      return 'text-orange-400 bg-orange-950/30 border-orange-800/50';
+    } else if (tier === 'basic') {
+      if (confidence >= 0.5) return 'text-blue-400 bg-blue-950/30 border-blue-800/50 font-medium';
+      if (confidence >= 0.3) return 'text-cyan-400 bg-cyan-950/30 border-cyan-800/50';
+      return 'text-slate-400 bg-slate-950/30 border-slate-800/50';
+    } else { // free
+      if (confidence >= 0.3) return 'text-purple-400 bg-purple-950/30 border-purple-800/50';
+      if (confidence >= 0.2) return 'text-indigo-400 bg-indigo-950/30 border-indigo-800/50';
+      return 'text-gray-400 bg-gray-950/30 border-gray-800/50';
+    }
   };
 
-  const getConfidenceLevel = (confidence: number): string => {
-    if (confidence >= 0.7) return "High";
-    if (confidence >= 0.4) return "Moderate";
-    return "Low";
+  const getConfidenceLevel = (confidence: number, tier: string = actualMode): string => {
+    if (tier === 'pro') {
+      if (confidence >= 0.7) return "High Confidence";
+      if (confidence >= 0.5) return "Moderate";
+      return "Exploratory";
+    } else if (tier === 'basic') {
+      if (confidence >= 0.5) return "Moderate";
+      if (confidence >= 0.3) return "Worth Exploring";
+      return "Low";
+    } else { // free
+      if (confidence >= 0.3) return "Worth Discussing";
+      if (confidence >= 0.2) return "Consider";
+      return "Preliminary";
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -96,11 +122,20 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
   };
 
   const getModeLabel = () => {
-    switch (mode) {
-      case 'free': return 'AI Free Mode';
-      case 'basic': return 'Basic';
-      case 'pro': return 'Pro';
+    switch (actualMode) {
+      case 'free': return 'Free Mode';
+      case 'basic': return 'Basic Analysis';
+      case 'pro': return 'Pro Analysis';
       default: return 'Health Topics';
+    }
+  };
+
+  const getConfidenceMessage = () => {
+    switch (actualMode) {
+      case 'free': return 'Based on limited information (10-40% confidence range)';
+      case 'basic': return 'With basic patient data (20-60% confidence range)';
+      case 'pro': return 'With comprehensive analysis (30-80% confidence range)';
+      default: return 'AI-generated health insights';
     }
   };
 
@@ -143,7 +178,7 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
               </div>
             </CardTitle>
             <p className="text-sm text-muted-foreground text-left">
-              {patientName} • {conversationType === 'easy_chat' ? 'Guided conversation topics' : 'Chat analysis topics'}
+              {patientName} • {getConfidenceMessage()}
             </p>
           </CardHeader>
         </CollapsibleTrigger>
@@ -199,55 +234,70 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                       </div>
                     )}
 
-                    {topics.map((topic, index) => (
-                      <div key={index} className="border border-border rounded-lg p-4 space-y-3 bg-card/50 hover:bg-card/80 transition-colors">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3 min-w-0 flex-1">
-                            <div className="flex-shrink-0 mt-0.5">
-                              {getCategoryIcon(topic.category)}
+                    {topics.map((topic, index) => {
+                      const confidenceSize = topic.confidence >= 0.6 ? 'p-5' : topic.confidence >= 0.4 ? 'p-4' : 'p-3';
+                      const titleSize = topic.confidence >= 0.6 ? 'text-base font-semibold' : topic.confidence >= 0.4 ? 'text-sm font-medium' : 'text-sm';
+                      
+                      return (
+                        <div key={index} className={`border border-border rounded-lg ${confidenceSize} space-y-3 bg-card/50 hover:bg-card/80 transition-all duration-200 ${topic.confidence >= 0.6 ? 'ring-1 ring-primary/20' : ''}`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <div className="flex-shrink-0 mt-0.5">
+                                {getCategoryIcon(topic.category)}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className={`leading-tight text-foreground ${titleSize}`}>
+                                    {topic.topic.length > 80 ? `${topic.topic.substring(0, 80)}...` : topic.topic}
+                                  </h4>
+                                  {topic.confidence >= 0.6 && (
+                                    <Badge variant="default" className="text-xs bg-primary/20 text-primary border-primary/30">
+                                      Priority
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                                  {topic.reasoning.length > 150 ? `${topic.reasoning.substring(0, 150)}...` : topic.reasoning}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-medium text-sm leading-tight text-foreground mb-2">
-                                {topic.topic}
-                              </h4>
-                              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                                {topic.reasoning}
-                              </p>
+                            <div className="flex-shrink-0 text-right">
+                              <div className="text-xs font-medium mb-1 text-muted-foreground">
+                                {getConfidenceLevel(topic.confidence, actualMode)}
+                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs px-2 py-1 ${getConfidenceColor(topic.confidence, actualMode)}`}
+                              >
+                                {Math.round(topic.confidence * 100)}%
+                              </Badge>
                             </div>
                           </div>
-                          <div className="flex-shrink-0">
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs px-2 py-1 font-medium ${getConfidenceColor(topic.confidence)}`}
-                            >
-                              {Math.round(topic.confidence * 100)}%
-                            </Badge>
+                          
+                          <div className="flex items-center gap-3 pt-3 border-t border-border/50">
+                            <span className="text-xs text-muted-foreground">Was this helpful?</span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant={feedback[topic.topic] === 'positive' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleTopicFeedback(topic.topic, 'positive')}
+                                className="h-7 px-2"
+                              >
+                                <ThumbsUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant={feedback[topic.topic] === 'negative' ? 'destructive' : 'outline'}
+                                size="sm"
+                                onClick={() => handleTopicFeedback(topic.topic, 'negative')}
+                                className="h-7 px-2"
+                              >
+                                <ThumbsDown className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-                          <span className="text-xs text-muted-foreground">Was this helpful?</span>
-                          <div className="flex gap-1">
-                            <Button
-                              variant={feedback[topic.topic] === 'positive' ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => handleTopicFeedback(topic.topic, 'positive')}
-                              className="h-7 px-2"
-                            >
-                              <ThumbsUp className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant={feedback[topic.topic] === 'negative' ? 'destructive' : 'outline'}
-                              size="sm"
-                              onClick={() => handleTopicFeedback(topic.topic, 'negative')}
-                              className="h-7 px-2"
-                            >
-                              <ThumbsDown className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Medical Disclaimer */}
                     {topics.length > 0 && (
@@ -258,8 +308,12 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                             <span className="font-medium">Important Disclaimer</span>
                           </div>
                           <p className="text-xs text-muted-foreground leading-relaxed">
-                            These AI-generated health topics are for discussion purposes only and should not replace professional medical advice. 
-                            Always consult with qualified healthcare providers for proper diagnosis and treatment.
+                            {actualMode === 'free' 
+                              ? 'These preliminary AI insights (10-40% confidence) are for initial discussion only. Upgrade for more confident analysis or consult healthcare providers.'
+                              : actualMode === 'basic'
+                              ? 'These AI-generated topics (20-60% confidence) are for discussion purposes. Always consult qualified healthcare providers for diagnosis and treatment.'
+                              : 'These comprehensive AI insights (30-80% confidence) support informed discussions with healthcare providers. Always seek professional medical advice for diagnosis and treatment.'
+                            }
                           </p>
                         </div>
                       </div>
@@ -288,9 +342,15 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                           <p className="text-xs text-muted-foreground">
                             Continue your conversation to receive personalized wellness suggestions
                           </p>
-                          {mode === 'free' && (
-                            <div className="text-xs mt-2 bg-muted/30 rounded p-2">
-                              💡 Limited solutions in Free Mode - upgrade for comprehensive holistic recommendations
+                          {actualMode === 'free' && (
+                            <div className="text-xs mt-3 bg-gradient-to-r from-purple-950/20 to-indigo-950/20 border border-purple-800/30 rounded-lg p-3 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-purple-400">✨</span>
+                                <span className="font-medium text-purple-200">Limited Solutions in Free Mode</span>
+                              </div>
+                              <p className="text-xs text-purple-300">
+                                Get more confident holistic recommendations with Basic or Pro plans
+                              </p>
                             </div>
                           )}
                         </div>
@@ -321,13 +381,16 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                               </div>
                             </div>
                             <div className="flex-shrink-0 text-right">
-                              <div className="text-xs font-medium mb-1">
-                                {getConfidenceLevel(solution.confidence)}
+                              <div className="text-xs font-medium mb-1 text-muted-foreground">
+                                {getConfidenceLevel(solution.confidence, actualMode)}
                               </div>
                               <Progress 
                                 value={solution.confidence * 100} 
                                 className="w-20 h-2"
                               />
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {Math.round(solution.confidence * 100)}%
+                              </div>
                             </div>
                           </div>
                           
@@ -361,11 +424,15 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                           <div className="bg-muted/30 rounded-lg p-4 space-y-2">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Target className="h-3 w-3" />
-                              <span className="font-medium">Holistic Wellness Suggestions</span>
+                              <span className="font-medium">Wellness Guidance</span>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                              These are holistic wellness suggestions based on your conversation. 
-                              They are not medical advice. Always consult healthcare professionals for medical concerns.
+                              {actualMode === 'free' 
+                                ? 'These preliminary wellness suggestions (10-40% confidence) are general recommendations. Upgrade for personalized holistic solutions.'
+                                : actualMode === 'basic'  
+                                ? 'These holistic solutions (20-60% confidence) are lifestyle suggestions only. Consult healthcare providers for medical concerns.'
+                                : 'These comprehensive wellness recommendations (30-80% confidence) support holistic health approaches. Always seek professional guidance for medical conditions.'
+                              }
                             </p>
                           </div>
                         </div>

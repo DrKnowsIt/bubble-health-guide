@@ -282,24 +282,38 @@ Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solution
       );
     }
 
-    // Validate and clean data
+    // Confidence validation per tier
+    const getConfidenceRange = (tier: string) => {
+      switch (tier) {
+        case 'free': return { min: 0.1, max: 0.4 };
+        case 'basic': return { min: 0.2, max: 0.6 };
+        case 'pro': return { min: 0.3, max: 0.8 };
+        default: return { min: 0.1, max: 0.4 };
+      }
+    };
+
+    const confidenceRange = getConfidenceRange(user_tier);
+
+    // Validate and clean data with tier-specific confidence ranges
     const topics = (analysisData.topics || [])
-      .filter((t: any) => t.topic && t.confidence >= 0.1)
+      .filter((t: any) => t.topic && t.confidence >= 0.05)
       .map((t: any) => ({
         topic: t.topic,
-        confidence: Math.min(Math.max(t.confidence, 0.1), 0.9),
+        confidence: Math.min(Math.max(t.confidence, confidenceRange.min), confidenceRange.max),
         reasoning: t.reasoning || 'No reasoning provided',
         category: t.category || 'other'
-      }));
+      }))
+      .sort((a: any, b: any) => b.confidence - a.confidence); // Sort by confidence DESC
 
     const solutions = include_solutions ? (analysisData.solutions || [])
-      .filter((s: any) => s.solution && s.confidence >= 0.1)
+      .filter((s: any) => s.solution && s.confidence >= 0.05)
       .map((s: any) => ({
         solution: s.solution,
-        confidence: Math.min(Math.max(s.confidence, 0.1), 0.9),
+        confidence: Math.min(Math.max(s.confidence, confidenceRange.min), confidenceRange.max),
         reasoning: s.reasoning || 'No reasoning provided',
         category: s.category || 'lifestyle'
-      })) : [];
+      }))
+      .sort((a: any, b: any) => b.confidence - a.confidence) : []; // Sort by confidence DESC
 
     // Store results in database if conversation_id provided
     if (conversation_id && topics.length > 0) {

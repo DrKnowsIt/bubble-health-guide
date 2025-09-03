@@ -183,9 +183,13 @@ export const useHealthTopics = ({
       if (data?.topics) {
         console.log(`Generated ${data.topics.length} topics${data.solutions ? ` and ${data.solutions.length} solutions` : ''}`);
         
-        setTopics(data.topics);
+        // Ensure topics are sorted by confidence (should already be from backend)
+        const sortedTopics = [...data.topics].sort((a, b) => b.confidence - a.confidence);
+        setTopics(sortedTopics);
+        
         if (includeSolutions && data.solutions) {
-          setSolutions(data.solutions);
+          const sortedSolutions = [...data.solutions].sort((a, b) => b.confidence - a.confidence);
+          setSolutions(sortedSolutions);
         }
         setLastAnalyzedHash(contentHash);
       }
@@ -227,9 +231,11 @@ export const useHealthTopics = ({
           topic: t.diagnosis,
           confidence: t.confidence,
           reasoning: t.reasoning,
-          category: 'other', // Default category since DB doesn't have this field yet
+          category: 'other', // Default category - database doesn't have this field yet
           updated_at: t.updated_at
-        }));
+        }))
+        .sort((a, b) => b.confidence - a.confidence); // Ensure confidence-based sorting
+        
         setTopics(formattedTopics);
       }
 
@@ -242,7 +248,8 @@ export const useHealthTopics = ({
           .order('confidence', { ascending: false });
 
         if (existingSolutions && existingSolutions.length > 0) {
-          setSolutions(existingSolutions);
+          const sortedSolutions = existingSolutions.sort((a, b) => b.confidence - a.confidence);
+          setSolutions(sortedSolutions);
         }
       }
     } catch (error) {
