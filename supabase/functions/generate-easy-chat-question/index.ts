@@ -96,6 +96,10 @@ Based on this conversation history, what should the next logical question be? Ge
 
     console.log('Making OpenAI API call with model gpt-5-2025-08-07');
     
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -108,9 +112,13 @@ Based on this conversation history, what should the next logical question be? Ge
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 800
+        max_completion_tokens: 1000,
+        stream: false
       }),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     console.log('OpenAI API response status:', response.status);
 
@@ -125,8 +133,16 @@ Based on this conversation history, what should the next logical question be? Ge
     
     const content = data.choices?.[0]?.message?.content;
 
-    if (!content) {
+    if (!content || content.trim() === '') {
       console.error('No content in OpenAI response. Full data:', JSON.stringify(data, null, 2));
+      console.error('Finish reason:', data.choices?.[0]?.finish_reason);
+      
+      // Check if it's a length issue
+      if (data.choices?.[0]?.finish_reason === 'length') {
+        console.error('Response was truncated due to length limit');
+        throw new Error('Response truncated - increasing token limit and retrying');
+      }
+      
       throw new Error('No content received from OpenAI');
     }
     
