@@ -189,7 +189,7 @@ export const exportComprehensivePDFForUser = async (
 
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        const diagnosisTitle = doc.splitTextToSize(`${index + 1}. ${diagnosis.diagnosis}`, 160);
+        const diagnosisTitle = doc.splitTextToSize(`${index + 1}. ${sanitizeText(diagnosis.diagnosis)}`, 160);
         doc.text(diagnosisTitle, 25, currentY);
         currentY += diagnosisTitle.length * 7 + 2;
 
@@ -390,7 +390,7 @@ export const exportComprehensivePDFForUser = async (
 
           doc.setFontSize(11);
           doc.setFont('helvetica', 'bold');
-          const findingTitle = doc.splitTextToSize(`${index + 1}. ${finding.finding}`, 155);
+          const findingTitle = doc.splitTextToSize(`${index + 1}. ${sanitizeText(finding.finding)}`, 155);
           doc.text(findingTitle, 30, currentY);
           currentY += findingTitle.length * 7 + 2;
 
