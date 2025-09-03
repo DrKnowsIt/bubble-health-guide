@@ -84,12 +84,15 @@ const INTENT_PATTERNS = {
   ]
 };
 
-// Exclusion patterns that should NOT trigger images
-const EXCLUSION_PATTERNS = [
-  /i had/i, /was treated for/i, /my doctor said/i, /diagnosed with/i,
-  /my friend/i, /my family/i, /someone i know/i, /people with/i,
-  /in general/i, /usually/i, /typically/i, /normally/i
-];
+  // Exclusion patterns that should NOT trigger images
+  const EXCLUSION_PATTERNS = [
+    /i had/i, /was treated for/i, /my doctor said/i, /diagnosed with/i,
+    /my friend/i, /my family/i, /someone i know/i, /people with/i,
+    /in general/i, /usually/i, /typically/i, /normally/i,
+    // Add vague mentions that shouldn't trigger
+    /tiny crosses/i, /little marks/i, /small spots/i, /some marks/i,
+    /few dots/i, /couple of/i, /just some/i
+  ];
 
 export const useMedicalImagePrompts = () => {
   const { user } = useAuth();
@@ -193,8 +196,8 @@ export const useMedicalImagePrompts = () => {
       }
     }
     
-    // Calculate overall confidence
-    const baseConfidence = termCount * 0.2;
+    // Calculate overall confidence with tighter thresholds
+    const baseConfidence = termCount * 0.1; // Reduced from 0.2 to 0.1
     const totalConfidence = Math.min(baseConfidence + intentConfidence, 1.0);
     
     // Enhanced trigger logic with higher thresholds for precision
@@ -205,26 +208,40 @@ export const useMedicalImagePrompts = () => {
       MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term)
     );
     
+    // Check for specific medical conditions (high priority terms)
+    const hasSpecificCondition = detectedTerms.some(term => 
+      MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term) ||
+      MEDICAL_TERMS_CATEGORIES.wounds_injuries.includes(term) ||
+      MEDICAL_TERMS_CATEGORIES.infections.includes(term) ||
+      MEDICAL_TERMS_CATEGORIES.growths_lesions.includes(term)
+    );
+    
     // Only generic body parts require very high confidence
     const hasOnlyBodyParts = detectedTerms.every(term => 
       MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
     ) && !hasBodyPartAndSymptom;
     
+    // Require minimum context for triggering
+    const hasMinimumContext = detectedTerms.length >= 2 || hasSpecificCondition;
+    
     const shouldTrigger = (
-      // High confidence intent-based triggers
-      (totalConfidence > 0.4 && (
-        detectedIntent === 'symptom_description' ||
-        detectedIntent === 'educational_query' ||
-        detectedIntent === 'diagnostic_understanding' ||
-        detectedIntent === 'comparison_request' ||
-        detectedIntent === 'uncertainty_indicators'
-      )) ||
-      // Simple medical queries with medium confidence
-      (isSimpleMedicalQuery && totalConfidence > 0.3 && !hasOnlyBodyParts) ||
-      // Body part + symptom combinations with medium confidence  
-      (hasBodyPartAndSymptom && totalConfidence > 0.3) ||
-      // Only body parts require very high confidence
-      (hasOnlyBodyParts && totalConfidence > 0.7)
+      // Require minimum context first
+      hasMinimumContext && (
+        // High confidence intent-based triggers with specific conditions
+        (totalConfidence > 0.5 && hasSpecificCondition && (
+          detectedIntent === 'symptom_description' ||
+          detectedIntent === 'educational_query' ||
+          detectedIntent === 'diagnostic_understanding' ||
+          detectedIntent === 'comparison_request' ||
+          detectedIntent === 'uncertainty_indicators'
+        )) ||
+        // Body part + symptom combinations with higher confidence
+        (hasBodyPartAndSymptom && totalConfidence > 0.4) ||
+        // Specific conditions with medium confidence and intent
+        (hasSpecificCondition && totalConfidence > 0.3 && detectedIntent) ||
+        // Only body parts require very high confidence
+        (hasOnlyBodyParts && totalConfidence > 0.8)
+      )
     ) && searchTerm.length > 0;
     
     console.log('📊 Analysis result:', {

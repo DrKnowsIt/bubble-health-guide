@@ -54,15 +54,18 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
                          conversationPath.length !== lastAnalyzedCount && 
                          conversationPath.length >= 1; // Analyze after 1+ responses for better responsiveness
 
-    console.log('Topic generation check (fallback):', { 
+    console.log('📊 Topic generation check (fallback):', { 
       pathLength: conversationPath.length, 
       lastAnalyzed: lastAnalyzedCount, 
       shouldAnalyze, 
       sessionId,
-      hasProvidedTopics: healthTopics && healthTopics.length >= 4
+      hasProvidedTopics: healthTopics && healthTopics.length >= 4,
+      currentTopicsCount: topics.length,
+      highConfidenceTopics: topics.filter(t => t.confidence >= 0.7).length
     });
 
     if (shouldAnalyze && sessionId) {
+      console.log('🚀 Triggering topic generation...');
       generateTopics();
     }
   }, [conversationPath.length, sessionId, lastAnalyzedCount, healthTopics]);
@@ -108,7 +111,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
         return;
       }
 
-      console.log('Response from analyze-easy-chat-topics:', data);
+      console.log('📋 Response from analyze-easy-chat-topics:', data);
 
       if (data?.diagnoses || data?.topics) {
         const topicsData = data.diagnoses || data.topics;
@@ -121,11 +124,20 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
             category: item.category || 'other'
           }));
 
+        console.log('✅ Generated topics analysis:', {
+          totalTopics: generatedTopics.length,
+          highConfidenceCount: generatedTopics.filter(t => t.confidence >= 0.7).length,
+          mediumConfidenceCount: generatedTopics.filter(t => t.confidence >= 0.4 && t.confidence < 0.7).length,
+          lowConfidenceCount: generatedTopics.filter(t => t.confidence < 0.4).length,
+          categories: generatedTopics.map(t => t.category),
+          topics: generatedTopics.map(t => ({ topic: t.topic, confidence: t.confidence }))
+        });
+
         setTopics(generatedTopics); // Show all topics returned from server (always 4)
         setLastAnalyzedCount(conversationPath.length);
-        console.log('Generated topics (no filtering):', generatedTopics);
+        console.log('📊 Generated topics with debug info:', generatedTopics);
       } else {
-        console.log('No topics data in response');
+        console.log('❌ No topics data in response - raw response:', data);
       }
     } catch (error) {
       console.error('Error in topic generation:', error);
