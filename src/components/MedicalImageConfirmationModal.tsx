@@ -37,6 +37,56 @@ export const MedicalImageConfirmationModal = ({
   const [selectedImage, setSelectedImage] = useState<MedicalImage | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
+  // Generate medical names based on search terms and image data
+  const getMedicalName = (image: MedicalImage, index: number) => {
+    const searchLower = searchTerm.toLowerCase();
+    const titleLower = image.title.toLowerCase();
+    const descLower = image.description.toLowerCase();
+    
+    // Map search terms to proper medical names
+    if (searchLower.includes('bed bug') || searchLower.includes('bite') || titleLower.includes('bite')) {
+      return `Arthropod Bite Reaction #${index + 1}`;
+    }
+    if (searchLower.includes('dermatitis') || titleLower.includes('dermatitis')) {
+      return `Contact Dermatitis #${index + 1}`;
+    }
+    if (searchLower.includes('eczema') || titleLower.includes('eczema')) {
+      return `Atopic Dermatitis #${index + 1}`;
+    }
+    if (searchLower.includes('melanoma') || titleLower.includes('melanoma')) {
+      return `Malignant Melanoma #${index + 1}`;
+    }
+    if (searchLower.includes('nevus') || titleLower.includes('nevus') || searchLower.includes('mole')) {
+      return `Melanocytic Nevus #${index + 1}`;
+    }
+    if (searchLower.includes('psoriasis') || titleLower.includes('psoriasis')) {
+      return `Psoriasis Vulgaris #${index + 1}`;
+    }
+    if (searchLower.includes('acne') || titleLower.includes('acne')) {
+      return `Acne Vulgaris #${index + 1}`;
+    }
+    if (searchLower.includes('urticaria') || searchLower.includes('hives')) {
+      return `Urticaria (Hives) #${index + 1}`;
+    }
+    if (searchLower.includes('rash') || searchLower.includes('inflammatory')) {
+      return `Inflammatory Dermatosis #${index + 1}`;
+    }
+    if (searchLower.includes('larva migrans') || searchLower.includes('track')) {
+      return `Cutaneous Larva Migrans #${index + 1}`;
+    }
+    
+    // Fallback based on diagnosis in description
+    if (descLower.includes('diagnosis:')) {
+      const diagnosisMatch = descLower.match(/diagnosis:\s*([^,]+)/);
+      if (diagnosisMatch) {
+        return `${diagnosisMatch[1].trim()} #${index + 1}`;
+      }
+    }
+    
+    // Final fallback
+    return `Clinical Case #${index + 1}`;
+  };
+
   // Get context-aware button labels and modal content
   const getModalContent = () => {
     switch (intent) {
@@ -153,20 +203,7 @@ export const MedicalImageConfirmationModal = ({
                             {image.title}
                           </h4>
                           <Badge variant="outline" className="text-xs font-medium">
-                            {image.title.includes('bite') || image.title.includes('Bite') ? 
-                              'Arthropod Bite Reaction' : 
-                              image.title.includes('dermatitis') || image.title.includes('Dermatitis') ?
-                              'Contact Dermatitis' :
-                              image.title.includes('eczema') || image.title.includes('Eczema') ?
-                              'Atopic Dermatitis' :
-                              image.title.includes('rash') || image.title.includes('Rash') ?
-                              'Inflammatory Dermatosis' :
-                              image.title.includes('melanoma') || image.title.includes('Melanoma') ?
-                              'Malignant Melanoma' :
-                              image.title.includes('nevus') || image.title.includes('Nevus') ?
-                              'Melanocytic Nevus' :
-                              'Clinical Manifestation'
-                            }
+                            {getMedicalName(image, images.indexOf(image))}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-3">
