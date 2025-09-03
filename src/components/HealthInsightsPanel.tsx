@@ -5,10 +5,11 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, MessageCircle } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationSolutions } from '@/hooks/useConversationSolutions';
+import { useHealthTopics } from '@/hooks/useHealthTopics';
 
 interface Diagnosis {
   diagnosis: string;
@@ -27,13 +28,15 @@ interface HealthInsightsPanelProps {
   patientName: string;
   patientId: string;
   conversationId?: string;
+  messages?: Array<{ type: 'user' | 'ai'; content: string }>;
 }
 
 const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
   diagnoses, 
   patientName, 
   patientId,
-  conversationId
+  conversationId,
+  messages = []
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
@@ -46,6 +49,19 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
     feedback: solutionsFeedback, 
     handleFeedback: handleSolutionFeedback 
   } = useConversationSolutions(conversationId, patientId);
+
+  // Use health topics hook for conversational topics
+  const {
+    topics: healthTopics,
+    loading: topicsLoading,
+    getConfidenceColor: getTopicConfidenceColor,
+    getCategoryIcon: getTopicCategoryIcon
+  } = useHealthTopics({
+    conversationId,
+    patientId,
+    messages,
+    minMessages: 2
+  });
 
   // Debug logging to track conversation ID mismatch
   useEffect(() => {
@@ -140,6 +156,8 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
 
   const isEmpty = !diagnoses || diagnoses.length === 0;
   const solutionsEmpty = !solutions || solutions.length === 0;
+  const topicsEmpty = !healthTopics || healthTopics.length === 0;
+  const showTopics = !isEmpty || !topicsEmpty;
 
   // Debug logging to help identify the conversation ID mismatch
   console.log('[HealthInsightsPanel] Current state:', {
@@ -212,17 +230,26 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
         <CollapsibleContent>
           <CardContent>
             <Tabs defaultValue="topics" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-auto">
-                <TabsTrigger value="topics" className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap min-w-0">
+              <TabsList className="grid w-full grid-cols-3 h-auto">
+                <TabsTrigger value="topics" className="flex items-center justify-center gap-1.5 px-2 py-2.5 text-sm whitespace-nowrap min-w-0">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Topics</span>
+                  <span className="truncate">Medical</span>
                   {!isEmpty && (
                     <Badge variant="secondary" className="text-xs px-1.5 py-0.5 min-w-0 flex-shrink-0">
                       {diagnoses.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap min-w-0">
+                <TabsTrigger value="discussion" className="flex items-center justify-center gap-1.5 px-2 py-2.5 text-sm whitespace-nowrap min-w-0">
+                  <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Discussion</span>
+                  {!topicsEmpty && (
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 min-w-0 flex-shrink-0">
+                      {healthTopics.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="solutions" className="flex items-center justify-center gap-1.5 px-2 py-2.5 text-sm whitespace-nowrap min-w-0">
                   <Target className="h-4 w-4 flex-shrink-0" />
                   <span className="truncate">Solutions</span>
                   {!solutionsEmpty && (
@@ -237,9 +264,9 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
                 {isEmpty ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <AlertTriangle className="h-8 w-8 mx-auto mb-3 opacity-50" />
-                    <p>No potential health topics identified yet.</p>
+                    <p>No formal medical diagnoses identified yet.</p>
                     <p className="text-sm mt-1">
-                      Continue your conversation for personalized insights.
+                      Medical topics require more detailed symptom discussions.
                     </p>
                   </div>
                 ) : (
@@ -320,6 +347,70 @@ const HealthInsightsPanel: React.FC<HealthInsightsPanelProps> = ({
                   </>
                 )}
               </TabsContent>
+
+              <TabsContent value="discussion" className="mt-6">
+                {topicsLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
+                    <p>Analyzing conversation for health topics...</p>
+                  </div>
+                ) : topicsEmpty ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                    <p>No discussion topics identified yet.</p>
+                    <p className="text-sm mt-1">
+                      Continue your conversation for topic analysis.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      {healthTopics.map((topic, index) => (
+                        <div key={index} className={`p-4 rounded-lg border-2 ${getTopicConfidenceColor(topic.confidence)}`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3 flex-1 mr-4">
+                              <span className="text-2xl">{getTopicCategoryIcon(topic.category)}</span>
+                              <div>
+                                <h3 className="font-semibold text-base leading-tight">
+                                  {topic.topic}
+                                </h3>
+                                <Badge className={`mt-1 text-xs ${topic.category ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                  {topic.category || 'General'}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-sm font-medium mb-1">
+                                {Math.round(topic.confidence * 100)}%
+                              </div>
+                              <Progress 
+                                value={topic.confidence * 100} 
+                                className="w-20 h-3"
+                              />
+                            </div>
+                          </div>
+                         
+                         {topic.reasoning && (
+                           <div className="mb-4">
+                             <p className="text-sm text-muted-foreground leading-relaxed">
+                               {topic.reasoning}
+                             </p>
+                           </div>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                   
+                   <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                     <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                       <MessageCircle className="h-3 w-3 inline mr-1" />
+                       These are conversational health topics identified from your discussion. 
+                       Always consult with a qualified healthcare professional for medical advice.
+                     </p>
+                   </div>
+                 </>
+               )}
+             </TabsContent>
 
               <TabsContent value="solutions" className="mt-6">
                 {solutionsLoading ? (

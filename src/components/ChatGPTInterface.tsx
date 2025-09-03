@@ -1060,6 +1060,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
             patientId={selectedUser?.id || ''}
             conversationId={currentConversation}
+            messages={messages}
           />
         </div>
       </div>
