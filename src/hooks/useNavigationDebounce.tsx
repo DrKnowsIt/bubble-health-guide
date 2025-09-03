@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export const useNavigationDebounce = (delay: number = 300) => {
+export const useNavigationDebounce = (delay: number = 100) => {
   const navigate = useNavigate();
   const location = useLocation();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);

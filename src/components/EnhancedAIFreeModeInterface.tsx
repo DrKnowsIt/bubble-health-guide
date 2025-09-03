@@ -18,8 +18,8 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sessionRecovered, setSessionRecovered] = useState(false);
 
-  // Session persistence
-  const sessionId = `enhanced_${patientId || 'default'}_${Date.now()}`;
+  // Session persistence - use stable session ID that doesn't change on refresh
+  const sessionId = `enhanced_${patientId || 'default'}_aifreechat`;
   const { saveSessionData, loadSessionData, clearSessionData } = useSessionPersistence(sessionId);
 
   const {
