@@ -185,8 +185,9 @@ export const exportComprehensivePDFForUser = async (
 
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
-        doc.text(`${index + 1}. ${diagnosis.diagnosis}`, 25, currentY);
-        currentY += 6;
+        const diagnosisTitle = doc.splitTextToSize(`${index + 1}. ${diagnosis.diagnosis}`, 160);
+        doc.text(diagnosisTitle, 25, currentY);
+        currentY += diagnosisTitle.length * 12 + 6;
 
         doc.setFont(undefined, 'normal');
         if (diagnosis.confidence) {
@@ -385,8 +386,9 @@ export const exportComprehensivePDFForUser = async (
 
           doc.setFontSize(11);
           doc.setFont(undefined, 'bold');
-          doc.text(`${index + 1}. ${finding.finding}`, 30, currentY);
-          currentY += 6;
+          const findingTitle = doc.splitTextToSize(`${index + 1}. ${finding.finding}`, 155);
+          doc.text(findingTitle, 30, currentY);
+          currentY += findingTitle.length * 12 + 6;
 
           doc.setFont(undefined, 'normal');
           doc.text(`Confidence: ${Math.round((finding.confidence || 0) * 100)}%`, 35, currentY);
