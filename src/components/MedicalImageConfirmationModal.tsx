@@ -162,6 +162,17 @@ export const MedicalImageConfirmationModal = ({
                   </CardContent>
                 </Card>
               ))}
+              
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  No, this doesn't help
+                </Button>
+              </div>
             </div>
           ) : (
             // Confirmation view
