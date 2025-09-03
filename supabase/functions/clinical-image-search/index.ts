@@ -163,10 +163,17 @@ async function searchISICImages(searchTerm: string, maxResults: number): Promise
         const imageUrl = item.files?.full?.url || item.files?.thumbnail?.url;
         
         if (imageUrl) {
+          // Try multiple fields to get the actual diagnosis
+          const diagnosis = item.diagnosis || 
+                          item.meta?.clinical?.diagnosis || 
+                          item.meta?.clinical?.benign_malignant ||
+                          item.meta?.acquisition?.image_type ||
+                          searchTerm.replace(/_/g, ' '); // Use the search term as fallback
+          
           images.push({
             id: item.id || Math.random().toString(36).substr(2, 9),
-            title: item.diagnosis || item.meta?.clinical?.diagnosis || 'Clinical Image',
-            description: buildDescription(item),
+            title: diagnosis,
+            description: buildDescription(item, diagnosis),
             imageUrl: imageUrl,
             source: 'ISIC Archive'
           });
@@ -180,11 +187,13 @@ async function searchISICImages(searchTerm: string, maxResults: number): Promise
   return images;
 }
 
-function buildDescription(item: any): string {
+function buildDescription(item: any, diagnosis?: string): string {
   const parts: string[] = [];
   
-  if (item.diagnosis) {
-    parts.push(`Diagnosis: ${item.diagnosis}`);
+  // Add diagnosis if available and different from title
+  const itemDiagnosis = item.diagnosis || item.meta?.clinical?.diagnosis;
+  if (itemDiagnosis && itemDiagnosis !== diagnosis) {
+    parts.push(`Diagnosis: ${itemDiagnosis}`);
   }
   
   if (item.meta?.clinical?.age_approx) {
@@ -199,5 +208,10 @@ function buildDescription(item: any): string {
     parts.push(`Location: ${item.meta.clinical.anatom_site_general}`);
   }
   
-  return parts.length > 0 ? parts.join(', ') : 'Clinical dermatology image from ISIC Archive';
+  // Add more clinical details if available
+  if (item.meta?.clinical?.benign_malignant) {
+    parts.push(`Type: ${item.meta.clinical.benign_malignant}`);
+  }
+  
+  return parts.length > 0 ? parts.join(', ') : `${diagnosis || 'Clinical condition'} - dermatology image from ISIC Archive`;
 }
