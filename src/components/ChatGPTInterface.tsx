@@ -10,10 +10,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUsers } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
+import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { supabase } from "@/integrations/supabase/client";
 import HealthInsightsPanel from "@/components/HealthInsightsPanel";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
+import { MedicalImageConfirmationModal } from "@/components/MedicalImageConfirmationModal";
 import { ToastAction } from "@/components/ui/toast";
 
 interface ChatGPTInterfaceProps {
@@ -77,6 +79,15 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     performSolutionAnalysis,
     performMemoryAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
+
+  // Medical image prompts
+  const { 
+    currentPrompt, 
+    loading: imagePromptLoading, 
+    triggerImagePrompt, 
+    handleImageFeedback, 
+    closeImagePrompt 
+  } = useMedicalImagePrompts();
   
 
   // Stale reply guard
@@ -472,6 +483,13 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       // Save AI message
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
+      }
+
+      // Check for AI image suggestion or trigger based on user message
+      if (data.imageSuggestion) {
+        await triggerImagePrompt(textToSend, data.imageSuggestion);
+      } else {
+        await triggerImagePrompt(textToSend);
       }
 
       // Update message count and check if analysis should be triggered
@@ -1042,6 +1060,20 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           />
         </div>
       </div>
+
+      {/* Medical Image Confirmation Modal */}
+      <MedicalImageConfirmationModal
+        isOpen={currentPrompt?.isVisible || false}
+        onClose={closeImagePrompt}
+        searchTerm={currentPrompt?.searchTerm || ''}
+        images={currentPrompt?.images || []}
+        onFeedback={(imageId, matches, searchTerm) => 
+          handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
+        }
+        loading={imagePromptLoading}
+        intent={currentPrompt?.intent}
+        aiSuggestion={currentPrompt?.aiSuggestion}
+      />
     </div>
   );
 }

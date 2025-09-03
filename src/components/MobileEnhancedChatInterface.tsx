@@ -11,6 +11,7 @@ import { useConversations, Message } from '@/hooks/useConversations';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
+import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import EnhancedHealthInsightsPanel from './EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from './UserDropdown';
@@ -18,6 +19,7 @@ import { UserSelectionGuide } from './UserSelectionGuide';
 import { SubscriptionGate } from './SubscriptionGate';
 import { ChatMessage } from './ChatMessage';
 import { ChatAnalysisNotification } from './ChatAnalysisNotification';
+import { MedicalImageConfirmationModal } from './MedicalImageConfirmationModal';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,6 +76,15 @@ export const MobileEnhancedChatInterface = ({
     performSolutionAnalysis,
     performMemoryAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
+
+  // Medical image prompts
+  const { 
+    currentPrompt, 
+    loading: imagePromptLoading, 
+    triggerImagePrompt, 
+    handleImageFeedback, 
+    closeImagePrompt 
+  } = useMedicalImagePrompts();
 
 
   const {
@@ -209,6 +220,13 @@ export const MobileEnhancedChatInterface = ({
 
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
+
+      // Check for AI image suggestion or trigger based on user message
+      if (data.imageSuggestion) {
+        await triggerImagePrompt(messageContent, data.imageSuggestion);
+      } else {
+        await triggerImagePrompt(messageContent);
+      }
 
       // Call separate diagnosis analysis (background)
       const recentMessages = [...messages, 
@@ -588,6 +606,20 @@ export const MobileEnhancedChatInterface = ({
           )}
         </div>
       </div>
+
+      {/* Medical Image Confirmation Modal */}
+      <MedicalImageConfirmationModal
+        isOpen={currentPrompt?.isVisible || false}
+        onClose={closeImagePrompt}
+        searchTerm={currentPrompt?.searchTerm || ''}
+        images={currentPrompt?.images || []}
+        onFeedback={(imageId, matches, searchTerm) => 
+          handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
+        }
+        loading={imagePromptLoading}
+        intent={currentPrompt?.intent}
+        aiSuggestion={currentPrompt?.aiSuggestion}
+      />
     </SubscriptionGate>
   );
 };
