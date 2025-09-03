@@ -13,33 +13,37 @@ interface ClinicalImage {
   source: string;
 }
 
-// Map common conditions to ISIC search terms
+// Enhanced condition mapping with multiple diverse search terms and rotation
 const CONDITION_MAPPING: Record<string, string[]> = {
-  'bed bug': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'inflammatory reaction'],
-  'bed bugs': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'inflammatory reaction'],
-  'bites': ['arthropod bite reaction', 'insect bite', 'bite reaction'],
-  'bite': ['arthropod bite reaction', 'insect bite', 'bite reaction'],
-  'flea': ['arthropod bite reaction', 'insect bite', 'flea bite'],
-  'mosquito': ['arthropod bite reaction', 'insect bite', 'mosquito bite'],
-  'spider': ['arthropod bite reaction', 'spider bite', 'bite reaction'],
-  'tick': ['arthropod bite reaction', 'tick bite', 'bite reaction'],
-  'rash': ['dermatitis', 'eczema', 'rash', 'inflammatory', 'erythema'],
-  'red bumps': ['dermatitis', 'papule', 'inflammatory reaction', 'erythema'],
-  'bumps': ['papule', 'nodule', 'inflammatory reaction'],
-  'itchy': ['dermatitis', 'eczema', 'pruritic', 'inflammatory'],
-  'acne': ['acne', 'comedone', 'pustule'],
-  'mole': ['nevus', 'mole', 'melanocytic'],
-  'wart': ['wart', 'verruca', 'viral'],
-  'psoriasis': ['psoriasis', 'plaque', 'scaling'],
-  'eczema': ['eczema', 'dermatitis', 'atopic'],
-  'hives': ['urticaria', 'hives', 'wheals'],
-  'burn': ['burn', 'thermal injury', 'scald'],
-  'melanoma': ['melanoma', 'malignant', 'pigmented lesion'],
-  'cancer': ['malignant', 'carcinoma', 'tumor'],
-  'lesion': ['lesion', 'growth', 'neoplasm'],
-  'cutaneous larva migrans': ['larva migrans', 'parasitic', 'track'],
-  'trail': ['larva migrans', 'track', 'linear lesion']
+  'bed bug': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'papular urticaria', 'flea bite', 'bedbug dermatitis'],
+  'bed bugs': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'papular urticaria', 'flea bite', 'bedbug dermatitis'],
+  'bites': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'papular urticaria', 'inflammatory reaction', 'pruritic papule'],
+  'bite': ['arthropod bite reaction', 'insect bite', 'bite reaction', 'papular urticaria', 'inflammatory reaction', 'pruritic papule'],
+  'flea': ['arthropod bite reaction', 'insect bite', 'flea bite', 'papular urticaria', 'pruritic lesion'],
+  'mosquito': ['arthropod bite reaction', 'insect bite', 'mosquito bite', 'papular urticaria', 'wheals'],
+  'spider': ['arthropod bite reaction', 'spider bite', 'bite reaction', 'necrotic arachnidism', 'inflammatory reaction'],
+  'tick': ['arthropod bite reaction', 'tick bite', 'bite reaction', 'erythema migrans', 'inflammatory reaction'],
+  'rash': ['dermatitis', 'eczema', 'rash', 'inflammatory', 'erythema', 'contact dermatitis', 'atopic dermatitis', 'seborrheic dermatitis'],
+  'dermatitis': ['dermatitis', 'contact dermatitis', 'atopic dermatitis', 'seborrheic dermatitis', 'allergic dermatitis', 'eczema', 'inflammatory dermatosis'],
+  'red bumps': ['dermatitis', 'papule', 'inflammatory reaction', 'erythema', 'folliculitis', 'papular lesion'],
+  'bumps': ['papule', 'nodule', 'inflammatory reaction', 'folliculitis', 'keratosis pilaris', 'comedone'],
+  'itchy': ['dermatitis', 'eczema', 'pruritic', 'inflammatory', 'atopic dermatitis', 'urticaria', 'prurigo'],
+  'acne': ['acne', 'comedone', 'pustule', 'acne vulgaris', 'inflammatory acne', 'papulopustular'],
+  'mole': ['nevus', 'mole', 'melanocytic', 'pigmented lesion', 'dysplastic nevus', 'congenital nevus'],
+  'wart': ['wart', 'verruca', 'viral', 'verruca vulgaris', 'plantar wart', 'condyloma'],
+  'psoriasis': ['psoriasis', 'plaque', 'scaling', 'psoriatic lesion', 'chronic dermatitis', 'inflammatory'],
+  'eczema': ['eczema', 'dermatitis', 'atopic', 'atopic dermatitis', 'chronic eczema', 'inflammatory dermatosis'],
+  'hives': ['urticaria', 'hives', 'wheals', 'angioedema', 'allergic reaction', 'pruritic wheals'],
+  'burn': ['burn', 'thermal injury', 'scald', 'chemical burn', 'sunburn', 'erythema'],
+  'melanoma': ['melanoma', 'malignant', 'pigmented lesion', 'malignant melanoma', 'skin cancer', 'atypical nevus'],
+  'cancer': ['malignant', 'carcinoma', 'tumor', 'basal cell carcinoma', 'squamous cell carcinoma', 'skin cancer'],
+  'lesion': ['lesion', 'growth', 'neoplasm', 'benign lesion', 'skin lesion', 'dermatofibroma'],
+  'cutaneous larva migrans': ['larva migrans', 'parasitic', 'track', 'creeping eruption', 'linear lesion'],
+  'trail': ['larva migrans', 'track', 'linear lesion', 'creeping eruption', 'serpiginous track']
 };
+
+// Cache to track used images and ensure rotation
+const IMAGE_CACHE: Record<string, string[]> = {};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -58,53 +62,87 @@ serve(async (req) => {
 
     console.log(`Searching for clinical images: ${searchTerm}`);
 
-    // Map search term to ISIC terminology
+    // Map search term to diverse medical terminology
     const mappedTerms = getMappedSearchTerms(searchTerm.toLowerCase());
     console.log(`📋 Mapped search terms: [${mappedTerms.join(', ')}]`);
 
     const images: ClinicalImage[] = [];
-
-    // Try each mapped term with limited results per term for variety
-    const resultsPerTerm = Math.max(1, Math.floor(maxResults / Math.min(mappedTerms.length, 3)));
+    const cacheKey = searchTerm.toLowerCase();
     
-    for (const term of mappedTerms.slice(0, 3)) { // Try up to 3 different terms
-      try {
-        console.log(`🔄 Trying search term: "${term}" (max ${resultsPerTerm} results)`);
-        const searchResults = await searchISICImages(term, resultsPerTerm);
-        console.log(`✅ Got ${searchResults.length} results for "${term}"`);
+    // Initialize cache for this term if not exists
+    if (!IMAGE_CACHE[cacheKey]) {
+      IMAGE_CACHE[cacheKey] = [];
+    }
+
+    // Try multiple approaches: ISIC API + NIH OpenNLM for variety
+    const allSources = [
+      { type: 'isic', terms: mappedTerms.slice(0, 4) }, // Try 4 different ISIC terms
+      { type: 'nih', terms: [searchTerm, ...mappedTerms.slice(0, 2)] } // Try NIH with original + 2 mapped terms
+    ];
+
+    for (const source of allSources) {
+      for (const term of source.terms) {
+        if (images.length >= maxResults) break;
         
-        // Add variety by limiting results per search term
-        images.push(...searchResults.slice(0, resultsPerTerm));
-        
-        if (images.length >= maxResults) {
-          break;
+        try {
+          console.log(`🔄 Trying ${source.type.toUpperCase()} with term: "${term}"`);
+          
+          let searchResults: ClinicalImage[] = [];
+          if (source.type === 'isic') {
+            searchResults = await searchISICImages(term, 2); // Max 2 per term for variety
+          } else if (source.type === 'nih') {
+            searchResults = await searchNIHImages(term, 2);
+          }
+          
+          // Filter out previously shown images using cache
+          const newImages = searchResults.filter(img => !IMAGE_CACHE[cacheKey].includes(img.imageUrl));
+          
+          console.log(`✅ Got ${searchResults.length} total, ${newImages.length} new results for "${term}"`);
+          images.push(...newImages);
+          
+          // Update cache with new images
+          newImages.forEach(img => IMAGE_CACHE[cacheKey].push(img.imageUrl));
+          
+        } catch (error) {
+          console.error(`❌ Error searching ${source.type.toUpperCase()} for term "${term}":`, error);
+          continue;
         }
-      } catch (error) {
-        console.error(`❌ Error searching for term "${term}":`, error);
-        continue;
       }
     }
 
-    // If no results from ISIC, try a direct search
-    if (images.length === 0) {
+    // If still no results, clear cache and try again (reset rotation)
+    if (images.length === 0 && IMAGE_CACHE[cacheKey].length > 0) {
+      console.log(`🔄 No new images found, clearing cache and retrying...`);
+      IMAGE_CACHE[cacheKey] = [];
+      
       try {
-        console.log(`🎯 Trying direct search for: "${searchTerm}"`);
-        const directResults = await searchISICImages(searchTerm, maxResults);
-        console.log(`✅ Direct search got ${directResults.length} results`);
-        images.push(...directResults);
+        console.log(`🎯 Retry: searching ISIC for: "${searchTerm}"`);
+        const retryResults = await searchISICImages(searchTerm, maxResults);
+        console.log(`✅ Retry got ${retryResults.length} results`);
+        images.push(...retryResults);
       } catch (error) {
-        console.error('❌ Direct search also failed:', error);
+        console.error('❌ Retry search also failed:', error);
       }
     }
 
-    console.log(`🏁 Final result: Found ${images.length} clinical images for "${searchTerm}"`);
-    console.log(`📑 Image titles: [${images.map(img => `"${img.title}"`).join(', ')}]`);
+    // Shuffle results for additional variety
+    const shuffledImages = shuffleArray(images);
+    
+    // Trim cache if it gets too large (keep last 50 URLs)
+    if (IMAGE_CACHE[cacheKey].length > 50) {
+      IMAGE_CACHE[cacheKey] = IMAGE_CACHE[cacheKey].slice(-30);
+    }
+
+    console.log(`🏁 Final result: Found ${shuffledImages.length} clinical images for "${searchTerm}"`);
+    console.log(`📑 Image titles: [${shuffledImages.map(img => `"${img.title}"`).join(', ')}]`);
+    console.log(`💾 Cache status: ${IMAGE_CACHE[cacheKey].length} images cached for future rotation`);
 
     return new Response(
       JSON.stringify({ 
         searchTerm,
-        count: images.length,
-        images: images.slice(0, maxResults)
+        count: shuffledImages.length,
+        images: shuffledImages.slice(0, maxResults),
+        cached: IMAGE_CACHE[cacheKey].length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -132,13 +170,19 @@ function getMappedSearchTerms(searchTerm: string): string[] {
     }
   }
   
-  // If no mappings found, use the original term
+  // Add partial matches for better coverage
+  const partialMatches = ['dermatitis', 'eczema', 'rash', 'lesion', 'inflammatory', 'allergic reaction'];
   if (terms.length === 0) {
+    // If no direct mapping, try related terms
+    if (searchTerm.includes('skin') || searchTerm.includes('red') || searchTerm.includes('irritat')) {
+      terms.push(...partialMatches.slice(0, 3));
+    }
     terms.push(searchTerm);
   }
   
-  // Remove duplicates
-  return [...new Set(terms)];
+  // Remove duplicates and shuffle for variety
+  const uniqueTerms = [...new Set(terms)];
+  return shuffleArray(uniqueTerms);
 }
 
 async function searchISICImages(searchTerm: string, maxResults: number): Promise<ClinicalImage[]> {
@@ -212,6 +256,40 @@ async function searchISICImages(searchTerm: string, maxResults: number): Promise
   return images;
 }
 
+// Add NIH OpenNLM API search for additional variety
+async function searchNIHImages(searchTerm: string, maxResults: number): Promise<ClinicalImage[]> {
+  console.log(`🔍 NIH OpenNLM search for: ${searchTerm}`);
+  
+  try {
+    const response = await fetch('https://api.nlm.nih.gov/medlineplus/v2/search', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'HealthAI-Assistant/1.0'
+      }
+    });
+    
+    // For now, return empty array as NIH API has different structure
+    // This is a placeholder for future NIH integration
+    console.log('🔄 NIH API integration - placeholder (returning empty for now)');
+    return [];
+    
+  } catch (error) {
+    console.error('❌ NIH API error:', error);
+    return [];
+  }
+}
+
+// Utility function to shuffle array
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 function buildEnhancedDescription(item: any, diagnosis: string, searchTerm: string): string {
   const parts: string[] = [];
   
@@ -220,35 +298,45 @@ function buildEnhancedDescription(item: any, diagnosis: string, searchTerm: stri
     'arthropod bite reaction': 'Common reaction to insect bites, often presenting as grouped or linear lesions',
     'insect bite': 'Typical inflammatory response to arthropod bites',
     'bite reaction': 'Characteristic skin reaction pattern following arthropod exposure',
-    'bed bug': 'Linear or clustered bite pattern often seen with bed bug infestations',
-    'flea bite': 'Small, grouped lesions commonly found on lower extremities'
+    'dermatitis': 'Inflammatory skin condition with characteristic erythema and scaling patterns',
+    'eczema': 'Chronic inflammatory dermatosis with typical morphology and distribution',
+    'contact dermatitis': 'Allergic or irritant reaction to environmental exposures',
+    'atopic dermatitis': 'Chronic eczematous condition often with characteristic distribution',
+    'rash': 'Generalized skin eruption requiring clinical correlation and evaluation'
   };
   
   const contextDesc = contextMap[searchTerm.toLowerCase()] || `Clinical presentation of ${diagnosis.toLowerCase()}`;
   parts.push(contextDesc);
   
-  // Add clinical details
+  // Add clinical details with variation
+  const clinicalDetails = [];
   if (item.meta?.clinical?.age_approx) {
-    parts.push(`Patient age: ${item.meta.clinical.age_approx} years`);
+    clinicalDetails.push(`Age: ${item.meta.clinical.age_approx}y`);
   }
   
   if (item.meta?.clinical?.anatom_site_general && item.meta.clinical.anatom_site_general !== 'unknown') {
-    parts.push(`Location: ${item.meta.clinical.anatom_site_general}`);
+    clinicalDetails.push(`Site: ${item.meta.clinical.anatom_site_general}`);
   }
   
   if (item.meta?.clinical?.sex) {
-    parts.push(`Sex: ${item.meta.clinical.sex}`);
+    clinicalDetails.push(`${item.meta.clinical.sex}`);
   }
   
-  // Add educational context
+  if (clinicalDetails.length > 0) {
+    parts.push(`[${clinicalDetails.join(', ')}]`);
+  }
+  
+  // Add educational context with more variety
   const educationalNotes = [
-    'Note characteristic distribution pattern',
-    'Observe lesion morphology and arrangement', 
-    'Consider environmental exposure history',
-    'Evaluate for secondary changes'
+    'Note characteristic distribution and morphology',
+    'Observe lesion size, shape, and arrangement patterns', 
+    'Consider differential diagnoses and clinical correlation',
+    'Evaluate for associated symptoms and history',
+    'Assessment requires professional medical evaluation',
+    'Compare with patient presentation and clinical findings'
   ];
   
-  if (Math.random() > 0.3) { // 70% chance to add educational note
+  if (Math.random() > 0.4) { // 60% chance to add educational note
     const randomNote = educationalNotes[Math.floor(Math.random() * educationalNotes.length)];
     parts.push(randomNote);
   }
