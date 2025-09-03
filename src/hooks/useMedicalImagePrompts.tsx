@@ -93,9 +93,12 @@ export const useMedicalImagePrompts = () => {
   } => {
     const lowerMessage = message.toLowerCase();
     
+    console.log('🔍 Analyzing message for medical images:', message);
+    
     // Check exclusion patterns first
     for (const pattern of EXCLUSION_PATTERNS) {
       if (pattern.test(message)) {
+        console.log('❌ Message excluded by pattern:', pattern);
         return { category: null, intent: null, confidence: 0, shouldTrigger: false };
       }
     }
@@ -103,17 +106,22 @@ export const useMedicalImagePrompts = () => {
     // Detect medical terms and category
     let detectedCategory: string | null = null;
     let termCount = 0;
+    let detectedTerms: string[] = [];
     
     for (const [category, terms] of Object.entries(MEDICAL_TERMS_CATEGORIES)) {
       for (const term of terms) {
         if (lowerMessage.includes(term)) {
           detectedCategory = category;
           termCount++;
+          detectedTerms.push(term);
         }
       }
     }
     
+    console.log('🏷️ Detected medical terms:', detectedTerms, 'Category:', detectedCategory);
+    
     if (!detectedCategory) {
+      console.log('❌ No medical terms detected');
       return { category: null, intent: null, confidence: 0, shouldTrigger: false };
     }
     
@@ -126,6 +134,7 @@ export const useMedicalImagePrompts = () => {
         if (pattern.test(message)) {
           detectedIntent = intent;
           intentConfidence += 0.3;
+          console.log('🎯 Intent detected:', intent);
         }
       }
     }
@@ -134,14 +143,24 @@ export const useMedicalImagePrompts = () => {
     const baseConfidence = termCount * 0.2;
     const totalConfidence = Math.min(baseConfidence + intentConfidence, 1.0);
     
-    // Determine if we should trigger (only for high-confidence symptom descriptions or direct questions)
-    const shouldTrigger = totalConfidence > 0.4 && (
+    // Enhanced trigger logic: Allow simple medical term queries
+    const isSimpleMedicalQuery = detectedTerms.length > 0 && message.trim().split(' ').length <= 3;
+    
+    const shouldTrigger = (totalConfidence > 0.4 && (
       detectedIntent === 'symptom_description' ||
       detectedIntent === 'educational_query' ||
       detectedIntent === 'diagnostic_understanding' ||
       detectedIntent === 'comparison_request' ||
       detectedIntent === 'uncertainty_indicators'
-    );
+    )) || (isSimpleMedicalQuery && totalConfidence > 0.2);
+    
+    console.log('📊 Analysis result:', {
+      category: detectedCategory,
+      intent: detectedIntent,
+      confidence: totalConfidence,
+      shouldTrigger,
+      isSimpleMedicalQuery
+    });
     
     return {
       category: detectedCategory,
@@ -173,7 +192,12 @@ export const useMedicalImagePrompts = () => {
     message: string,
     aiSuggestion?: { shouldShow: boolean; searchTerm?: string; intent?: string; reasoning?: string }
   ): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.log('❌ No user found, cannot trigger image prompt');
+      return false;
+    }
+
+    console.log('🚀 triggerImagePrompt called with message:', message);
 
     // Use AI suggestion if provided, otherwise analyze message
     let shouldShow = false;
@@ -181,24 +205,31 @@ export const useMedicalImagePrompts = () => {
     let intent = '';
 
     if (aiSuggestion) {
+      console.log('🤖 Using AI suggestion:', aiSuggestion);
       shouldShow = aiSuggestion.shouldShow;
       searchTerm = aiSuggestion.searchTerm || '';
       intent = aiSuggestion.intent || '';
     } else {
+      console.log('🔍 Analyzing message context...');
       const analysis = analyzeMessageContext(message);
       shouldShow = analysis.shouldTrigger;
       searchTerm = analysis.category || '';
       intent = analysis.intent || '';
+      console.log('📊 Message analysis result:', analysis);
     }
 
     if (!shouldShow || !searchTerm) {
+      console.log('❌ Not triggering image prompt:', { shouldShow, searchTerm });
       return false;
     }
 
+    console.log('✅ Triggering image prompt for searchTerm:', searchTerm);
     setLoading(true);
     
     try {
+      console.log('🖼️ Fetching medical images...');
       const images = await fetchMedicalImages(searchTerm);
+      console.log('📷 Fetched images:', images.length, 'results');
       
       if (images.length > 0) {
         setCurrentPrompt({
@@ -208,10 +239,13 @@ export const useMedicalImagePrompts = () => {
           intent,
           aiSuggestion: aiSuggestion?.reasoning
         });
+        console.log('✅ Image prompt set successfully');
         return true;
+      } else {
+        console.log('❌ No images found for searchTerm:', searchTerm);
       }
     } catch (error) {
-      console.error('Error triggering image prompt:', error);
+      console.error('❌ Error triggering image prompt:', error);
     } finally {
       setLoading(false);
     }
