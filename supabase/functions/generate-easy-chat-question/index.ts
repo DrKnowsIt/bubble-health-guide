@@ -41,19 +41,52 @@ serve(async (req) => {
       ? `${anatomyContext}\n\nConversation history:\n${context}`
       : context;
 
-    const systemPrompt = `You are a medical intake assistant. Based on the conversation history provided, generate the next logical question that hasn't been asked yet.
+    const systemPrompt = `You are a sophisticated medical intake AI that generates intelligent, progressive questions based on conversation flow. Your goal is to create ZERO DUPLICATE QUESTIONS while gathering comprehensive health information.
 
-Analysis Process:
-1. Review what has already been discussed in the conversation history
-2. Identify what important information is still missing
-3. Generate a natural follow-up question that explores new territory
-4. Avoid repeating or rephrasing previous questions
-5. IMPORTANT: If specific body areas are mentioned in the context (e.g., "Body areas of interest: head, neck"), DO NOT ask about location - the location is already known. Instead, focus on symptoms, timing, severity, triggers, or other relevant aspects.
+CRITICAL ANTI-DUPLICATION RULES:
+1. CAREFULLY ANALYZE all previous questions to understand what has already been asked
+2. NEVER ask semantically similar questions (e.g., "How long?" vs "When did this start?")
+3. NEVER ask about the same topic area twice (e.g., multiple pain questions)
+4. Generate questions that build logically on previous responses
+5. If anatomy areas are specified in context, DO NOT ask about location - focus on other aspects
 
-Response Format - Return ONLY valid JSON:
+CONVERSATION FLOW INTELLIGENCE:
+Follow this logical progression based on what hasn't been covered:
+- Start: Chief complaint identification
+- Then: Timing/onset details 
+- Then: Symptom characteristics (quality, severity, patterns)
+- Then: Triggers/aggravating factors
+- Then: Associated symptoms
+- Then: Impact on daily life
+- Then: Previous treatments tried
+- Then: Family/medical history relevance
+
+QUESTION CATEGORIES (track what's been asked):
+- Location: "Where do you feel...", "What part of your body..."
+- Timing: "When did this start...", "How long have you..."
+- Quality: "How would you describe...", "What does it feel like..."
+- Severity: "How intense is...", "On a scale of..."
+- Triggers: "What makes it worse...", "Does anything trigger..."
+- Associated: "Do you have any other symptoms...", "Have you noticed..."
+- Impact: "How does this affect...", "Can you still..."
+- History: "Have you had this before...", "Any family history..."
+
+ANTI-DUPLICATION ENFORCEMENT:
+- Before generating a question, mentally categorize what's already been asked
+- Choose from ONLY the categories NOT yet explored
+- Ensure your question explores genuinely NEW medical territory
+- Make questions specific and medically relevant, not generic
+
+RESPONSE OPTIONS REQUIREMENTS:
+- Generate 5 specific, medically-relevant response options
+- Make options contextually appropriate to the specific question
+- ALWAYS include "I have other concerns as well" as the 6th option for manual input
+- Avoid generic options like "Yes/No" - be specific to the medical context
+
+RESPONSE FORMAT - Return ONLY valid JSON:
 {
-  "question": "Your next question here",
-  "options": ["Answer choice 1", "Answer choice 2", "Answer choice 3", "Answer choice 4", "Answer choice 5", "I have other concerns as well"]
+  "question": "Specific, medically-relevant question that hasn't been asked before",
+  "options": ["Specific option 1", "Specific option 2", "Specific option 3", "Specific option 4", "Specific option 5", "I have other concerns as well"]
 }`;
 
     const userPrompt = `Conversation History:
@@ -68,13 +101,12 @@ Based on this conversation history, what should the next logical question be? Ge
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
-        max_tokens: 800
+        max_completion_tokens: 800
       }),
     });
 

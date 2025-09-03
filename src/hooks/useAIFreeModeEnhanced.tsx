@@ -82,16 +82,17 @@ export const useAIFreeModeEnhanced = (patientId?: string, selectedAnatomy?: stri
       
       console.log('Using effective patient ID:', effectivePatientId);
       
-      const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-easy-chat-topics', {
+      const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-health-topics', {
         body: { 
           conversation_context: conversationContext,
           patient_id: effectivePatientId,
-          conversation_type: 'easy_chat'
+          conversation_type: 'easy_chat',
+          mode: 'free'
         }
       });
 
       if (topicsError) {
-        console.error('Error from analyze-easy-chat-topics:', topicsError);
+        console.error('Error from analyze-health-topics:', topicsError);
         return;
       }
 

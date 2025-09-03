@@ -92,17 +92,18 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       const effectivePatientId = patientId || user?.id || '';
       
-      console.log('Calling analyze-easy-chat-topics with:', {
+      console.log('Calling analyze-health-topics with:', {
         contextLength: conversationContext.length,
         patientId: effectivePatientId,
         hasUser: !!user
       });
 
-      const { data, error } = await supabase.functions.invoke('analyze-easy-chat-topics', {
+      const { data, error } = await supabase.functions.invoke('analyze-health-topics', {
         body: {
           conversation_context: conversationContext,
           patient_id: effectivePatientId,
-          conversation_type: 'easy_chat'
+          conversation_type: 'easy_chat',
+          mode: 'free'
         }
       });
 
@@ -112,7 +113,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
         return;
       }
 
-      console.log('📋 Response from analyze-easy-chat-topics:', data);
+      console.log('📋 Response from analyze-health-topics:', data);
 
       if (data?.diagnoses || data?.topics) {
         const topicsData = data.diagnoses || data.topics;
