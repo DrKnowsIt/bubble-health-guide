@@ -486,9 +486,12 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       }
 
       // Check for AI image suggestion or trigger based on user message
+      console.log('🖼️ ChatGPTInterface: About to trigger image prompt with message:', textToSend);
       if (data.imageSuggestion) {
+        console.log('🤖 ChatGPTInterface: Using AI image suggestion:', data.imageSuggestion);
         await triggerImagePrompt(textToSend, data.imageSuggestion);
       } else {
+        console.log('🔍 ChatGPTInterface: Analyzing user message for medical images');
         await triggerImagePrompt(textToSend);
       }
 
