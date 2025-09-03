@@ -19,7 +19,7 @@ serve(async (req) => {
     if (!message) {
       return new Response(
         JSON.stringify({ error: 'Message is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
