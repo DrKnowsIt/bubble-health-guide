@@ -52,22 +52,39 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log(`NIH API response: ${data.count} results found`);
+    console.log('Sample API response item:', JSON.stringify(data.list?.[0], null, 2));
 
     const images: MedicalImage[] = [];
     
     if (data.list && data.list.length > 0) {
       for (const item of data.list.slice(0, maxResults)) {
         try {
-          // Extract image information
-          const imageId = item.imgLarge || item.imgMedium || item.imgSmall;
-          if (imageId) {
+          // Extract image information - NIH API provides different image URL formats
+          let imageUrl = '';
+          
+          // Try different image URL formats from NIH API
+          if (item.imgLarge) {
+            imageUrl = `https://openi.nlm.nih.gov/imgs/512/${item.imgLarge}.jpg`;
+          } else if (item.imgMedium) {
+            imageUrl = `https://openi.nlm.nih.gov/imgs/512/${item.imgMedium}.jpg`;
+          } else if (item.imgSmall) {
+            imageUrl = `https://openi.nlm.nih.gov/imgs/512/${item.imgSmall}.jpg`;
+          } else if (item.image) {
+            // Fallback to direct image URL if available
+            imageUrl = item.image;
+          }
+          
+          if (imageUrl) {
+            console.log(`Image URL for item ${item.uid}: ${imageUrl}`);
             images.push({
               id: item.uid || Math.random().toString(36).substr(2, 9),
               title: item.title || 'Medical Image',
               description: item.abstract || item.caption || 'Medical reference image',
-              imageUrl: `https://openi.nlm.nih.gov/imgs/512/${imageId}`,
+              imageUrl: imageUrl,
               source: item.journal || 'NIH/NLM OpenI'
             });
+          } else {
+            console.log('No valid image URL found for item:', item.uid);
           }
         } catch (error) {
           console.error('Error processing image item:', error);
