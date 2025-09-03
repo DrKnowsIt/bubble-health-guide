@@ -20,11 +20,20 @@ interface MedicalImagePrompt {
 
 // Enhanced medical terms with broader coverage
 const MEDICAL_TERMS_CATEGORIES = {
-  // Skin conditions
+  // Skin conditions & symptoms
   'skin_conditions': [
     'rash', 'rashes', 'skin irritation', 'red spots', 'acne', 'pimples', 'eczema', 
     'dermatitis', 'psoriasis', 'hives', 'urticaria', 'mole', 'moles', 'vitiligo',
-    'rosacea', 'melasma', 'raynaud', 'raynauds', 'skin discoloration', 'patches'
+    'rosacea', 'melasma', 'raynaud', 'raynauds', 'skin discoloration', 'patches',
+    'itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling',
+    'dry skin', 'flaky', 'peeling', 'cracked', 'rough', 'bumpy', 'scaly'
+  ],
+  // Body parts
+  'body_parts': [
+    'arm', 'arms', 'leg', 'legs', 'face', 'back', 'chest', 'neck', 'hand', 'hands',
+    'finger', 'fingers', 'foot', 'feet', 'toe', 'toes', 'shoulder', 'shoulders',
+    'elbow', 'elbows', 'knee', 'knees', 'ankle', 'ankles', 'wrist', 'wrists',
+    'scalp', 'forehead', 'cheek', 'chin', 'nose', 'ear', 'ears', 'eye', 'eyes'
   ],
   // Wounds and injuries
   'wounds_injuries': [
@@ -52,7 +61,9 @@ const MEDICAL_TERMS_CATEGORIES = {
 const INTENT_PATTERNS = {
   symptom_description: [
     /i have/i, /i see/i, /i notice/i, /i found/i, /there is/i, /there are/i,
-    /my \w+ (is|are|has|have)/i, /looks like/i, /appears to be/i
+    /my \w+ (is|are|has|have)/i, /looks like/i, /appears to be/i,
+    /\w+ (is|are) (itchy|painful|red|swollen|burning)/i,
+    /(itchy|painful|red|swollen) \w+/i, /\w+ (hurts|aches|burns|stings)/i
   ],
   educational_query: [
     /what does \w+ look like/i, /show me what/i, /what is \w+ supposed to/i,
@@ -144,15 +155,20 @@ export const useMedicalImagePrompts = () => {
     const totalConfidence = Math.min(baseConfidence + intentConfidence, 1.0);
     
     // Enhanced trigger logic: Allow simple medical term queries
-    const isSimpleMedicalQuery = detectedTerms.length > 0 && message.trim().split(' ').length <= 3;
+    const isSimpleMedicalQuery = detectedTerms.length > 0 && message.trim().split(' ').length <= 5;
+    const hasBodyPartAndSymptom = detectedTerms.some(term => 
+      MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
+    ) && detectedTerms.some(term => 
+      MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term)
+    );
     
-    const shouldTrigger = (totalConfidence > 0.4 && (
+    const shouldTrigger = (totalConfidence > 0.2 && (
       detectedIntent === 'symptom_description' ||
       detectedIntent === 'educational_query' ||
       detectedIntent === 'diagnostic_understanding' ||
       detectedIntent === 'comparison_request' ||
       detectedIntent === 'uncertainty_indicators'
-    )) || (isSimpleMedicalQuery && totalConfidence > 0.2);
+    )) || (isSimpleMedicalQuery && totalConfidence > 0.1) || hasBodyPartAndSymptom;
     
     console.log('📊 Analysis result:', {
       category: detectedCategory,
