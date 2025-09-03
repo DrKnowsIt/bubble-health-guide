@@ -265,23 +265,57 @@ export const useMedicalImagePrompts = () => {
     };
   }, [buildSearchTerm]);
 
+  // Helper function to determine which API to use
+  const shouldUseClinicalAPI = useCallback((searchTerm: string): boolean => {
+    const clinicalKeywords = [
+      'bed bug', 'flea', 'mosquito', 'spider', 'bite', 'bites',
+      'rash', 'acne', 'mole', 'wart', 'psoriasis', 'eczema', 'hives',
+      'burn', 'skin', 'dermatitis', 'lesion', 'bump', 'spot',
+      'itchy', 'red', 'swollen', 'blister', 'dry skin', 'oily skin'
+    ];
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return clinicalKeywords.some(keyword => lowerSearchTerm.includes(keyword));
+  }, []);
+
   const fetchMedicalImages = useCallback(async (searchTerm: string): Promise<MedicalImage[]> => {
     try {
-      const { data, error } = await supabase.functions.invoke('medical-image-search', {
+      setLoading(true);
+      
+      // Determine which API to use based on the search term
+      const functionName = shouldUseClinicalAPI(searchTerm) ? 'clinical-image-search' : 'research-paper-search';
+      console.log(`Using ${functionName} for search term: ${searchTerm}`);
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: { searchTerm, maxResults: 3 }
       });
 
       if (error) {
-        console.error('Error fetching medical images:', error);
+        console.error(`Error fetching images from ${functionName}:`, error);
+        
+        // If clinical API fails, try research API as fallback
+        if (functionName === 'clinical-image-search') {
+          console.log('Falling back to research API...');
+          const fallbackResponse = await supabase.functions.invoke('research-paper-search', {
+            body: { searchTerm, maxResults: 3 }
+          });
+          
+          if (!fallbackResponse.error) {
+            return fallbackResponse.data?.images || [];
+          }
+        }
+        
         return [];
       }
 
       return data?.images || [];
     } catch (error) {
-      console.error('Error in fetchMedicalImages:', error);
+      console.error('Error in medical image fetch:', error);
       return [];
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [shouldUseClinicalAPI]);
 
   const triggerImagePrompt = useCallback(async (
     message: string,
