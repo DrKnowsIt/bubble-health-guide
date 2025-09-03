@@ -17,31 +17,21 @@ const SPACING = {
   LINE: 6
 } as const;
 
-// Enhanced text sanitization function to prevent corruption and character spacing issues
+// Text sanitization function to prevent PDF corruption
 const sanitizeText = (text: string): string => {
   if (!text) return '';
   
   return text
-    // Remove invisible and zero-width characters that cause spacing issues
-    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces, joiners, BOM
-    .replace(/[\u00A0\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g, ' ') // Various spaces to regular space
+    // Remove problematic characters that can corrupt PDFs
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Control characters
-    .replace(/[\u200E\u200F\u202A-\u202E]/g, '') // Text direction marks
-    .replace(/[\uE000-\uF8FF]/g, '') // Private use area characters
-    // Normalize Unicode composition
-    .normalize('NFKC')
-    // Fix common typography issues
+    // Normalize common characters
     .replace(/[""]/g, '"') // Normalize quotes
     .replace(/['']/g, "'") // Normalize apostrophes
     .replace(/–/g, '-') // Normalize dashes
     .replace(/…/g, '...') // Normalize ellipsis
-    // Preserve sentence structure while normalizing whitespace
-    .replace(/\r\n/g, '\n') // Normalize line endings
-    .replace(/\n{3,}/g, '\n\n') // Limit multiple line breaks to maximum 2
-    .replace(/\n\s*\n/g, '\n\n') // Clean up whitespace around line breaks
-    .replace(/\n(?=[A-Z])/g, ' ') // Convert line breaks before capital letters to spaces (likely sentence continuations)
-    .replace(/\n/g, ' ') // Convert remaining line breaks to spaces
-    .replace(/[ \t]{2,}/g, ' ') // Replace multiple spaces/tabs with single space
+    // Clean up whitespace
+    .replace(/\s+/g, ' ')
     .trim();
 };
 
@@ -207,7 +197,7 @@ export const exportComprehensivePDFForUser = async (
         if (diagnosis.reasoning) {
           const reasoningText = doc.splitTextToSize(`Reasoning: ${sanitizeText(diagnosis.reasoning)}`, 160);
           doc.text(reasoningText, 30, currentY);
-          currentY += reasoningText.length * SPACING.SMALL + 3;
+          currentY += reasoningText.length * 12 + 3;
         }
         currentY += SPACING.LINE;
       });
@@ -357,7 +347,7 @@ export const exportComprehensivePDFForUser = async (
       doc.setFont(undefined, 'normal');
       const summaryText = doc.splitTextToSize(sanitizeText(finalAnalysis.analysis_summary), 160);
       doc.text(summaryText, 25, currentY);
-      currentY += summaryText.length * SPACING.SMALL + SPACING.LARGE;
+      currentY += summaryText.length * 12 + SPACING.LARGE;
 
       // Priority Level & Confidence
       if (currentY > 270) {
@@ -405,13 +395,13 @@ export const exportComprehensivePDFForUser = async (
           if (finding.evidence) {
             const evidenceText = doc.splitTextToSize(`Evidence: ${sanitizeText(finding.evidence)}`, 155);
             doc.text(evidenceText, 35, currentY);
-            currentY += evidenceText.length * SPACING.SMALL + SPACING.SMALL;
+            currentY += evidenceText.length * 12 + SPACING.SMALL;
           }
 
           if (finding.significance) {
             const significanceText = doc.splitTextToSize(`Clinical Significance: ${sanitizeText(finding.significance)}`, 155);
             doc.text(significanceText, 35, currentY);
-            currentY += significanceText.length * SPACING.SMALL + SPACING.LINE;
+            currentY += significanceText.length * 12 + SPACING.LINE;
           }
         });
         currentY += 10;
@@ -661,7 +651,7 @@ export const exportComprehensivePDFForUser = async (
 
           const solutionText = doc.splitTextToSize(sanitizeText(solution.solution), 160);
           doc.text(solutionText, 30, currentY);
-          currentY += solutionText.length * SPACING.SMALL + SPACING.LINE;
+          currentY += solutionText.length * 12 + SPACING.LINE;
         });
         currentY += SPACING.MEDIUM;
       }
