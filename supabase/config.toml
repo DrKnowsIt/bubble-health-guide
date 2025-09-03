@@ -1,5 +1,8 @@
 project_id = "lwqfurkfjkilsnjtmemj"
 
+[functions.analyze-image-search-intent]
+verify_jwt = true
+
 [functions.generate-final-medical-analysis]
 verify_jwt = true
 

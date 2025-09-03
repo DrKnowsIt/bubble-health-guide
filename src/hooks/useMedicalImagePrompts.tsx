@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MedicalImage {
   id: string;
@@ -14,311 +14,142 @@ interface MedicalImagePrompt {
   searchTerm: string;
   images: MedicalImage[];
   isVisible: boolean;
-  intent?: string;
+  intent?: 'symptom_description' | 'educational_query' | 'comparison' | 'diagnosis_support';
   aiSuggestion?: string;
 }
 
-// Enhanced medical terms with broader coverage
-const MEDICAL_TERMS_CATEGORIES = {
-  // Skin conditions & symptoms
-  'skin_conditions': [
-    'rash', 'rashes', 'skin irritation', 'red spots', 'acne', 'pimples', 'eczema', 
-    'dermatitis', 'psoriasis', 'hives', 'urticaria', 'mole', 'moles', 'vitiligo',
-    'rosacea', 'melasma', 'raynaud', 'raynauds', 'skin discoloration', 'patches',
-    'itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling',
-    'dry skin', 'flaky', 'peeling', 'cracked', 'rough', 'bumpy', 'scaly'
-  ],
-  // Body parts
-  'body_parts': [
-    'arm', 'arms', 'leg', 'legs', 'face', 'back', 'chest', 'neck', 'hand', 'hands',
-    'finger', 'fingers', 'foot', 'feet', 'toe', 'toes', 'shoulder', 'shoulders',
-    'elbow', 'elbows', 'knee', 'knees', 'ankle', 'ankles', 'wrist', 'wrists',
-    'scalp', 'forehead', 'cheek', 'chin', 'nose', 'ear', 'ears', 'eye', 'eyes'
-  ],
-  // Wounds and injuries
-  'wounds_injuries': [
-    'wound', 'wounds', 'cut', 'cuts', 'injury', 'bite', 'bites', 'burn', 'burns',
-    'bruise', 'bruises', 'scratch', 'scrape', 'laceration', 'puncture'
-  ],
-  // Infections
-  'infections': [
-    'infection', 'infected', 'pus', 'swelling', 'cellulitis', 'abscess', 'impetigo',
-    'fungal', 'staph', 'mrsa', 'pustule', 'boil', 'carbuncle'
-  ],
-  // Growths and lesions
-  'growths_lesions': [
-    'tumor', 'mass', 'lump', 'growth', 'lesion', 'lesions', 'nodule', 'cyst',
-    'polyp', 'wart', 'skin tag', 'bump', 'swollen lymph'
-  ],
-  // Diagnostic imaging
-  'imaging': [
-    'x-ray', 'xray', 'ct scan', 'mri', 'ultrasound', 'mammogram', 'scan',
-    'radiograph', 'imaging', 'film', 'picture'
-  ]
-};
-
-// Intent detection patterns
-const INTENT_PATTERNS = {
-  symptom_description: [
-    /i have/i, /i see/i, /i notice/i, /i found/i, /there is/i, /there are/i,
-    /my \w+ (is|are|has|have)/i, /looks like/i, /appears to be/i,
-    /\w+ (is|are) (itchy|painful|red|swollen|burning)/i,
-    /(itchy|painful|red|swollen) \w+/i, /\w+ (hurts|aches|burns|stings)/i
-  ],
-  educational_query: [
-    /what does \w+ look like/i, /show me what/i, /what is \w+ supposed to/i,
-    /how do i identify/i, /what are the signs of/i, /what should i look for/i
-  ],
-  diagnostic_understanding: [
-    /what is.*(doctor|physician).*(looking for|checking|examining)/i,
-    /what does.*(result|test|scan|report).*(mean|show|indicate)/i,
-    /explain my (results|scan|test|xray|mri|ct)/i
-  ],
-  comparison_request: [
-    /is this normal/i, /does this look right/i, /should this look like/i,
-    /is this what.*(should|supposed to) look like/i, /compare/i
-  ],
-  uncertainty_indicators: [
-    /i think it might be/i, /it looks like it could be/i, /maybe it\'s/i,
-    /possibly/i, /not sure if/i, /wondering if/i
-  ]
-};
-
-  // Exclusion patterns that should NOT trigger images
-  const EXCLUSION_PATTERNS = [
-    /i had/i, /was treated for/i, /my doctor said/i, /diagnosed with/i,
-    /my friend/i, /my family/i, /someone i know/i, /people with/i,
-    /in general/i, /usually/i, /typically/i, /normally/i,
-    // Add vague mentions that shouldn't trigger
-    /tiny crosses/i, /little marks/i, /small spots/i, /some marks/i,
-    /few dots/i, /couple of/i, /just some/i
-  ];
+interface ImageSearchIntent {
+  shouldTrigger: boolean;
+  searchTerms: string[];
+  primarySearchTerm: string;
+  confidence: number;
+  intent: 'symptom_description' | 'educational_query' | 'comparison' | 'diagnosis_support';
+  preferredAPI: 'clinical' | 'research' | 'both';
+  reasoning: string;
+  aiSuggestion?: string;
+}
 
 export const useMedicalImagePrompts = () => {
   const { user } = useAuth();
   const [currentPrompt, setCurrentPrompt] = useState<MedicalImagePrompt | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Build smart search terms from detected medical terms
-  const buildSearchTerm = useCallback((detectedTerms: string[]): string => {
-    // Priority categories for search term construction
-    const highPriority = MEDICAL_TERMS_CATEGORIES.skin_conditions.filter(term => 
-      !['itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling'].includes(term)
-    );
-    const bodyParts = MEDICAL_TERMS_CATEGORIES.body_parts;
-    const symptoms = ['itchy', 'itching', 'scratchy', 'irritated', 'burning', 'stinging', 'tingling'];
-    
-    const conditionTerms = detectedTerms.filter(term => highPriority.includes(term));
-    const bodyPartTerms = detectedTerms.filter(term => bodyParts.includes(term));
-    const symptomTerms = detectedTerms.filter(term => symptoms.includes(term));
-    
-    console.log('🔧 Building search term from:', { conditionTerms, bodyPartTerms, symptomTerms });
-    
-    // Priority 1: Specific medical conditions
-    if (conditionTerms.length > 0) {
-      // If we have a body part + condition, combine them
-      if (bodyPartTerms.length > 0) {
-        return `${bodyPartTerms[0]} ${conditionTerms[0]}`;
-      }
-      return conditionTerms[0];
-    }
-    
-    // Priority 2: Body part + symptom combinations
-    if (bodyPartTerms.length > 0 && symptomTerms.length > 0) {
-      return `${bodyPartTerms[0]} ${symptomTerms[0]}`;
-    }
-    
-    // Priority 3: Single terms (only if high confidence)
-    if (detectedTerms.length > 0) {
-      return detectedTerms[0];
-    }
-    
-    return '';
-  }, []);
-
-  const analyzeMessageContext = useCallback((message: string): {
-    category: string | null;
-    intent: string | null;
-    confidence: number;
-    shouldTrigger: boolean;
-    detectedTerms: string[];
-    searchTerm: string;
-  } => {
-    const lowerMessage = message.toLowerCase();
-    
-    console.log('🔍 Analyzing message for medical images:', message);
-    
-    // Check exclusion patterns first
-    for (const pattern of EXCLUSION_PATTERNS) {
-      if (pattern.test(message)) {
-        console.log('❌ Message excluded by pattern:', pattern);
-        return { category: null, intent: null, confidence: 0, shouldTrigger: false, detectedTerms: [], searchTerm: '' };
-      }
-    }
-    
-    // Detect medical terms and category
-    let detectedCategory: string | null = null;
-    let termCount = 0;
-    let detectedTerms: string[] = [];
-    
-    for (const [category, terms] of Object.entries(MEDICAL_TERMS_CATEGORIES)) {
-      for (const term of terms) {
-        if (lowerMessage.includes(term)) {
-          if (!detectedCategory) detectedCategory = category;
-          termCount++;
-          detectedTerms.push(term);
-        }
-      }
-    }
-    
-    console.log('🏷️ Detected medical terms:', detectedTerms, 'Category:', detectedCategory);
-    
-    if (!detectedCategory || detectedTerms.length === 0) {
-      console.log('❌ No medical terms detected');
-      return { category: null, intent: null, confidence: 0, shouldTrigger: false, detectedTerms: [], searchTerm: '' };
-    }
-    
-    // Build smart search term from detected terms
-    const searchTerm = buildSearchTerm(detectedTerms);
-    console.log('🔧 Built search term:', searchTerm);
-    
-    // Detect intent
-    let detectedIntent: string | null = null;
-    let intentConfidence = 0;
-    
-    for (const [intent, patterns] of Object.entries(INTENT_PATTERNS)) {
-      for (const pattern of patterns) {
-        if (pattern.test(message)) {
-          detectedIntent = intent;
-          intentConfidence += 0.3;
-          console.log('🎯 Intent detected:', intent);
-        }
-      }
-    }
-    
-    // Calculate overall confidence with tighter thresholds
-    const baseConfidence = termCount * 0.1; // Reduced from 0.2 to 0.1
-    const totalConfidence = Math.min(baseConfidence + intentConfidence, 1.0);
-    
-    // Enhanced trigger logic with higher thresholds for precision
-    const isSimpleMedicalQuery = detectedTerms.length > 0 && message.trim().split(' ').length <= 5;
-    const hasBodyPartAndSymptom = detectedTerms.some(term => 
-      MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
-    ) && detectedTerms.some(term => 
-      MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term)
-    );
-    
-    // Check for specific medical conditions (high priority terms)
-    const hasSpecificCondition = detectedTerms.some(term => 
-      MEDICAL_TERMS_CATEGORIES.skin_conditions.includes(term) ||
-      MEDICAL_TERMS_CATEGORIES.wounds_injuries.includes(term) ||
-      MEDICAL_TERMS_CATEGORIES.infections.includes(term) ||
-      MEDICAL_TERMS_CATEGORIES.growths_lesions.includes(term)
-    );
-    
-    // Only generic body parts require very high confidence
-    const hasOnlyBodyParts = detectedTerms.every(term => 
-      MEDICAL_TERMS_CATEGORIES.body_parts.includes(term)
-    ) && !hasBodyPartAndSymptom;
-    
-    // Require minimum context for triggering
-    const hasMinimumContext = detectedTerms.length >= 2 || hasSpecificCondition;
-    
-    const shouldTrigger = (
-      // Require minimum context first
-      hasMinimumContext && (
-        // High confidence intent-based triggers with specific conditions
-        (totalConfidence > 0.5 && hasSpecificCondition && (
-          detectedIntent === 'symptom_description' ||
-          detectedIntent === 'educational_query' ||
-          detectedIntent === 'diagnostic_understanding' ||
-          detectedIntent === 'comparison_request' ||
-          detectedIntent === 'uncertainty_indicators'
-        )) ||
-        // Body part + symptom combinations with higher confidence
-        (hasBodyPartAndSymptom && totalConfidence > 0.4) ||
-        // Specific conditions with medium confidence and intent
-        (hasSpecificCondition && totalConfidence > 0.3 && detectedIntent) ||
-        // Only body parts require very high confidence
-        (hasOnlyBodyParts && totalConfidence > 0.8)
-      )
-    ) && searchTerm.length > 0;
-    
-    console.log('📊 Analysis result:', {
-      category: detectedCategory,
-      intent: detectedIntent,
-      confidence: totalConfidence,
-      shouldTrigger,
-      isSimpleMedicalQuery,
-      hasBodyPartAndSymptom,
-      hasOnlyBodyParts,
-      searchTerm
-    });
-    
-    return {
-      category: detectedCategory,
-      intent: detectedIntent,
-      confidence: totalConfidence,
-      shouldTrigger,
-      detectedTerms,
-      searchTerm
-    };
-  }, [buildSearchTerm]);
-
-  // Helper function to determine which API to use
-  const shouldUseClinicalAPI = useCallback((searchTerm: string): boolean => {
-    const clinicalKeywords = [
-      'bed bug', 'flea', 'mosquito', 'spider', 'bite', 'bites',
-      'rash', 'acne', 'mole', 'wart', 'psoriasis', 'eczema', 'hives',
-      'burn', 'skin', 'dermatitis', 'lesion', 'bump', 'spot',
-      'itchy', 'red', 'swollen', 'blister', 'dry skin', 'oily skin'
-    ];
-    
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return clinicalKeywords.some(keyword => lowerSearchTerm.includes(keyword));
-  }, []);
-
-  const fetchMedicalImages = useCallback(async (searchTerm: string): Promise<MedicalImage[]> => {
+  // AI-powered message analysis using LLM
+  const analyzeMessageContext = useCallback(async (message: string): Promise<ImageSearchIntent> => {
     try {
-      setLoading(true);
+      console.log('Analyzing message with AI:', message);
       
-      // Determine which API to use based on the search term
-      const functionName = shouldUseClinicalAPI(searchTerm) ? 'clinical-image-search' : 'research-paper-search';
-      console.log(`Using ${functionName} for search term: ${searchTerm}`);
-      
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: { searchTerm, maxResults: 3 }
+      const { data, error } = await supabase.functions.invoke('analyze-image-search-intent', {
+        body: { message }
       });
 
       if (error) {
-        console.error(`Error fetching images from ${functionName}:`, error);
-        
-        // If clinical API fails, try research API as fallback
-        if (functionName === 'clinical-image-search') {
-          console.log('Falling back to research API...');
-          const fallbackResponse = await supabase.functions.invoke('research-paper-search', {
-            body: { searchTerm, maxResults: 3 }
-          });
-          
-          if (!fallbackResponse.error) {
-            return fallbackResponse.data?.images || [];
-          }
-        }
-        
-        return [];
+        console.error('Error calling analyze-image-search-intent:', error);
+        return {
+          shouldTrigger: false,
+          searchTerms: [],
+          primarySearchTerm: '',
+          confidence: 0,
+          intent: 'symptom_description',
+          preferredAPI: 'research',
+          reasoning: 'Analysis function error'
+        };
       }
 
-      return data?.images || [];
+      console.log('AI analysis result:', data);
+      return data;
     } catch (error) {
-      console.error('Error in medical image fetch:', error);
-      return [];
-    } finally {
-      setLoading(false);
+      console.error('Failed to analyze message context:', error);
+      return {
+        shouldTrigger: false,
+        searchTerms: [],
+        primarySearchTerm: '',
+        confidence: 0,
+        intent: 'symptom_description',
+        preferredAPI: 'research',
+        reasoning: 'Analysis failed'
+      };
     }
-  }, [shouldUseClinicalAPI]);
+  }, []);
 
+  // Enhanced image fetching based on AI recommendations
+  const fetchMedicalImages = useCallback(async (searchIntent: ImageSearchIntent): Promise<MedicalImage[]> => {
+    console.log('Fetching medical images based on AI analysis:', searchIntent);
+    
+    try {
+      const { primarySearchTerm, searchTerms, preferredAPI } = searchIntent;
+      let allImages: MedicalImage[] = [];
+      
+      // Try primary search term with preferred API
+      if (preferredAPI === 'clinical' || preferredAPI === 'both') {
+        console.log('Trying clinical API with term:', primarySearchTerm);
+        
+        const { data: clinicalData, error: clinicalError } = await supabase.functions.invoke('clinical-image-search', {
+          body: { 
+            searchTerm: primarySearchTerm,
+            maxResults: preferredAPI === 'both' ? 4 : 6
+          }
+        });
+
+        if (!clinicalError && clinicalData?.images?.length > 0) {
+          console.log('Clinical API returned', clinicalData.images.length, 'images');
+          allImages = [...allImages, ...clinicalData.images];
+        }
+      }
+      
+      if (preferredAPI === 'research' || preferredAPI === 'both') {
+        console.log('Trying research API with term:', primarySearchTerm);
+        
+        const { data: researchData, error: researchError } = await supabase.functions.invoke('research-paper-search', {
+          body: { 
+            searchTerm: primarySearchTerm,
+            maxResults: preferredAPI === 'both' ? 4 : 6
+          }
+        });
+
+        if (!researchError && researchData?.images?.length > 0) {
+          console.log('Research API returned', researchData.images.length, 'images');
+          allImages = [...allImages, ...researchData.images];
+        }
+      }
+      
+      // If primary term didn't yield enough results, try alternative search terms
+      if (allImages.length < 3 && searchTerms.length > 1) {
+        for (const altTerm of searchTerms.slice(1, 3)) {
+          if (allImages.length >= 6) break;
+          
+          console.log('Trying alternative search term:', altTerm);
+          
+          const { data: altData, error: altError } = await supabase.functions.invoke('research-paper-search', {
+            body: { 
+              searchTerm: altTerm,
+              maxResults: 3
+            }
+          });
+
+          if (!altError && altData?.images?.length > 0) {
+            allImages = [...allImages, ...altData.images];
+          }
+        }
+      }
+
+      // Remove duplicates and limit results
+      const uniqueImages = allImages.filter((image, index, self) => 
+        index === self.findIndex(i => i.imageUrl === image.imageUrl)
+      ).slice(0, 8);
+
+      console.log('Total unique images found:', uniqueImages.length);
+      return uniqueImages;
+      
+    } catch (error) {
+      console.error('Error fetching medical images:', error);
+      return [];
+    }
+  }, []);
+
+  // Main function to trigger image prompt with AI analysis
   const triggerImagePrompt = useCallback(async (
-    message: string,
+    message: string, 
     aiSuggestion?: { shouldShow: boolean; searchTerm?: string; intent?: string; reasoning?: string }
   ): Promise<boolean> => {
     if (!user) {
@@ -328,53 +159,69 @@ export const useMedicalImagePrompts = () => {
 
     console.log('🚀 triggerImagePrompt called with message:', message);
 
-    // Use AI suggestion if provided, otherwise analyze message
-    let shouldShow = false;
-    let searchTerm = '';
-    let intent = '';
-
-    if (aiSuggestion) {
-      console.log('🤖 Using AI suggestion:', aiSuggestion);
-      shouldShow = aiSuggestion.shouldShow;
-      searchTerm = aiSuggestion.searchTerm || '';
-      intent = aiSuggestion.intent || '';
-    } else {
-      console.log('🔍 Analyzing message context...');
-      const analysis = analyzeMessageContext(message);
-      shouldShow = analysis.shouldTrigger;
-      searchTerm = analysis.searchTerm || '';
-      intent = analysis.intent || '';
-      console.log('📊 Message analysis result:', analysis);
-    }
-
-    if (!shouldShow || !searchTerm) {
-      console.log('❌ Not triggering image prompt:', { shouldShow, searchTerm });
-      return false;
-    }
-
-    console.log('✅ Triggering image prompt for searchTerm:', searchTerm);
     setLoading(true);
-    
     try {
-      console.log('🖼️ Fetching medical images...');
-      const images = await fetchMedicalImages(searchTerm);
-      console.log('📷 Fetched images:', images.length, 'results');
-      
-      if (images.length > 0) {
-        setCurrentPrompt({
-          searchTerm,
-          images,
-          isVisible: true,
-          intent,
-          aiSuggestion: aiSuggestion?.reasoning
-        });
-        console.log('✅ Image prompt set successfully');
-        return true;
+      if (aiSuggestion) {
+        // If we have an AI suggestion, use it directly
+        console.log('🤖 Using provided AI suggestion for image search');
+        
+        if (!aiSuggestion.shouldShow || !aiSuggestion.searchTerm) {
+          console.log('❌ AI suggestion indicates no images needed');
+          return false;
+        }
+        
+        // Create a simple search intent for AI suggestions
+        const searchIntent: ImageSearchIntent = {
+          shouldTrigger: true,
+          searchTerms: [aiSuggestion.searchTerm],
+          primarySearchTerm: aiSuggestion.searchTerm,
+          confidence: 90,
+          intent: (aiSuggestion.intent as any) || 'diagnosis_support',
+          preferredAPI: 'both',
+          reasoning: 'AI suggested search term',
+          aiSuggestion: aiSuggestion.reasoning
+        };
+        
+        const images = await fetchMedicalImages(searchIntent);
+        
+        if (images.length > 0) {
+          setCurrentPrompt({
+            searchTerm: aiSuggestion.searchTerm,
+            images,
+            isVisible: true,
+            intent: (aiSuggestion.intent as any) || 'diagnosis_support',
+            aiSuggestion: aiSuggestion.reasoning
+          });
+          return true;
+        }
       } else {
-        console.log('❌ No images found for searchTerm:', searchTerm);
+        // Use AI to analyze the message
+        const searchIntent = await analyzeMessageContext(message);
+        console.log('AI analysis result:', searchIntent);
+        
+        if (searchIntent.shouldTrigger && searchIntent.confidence >= 30) {
+          console.log('AI recommends showing images with confidence:', searchIntent.confidence);
+          
+          const images = await fetchMedicalImages(searchIntent);
+          
+          if (images.length > 0) {
+            setCurrentPrompt({
+              searchTerm: searchIntent.primarySearchTerm,
+              images,
+              isVisible: true,
+              intent: searchIntent.intent,
+              aiSuggestion: searchIntent.aiSuggestion
+            });
+            return true;
+          } else {
+            console.log('❌ No images found for searchTerm:', searchIntent.primarySearchTerm);
+          }
+        } else {
+          console.log('AI analysis: No images needed -', searchIntent.reasoning);
+        }
       }
     } catch (error) {
-      console.error('❌ Error triggering image prompt:', error);
+      console.error('❌ Error in triggerImagePrompt:', error);
     } finally {
       setLoading(false);
     }
