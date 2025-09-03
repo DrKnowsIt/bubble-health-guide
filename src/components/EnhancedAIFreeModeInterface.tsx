@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AnatomySelector } from './AnatomySelector';
 import { AIFreeModeInterface } from './AIFreeModeInterface';
 import { AIFreeModeCompletionModal } from './AIFreeModeCompletionModal';
 import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
+import { useSessionPersistence } from '@/hooks/useSessionPersistence';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
@@ -16,6 +17,10 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
   const [selectedAnatomy, setSelectedAnatomy] = useState<string[]>([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sessionRecovered, setSessionRecovered] = useState(false);
+
+  // Session persistence
+  const sessionId = `enhanced_${patientId || 'default'}_${Date.now()}`;
+  const { saveSessionData, loadSessionData, clearSessionData } = useSessionPersistence(sessionId);
 
   const {
     currentQuestion,
@@ -33,6 +38,37 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
     healthTopics
   } = useAIFreeModeEnhanced(patientId, selectedAnatomy);
 
+  // Save session data whenever important state changes
+  const saveCurrentState = useCallback(() => {
+    saveSessionData({
+      phase,
+      selectedAnatomy,
+      conversationPath,
+      timestamp: Date.now()
+    });
+  }, [phase, selectedAnatomy, conversationPath, saveSessionData]);
+
+  // Load session data on mount
+  useEffect(() => {
+    const savedData = loadSessionData();
+    if (savedData && !sessionRecovered) {
+      console.log('Loading saved session data:', savedData);
+      
+      if (savedData.phase && savedData.selectedAnatomy) {
+        setPhase(savedData.phase as ChatPhase);
+        setSelectedAnatomy(savedData.selectedAnatomy);
+        setSessionRecovered(true);
+      }
+    }
+  }, [loadSessionData, sessionRecovered]);
+
+  // Save state changes
+  useEffect(() => {
+    if (sessionRecovered || phase !== 'anatomy-selection') {
+      saveCurrentState();
+    }
+  }, [phase, selectedAnatomy, conversationPath, saveCurrentState, sessionRecovered]);
+
   const handleAnatomySelection = (anatomy: string[]) => {
     setSelectedAnatomy(anatomy);
     setPhase('chat');
@@ -47,7 +83,8 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
   };
 
   const handleStartNewChat = () => {
-    console.log('Starting completely new chat - resetting to anatomy selection');
+    console.log('Starting completely new chat - clearing saved data');
+    clearSessionData();
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);
@@ -55,7 +92,8 @@ export const EnhancedAIFreeModeInterface = ({ patientId }: EnhancedAIFreeModeInt
   };
 
   const handleRestartAnalysis = () => {
-    console.log('Restarting analysis - resetting to anatomy selection');
+    console.log('Restarting analysis - clearing saved data');
+    clearSessionData();
     setPhase('anatomy-selection');
     setSelectedAnatomy([]);
     setShowCompletionModal(false);

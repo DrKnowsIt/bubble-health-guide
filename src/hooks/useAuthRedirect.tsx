@@ -13,23 +13,35 @@ export const useAuthRedirect = () => {
     // Don't redirect while loading
     if (loading) return;
 
-    // Redirect authenticated users from home page to dashboard
-    if (user && location.pathname === '/' && lastRedirectRef.current !== 'dashboard') {
+    // Check if user just arrived or has been on dashboard recently to prevent excessive redirects
+    const lastVisit = sessionStorage.getItem('lastDashboardVisit');
+    const recentVisit = lastVisit && (Date.now() - parseInt(lastVisit)) < 30000; // 30 seconds
+
+    // Only redirect from home page if user hasn't visited dashboard recently
+    if (user && location.pathname === '/' && !recentVisit && lastRedirectRef.current !== 'dashboard') {
       console.log('Auth redirect: User authenticated, redirecting from home to dashboard');
       lastRedirectRef.current = 'dashboard';
+      sessionStorage.setItem('lastDashboardVisit', Date.now().toString());
       debouncedNavigate('/dashboard', { replace: true });
     }
     
-    // Redirect authenticated users away from the auth page
+    // Always redirect from auth page if authenticated
     if (user && location.pathname === '/auth' && lastRedirectRef.current !== 'dashboard') {
       console.log('Auth redirect: User authenticated, redirecting from auth to dashboard');
       lastRedirectRef.current = 'dashboard';
+      sessionStorage.setItem('lastDashboardVisit', Date.now().toString());
       debouncedNavigate('/dashboard', { replace: true });
+    }
+
+    // Update dashboard visit timestamp when on dashboard
+    if (user && location.pathname === '/dashboard') {
+      sessionStorage.setItem('lastDashboardVisit', Date.now().toString());
     }
 
     // Reset redirect tracking when user changes
     if (!user) {
       lastRedirectRef.current = '';
+      sessionStorage.removeItem('lastDashboardVisit');
     }
   }, [user, loading, debouncedNavigate, location.pathname]);
 };

@@ -132,12 +132,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session with enhanced error handling
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    // THEN check for existing session with enhanced error handling and minimum loading time
+    const minLoadingTime = 800; // Prevent flash of logged out state
+    const startTime = Date.now();
+    
+    Promise.all([
+      supabase.auth.getSession(),
+      new Promise(resolve => setTimeout(resolve, minLoadingTime))
+    ]).then(([{ data: { session }, error }]) => {
+      const elapsedTime = Date.now() - startTime;
       console.log('📋 Initial session check:', { 
         userId: session?.user?.id || 'null',
         hasSession: !!session,
-        error: error?.message || 'none'
+        error: error?.message || 'none',
+        loadingTime: elapsedTime + 'ms'
       });
       
       if (error) {
