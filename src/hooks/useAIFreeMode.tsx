@@ -768,7 +768,7 @@ options: [
       // Update conversation path
       const currentQuestionText = useDynamicQuestions && dynamicQuestion 
         ? dynamicQuestion.question 
-        : currentQuestion?.question_text || 'Describe your concerns';
+        : currentQuestion?.question_text || 'Describe your symptoms';
         
       const newPath = [...conversationPath, { 
         question: { question_text: currentQuestionText } as AIFreeModeQuestion, 
@@ -802,9 +802,9 @@ options: [
       return;
     }
 
-    // Handle "I have other concerns as well" - this should trigger text input mode, not completion
+    // Handle "I have other symptoms as well" - this should trigger text input mode, not completion
     if (responseValue === 'other_concerns') {
-      console.log('User selected other concerns, showing text input for custom response');
+      console.log('User selected other symptoms, showing text input for custom response');
       // Don't complete here - let the user type their response and continue the flow
       return 'show_text_input';
     }
