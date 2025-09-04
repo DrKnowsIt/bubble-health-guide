@@ -243,7 +243,7 @@ Based on this conversation history, what should the next logical question be? Ge
           options: [
             "Pain or discomfort",
             "Changes in how I feel",
-            "Digestive concerns",
+            "Digestive symptoms",
             "Sleep or energy issues",
             "Mood changes",
             "I have other concerns as well"
@@ -253,11 +253,11 @@ Based on this conversation history, what should the next logical question be? Ge
     } else {
       // Generic fallback when no anatomy context
       fallbackQuestion = {
-        question: "How would you describe your main health concern today?",
+        question: "What symptoms are you experiencing today?",
         options: [
           "Pain or discomfort",
           "Changes in how I feel",
-          "Stomach or digestive discomfort",
+          "Stomach or digestive symptoms",
           "Sleep problems",
           "Mood or energy changes", 
           "I have other concerns as well"
