@@ -209,11 +209,11 @@ export const AIFreeModeInterface = ({
                   <div className="space-y-4">
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <p className="text-sm text-muted-foreground mb-2">
-                        Please describe your other health concerns in detail:
+                        Please describe your other health symptoms in detail:
                       </p>
                     </div>
                     <Textarea
-                      placeholder="Type your concerns here... (e.g., I've been experiencing headaches and fatigue lately)"
+                      placeholder="Type your symptoms here... (e.g., I've been experiencing headaches and fatigue lately)"
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
                       maxLength={200}
@@ -221,7 +221,7 @@ export const AIFreeModeInterface = ({
                       disabled={loading}
                     />
                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>Describe your specific concerns (up to 200 characters)</span>
+                      <span>Describe your specific symptoms (up to 200 characters)</span>
                       <span className={textInput.length > 180 ? "text-orange-500" : ""}>
                         {textInput.length}/200
                       </span>
@@ -233,7 +233,7 @@ export const AIFreeModeInterface = ({
                         className="flex-1"
                       >
                         <Send className="h-4 w-4 mr-2" />
-                        Submit Concerns
+                        Submit Symptoms
                       </Button>
                       <Button
                         variant="outline"
