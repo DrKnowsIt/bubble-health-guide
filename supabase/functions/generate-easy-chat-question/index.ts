@@ -113,7 +113,6 @@ Based on this conversation history, what should the next logical question be? Ge
           { role: 'user', content: userPrompt }
         ],
         max_completion_tokens: 300, // Reduced tokens - sufficient for questions
-        temperature: 0.3, // More consistent question generation
         stream: false
       }),
       signal: controller.signal
@@ -174,12 +173,15 @@ Based on this conversation history, what should the next logical question be? Ge
   } catch (error) {
     console.error('Error generating question:', error);
     
+    // Get anatomy context from request for fallback
+    const { anatomyContext: fallbackAnatomyContext } = await req.json().catch(() => ({ anatomyContext: null }));
+    
     // Create anatomy-aware fallback based on selected anatomy
     let fallbackQuestion;
     
-    if (anatomyContext && anatomyContext.includes('anatomy')) {
+    if (fallbackAnatomyContext && fallbackAnatomyContext.includes('anatomy')) {
       // Extract anatomy areas from context for more relevant fallback
-      const anatomyMatch = anatomyContext.match(/Selected anatomy areas: ([^.]+)/);
+      const anatomyMatch = fallbackAnatomyContext.match(/Body areas of interest: ([^.]+)/);
       const selectedAreas = anatomyMatch ? anatomyMatch[1].split(', ') : [];
       
       if (selectedAreas.length > 0) {
