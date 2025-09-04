@@ -834,8 +834,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                     </h2>
                     <p className="text-muted-foreground mb-6">
                       {selectedUser?.is_pet 
-                        ? "I'm here to help with your pet's health questions and concerns." 
-                        : "I'm here to assist with your health questions and concerns."
+? "I'm here to help with your pet's health questions and symptoms." 
+                        : "I'm here to assist with your health questions and symptoms."
                       }
                     </p>
                     

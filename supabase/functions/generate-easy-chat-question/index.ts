@@ -80,13 +80,13 @@ ANTI-DUPLICATION ENFORCEMENT:
 RESPONSE OPTIONS REQUIREMENTS:
 - Generate 5 specific, medically-relevant response options
 - Make options contextually appropriate to the specific question
-- ALWAYS include "I have other concerns as well" as the 6th option for manual input
+- ALWAYS include "I have other symptoms as well" as the 6th option for manual input
 - Avoid generic options like "Yes/No" - be specific to the medical context
 
 RESPONSE FORMAT - Return ONLY valid JSON:
 {
   "question": "Specific, medically-relevant question that hasn't been asked before",
-  "options": ["Specific option 1", "Specific option 2", "Specific option 3", "Specific option 4", "Specific option 5", "I have other concerns as well"]
+  "options": ["Specific option 1", "Specific option 2", "Specific option 3", "Specific option 4", "Specific option 5", "I have other symptoms as well"]
 }`;
 
     const userPrompt = `Conversation History:
@@ -191,62 +191,62 @@ Based on this conversation history, what should the next logical question be? Ge
         if (primaryArea.includes('head') || primaryArea.includes('brain')) {
           fallbackQuestion = {
             question: "What symptoms are you experiencing in your head area?",
-            options: [
+options: [
               "Headaches or head pain",
               "Dizziness or balance issues",
               "Memory or concentration problems",
               "Vision or hearing changes",
               "Sleep disturbances",
-              "I have other concerns as well"
+              "I have other symptoms as well"
             ]
           };
         } else if (primaryArea.includes('chest') || primaryArea.includes('heart')) {
           fallbackQuestion = {
             question: "What are you noticing with your chest or breathing?",
-            options: [
+options: [
               "Chest pain or discomfort",
               "Shortness of breath",
               "Heart rhythm changes",
               "Coughing or wheezing",
               "Fatigue with activity",
-              "I have other concerns as well"
+              "I have other symptoms as well"
             ]
           };
         } else if (primaryArea.includes('stomach') || primaryArea.includes('abdomen')) {
           fallbackQuestion = {
             question: "How would you describe your stomach or digestive symptoms?",
-            options: [
+options: [
               "Stomach pain or cramping",
               "Nausea or vomiting",
               "Changes in bowel habits",
               "Bloating or gas",
               "Loss of appetite",
-              "I have other concerns as well"
+              "I have other symptoms as well"
             ]
           };
         } else {
           fallbackQuestion = {
             question: `What symptoms are you experiencing in the ${primaryArea} area?`,
-            options: [
+options: [
               "Pain or discomfort",
               "Swelling or changes in appearance",
               "Limited movement or function",
               "Numbness or tingling",
               "Changes from normal",
-              "I have other concerns as well"
+              "I have other symptoms as well"
             ]
           };
         }
       } else {
         fallbackQuestion = {
           question: "What brings you here today?",
-          options: [
+options: [
             "Pain or discomfort",
             "Changes in how I feel",
             "Digestive symptoms",
             "Sleep or energy issues",
             "Mood changes",
-            "I have other concerns as well"
+            "I have other symptoms as well"
           ]
         };
       }
@@ -254,13 +254,13 @@ Based on this conversation history, what should the next logical question be? Ge
       // Generic fallback when no anatomy context
       fallbackQuestion = {
         question: "What symptoms are you experiencing today?",
-        options: [
+options: [
           "Pain or discomfort",
           "Changes in how I feel",
           "Stomach or digestive symptoms",
           "Sleep problems",
           "Mood or energy changes", 
-          "I have other concerns as well"
+          "I have other symptoms as well"
         ]
       };
     }

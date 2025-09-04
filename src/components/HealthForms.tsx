@@ -279,7 +279,7 @@ const healthForms: HealthForm[] = [
       { name: 'menstrual_health_patterns', label: 'Menstrual/Hormonal Patterns (if applicable)', type: 'textarea', placeholder: 'PMS symptoms, cycle irregularities, hormone-related health changes' },
       { name: 'your_health_theories', label: 'Your Theories About Your Health', type: 'textarea', placeholder: 'What do YOU think might be causing any symptoms or health issues? Your gut feelings about your health.' },
       { name: 'self_care_strategies', label: 'What Helps You Feel Better', type: 'textarea', placeholder: 'Self-care strategies, home remedies, lifestyle changes that you\'ve found helpful' },
-      { name: 'concerning_changes', label: 'Recent Changes That Concern You', type: 'textarea', placeholder: 'Any new symptoms, changes in how you feel, or health concerns you have' },
+      { name: 'concerning_changes', label: 'Recent Changes That Concern You', type: 'textarea', placeholder: 'Any new symptoms, changes in how you feel, or health symptoms you have' },
       { name: 'family_observations', label: 'Family/Friends\' Observations', type: 'textarea', placeholder: 'Things family or friends have noticed about your health that you might miss' }
     ]
   }
@@ -342,12 +342,12 @@ const petHealthForms: HealthForm[] = [
       { name: 'appetite', label: 'Appetite', type: 'select', options: ['Excellent', 'Good', 'Fair', 'Poor', 'Varies'], required: true },
       { name: 'energy_level', label: 'Energy Level', type: 'select', options: ['Very High', 'High', 'Normal', 'Low', 'Very Low'], required: true },
       { name: 'mobility', label: 'Mobility', type: 'select', options: ['Excellent', 'Good', 'Some stiffness', 'Limited', 'Significantly impaired'], required: true },
-      { name: 'bowel_movements', label: 'Bowel Movements', type: 'textarea', placeholder: 'Frequency, consistency, any changes or concerns' },
+      { name: 'bowel_movements', label: 'Bowel Movements', type: 'textarea', placeholder: 'Frequency, consistency, any changes or symptoms' },
       { name: 'urination', label: 'Urination', type: 'textarea', placeholder: 'Frequency, any accidents, changes in habits' },
       { name: 'breathing', label: 'Breathing', type: 'select', options: ['Normal', 'Occasional panting', 'Heavy breathing', 'Labored breathing', 'Difficulty breathing'] },
       { name: 'skin_coat', label: 'Skin & Coat Condition', type: 'textarea', placeholder: 'Condition of skin and fur/feathers, any irritations, shedding patterns' },
       { name: 'dental_health', label: 'Dental Health', type: 'textarea', placeholder: 'Teeth condition, breath odor, eating difficulties, dental cleanings' },
-      { name: 'eyes_ears', label: 'Eyes & Ears', type: 'textarea', placeholder: 'Any discharge, irritation, hearing/vision concerns' }
+      { name: 'eyes_ears', label: 'Eyes & Ears', type: 'textarea', placeholder: 'Any discharge, irritation, hearing/vision symptoms' }
     ]
   },
   {
@@ -404,7 +404,7 @@ const petHealthForms: HealthForm[] = [
       { name: 'symptom_patterns', label: 'Symptoms You\'ve Noticed', type: 'textarea', placeholder: 'Any recurring symptoms, when they occur, patterns you\'ve observed' },
       { name: 'behavior_health_connection', label: 'Behavior & Health Connections', type: 'textarea', placeholder: 'How your pet\'s behavior changes when they\'re not feeling well' },
       { name: 'environmental_factors', label: 'Environmental Health Factors', type: 'textarea', placeholder: 'How weather, seasons, or environment affects your pet\'s health' },
-      { name: 'your_concerns', label: 'Your Current Concerns', type: 'textarea', placeholder: 'Any health concerns you have about your pet right now' },
+      { name: 'your_concerns', label: 'Your Current Symptoms', type: 'textarea', placeholder: 'Any health symptoms you have about your pet right now' },
       { name: 'care_strategies', label: 'What Helps Your Pet Feel Better', type: 'textarea', placeholder: 'Care strategies, home remedies, or things that improve your pet\'s wellbeing' },
       { name: 'family_observations', label: 'Family Observations', type: 'textarea', placeholder: 'Things family members have noticed about your pet\'s health or behavior' },
       { name: 'veterinary_questions', label: 'Questions for Your Vet', type: 'textarea', placeholder: 'Questions you want to ask at your next vet visit' }
