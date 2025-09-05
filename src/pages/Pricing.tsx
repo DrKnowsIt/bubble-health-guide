@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText, ArrowLeft } from "lucide-react";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { Footer } from "@/components/Footer";
+import { Footer } from "@/components/LandingPageComponents";
 import { AuthModal } from "@/components/AuthModal";
 import { SubscriptionManagement } from "@/components/SubscriptionManagement";
 import { useAuth } from "@/hooks/useAuth";

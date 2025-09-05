@@ -16,7 +16,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { UploadProgressDialog } from '@/components/UploadProgressDialog';
 import { FormProgress } from '@/components/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
-import { EmptyStateMessage } from '@/components/EmptyStateMessage';
+import { EmptyStateMessage } from '@/components/LandingPageComponents';
 import { 
   AlertDialog,
   AlertDialogAction,

@@ -2,17 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { HowItWorks } from "@/components/HowItWorks";
-import { Features } from "@/components/Features";
+import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
 // import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory"; // Consolidated into ChatGPTInterface
 import { ConversationSidebar } from "@/components/ConversationSidebar";
-import { Footer } from "@/components/Footer";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/ChatGPTInterface";
-import { UserCountBadge } from "@/components/UserCountBadge";
+
 import heroCgiImage from "@/assets/hero-friendly-healthcare.jpg";
 
 const Index = () => {

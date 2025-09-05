@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AuthDebugPanel } from "./components/AuthDebugPanel";
+
 import { LegalAgreementModal } from "./components/LegalAgreementModal";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 import { useAuth } from "./hooks/useAuth";
@@ -44,8 +44,7 @@ const App = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <AuthDebugPanel />
-      <LegalAgreementModal 
+      <LegalAgreementModal
         isOpen={showLegalModal}
         onClose={() => setShowLegalModal(false)}
       />

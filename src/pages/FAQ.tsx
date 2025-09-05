@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { Footer } from "@/components/Footer";
+import { Footer } from "@/components/LandingPageComponents";
 import { AuthModal } from "@/components/AuthModal";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";

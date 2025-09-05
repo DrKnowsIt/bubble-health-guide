@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -21,6 +21,7 @@ export const useProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userCount, setUserCount] = useState<number>(0);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return null;
@@ -148,9 +149,36 @@ export const useProfile = () => {
     }
   }, [user?.id]);
 
+  const fetchUserCount = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_total_user_count');
+
+      if (error) {
+        console.error('Error fetching user count:', error);
+        return;
+      }
+
+      if (data !== null) {
+        setUserCount(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserCount();
+    
+    // Refresh count every 5 minutes
+    const interval = setInterval(fetchUserCount, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [fetchUserCount]);
+
   return {
     profile,
     loading,
+    userCount,
     fetchProfile,
     checkLegalAgreementStatus,
     updateLegalAgreementStatus,
