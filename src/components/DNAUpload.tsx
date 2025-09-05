@@ -7,7 +7,7 @@ import { Label } from './ui/label';
 import { useToast } from './ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { UploadProgressDialog } from '@/components/UploadProgressDialog';
+import { UploadProgressDialog } from '@/components/modals/UploadProgressDialog';
 
 interface DNAUploadProps {
   selectedPatient?: any | null;

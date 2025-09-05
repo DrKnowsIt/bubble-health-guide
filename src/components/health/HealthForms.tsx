@@ -13,8 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers } from '@/hooks/useUsers';
-import { UploadProgressDialog } from '@/components/UploadProgressDialog';
-import { FormProgress } from '@/components/FormProgress';
+import { UploadProgressDialog } from '@/components/modals/UploadProgressDialog';
+import { FormProgress } from '@/components/forms/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
 import { EmptyStateMessage } from '@/components/LandingPageComponents';
 import { 

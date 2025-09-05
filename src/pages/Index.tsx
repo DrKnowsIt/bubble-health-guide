@@ -4,13 +4,13 @@ import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
 // import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory"; // Consolidated into ChatGPTInterface
-import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ChatInterfaceWithUsers } from "@/components/ChatInterfaceWithPatients";
-import { ChatGPTInterface } from "@/components/ChatGPTInterface";
+import { ChatInterfaceWithUsers } from "@/components/chat/ChatInterfaceWithPatients";
+import { ChatGPTInterface } from "@/components/chat/ChatGPTInterface";
 
 import heroCgiImage from "@/assets/hero-friendly-healthcare.jpg";
 

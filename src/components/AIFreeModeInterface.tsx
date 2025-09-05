@@ -9,9 +9,9 @@ import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Se
 import { useAIFreeMode } from '@/hooks/useAIFreeMode';
 import { useSessionPersistence } from '@/hooks/useSessionPersistence';
 import { supabase } from '@/integrations/supabase/client';
-import { HealthTopicsPanel } from './HealthTopicsPanel';
+import { HealthTopicsPanel } from './health/HealthTopicsPanel';
 import { AnatomySelector } from './AnatomySelector';
-import { AIFreeModeCompletionModal } from './AIFreeModeCompletionModal';
+import { AIFreeModeCompletionModal } from './modals/AIFreeModeCompletionModal';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 

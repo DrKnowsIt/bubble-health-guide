@@ -5,7 +5,7 @@ import { Check, Star, Zap, Crown, Shield, MessageCircle, FileText, ArrowLeft } f
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { Footer } from "@/components/LandingPageComponents";
-import { AuthModal } from "@/components/AuthModal";
+import { AuthModal } from "@/components/modals/AuthModal";
 import { SubscriptionManagement } from "@/components/SubscriptionManagement";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";

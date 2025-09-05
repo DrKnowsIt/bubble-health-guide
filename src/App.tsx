@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-import { LegalAgreementModal } from "./components/LegalAgreementModal";
+import { LegalAgreementModal } from "./components/modals/LegalAgreementModal";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 import { useAuth } from "./hooks/useAuth";
 

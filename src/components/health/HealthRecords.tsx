@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { DNAUpload } from '@/components/DNAUpload';
-import { UploadProgressDialog } from '@/components/UploadProgressDialog';
+import { UploadProgressDialog } from '@/components/modals/UploadProgressDialog';
 import { 
   Plus, 
   FileText, 

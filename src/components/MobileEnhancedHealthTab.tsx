@@ -6,13 +6,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { FileText, Calendar, Activity, Upload, Users, TrendingUp, ChevronRight, Plus } from 'lucide-react';
 import { useUsers } from '@/hooks/useUsers';
 import { useSubscription } from '@/hooks/useSubscription';
-import { HealthRecords } from './HealthRecords';
-import { HealthForms } from './HealthForms';
+import { HealthRecords } from './health/HealthRecords';
+import { HealthForms } from './health/HealthForms';
 import { HealthRecordHistoryTab } from './HealthRecordHistoryTab';
 import { UserDropdown } from './UserDropdown';
 import { SubscriptionGate } from './SubscriptionGate';
-import { ImportantHealthInfo } from './ImportantHealthInfo';
-import { ComprehensiveHealthReport } from './ComprehensiveHealthReport';
+import { ImportantHealthInfo } from './health/ImportantHealthInfo';
+import { ComprehensiveHealthReport } from './health/ComprehensiveHealthReport';
 import { cn } from '@/lib/utils';
 
 interface MobileEnhancedHealthTabProps {

@@ -12,10 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { supabase } from "@/integrations/supabase/client";
-import EnhancedHealthInsightsPanel from "@/components/EnhancedHealthInsightsPanel";
-import { ConversationSidebar } from "@/components/ConversationSidebar";
+import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
+import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
-import { MedicalImageConfirmationModal } from "@/components/MedicalImageConfirmationModal";
+import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageConfirmationModal";
 import { ToastAction } from "@/components/ui/toast";
 
 interface ChatGPTInterfaceProps {
