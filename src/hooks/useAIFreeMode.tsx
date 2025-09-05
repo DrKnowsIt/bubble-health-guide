@@ -971,6 +971,15 @@ options: [
   }, [currentSession, currentQuestion, user, conversationPath, completeSession, useDynamicQuestions, dynamicQuestion, generateNextQuestion, checkIfReadyToComplete]);
 
   const getResponseOptions = useCallback(() => {
+    // For the first question or when conversation is just starting, show only 3 main options
+    if (conversationPath.length === 0) {
+      return [
+        { value: 'symptoms', text: 'Symptoms' },
+        { value: 'general_wellness', text: 'General Wellness' },
+        { value: 'other_concerns', text: 'Other' }
+      ];
+    }
+
     if (useDynamicQuestions && dynamicQuestion) {
       return dynamicQuestion.options.map((option, index) => ({
         value: option === 'I have other symptoms as well' ? 'other_concerns' :
@@ -1017,7 +1026,7 @@ options: [
         text: valueMap[value] || value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
       };
     });
-  }, [currentQuestion, useDynamicQuestions, dynamicQuestion]);
+  }, [currentQuestion, useDynamicQuestions, dynamicQuestion, conversationPath.length]);
 
   return {
     currentQuestion: useDynamicQuestions ? { question_text: dynamicQuestion?.question || '' } as AIFreeModeQuestion : currentQuestion,
