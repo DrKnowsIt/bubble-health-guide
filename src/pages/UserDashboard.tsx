@@ -21,7 +21,7 @@ import { AISettings } from '@/components/AISettings';
 import { ContextualUserSelector } from '@/components/ContextualPatientSelector';
 import { UserDropdown } from '@/components/UserDropdown';
 import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
-import { EnhancedAIFreeModeInterface } from '@/components/EnhancedAIFreeModeInterface';
+import { AIFreeModeInterface } from '@/components/AIFreeModeInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
 
@@ -427,7 +427,7 @@ export default function UserDashboard() {
           <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
             <TabsContent value="easy-chat" className="h-full mt-0 pt-4">
               <FreeUsersOnlyGate>
-                <EnhancedAIFreeModeInterface patientId={selectedUser?.id} />
+                <AIFreeModeInterface patientId={selectedUser?.id} />
               </FreeUsersOnlyGate>
             </TabsContent>
 

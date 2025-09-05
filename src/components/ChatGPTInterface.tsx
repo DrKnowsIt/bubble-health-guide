@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { supabase } from "@/integrations/supabase/client";
-import HealthInsightsPanel from "@/components/HealthInsightsPanel";
+import EnhancedHealthInsightsPanel from "@/components/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
 import { MedicalImageConfirmationModal } from "@/components/MedicalImageConfirmationModal";
@@ -1056,7 +1056,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       {/* Diagnoses Sidebar - Always visible */}
       <div className="w-80 border-l border-border bg-background overflow-y-auto">
         <div className="p-4">
-          <HealthInsightsPanel 
+          <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser && diagnoses ? diagnoses.map(d => ({
               diagnosis: d.diagnosis,
               confidence: d.confidence,

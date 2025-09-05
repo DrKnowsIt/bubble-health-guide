@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,8 +6,14 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
-import { useAIFreeModeEnhanced } from '@/hooks/useAIFreeModeEnhanced';
+import { useAIFreeMode } from '@/hooks/useAIFreeMode';
+import { useSessionPersistence } from '@/hooks/useSessionPersistence';
+import { supabase } from '@/integrations/supabase/client';
 import { HealthTopicsPanel } from './HealthTopicsPanel';
+import { AnatomySelector } from './AnatomySelector';
+import { AIFreeModeCompletionModal } from './AIFreeModeCompletionModal';
+
+type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
 interface AIFreeModeInterfaceProps {
   patientId?: string;
@@ -24,10 +30,17 @@ export const AIFreeModeInterface = ({
   onRestart,
   useAIFreeModeHook
 }: AIFreeModeInterfaceProps) => {
-  // Require hook to be provided - no fallback to prevent duplicate hook instances
-  if (!useAIFreeModeHook) {
-    throw new Error('AIFreeModeInterface requires useAIFreeModeHook to be provided');
-  }
+  const [phase, setPhase] = useState<ChatPhase>('anatomy-selection');
+  const [selectedAnatomyState, setSelectedAnatomyState] = useState<string[]>(selectedAnatomy || []);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [sessionRecovered, setSessionRecovered] = useState(false);
+
+  // Session persistence - use stable session ID that doesn't change on refresh
+  const sessionId = `enhanced_${patientId || 'default'}_aifreechat`;
+  const { saveSessionData, loadSessionData, clearSessionData } = useSessionPersistence(sessionId);
+
+  // Use the enhanced hook if provided, otherwise use the base hook with enhanced features
+  const hookResult = useAIFreeModeHook || useAIFreeMode(patientId, selectedAnatomyState);
   
   const {
     currentQuestion,
@@ -41,19 +54,146 @@ export const AIFreeModeInterface = ({
     isCompleted,
     hasActiveSession,
     hasResponses,
-    healthTopics
-  } = useAIFreeModeHook;
+    healthTopics,
+    completeCurrentSession
+  } = hookResult;
 
   // Local state for text input mode
   const [showTextInput, setShowTextInput] = useState(false);
   const [textInput, setTextInput] = useState('');
 
+  // Save session data whenever important state changes
+  const saveCurrentState = useCallback(() => {
+    saveSessionData({
+      phase,
+      selectedAnatomy: selectedAnatomyState,
+      conversationPath,
+      healthTopics: healthTopics || [],
+      sessionComplete: showCompletionModal,
+      timestamp: Date.now()
+    });
+  }, [phase, selectedAnatomyState, conversationPath, healthTopics, showCompletionModal, saveSessionData]);
+
+  // Load session data on mount
+  useEffect(() => {
+    const savedData = loadSessionData();
+    if (savedData && !sessionRecovered) {
+      console.log('Loading saved session data:', savedData);
+      
+      if (savedData.phase) {
+        setPhase(savedData.phase as ChatPhase);
+        
+        if (savedData.selectedAnatomy) {
+          setSelectedAnatomyState(savedData.selectedAnatomy);
+        }
+        
+        if (savedData.sessionComplete) {
+          setShowCompletionModal(true);
+        }
+        
+        setSessionRecovered(true);
+        console.log('Session state restored from localStorage');
+      }
+    }
+  }, [loadSessionData, sessionRecovered]);
+
+  // Save state changes
+  useEffect(() => {
+    if (sessionRecovered || phase !== 'anatomy-selection') {
+      saveCurrentState();
+    }
+  }, [phase, selectedAnatomyState, conversationPath, saveCurrentState, sessionRecovered]);
+
   useEffect(() => {
     // Auto-start session when component mounts, but only once
-    if (!currentSession && !loading && !hasActiveSession) {
+    if (phase === 'chat' && !currentSession && !loading && !hasActiveSession) {
       startNewSession();
     }
-  }, [currentSession, loading, hasActiveSession]); // Remove startNewSession from dependencies
+  }, [phase, currentSession, loading, hasActiveSession]); // Remove startNewSession from dependencies
+
+  const handleAnatomySelection = (anatomy: string[]) => {
+    setSelectedAnatomyState(anatomy);
+    setPhase('chat');
+    // Always force new session when coming from anatomy selection - this ensures fresh start
+    console.log('Starting fresh AI Free Mode session from anatomy selection');
+    startNewSession(true);
+  };
+
+  const handleFinishChat = () => {
+    if (completeCurrentSession) {
+      completeCurrentSession();
+    }
+    setShowCompletionModal(true);
+  };
+
+  const handleStartNewChat = () => {
+    console.log('Starting completely new chat - clearing saved data');
+    clearSessionData();
+    setPhase('anatomy-selection');
+    setSelectedAnatomyState([]);
+    setShowCompletionModal(false);
+    setSessionRecovered(false);
+  };
+
+  const handleRestartAnalysis = async () => {
+    console.log('Restarting analysis - clearing saved data and abandoning active session');
+    
+    // Clear localStorage first
+    clearSessionData();
+    
+    // Abandon any active database session
+    if (hasActiveSession) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          await supabase
+            .from('easy_chat_sessions')
+            .update({ 
+              completed: true, 
+              final_summary: 'Session restarted by user',
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('completed', false);
+        }
+      } catch (error) {
+        console.error('Error abandoning session during restart:', error);
+      }
+    }
+    
+    // Reset all state
+    setPhase('anatomy-selection');
+    setSelectedAnatomyState([]);
+    setShowCompletionModal(false);
+    setSessionRecovered(false);
+  };
+
+  // Handle completed session
+  useEffect(() => {
+    if (isCompleted && phase === 'chat') {
+      setShowCompletionModal(true);
+    }
+  }, [isCompleted, phase]);
+
+  // Session recovery - restore active sessions on page refresh (but not during intentional restarts)
+  useEffect(() => {
+    if (hasActiveSession && currentSession && !sessionRecovered && phase === 'anatomy-selection') {
+      // Only recover if this isn't a fresh restart (check if we have saved session data)
+      const savedData = loadSessionData();
+      if (savedData && savedData.phase === 'chat') {
+        console.log('Recovering active session from page refresh');
+        
+        // Extract selected anatomy from session data
+        const sessionData = currentSession.session_data as any;
+        if (sessionData?.selected_anatomy) {
+          setSelectedAnatomyState(sessionData.selected_anatomy);
+          setPhase('chat');
+          setSessionRecovered(true);
+          console.log('Session recovered with anatomy:', sessionData.selected_anatomy);
+        }
+      }
+    }
+  }, [hasActiveSession, currentSession, sessionRecovered, phase, loadSessionData]);
 
   const handleResponseClick = (value: string, text: string) => {
     // Prevent interaction during loading
@@ -98,6 +238,14 @@ export const AIFreeModeInterface = ({
     }
   };
 
+  if (phase === 'anatomy-selection') {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <AnatomySelector onSelectionComplete={handleAnatomySelection} />
+      </div>
+    );
+  }
+
   if (loading && !currentQuestion) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -110,246 +258,260 @@ export const AIFreeModeInterface = ({
   }
 
   return (
-    <div className="h-full flex gap-4 overflow-hidden">
-      {/* Main Chat Area - Left Side */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
-        {/* Selected Anatomy & Progress indicator */}
-        <div className="flex items-center justify-between mb-2">
-          {selectedAnatomy && selectedAnatomy.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              <div className="flex flex-wrap gap-1">
-                {selectedAnatomy.slice(0, 3).map((area) => (
-                  <Badge key={area} variant="outline" className="text-xs">
-                    {area.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
-                ))}
-                {selectedAnatomy.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{selectedAnatomy.length - 3} more
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
-          {conversationPath.length > 0 && (
-            <div className="text-xs text-muted-foreground">
-              {conversationPath.length} questions answered • AI evaluating health topics
-            </div>
-          )}
-        </div>
-
-        {/* Current Question or Summary - Main Content */}
-        <Card className="flex-1 min-h-0 flex flex-col">
-          <ScrollArea className="flex-1">
-            <CardContent className="p-6">
-            {isCompleted ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="h-5 w-5" />
-                  <h3 className="font-semibold">Session Complete!</h3>
-                </div>
-                
-                {currentSession?.final_summary && (
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm whitespace-pre-line">
-                      {currentSession.final_summary}
-                    </p>
-                  </div>
-                )}
-
-                <Separator />
-                
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Want more detailed analysis and personalized AI conversations?
-                  </p>
-                  <Button className="w-full">
-                    Upgrade for Full AI Chat
-                  </Button>
-                </div>
-
-                {onFinish && (
-                  <Button 
-                    onClick={onFinish}
-                    className="w-full"
-                  >
-                    Export Results
-                  </Button>
-                )}
-
-                <Button 
-                  variant="outline" 
-                  onClick={handleRestart}
-                  className="w-full"
-                >
-                  Start New AI Free Mode
-                </Button>
-              </div>
-            ) : currentQuestion ? (
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-lg">AI Free Mode</span>
-                    <Badge variant="secondary" className="ml-2">Free</Badge>
-                    {hasActiveSession && hasResponses && (
-                      <Badge variant="outline" className="ml-1">In Progress</Badge>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 leading-tight">
-                    {currentQuestion.question_text}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Please select the option that best describes your situation:
-                  </p>
-                </div>
-
-                {showTextInput ? (
-                  <div className="space-y-4">
-                    <div className="bg-muted/30 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Please describe your other health symptoms in detail:
-                      </p>
-                    </div>
-                    <Textarea
-                      placeholder="Type your symptoms here... (e.g., I've been experiencing headaches and fatigue lately)"
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      maxLength={200}
-                      className="min-h-[100px] resize-none"
-                      disabled={loading}
-                    />
-                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>Describe your specific symptoms (up to 200 characters)</span>
-                      <span className={textInput.length > 180 ? "text-orange-500" : ""}>
-                        {textInput.length}/200
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleTextSubmit}
-                        disabled={!textInput.trim() || loading}
-                        className="flex-1"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Symptoms
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleBackToOptions}
-                        disabled={loading}
-                      >
-                        Back
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2 relative">
-                    {/* Loading overlay for response options */}
-                    {loading && (
-                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <RefreshCw className="h-4 w-4 animate-spin" />
-                          <span className="text-sm">Generating next question...</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {getResponseOptions().map((option, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className={`justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full transition-all ${
-                          loading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                        onClick={() => handleResponseClick(option.value, option.text)}
-                        disabled={loading}
-                      >
-                        <span className="whitespace-normal text-sm leading-snug">
-                          {option.text}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="pt-4 border-t border-border space-y-2">
-                  {onFinish && conversationPath.length > 2 && (
-                    <Button 
-                      onClick={onFinish}
-                      className="w-full"
-                      disabled={loading}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Finish & Export Results
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    variant="outline" 
-                    onClick={handleRestart}
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Restart Analysis
-                  </Button>
-                </div>
-
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <MessageCircle className="h-8 w-8 text-primary" />
-                  <div>
-                    <h3 className="font-semibold text-lg">AI Free Mode</h3>
-                    <Badge variant="secondary" className="mt-1">Free</Badge>
-                  </div>
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  Get personalized health guidance through our guided conversation
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={startNewSession} disabled={loading}>
-                    {loading ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                        Starting...
-                      </>
-                    ) : (
-                      hasActiveSession ? 'New Chat' : 'Begin AI Free Mode'
-                    )}
-                  </Button>
-                  {hasActiveSession && (
-                    <Button variant="outline" onClick={startNewSession} disabled={loading}>
-                      Restart
-                    </Button>
+    <>
+      <div className="h-full flex gap-4 overflow-hidden">
+        {/* Main Chat Area - Left Side */}
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
+          {/* Selected Anatomy & Progress indicator */}
+          <div className="flex items-center justify-between mb-2">
+            {selectedAnatomyState && selectedAnatomyState.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <div className="flex flex-wrap gap-1">
+                  {selectedAnatomyState.slice(0, 3).map((area) => (
+                    <Badge key={area} variant="outline" className="text-xs">
+                      {area.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                  ))}
+                  {selectedAnatomyState.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{selectedAnatomyState.length - 3} more
+                    </Badge>
                   )}
                 </div>
               </div>
             )}
-            </CardContent>
-          </ScrollArea>
-        </Card>
-      </div>
+            {conversationPath.length > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {conversationPath.length} questions answered • AI evaluating health topics
+              </div>
+            )}
+          </div>
 
-      {/* Right Sidebar - Health Topics */}
-      <div className="w-80 flex-shrink-0">
-        <HealthTopicsPanel
-          conversationId={undefined}
-          patientId={patientId || ""}
-          patientName={patientId ? "Patient" : "You"}
-          conversationContext={conversationPath.map(item => 
-            `Q: ${item.question?.question_text || 'Question'} A: ${item.response}`
-          ).join('\n\n')}
-          conversationType="easy_chat"
-          selectedAnatomy={[]}
-          includeSolutions={true}
-          mode="free"
-        />
+          {/* Current Question or Summary - Main Content */}
+          <Card className="flex-1 min-h-0 flex flex-col">
+            <ScrollArea className="flex-1">
+              <CardContent className="p-6">
+              {isCompleted ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-5 w-5" />
+                    <h3 className="font-semibold">Session Complete!</h3>
+                  </div>
+                  
+                  {currentSession?.final_summary && (
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm whitespace-pre-line">
+                        {currentSession.final_summary}
+                      </p>
+                    </div>
+                  )}
+
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Want more detailed analysis and personalized AI conversations?
+                    </p>
+                    <Button className="w-full">
+                      Upgrade for Full AI Chat
+                    </Button>
+                  </div>
+
+                  {onFinish && (
+                    <Button 
+                      onClick={onFinish}
+                      className="w-full"
+                    >
+                      Export Results
+                    </Button>
+                  )}
+
+                  <Button 
+                    variant="outline" 
+                    onClick={handleRestartAnalysis}
+                    className="w-full"
+                  >
+                    Start New AI Free Mode
+                  </Button>
+                </div>
+              ) : currentQuestion ? (
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageCircle className="h-5 w-5 text-primary" />
+                      <span className="font-semibold text-lg">AI Free Mode</span>
+                      <Badge variant="secondary" className="ml-2">Free</Badge>
+                      {hasActiveSession && hasResponses && (
+                        <Badge variant="outline" className="ml-1">In Progress</Badge>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2 leading-tight">
+                      {currentQuestion.question_text}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Please select the option that best describes your situation:
+                    </p>
+                  </div>
+
+                  {showTextInput ? (
+                    <div className="space-y-4">
+                      <div className="bg-muted/30 p-3 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Please describe your other health symptoms in detail:
+                        </p>
+                      </div>
+                      <Textarea
+                        placeholder="Type your symptoms here... (e.g., I've been experiencing headaches and fatigue lately)"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        maxLength={200}
+                        className="min-h-[100px] resize-none"
+                        disabled={loading}
+                      />
+                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <span>Describe your specific symptoms (up to 200 characters)</span>
+                        <span className={textInput.length > 180 ? "text-orange-500" : ""}>
+                          {textInput.length}/200
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleTextSubmit}
+                          disabled={!textInput.trim() || loading}
+                          className="flex-1"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Submit Symptoms
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleBackToOptions}
+                          disabled={loading}
+                        >
+                          Back
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 relative">
+                      {/* Loading overlay for response options */}
+                      {loading && (
+                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">Generating next question...</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {getResponseOptions().map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          className={`justify-start text-left h-auto px-3 py-2 hover:bg-primary/5 hover:border-primary/20 w-full transition-all ${
+                            loading ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          onClick={() => handleResponseClick(option.value, option.text)}
+                          disabled={loading}
+                        >
+                          <span className="whitespace-normal text-sm leading-snug">
+                            {option.text}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="pt-4 border-t border-border space-y-2">
+                    {onFinish && conversationPath.length > 2 && (
+                      <Button 
+                        onClick={onFinish}
+                        className="w-full"
+                        disabled={loading}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Finish & Export Results
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleRestartAnalysis}
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Restart Analysis
+                    </Button>
+                  </div>
+
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <MessageCircle className="h-8 w-8 text-primary" />
+                    <div>
+                      <h3 className="font-semibold text-lg">AI Free Mode</h3>
+                      <Badge variant="secondary" className="mt-1">Free</Badge>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    Get personalized health guidance through our guided conversation
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={startNewSession} disabled={loading}>
+                      {loading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                          Starting...
+                        </>
+                      ) : (
+                        hasActiveSession ? 'New Chat' : 'Begin AI Free Mode'
+                      )}
+                    </Button>
+                    {hasActiveSession && (
+                      <Button variant="outline" onClick={startNewSession} disabled={loading}>
+                        Restart
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+              </CardContent>
+            </ScrollArea>
+          </Card>
+        </div>
+
+        {/* Right Sidebar - Health Topics */}
+        <div className="w-80 flex-shrink-0">
+          <HealthTopicsPanel
+            conversationId={undefined}
+            patientId={patientId || ""}
+            patientName={patientId ? "Patient" : "You"}
+            conversationContext={conversationPath.map(item => 
+              `Q: ${item.question?.question_text || 'Question'} A: ${item.response}`
+            ).join('\n\n')}
+            conversationType="easy_chat"
+            selectedAnatomy={[]}
+            includeSolutions={true}
+            mode="free"
+          />
+        </div>
       </div>
-    </div>
+      
+      <AIFreeModeCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        onStartNewChat={handleStartNewChat}
+        sessionData={{
+          selectedAnatomy: selectedAnatomyState,
+          conversationPath,
+          healthTopics: healthTopics || [],
+          finalSummary: currentSession?.final_summary
+        }}
+      />
+    </>
   );
 };

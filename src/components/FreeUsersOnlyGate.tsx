@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useNavigationDebounce } from "@/hooks/useNavigationDebounce";
-import { EnhancedAIFreeModeInterface } from './EnhancedAIFreeModeInterface';
+import { AIFreeModeInterface } from './AIFreeModeInterface';
 
 interface FreeUsersOnlyGateProps {
   children: ReactNode;
@@ -65,6 +65,6 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
     );
   }
 
-  // Free users get the enhanced AI Free Mode interface
-  return <EnhancedAIFreeModeInterface />;
+  // Free users get the AI Free Mode interface
+  return <AIFreeModeInterface patientId={undefined} />;
 };

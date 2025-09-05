@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
-import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory";
+// import { ChatInterfaceWithHistory } from "@/components/ChatInterfaceWithHistory"; // Consolidated into ChatGPTInterface
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +69,7 @@ const Index = () => {
                 {showHistory && user ? <div className="h-full flex">
                     <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                     <div className="flex-1 min-h-0 overflow-hidden">
-                      <ChatInterfaceWithHistory />
+                      <ChatGPTInterface />
                     </div>
                   </div> : <div className="h-full overflow-hidden">
                     <ChatGPTInterface />
@@ -122,7 +122,7 @@ const Index = () => {
             height: '65vh'
           }}>
                 <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                <ChatInterfaceWithHistory />
+                <ChatGPTInterface />
               </div>
               
               {/* Legal Disclaimer */}
