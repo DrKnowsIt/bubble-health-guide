@@ -349,33 +349,35 @@ export const AnatomySelector = ({ onSelectionComplete }: AnatomySelectorProps) =
                     {(() => {
                       // Show all selected parts from both views in one consolidated list
                       return selectedParts.length > 0 && (
-                        <div>
+                        <div className="flex flex-col h-64">
                           <h3 className="font-semibold text-primary mb-3">Selected Body Parts ({selectedParts.length})</h3>
-                          <div className="space-y-2">
-                            {selectedParts.map(viewSpecificId => {
-                              const [partId, view] = viewSpecificId.split('-');
-                              const part = BODY_PARTS.find(p => p.id === partId);
-                              if (!part) return null;
-                              return (
-                                <div 
-                                  key={viewSpecificId} 
-                                  className="flex items-center justify-between bg-background/60 rounded-lg p-2 border hover:bg-background/80 transition-colors"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-primary">•</span>
-                                    <span className="text-sm font-medium">{part.name} ({view === 'front' ? 'Front' : 'Back'})</span>
-                                  </div>
-                                  <button
-                                    onClick={() => removeBodyPart(viewSpecificId)}
-                                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                                    aria-label={`Remove ${part.name}`}
+                          <ScrollArea className="flex-1 pr-4">
+                            <div className="space-y-2">
+                              {selectedParts.map(viewSpecificId => {
+                                const [partId, view] = viewSpecificId.split('-');
+                                const part = BODY_PARTS.find(p => p.id === partId);
+                                if (!part) return null;
+                                return (
+                                  <div 
+                                    key={viewSpecificId} 
+                                    className="flex items-center justify-between bg-background/60 rounded-lg p-2 border hover:bg-background/80 transition-colors"
                                   >
-                                    ×
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-primary">•</span>
+                                      <span className="text-sm font-medium">{part.name} ({view === 'front' ? 'Front' : 'Back'})</span>
+                                    </div>
+                                    <button
+                                      onClick={() => removeBodyPart(viewSpecificId)}
+                                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                                      aria-label={`Remove ${part.name}`}
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </ScrollArea>
                         </div>
                       );
                     })()}
