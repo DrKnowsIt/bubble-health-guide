@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +56,18 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
     includeSolutions,
     minContextLength: conversationType === 'easy_chat' ? 10 : 20
   });
+
+  // Auto-refresh solutions when topics change significantly
+  useEffect(() => {
+    if (topics.length > 0 && includeSolutions && conversationType === 'easy_chat') {
+      const timer = setTimeout(() => {
+        refreshAnalysis();
+        console.log('Auto-refreshing solutions based on updated topics');
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [topics.length, refreshAnalysis, includeSolutions, conversationType]);
 
   const getConfidenceColor = (confidence: number, tier: string = actualMode) => {
     // Tier-aware confidence styling

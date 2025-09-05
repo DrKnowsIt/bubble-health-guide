@@ -21,6 +21,8 @@ import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 
+import { SessionExtensionPrompt } from "./components/SessionExtensionPrompt";
+
 const App = () => {
   // Global auth redirect logic
   useAuthRedirect();
@@ -48,6 +50,7 @@ const App = () => {
         isOpen={showLegalModal}
         onClose={() => setShowLegalModal(false)}
       />
+      <SessionExtensionPrompt />
     </TooltipProvider>
   );
 };

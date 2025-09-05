@@ -60,11 +60,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [session, toast]);
 
-  // Monitor session every minute
+  // Monitor session every minute and add activity-based extension
   useEffect(() => {
     if (session && !loading) {
       const interval = setInterval(monitorSession, 60000);
-      return () => clearInterval(interval);
+      
+      // Activity-based session extension
+      const handleUserActivity = () => {
+        const now = new Date().getTime() / 1000;
+        const expiresAt = session.expires_at;
+        
+        // If session expires in the next 10 minutes and user is active, extend it
+        if (expiresAt - now < 600) {
+          supabase.auth.refreshSession().then(({ error }) => {
+            if (!error) {
+              console.log('✅ Session extended due to user activity');
+            }
+          });
+        }
+      };
+
+      // Listen for user activity (clicks, keystrokes, mouse movement)
+      const events = ['click', 'keydown', 'mousemove', 'scroll'];
+      events.forEach(event => {
+        document.addEventListener(event, handleUserActivity, { passive: true });
+      });
+
+      return () => {
+        clearInterval(interval);
+        events.forEach(event => {
+          document.removeEventListener(event, handleUserActivity);
+        });
+      };
     }
   }, [session, loading, monitorSession]);
 

@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { HealthTopicsPanel } from './health/HealthTopicsPanel';
 import { AnatomySelector } from './AnatomySelector';
 import { AIFreeModeCompletionModal } from './modals/AIFreeModeCompletionModal';
+import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
+import { useSubscription } from '@/hooks/useSubscription';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
@@ -34,6 +36,14 @@ export const AIFreeModeInterface = ({
   const [selectedAnatomyState, setSelectedAnatomyState] = useState<string[]>(selectedAnatomy || []);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sessionRecovered, setSessionRecovered] = useState(false);
+  
+  const { subscription_tier } = useSubscription();
+  const { 
+    currentPrompt: medicalImagePrompt,
+    triggerImagePrompt,
+    handleImageFeedback,
+    closeImagePrompt 
+  } = useMedicalImagePrompts();
 
   // Session persistence - use stable session ID that doesn't change on refresh
   const sessionId = `enhanced_${patientId || 'default'}_aifreechat`;
@@ -195,7 +205,7 @@ export const AIFreeModeInterface = ({
     }
   }, [hasActiveSession, currentSession, sessionRecovered, phase, loadSessionData]);
 
-  const handleResponseClick = (value: string, text: string) => {
+  const handleResponseClick = async (value: string, text: string) => {
     // Prevent interaction during loading
     if (loading) return;
     
@@ -203,7 +213,19 @@ export const AIFreeModeInterface = ({
       setShowTextInput(true);
       return;
     }
+    
+    // Submit the response
     submitResponse(value, text);
+    
+    // For Basic/Pro users, trigger medical image prompts based on symptoms
+    if ((subscription_tier === 'basic' || subscription_tier === 'pro') && text && patientId) {
+      console.log('Triggering medical image analysis for Basic/Pro user');
+      const conversationContext = conversationPath.map(p => 
+        `Q: ${p.question?.question_text} A: ${p.response}`
+      );
+      
+      await triggerImagePrompt(text, undefined, conversationContext);
+    }
   };
 
   const handleTextSubmit = () => {
@@ -260,6 +282,44 @@ export const AIFreeModeInterface = ({
   return (
     <>
       <div className="h-full flex gap-4 overflow-hidden">
+        {/* Medical Image Prompt for Basic/Pro Users */}
+        {medicalImagePrompt && medicalImagePrompt.isVisible && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-medium">Visual Comparison</span>
+                <Badge variant="secondary" className="text-xs">
+                  {subscription_tier === 'pro' ? 'Pro' : 'Basic'}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Does your condition look similar to any of these images?
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                {medicalImagePrompt.images.slice(0, 6).map((image, index) => (
+                  <div key={index} className="relative group cursor-pointer">
+                    <img 
+                      src={image.imageUrl} 
+                      alt={image.description}
+                      className="w-full h-20 object-cover rounded border hover:border-primary/50 transition-colors"
+                      onClick={() => handleImageFeedback(image.id, true, medicalImagePrompt.searchTerm, currentSession?.id, patientId)}
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded transition-colors" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 text-xs">
+                <Button size="sm" variant="outline" onClick={closeImagePrompt}>
+                  None match
+                </Button>
+                <Button size="sm" variant="outline" onClick={closeImagePrompt}>
+                  Skip for now
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Main Chat Area - Left Side */}
         <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
           {/* Selected Anatomy & Progress indicator */}
