@@ -8,6 +8,7 @@ import { FileDown, X, RefreshCw, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
+import { ExportProgressModal } from './ExportProgressModal';
 
 interface AIFreeModeCompletionModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const AIFreeModeCompletionModal = ({
   sessionData 
 }: AIFreeModeCompletionModalProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isExportProgressOpen, setIsExportProgressOpen] = useState(false);
   const [finalAnalysis, setFinalAnalysis] = useState<any>(null);
   const { toast } = useToast();
 
@@ -426,6 +428,9 @@ export const AIFreeModeCompletionModal = ({
   };
 
   const handleExportPDF = async () => {
+    setIsExportProgressOpen(true);
+    setIsGeneratingPDF(true);
+    
     try {
       // Generate comprehensive analysis first
       const analysis = await generateComprehensiveAnalysis();
@@ -442,6 +447,9 @@ export const AIFreeModeCompletionModal = ({
       
       // Fallback to basic PDF without comprehensive analysis
       await generatePDF();
+    } finally {
+      setIsExportProgressOpen(false);
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -591,6 +599,11 @@ export const AIFreeModeCompletionModal = ({
           </Card>
         </div>
       </DialogContent>
+      
+      <ExportProgressModal 
+        open={isExportProgressOpen}
+        onOpenChange={() => {}} // Prevent manual closing during export
+      />
     </Dialog>
   );
 };
