@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +19,7 @@ import { UploadProgressDialog } from '@/components/modals/UploadProgressDialog';
 import { FormProgress } from '@/components/forms/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
 import { EmptyStateMessage } from '@/components/LandingPageComponents';
+import { calculateFormCompletion, getCompletionColor, getCompletionBadgeColor } from '@/utils/formCompletion';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +59,7 @@ interface HealthForm {
   subscription_required?: string;
 }
 
-interface FormField {
+export interface FormField {
   name: string;
   label: string;
   type: 'text' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'number' | 'date' | 'file';
@@ -64,6 +67,8 @@ interface FormField {
   required?: boolean;
   placeholder?: string;
 }
+
+export type { HealthForm };
 
 const healthForms: HealthForm[] = [
   {
@@ -446,6 +451,10 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
   const [changedFields, setChangedFields] = useState<string[]>([]);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  
+  // New state for form completion tracking
+  const [formCompletions, setFormCompletions] = useState<Record<string, number>>({});
+  const [loadingCompletions, setLoadingCompletions] = useState(false);
 
   // Define forms available for basic tier
   const basicTierFormIds = [
@@ -548,6 +557,52 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     // Only trigger AI analysis if there are actual changes
     return hasChanges && changedFields.length > 0;
   };
+
+  // Load completion percentages for all forms
+  const loadFormCompletions = async () => {
+    if (!user?.id || !selectedPatient) return;
+    
+    setLoadingCompletions(true);
+    try {
+      const currentFormSet = getCurrentFormSet();
+      const completions: Record<string, number> = {};
+      
+      // Load existing data for all forms
+      for (const form of currentFormSet) {
+        const { data: existingRecords, error } = await supabase
+          .from('health_records')
+          .select('data')
+          .eq('user_id', user.id)
+          .eq('record_type', form.id)
+          .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        if (!error && existingRecords?.[0]) {
+          const recordData = existingRecords[0].data && typeof existingRecords[0].data === 'object' && !Array.isArray(existingRecords[0].data) 
+            ? existingRecords[0].data as Record<string, any>
+            : {};
+          
+          completions[form.id] = calculateFormCompletion(recordData, form);
+        } else {
+          completions[form.id] = 0;
+        }
+      }
+      
+      setFormCompletions(completions);
+    } catch (error) {
+      console.error('Error loading form completions:', error);
+    } finally {
+      setLoadingCompletions(false);
+    }
+  };
+
+  // Load completions when patient changes
+  useEffect(() => {
+    if (selectedPatient && user?.id) {
+      loadFormCompletions();
+    }
+  }, [selectedPatient, user?.id]);
 
   // Load existing form data when a form is selected
   const loadExistingFormData = async (form: HealthForm) => {
@@ -851,8 +906,14 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
 
       // Update form state and baseline after successful save
       const savedData = { ...processedData };
-      setFormData(savedData); // Keep the form populated with saved data
-      setFormDataBaseline(savedData); // Update baseline to match saved data
+        setFormData(savedData); // Keep the form populated with saved data
+        setFormDataBaseline(savedData); // Update baseline to match saved data
+        
+        // Update completion percentage for this form
+        if (selectedForm) {
+          const completion = calculateFormCompletion(savedData, selectedForm);
+          setFormCompletions(prev => ({ ...prev, [selectedForm.id]: completion }));
+        }
       // Keep the form open after saving (don't reset selectedForm)
       setHasUnsavedChanges(false);
       setHasChanges(false);
@@ -1303,40 +1364,67 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                 Available Forms ({availableForms.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {availableForms.map((form) => (
-                   <Card 
-                     key={form.id} 
-                     className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
-                     onClick={async () => {
-                       if (selectedPatient || users.length === 0) {
-                         setSelectedForm(form);
-                         await loadExistingFormData(form);
-                       }
-                     }}
-                   >
-                     <CardContent className="pt-6">
-                       <div className="flex items-start gap-3">
-                         <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
-                           <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
-                         </div>
-                         <div className="flex-1">
-                           <div className="flex items-center justify-between mb-2">
-                             <h3 className="font-medium">{form.title}</h3>
-                             {loadingFormData && selectedForm?.id === form.id && (
-                               <div className="text-xs text-muted-foreground">Loading...</div>
-                             )}
-                           </div>
-                           <p className="text-sm text-muted-foreground mb-3">
-                             {form.fields.length} fields to complete
-                           </p>
-                           <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
-                             Fill Out Form
-                           </Button>
-                         </div>
-                       </div>
-                     </CardContent>
-                   </Card>
-                 ))}
+                  {availableForms.map((form) => {
+                    const completion = formCompletions[form.id] || 0;
+                    
+                    return (
+                    <Card 
+                      key={form.id} 
+                      className={`cursor-pointer hover:shadow-md transition-shadow ${!selectedPatient && users.length > 0 ? 'opacity-50 cursor-not-allowed' : ''} ${form.id === 'general_health_notes' ? 'border-yellow-500/50 shadow-yellow-500/10' : ''}`}
+                      onClick={async () => {
+                        if (selectedPatient || users.length === 0) {
+                          setSelectedForm(form);
+                          await loadExistingFormData(form);
+                        }
+                      }}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-3">
+                          <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
+                            <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-medium">{form.title}</h3>
+                              <div className="flex items-center gap-2">
+                                {loadingCompletions ? (
+                                  <div className="w-12 h-4 bg-gray-200 animate-pulse rounded"></div>
+                                ) : (
+                                  <Badge className={`text-xs ${getCompletionBadgeColor(completion)}`}>
+                                    {completion}%
+                                  </Badge>
+                                )}
+                                {loadingFormData && selectedForm?.id === form.id && (
+                                  <div className="text-xs text-muted-foreground">Loading...</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
+                                <span>{form.fields.length} fields to complete</span>
+                                {!loadingCompletions && (
+                                  <span className={getCompletionColor(completion)}>
+                                    {completion === 0 ? 'Not started' : 
+                                     completion === 100 ? 'Complete' : 
+                                     `${completion}% complete`}
+                                  </span>
+                                )}
+                              </div>
+                              {!loadingCompletions && (
+                                <Progress value={completion} className="h-2" />
+                              )}
+                            </div>
+                            
+                            <Button size="sm" variant={form.id === 'general_health_notes' ? 'default' : 'outline'} className={form.id === 'general_health_notes' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
+                              {completion === 0 ? 'Start Form' : completion === 100 ? 'Review Form' : 'Continue Form'}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    );
+                  })}
               </div>
             </div>
           )}
