@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UserDropdown } from "@/components/UserDropdown";
-import { User } from "@/hooks/useUsers";
+import { User } from "@/hooks/optimized/useUsersQuery";
 import { Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

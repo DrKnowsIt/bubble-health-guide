@@ -5,7 +5,7 @@ import { MessageSquare, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Conversation } from "@/hooks/useConversations";
+import { Conversation } from "@/hooks/optimized/useConversationsQuery";
 import { format } from "date-fns";
 
 interface ConversationSidebarProps {
