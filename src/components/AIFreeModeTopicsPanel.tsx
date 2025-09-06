@@ -211,7 +211,7 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
               </TabsList>
 
               <TabsContent value="topics" className="flex-1 mt-3 mx-2 mb-3 min-h-0">
-                <ScrollArea className="h-full max-h-[calc(100vh-280px)] w-full rounded-md border border-border bg-background/50 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20">
+                <ScrollArea className="h-full max-h-[calc(100vh-280px)] w-full rounded-md border border-border bg-background/50 [&_[data-radix-scroll-area-scrollbar]]:w-3 [&_[data-radix-scroll-area-scrollbar]]:bg-transparent [&_[data-radix-scroll-area-thumb]]:bg-muted-foreground/50 [&_[data-radix-scroll-area-thumb]]:rounded-full [&_[data-radix-scroll-area-thumb]]:hover:bg-muted-foreground/70">
                   <div className="p-4 space-y-3 pb-6">
                     {loading && conversationPath.length > 0 && (
                       <div className="text-center py-4">
