@@ -152,12 +152,12 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const { generateFinalAnalysis, loading: analysisLoading } = useFinalMedicalAnalysis();
 
+  // Check if user has enough conversation/health data for export
+  const hasHealthData = healthStats.totalRecords > 0 || healthStats.totalConversations > 0;
+
   // Enhanced export functionality with progress modal
   const exportToPDF = async () => {
     if (!selectedUser) return;
-    
-    // Check if user has enough conversation/health data
-    const hasHealthData = healthStats.totalRecords > 0 || healthStats.totalConversations > 0;
     
     if (!hasHealthData) {
       toast({
@@ -305,21 +305,21 @@ export default function UserDashboard() {
            {selectedUser && hasAccess('basic') && (
              <Tooltip>
                <TooltipTrigger asChild>
-                 <Button
-                   onClick={exportToPDF}
-                   size="sm"
-                   variant="outline"
-                    className={cn(
-                     "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
-                     // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
-                     (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
-                      messages.length >= 10 && 
-                      !analysisLoading)
-                       ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                       : ""
-                   )}
-                   aria-label="Export medical report"
-                   disabled={analysisLoading}
+                  <Button
+                    onClick={exportToPDF}
+                    size="sm"
+                    variant="outline"
+                     className={cn(
+                      "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
+                      // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
+                      (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                       messages.length >= 10 && 
+                       !analysisLoading)
+                        ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                        : ""
+                    )}
+                    aria-label="Export medical report"
+                    disabled={analysisLoading || !hasHealthData}
                  >
                    {analysisLoading ? (
                      <>
@@ -334,9 +334,12 @@ export default function UserDashboard() {
                    )}
                  </Button>
                </TooltipTrigger>
-               <TooltipContent>
-                 Export comprehensive medical report
-               </TooltipContent>
+                <TooltipContent>
+                  {!hasHealthData 
+                    ? "Start conversations or add health records to generate report" 
+                    : "Export comprehensive medical report"
+                  }
+                </TooltipContent>
              </Tooltip>
            )}
         </div>
