@@ -221,10 +221,19 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
   useEffect(() => {
     if (deleteConversationMutation.isSuccess && deleteConversationMutation.data) {
+      const deletedConversationId = deleteConversationMutation.data;
+      
+      // Invalidate conversations query
       queryClient.invalidateQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
       
-      if (currentConversation === deleteConversationMutation.data) {
+      // Invalidate and remove messages cache for the deleted conversation
+      queryClient.invalidateQueries({ queryKey: [MESSAGES_QUERY_KEY, deletedConversationId] });
+      queryClient.removeQueries({ queryKey: [MESSAGES_QUERY_KEY, deletedConversationId] });
+      
+      // Clear current conversation and messages if it matches the deleted one
+      if (currentConversation === deletedConversationId) {
         setCurrentConversation(null);
+        setMessages([]);
       }
 
       toast({
@@ -252,6 +261,13 @@ export const useConversationsQuery = (selectedUser?: any) => {
       logger.error('Error updating conversation title:', updateTitleMutation.error);
     }
   }, [updateTitleMutation.isSuccess, updateTitleMutation.error, queryClient]);
+
+  // Clear messages when currentConversation becomes null
+  useEffect(() => {
+    if (currentConversation === null) {
+      setMessages([]);
+    }
+  }, [currentConversation]);
 
   const selectConversation = useCallback((conversationId: string) => {
     setCurrentConversation(conversationId);
