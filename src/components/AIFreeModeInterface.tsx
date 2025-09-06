@@ -287,30 +287,30 @@ export const AIFreeModeInterface = ({
       <div className="h-full flex gap-4 overflow-hidden">
         {/* Conversation History Panel */}
         {conversationPath.length > 0 && (
-          <Card className="w-80 flex-shrink-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Card className="w-80 flex-shrink-0 bg-card border-border">
+            <CardHeader className="pb-3 border-b border-border">
+              <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
                 <MessageCircle className="h-4 w-4" />
                 Conversation History
               </CardTitle>
             </CardHeader>
-            <ScrollArea className="flex-1">
-              <CardContent className="pt-0 space-y-3">
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              <CardContent className="pt-3 space-y-3 px-4">
                 {conversationPath.map((item, index) => (
                   <div key={index} className="space-y-2">
-                    <div className="bg-muted/30 p-3 rounded-lg">
+                    <div className="bg-muted/50 border border-border p-3 rounded-lg">
                       <p className="text-xs font-medium text-muted-foreground mb-1">
                         Question {index + 1}
                       </p>
-                      <p className="text-sm">
+                      <p className="text-sm text-foreground">
                         {item.question?.question_text || 'Loading question...'}
                       </p>
                     </div>
-                    <div className="bg-primary/10 p-3 rounded-lg">
+                    <div className="bg-primary/20 border border-primary/30 p-3 rounded-lg">
                       <p className="text-xs font-medium text-primary mb-1">
                         Your Answer
                       </p>
-                      <p className="text-sm">
+                      <p className="text-sm text-foreground">
                         {item.response}
                       </p>
                     </div>
