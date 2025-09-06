@@ -174,15 +174,15 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <CardHeader className="px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border">
-            <CardTitle className="flex items-center justify-between text-lg">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-foreground">Health Topics</span>
-                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+            <CardTitle className="flex items-start justify-between text-lg gap-3 min-h-[2.5rem]">
+              <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                <Target className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="font-semibold text-foreground whitespace-nowrap">Health Topics</span>
+                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground flex-shrink-0">
                   AI Free Mode
                 </Badge>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {topics.length > 0 && (
                   <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
                     {topics.length}
@@ -195,8 +195,8 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
                 )}
               </div>
             </CardTitle>
-            <p className="text-sm text-muted-foreground text-left">
-              {patientName} • Topics from your guided conversation
+            <p className="text-sm text-muted-foreground text-left truncate">
+              <span className="inline-block max-w-[150px] truncate">{patientName}</span> • Topics from your guided conversation
             </p>
           </CardHeader>
         </CollapsibleTrigger>
