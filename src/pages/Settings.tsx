@@ -9,10 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code } from "lucide-react";
+import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code, Database } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
+import { useClearAllData } from "@/hooks/useClearAllData";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -39,8 +40,10 @@ const Settings = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
   const [testerCode, setTesterCode] = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
+  const { clearAllData, isClearing } = useClearAllData();
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -440,6 +443,26 @@ const Settings = () => {
               </div>
               
               <Separator />
+
+              <div className="flex items-center justify-between p-4 border border-orange-200 rounded-lg bg-orange-50">
+                <div>
+                  <h3 className="font-medium text-orange-800">Clear All Data</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Delete all your health records, conversations, and analysis data while keeping your account active.
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowClearDataConfirm(true)} 
+                  className="flex items-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-100"
+                  disabled={isClearing}
+                >
+                  <Database className="h-4 w-4" />
+                  {isClearing ? "Clearing..." : "Clear Data"}
+                </Button>
+              </div>
+              
+              <Separator />
               
               <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
                 <div>
@@ -455,6 +478,47 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Clear All Data Confirmation Dialog */}
+          <Dialog open={showClearDataConfirm} onOpenChange={setShowClearDataConfirm}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-orange-700">
+                  <Database className="h-5 w-5" />
+                  Clear All Data
+                </DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to clear all your data? This will permanently delete:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>All health records and medical documents</li>
+                    <li>All conversations and chat history</li>
+                    <li>All analysis results and insights</li>
+                    <li>All patients and family member profiles</li>
+                  </ul>
+                  <span className="font-medium text-orange-700 block mt-2">
+                    This action cannot be undone, but your account will remain active.
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearDataConfirm(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    clearAllData();
+                    setShowClearDataConfirm(false);
+                  }} 
+                  className="flex items-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-100"
+                  disabled={isClearing}
+                >
+                  <Database className="h-4 w-4" />
+                  {isClearing ? "Clearing..." : "Clear All Data"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Delete Account Confirmation Dialog */}
           <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

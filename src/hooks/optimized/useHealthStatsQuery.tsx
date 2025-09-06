@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
 
@@ -7,6 +7,7 @@ interface HealthStats {
   totalConversations: number;
   lastActivityTime: string | null;
   loading: boolean;
+  refetchHealthStats?: () => void;
 }
 
 interface User {
@@ -19,6 +20,7 @@ const HEALTH_STATS_QUERY_KEY = 'healthStats';
 
 export const useHealthStatsQuery = (selectedUser?: User | null): HealthStats => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data = {
@@ -107,12 +109,88 @@ export const useHealthStatsQuery = (selectedUser?: User | null): HealthStats => 
       return result;
     },
     enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds (shorter for more responsive updates)
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: true,
   });
+
+  const { refetch } = useQuery({
+    queryKey: [HEALTH_STATS_QUERY_KEY, user?.id, selectedUser?.id],
+    queryFn: async () => {
+      if (!user) {
+        return {
+          totalRecords: 0,
+          totalConversations: 0,
+          lastActivityTime: null,
+        };
+      }
+
+      // Same query logic as above but as a separate function for refetch
+      const queries = [];
+
+      let recordsQuery = supabase
+        .from('health_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (selectedUser?.id) {
+        recordsQuery = recordsQuery.eq('patient_id', selectedUser.id);
+      }
+      queries.push(recordsQuery);
+
+      let conversationsQuery = supabase
+        .from('conversations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+        
+      if (selectedUser?.id) {
+        conversationsQuery = conversationsQuery.eq('patient_id', selectedUser.id);
+      }
+      queries.push(conversationsQuery);
+
+      let lastActivityQuery = supabase
+        .from('conversations')
+        .select('updated_at')
+        .eq('user_id', user.id);
+        
+      if (selectedUser?.id) {
+        lastActivityQuery = lastActivityQuery.eq('patient_id', selectedUser.id);
+      }
+      
+      lastActivityQuery = lastActivityQuery
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      queries.push(lastActivityQuery);
+
+      const [
+        { count: recordsCount, error: recordsError },
+        { count: conversationsCount, error: conversationsError },
+        { data: lastConversation, error: lastActivityError }
+      ] = await Promise.all(queries);
+
+      if (recordsError) throw recordsError;
+      if (conversationsError) throw conversationsError;
+      if (lastActivityError && lastActivityError.code !== 'PGRST116') {
+        throw lastActivityError;
+      }
+
+      return {
+        totalRecords: recordsCount || 0,
+        totalConversations: conversationsCount || 0,
+        lastActivityTime: lastConversation?.[0]?.updated_at || null,
+      };
+    },
+    enabled: false, // Only used for manual refetch
+  });
+
+  const refetchHealthStats = () => {
+    queryClient.invalidateQueries({ queryKey: [HEALTH_STATS_QUERY_KEY] });
+    refetch();
+  };
 
   return {
     ...data,
     loading,
+    refetchHealthStats,
   };
 };

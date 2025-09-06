@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut, FileDown } from 'lucide-react';
+import { Settings, FileText, MessageSquare, Brain, Activity, Calendar, Upload, Plus, Lock, Crown, Heart, User, LogOut, FileDown, Loader2 } from 'lucide-react';
 import { ChatGPTInterface } from '@/components/chat/ChatGPTInterface';
 import { DNAUpload } from '@/components/DNAUpload';
 import { HealthForms } from '@/components/health/HealthForms';
@@ -153,6 +153,7 @@ export default function UserDashboard() {
   const { generateFinalAnalysis, loading: analysisLoading } = useFinalMedicalAnalysis();
 
   // Check if user has enough conversation/health data for export
+  // Use refetchHealthStats for immediate refresh after data changes
   const hasHealthData = healthStats.totalRecords > 0 || healthStats.totalConversations > 0;
 
   // Enhanced export functionality with progress modal
@@ -305,41 +306,41 @@ export default function UserDashboard() {
            {selectedUser && hasAccess('basic') && (
              <Tooltip>
                <TooltipTrigger asChild>
-                  <Button
-                    onClick={exportToPDF}
-                    size="sm"
-                    variant="outline"
-                     className={cn(
-                      "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
-                      // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
-                      (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
-                       messages.length >= 10 && 
-                       !analysisLoading)
-                        ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                        : ""
-                    )}
-                    aria-label="Export medical report"
-                    disabled={analysisLoading || !hasHealthData}
+                 <Button
+                   onClick={exportToPDF}
+                   size="sm"
+                   variant="outline"
+                   className={cn(
+                     "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
+                     // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
+                     (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                      messages.length >= 10 && 
+                      !analysisLoading && hasHealthData)
+                       ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                       : ""
+                   )}
+                   aria-label="Export medical report"
+                   disabled={analysisLoading || !hasHealthData}
                  >
                    {analysisLoading ? (
                      <>
-                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                       <Loader2 className="h-3 w-3 animate-spin mr-2" />
                        Analyzing...
                      </>
                    ) : (
                      <>
-                       <FileDown className="h-4 w-4 mr-2" />
-                       Export Medical Report
+                       <FileText className="h-3 w-3 mr-2" />
+                       Report
                      </>
                    )}
                  </Button>
                </TooltipTrigger>
-                <TooltipContent>
-                  {!hasHealthData 
-                    ? "Start conversations or add health records to generate report" 
-                    : "Export comprehensive medical report"
-                  }
-                </TooltipContent>
+               <TooltipContent>
+                 {!hasHealthData 
+                   ? "Start conversations or add health records to generate report" 
+                   : "Export comprehensive medical report"
+                 }
+               </TooltipContent>
              </Tooltip>
            )}
         </div>
