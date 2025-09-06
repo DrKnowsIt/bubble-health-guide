@@ -1,0 +1,56 @@
+{
+  "bodyPart": "upperArms",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "arms_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your arms?",
+          "options": [
+            "Pain or aching",
+            "Weakness or difficulty moving",
+            "Numbness or tingling",
+            "Swelling or inflammation",
+            "Stiffness or limited range of motion",
+            "Other arm symptoms"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "arms_onset",
+          "text": "When did your arm symptoms begin?",
+          "options": [
+            "Suddenly after an injury",
+            "Gradually over several days",
+            "After repetitive activities",
+            "Been present for weeks/months",
+            "Comes and goes over time",
+            "I'm not sure when it started"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "arms_movement",
+          "text": "How does movement affect your arm symptoms?",
+          "options": [
+            "Worse with any movement",
+            "Worse lifting or reaching up",
+            "Worse with repetitive motions",
+            "Better with gentle movement",
+            "No change with movement",
+            "Stiff - limited movement"
+          ]
+        }
+      ]
+    }
+  }
+}

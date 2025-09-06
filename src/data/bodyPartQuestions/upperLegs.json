@@ -1,0 +1,39 @@
+{
+  "bodyPart": "upperLegs",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "thighs_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your thighs or hips?",
+          "options": [
+            "Thigh muscle pain or cramping",
+            "Hip joint pain or stiffness",
+            "Weakness in leg muscles",
+            "Numbness or tingling",
+            "Pain with walking",
+            "Other upper leg symptoms"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "thighs_activity",
+          "text": "When do your upper leg symptoms tend to occur?",
+          "options": [
+            "During physical activity",
+            "After exercise or walking",
+            "When getting up from sitting",
+            "At night or during rest",
+            "Constant throughout the day",
+            "No clear pattern"
+          ]
+        }
+      ]
+    }
+  }
+}

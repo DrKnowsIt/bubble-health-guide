@@ -1,0 +1,102 @@
+{
+  "bodyPart": "neck",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "neck_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your neck?",
+          "options": [
+            "Pain or aching",
+            "Stiffness or limited movement",
+            "Muscle spasms",
+            "Tingling or numbness",
+            "Swelling or lumps",
+            "Other neck symptoms"
+          ]
+        },
+        {
+          "id": "neck_pain_location",
+          "text": "Where specifically in your neck area do you feel symptoms?",
+          "options": [
+            "Back of neck",
+            "Sides of neck",
+            "Front of neck/throat area",
+            "Base of skull area",
+            "Radiating to shoulders",
+            "Entire neck area"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "neck_onset",
+          "text": "How did your neck symptoms develop?",
+          "options": [
+            "Suddenly after an injury/movement",
+            "Gradually over a few days",
+            "Woke up with symptoms",
+            "After prolonged sitting/working",
+            "Been present for weeks/months",
+            "Can't pinpoint when it started"
+          ]
+        }
+      ]
+    },
+    "severity": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "neck_movement",
+          "text": "How does movement affect your neck symptoms?",
+          "options": [
+            "Worse with any movement",
+            "Worse turning left or right",
+            "Worse looking up or down",
+            "Better with gentle movement",
+            "No change with movement",
+            "Stiff - limited range of motion"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 4,
+      "questions": [
+        {
+          "id": "neck_triggers",
+          "text": "What seems to worsen your neck symptoms?",
+          "options": [
+            "Sitting at computer/desk work",
+            "Sleeping position",
+            "Physical activity or exercise",
+            "Stress or tension",
+            "Cold weather",
+            "Nothing specific makes it worse"
+          ]
+        }
+      ]
+    },
+    "associated": {
+      "priority": 5,
+      "questions": [
+        {
+          "id": "neck_associated",
+          "text": "Are you experiencing any symptoms beyond your neck?",
+          "options": [
+            "Headaches",
+            "Shoulder or arm pain",
+            "Tingling in arms/hands",
+            "Upper back pain",
+            "Dizziness",
+            "No other symptoms"
+          ]
+        }
+      ]
+    }
+  }
+}

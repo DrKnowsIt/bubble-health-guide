@@ -1,0 +1,39 @@
+{
+  "bodyPart": "lowerLegs",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "calves_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your calves, ankles, or feet?",
+          "options": [
+            "Calf muscle pain or cramping",
+            "Ankle pain or swelling",
+            "Foot pain or discomfort",
+            "Numbness or tingling in feet",
+            "Difficulty walking",
+            "Other lower leg symptoms"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "calves_walking",
+          "text": "How do your lower leg symptoms relate to walking or standing?",
+          "options": [
+            "Pain increases with walking",
+            "Pain after standing long periods",
+            "Cramping during exercise",
+            "Stiffness in the morning",
+            "Swelling by end of day",
+            "No relation to activity"
+          ]
+        }
+      ]
+    }
+  }
+}

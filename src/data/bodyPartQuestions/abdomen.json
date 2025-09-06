@@ -1,0 +1,68 @@
+{
+  "bodyPart": "abdomen",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "abdomen_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your abdomen?",
+          "options": [
+            "Abdominal pain or cramping",
+            "Nausea or vomiting",
+            "Diarrhea or loose stools",
+            "Constipation",
+            "Bloating or gas",
+            "Other abdominal symptoms"
+          ]
+        },
+        {
+          "id": "abdomen_pain_location",
+          "text": "Where in your abdomen do you feel the most discomfort?",
+          "options": [
+            "Upper abdomen (under ribs)",
+            "Lower abdomen (below belly button)",
+            "Right side of abdomen",
+            "Left side of abdomen",
+            "Around belly button area",
+            "Entire abdomen"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "abdomen_timing",
+          "text": "When do your abdominal symptoms tend to occur?",
+          "options": [
+            "Constant throughout the day",
+            "Before or after meals",
+            "During the night",
+            "In the morning",
+            "Randomly throughout the day",
+            "After certain activities"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "abdomen_food_relation",
+          "text": "How do your symptoms relate to eating?",
+          "options": [
+            "Worse after eating",
+            "Better after eating",
+            "Worse when hungry",
+            "Certain foods make it worse",
+            "No relation to food",
+            "I've been avoiding food"
+          ]
+        }
+      ]
+    }
+  }
+}

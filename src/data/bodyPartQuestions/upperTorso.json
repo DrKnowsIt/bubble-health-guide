@@ -1,0 +1,85 @@
+{
+  "bodyPart": "upperTorso",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "chest_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your chest/upper torso?",
+          "options": [
+            "Chest pain or discomfort",
+            "Shortness of breath",
+            "Rapid or irregular heartbeat",
+            "Coughing",
+            "Upper back pain",
+            "Other chest symptoms"
+          ]
+        },
+        {
+          "id": "chest_pain_quality",
+          "text": "How would you describe any chest pain or discomfort?",
+          "options": [
+            "Sharp, stabbing pain",
+            "Dull, aching pain",
+            "Pressure or squeezing",
+            "Burning sensation",
+            "Tightness or constriction",
+            "No chest pain"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "chest_onset",
+          "text": "When did your chest/upper torso symptoms begin?",
+          "options": [
+            "Suddenly within the last hour",
+            "Gradually over the past few hours",
+            "Started yesterday",
+            "Been present for several days",
+            "Ongoing for weeks/months",
+            "Comes and goes over time"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "chest_triggers",
+          "text": "What seems to trigger or worsen your chest symptoms?",
+          "options": [
+            "Physical activity or exertion",
+            "Deep breathing",
+            "Certain body positions",
+            "Stress or anxiety",
+            "Eating or drinking",
+            "Nothing specific triggers it"
+          ]
+        }
+      ]
+    },
+    "associated": {
+      "priority": 4,
+      "questions": [
+        {
+          "id": "chest_associated",
+          "text": "Are you experiencing any other symptoms with your chest issues?",
+          "options": [
+            "Nausea or vomiting",
+            "Sweating",
+            "Dizziness or lightheadedness",
+            "Pain radiating to arms/jaw",
+            "Fatigue or weakness",
+            "No other symptoms"
+          ]
+        }
+      ]
+    }
+  }
+}

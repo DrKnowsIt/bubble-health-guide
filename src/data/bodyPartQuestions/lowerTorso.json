@@ -1,0 +1,56 @@
+{
+  "bodyPart": "lowerTorso",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "lower_back_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your lower back or pelvis?",
+          "options": [
+            "Lower back pain",
+            "Muscle spasms or tightness",
+            "Pain radiating to legs",
+            "Stiffness or limited mobility",
+            "Hip or pelvic pain",
+            "Other lower torso symptoms"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "lower_back_onset",
+          "text": "How did your lower back symptoms develop?",
+          "options": [
+            "Sudden onset with lifting/movement",
+            "Gradual onset over days/weeks",
+            "After prolonged sitting",
+            "After physical activity",
+            "Woke up with symptoms",
+            "Been present for months/years"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "lower_back_movement",
+          "text": "What movements or positions worsen your lower back symptoms?",
+          "options": [
+            "Bending forward",
+            "Standing for long periods",
+            "Sitting for extended time",
+            "Twisting or turning",
+            "Walking or movement helps",
+            "No specific movement patterns"
+          ]
+        }
+      ]
+    }
+  }
+}

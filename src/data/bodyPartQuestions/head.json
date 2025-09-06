@@ -1,0 +1,149 @@
+{
+  "bodyPart": "head",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "head_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your head?",
+          "options": [
+            "Headache or pain",
+            "Dizziness or lightheadedness",
+            "Nausea or vomiting",
+            "Vision changes",
+            "Hearing changes",
+            "Other symptoms"
+          ]
+        },
+        {
+          "id": "head_pain_location",
+          "text": "Where specifically in your head do you feel the pain?",
+          "options": [
+            "Forehead area",
+            "Temples (sides of head)",
+            "Top of head",
+            "Back of head",
+            "Around the eyes",
+            "Entire head"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "head_onset",
+          "text": "How did your head symptoms begin?",
+          "options": [
+            "Suddenly (within minutes)",
+            "Gradually over hours",
+            "Gradually over days",
+            "On and off for weeks/months",
+            "I'm not sure",
+            "They've been constant"
+          ]
+        },
+        {
+          "id": "head_pattern",
+          "text": "What pattern do your head symptoms follow?",
+          "options": [
+            "Constant throughout the day",
+            "Comes and goes randomly",
+            "Worse in the morning",
+            "Worse in the evening",
+            "Triggered by specific activities",
+            "No clear pattern"
+          ]
+        }
+      ]
+    },
+    "severity": {
+      "priority": 3,
+      "questions": [
+        {
+          "id": "head_severity",
+          "text": "How would you rate the severity of your head symptoms?",
+          "options": [
+            "Mild - barely noticeable",
+            "Moderate - noticeable but manageable",
+            "Severe - interferes with daily activities",
+            "Very severe - unbearable",
+            "Varies throughout the day",
+            "I'm not sure how to rate it"
+          ]
+        }
+      ]
+    },
+    "triggers": {
+      "priority": 4,
+      "questions": [
+        {
+          "id": "head_triggers",
+          "text": "Have you noticed anything that triggers or worsens your head symptoms?",
+          "options": [
+            "Stress or anxiety",
+            "Certain foods or drinks",
+            "Physical activity",
+            "Changes in weather",
+            "Lack of sleep",
+            "Bright lights or loud sounds",
+            "No obvious triggers"
+          ]
+        }
+      ]
+    },
+    "associated": {
+      "priority": 5,
+      "questions": [
+        {
+          "id": "head_associated",
+          "text": "Are you experiencing any other symptoms along with your head symptoms?",
+          "options": [
+            "Neck stiffness or pain",
+            "Fever or chills",
+            "Fatigue or weakness",
+            "Difficulty concentrating",
+            "Sensitivity to light/sound",
+            "No other symptoms"
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "priority": 6,
+      "questions": [
+        {
+          "id": "head_impact",
+          "text": "How are your head symptoms affecting your daily life?",
+          "options": [
+            "No impact on daily activities",
+            "Slight impact but manageable",
+            "Moderate impact on work/school",
+            "Significant impact on relationships",
+            "Unable to perform normal activities",
+            "Affects my sleep quality"
+          ]
+        }
+      ]
+    },
+    "history": {
+      "priority": 7,
+      "questions": [
+        {
+          "id": "head_history",
+          "text": "Have you experienced similar head symptoms before?",
+          "options": [
+            "Never had symptoms like this",
+            "Similar symptoms in the past year",
+            "Chronic recurring symptoms",
+            "Had this once before years ago",
+            "Family history of similar issues",
+            "I'm not sure"
+          ]
+        }
+      ]
+    }
+  }
+}

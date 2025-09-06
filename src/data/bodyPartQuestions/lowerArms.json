@@ -1,0 +1,39 @@
+{
+  "bodyPart": "lowerArms",
+  "categories": {
+    "symptoms": {
+      "priority": 1,
+      "questions": [
+        {
+          "id": "forearms_symptoms_primary",
+          "text": "What type of symptoms are you experiencing in your forearms or hands?",
+          "options": [
+            "Pain or aching in forearms",
+            "Wrist pain or stiffness",
+            "Hand numbness or tingling",
+            "Weakness gripping objects",
+            "Swelling in hands/wrists",
+            "Other hand/forearm symptoms"
+          ]
+        }
+      ]
+    },
+    "timing": {
+      "priority": 2,
+      "questions": [
+        {
+          "id": "forearms_activities",
+          "text": "Do your forearm/hand symptoms relate to specific activities?",
+          "options": [
+            "Computer/keyboard use",
+            "Writing or fine motor tasks",
+            "Gripping or lifting objects",
+            "Sports or exercise",
+            "No specific activity triggers them",
+            "Constant regardless of activity"
+          ]
+        }
+      ]
+    }
+  }
+}
