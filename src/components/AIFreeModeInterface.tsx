@@ -110,12 +110,15 @@ export const AIFreeModeInterface = ({
     }
   }, [loadSessionData, sessionRecovered]);
 
-  // Save state changes
+  // Save state changes (but not for completed sessions)
   useEffect(() => {
     if (sessionRecovered || phase !== 'anatomy-selection') {
-      saveCurrentState();
+      // Don't save state if session is completed
+      if (!showCompletionModal && !isCompleted) {
+        saveCurrentState();
+      }
     }
-  }, [phase, selectedAnatomyState, conversationPath, saveCurrentState, sessionRecovered]);
+  }, [phase, selectedAnatomyState, conversationPath, saveCurrentState, sessionRecovered, showCompletionModal, isCompleted]);
 
   useEffect(() => {
     // Auto-start session when component mounts, but only once
@@ -181,12 +184,14 @@ export const AIFreeModeInterface = ({
     setSessionRecovered(false);
   };
 
-  // Handle completed session
+  // Handle completed session and clear saved data
   useEffect(() => {
     if (isCompleted && phase === 'chat') {
       setShowCompletionModal(true);
+      // Clear session data when completed
+      clearSessionData();
     }
-  }, [isCompleted, phase]);
+  }, [isCompleted, phase, clearSessionData]);
 
   // Session recovery - restore active sessions on page refresh (but not during intentional restarts)
   useEffect(() => {
@@ -559,22 +564,17 @@ export const AIFreeModeInterface = ({
                   <p className="text-muted-foreground mb-4">
                     Get personalized health guidance through our guided conversation
                   </p>
-                  <div className="flex gap-2 justify-center">
-                    <Button onClick={startNewSession} disabled={loading}>
+                  <div className="flex justify-center">
+                    <Button onClick={handleRestartAnalysis} disabled={loading}>
                       {loading ? (
                         <>
                           <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           Starting...
                         </>
                       ) : (
-                        hasActiveSession ? 'New Chat' : 'Begin AI Free Mode'
+                        hasActiveSession ? 'Restart' : 'Begin AI Free Mode'
                       )}
                     </Button>
-                    {hasActiveSession && (
-                      <Button variant="outline" onClick={startNewSession} disabled={loading}>
-                        Restart
-                      </Button>
-                    )}
                   </div>
                 </div>
               )}
