@@ -6,8 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, Users, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers, User } from '@/hooks/useUsers';
-import { useConversations, Message } from '@/hooks/useConversations';
+import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
+import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
@@ -31,7 +31,7 @@ interface ChatInterfaceWithUsersProps {
 
 export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, selectedUser: propSelectedUser }: ChatInterfaceWithUsersProps) => {
   const { user } = useAuth();
-  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsers();
+  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
   const { subscribed } = useSubscription();
   
   // Use prop user if provided, otherwise use hook user
@@ -47,7 +47,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     saveMessage,
     startNewConversation,
     updateConversationTitleIfPlaceholder 
-  } = useConversations();
+  } = useConversationsQuery();
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);

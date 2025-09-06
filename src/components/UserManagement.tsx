@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useToast } from '@/hooks/use-toast';
 
 export const UserManagement = () => {
-  const { users, deleteUser, canDeleteUser, loading } = useUsers();
+  const { users, deleteUser, canDeleteUser, loading } = useUsersQuery();
   const { toast } = useToast();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 

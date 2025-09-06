@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { FileText, Calendar, Activity, Upload, Users, TrendingUp, ChevronRight, Plus } from 'lucide-react';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useSubscription } from '@/hooks/useSubscription';
 import { HealthRecords } from './health/HealthRecords';
 import { HealthForms } from './health/HealthForms';
@@ -20,7 +20,7 @@ interface MobileEnhancedHealthTabProps {
 }
 
 export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTabProps) => {
-  const { users, selectedUser, setSelectedUser } = useUsers();
+  const { users, selectedUser, setSelectedUser } = useUsersQuery();
   const { subscribed, subscription_tier } = useSubscription();
   const [activeHealthTab, setActiveHealthTab] = useState('overview');
   const [showPatientSelector, setShowPatientSelector] = useState(false);

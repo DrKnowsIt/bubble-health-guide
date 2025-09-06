@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { UploadProgressDialog } from '@/components/modals/UploadProgressDialog';
 import { FormProgress } from '@/components/forms/FormProgress';
 import { UserSelectionGuide } from '@/components/UserSelectionGuide';
@@ -419,7 +419,7 @@ interface HealthFormsProps {
 
 export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient }: HealthFormsProps) => {
   const { user } = useAuth();
-  const { users, selectedUser: hookSelectedPatient } = useUsers();
+  const { users, selectedUser: hookSelectedPatient } = useUsersQuery();
   const { subscribed, subscription_tier } = useSubscription();
   
   // Use prop patient if provided, otherwise use hook patient

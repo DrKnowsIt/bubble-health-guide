@@ -6,8 +6,11 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, CheckCircle, RefreshCw, AlertTriangle, Brain, Target, Send } from 'lucide-react';
-import { useAIFreeMode } from '@/hooks/useAIFreeMode';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 import { useSessionPersistence } from '@/hooks/useSessionPersistence';
+import { useAIFreeMode } from '@/hooks/useAIFreeMode';
 import { supabase } from '@/integrations/supabase/client';
 import { HealthTopicsPanel } from './health/HealthTopicsPanel';
 import { AnatomySelector } from './AnatomySelector';
@@ -88,7 +91,7 @@ export const AIFreeModeInterface = ({
   useEffect(() => {
     const savedData = loadSessionData();
     if (savedData && !sessionRecovered) {
-      console.log('Loading saved session data:', savedData);
+      logger.debug('Loading saved session data:', savedData);
       
       if (savedData.phase) {
         setPhase(savedData.phase as ChatPhase);
@@ -102,7 +105,7 @@ export const AIFreeModeInterface = ({
         }
         
         setSessionRecovered(true);
-        console.log('Session state restored from localStorage');
+        logger.debug('Session state restored from localStorage');
       }
     }
   }, [loadSessionData, sessionRecovered]);
@@ -125,7 +128,7 @@ export const AIFreeModeInterface = ({
     setSelectedAnatomyState(anatomy);
     setPhase('chat');
     // Always force new session when coming from anatomy selection - this ensures fresh start
-    console.log('Starting fresh AI Free Mode session from anatomy selection');
+    logger.debug('Starting fresh AI Free Mode session from anatomy selection');
     startNewSession(true);
   };
 
@@ -137,7 +140,7 @@ export const AIFreeModeInterface = ({
   };
 
   const handleStartNewChat = () => {
-    console.log('Starting completely new chat - clearing saved data');
+    logger.debug('Starting completely new chat - clearing saved data');
     clearSessionData();
     setPhase('anatomy-selection');
     setSelectedAnatomyState([]);
@@ -146,7 +149,7 @@ export const AIFreeModeInterface = ({
   };
 
   const handleRestartAnalysis = async () => {
-    console.log('Restarting analysis - clearing saved data and abandoning active session');
+    logger.debug('Restarting analysis - clearing saved data and abandoning active session');
     
     // Clear localStorage first
     clearSessionData();
@@ -191,7 +194,7 @@ export const AIFreeModeInterface = ({
       // Only recover if this isn't a fresh restart (check if we have saved session data)
       const savedData = loadSessionData();
       if (savedData && savedData.phase === 'chat') {
-        console.log('Recovering active session from page refresh');
+        logger.debug('Recovering active session from page refresh');
         
         // Extract selected anatomy from session data
         const sessionData = currentSession.session_data as any;
@@ -199,7 +202,7 @@ export const AIFreeModeInterface = ({
           setSelectedAnatomyState(sessionData.selected_anatomy);
           setPhase('chat');
           setSessionRecovered(true);
-          console.log('Session recovered with anatomy:', sessionData.selected_anatomy);
+          logger.debug('Session recovered with anatomy:', sessionData.selected_anatomy);
         }
       }
     }
@@ -219,7 +222,7 @@ export const AIFreeModeInterface = ({
     
     // For Basic/Pro users, trigger medical image prompts based on symptoms
     if ((subscription_tier === 'basic' || subscription_tier === 'pro') && text && patientId) {
-      console.log('Triggering medical image analysis for Basic/Pro user');
+      logger.debug('Triggering medical image analysis for Basic/Pro user');
       const conversationContext = conversationPath.map(p => 
         `Q: ${p.question?.question_text} A: ${p.response}`
       );
@@ -231,7 +234,7 @@ export const AIFreeModeInterface = ({
   const handleTextSubmit = () => {
     if (!textInput.trim()) return;
     
-    console.log('Submitting custom text response:', textInput.trim());
+    logger.debug('Submitting custom text response:', textInput.trim());
     
     if (submitTextResponse) {
       submitTextResponse(textInput.trim());

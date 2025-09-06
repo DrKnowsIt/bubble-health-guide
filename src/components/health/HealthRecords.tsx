@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ interface HealthRecordsProps {
 export const HealthRecords = ({ selectedPatient: propSelectedPatient }: HealthRecordsProps) => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
-  const { users, selectedUser: hookSelectedPatient } = useUsers();
+  const { users, selectedUser: hookSelectedPatient } = useUsersQuery();
   
   // Use prop patient if provided, otherwise use hook patient
   const selectedPatient = propSelectedPatient !== undefined ? propSelectedPatient : hookSelectedPatient;

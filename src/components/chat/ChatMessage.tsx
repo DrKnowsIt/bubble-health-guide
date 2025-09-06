@@ -1,5 +1,5 @@
 import { Bot, UserIcon } from 'lucide-react';
-import { Message } from '@/hooks/useConversations';
+import { Message } from '@/hooks/optimized/useConversationsQuery';
 
 interface ChatMessageProps {
   message: Message;

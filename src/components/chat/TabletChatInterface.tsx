@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Send, Mic, MicOff, Bot, UserIcon, Loader2, History, Users, Brain, ChevronDown, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers, User } from '@/hooks/useUsers';
-import { useConversations, Message } from '@/hooks/useConversations';
+import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
+import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
@@ -35,7 +35,7 @@ export const TabletChatInterface = ({
 }: TabletChatInterfaceProps) => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
-  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsers();
+  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -51,7 +51,7 @@ export const TabletChatInterface = ({
     saveMessage,
     updateConversationTitleIfPlaceholder,
     startNewConversation 
-  } = useConversations();
+  } = useConversationsQuery();
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);

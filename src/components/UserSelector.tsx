@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUsers, User, CreateUserData } from '@/hooks/useUsers';
+import { useUsersQuery, User, CreateUserData } from '@/hooks/optimized/useUsersQuery';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -17,7 +17,7 @@ interface UserSelectorProps {
 }
 
 export const UserSelector = ({ onUserSelected, className }: UserSelectorProps) => {
-  const { users, selectedUser, setSelectedUser, createUser, deleteUser, loading, canAddUser, canDeleteUser, getUserLimit } = useUsers();
+  const { users, selectedUser, setSelectedUser, createUser, deleteUser, loading, canAddUser, canDeleteUser, getUserLimit } = useUsersQuery();
   const { toast } = useToast();
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [newUser, setNewUser] = useState<CreateUserData>({

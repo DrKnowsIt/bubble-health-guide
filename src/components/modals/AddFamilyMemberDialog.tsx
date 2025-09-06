@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Dog, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ type MemberType = 'human' | 'pet' | null;
 type DialogStep = 'type-selection' | 'form';
 
 export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDialogProps) => {
-  const { createUser, users, canAddUser, getUserLimit, refreshUsers } = useUsers();
+  const { createUser, users, canAddUser, getUserLimit, refreshUsers } = useUsersQuery();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState<DialogStep>('type-selection');

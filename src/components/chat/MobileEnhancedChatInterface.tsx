@@ -6,8 +6,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers, User } from '@/hooks/useUsers';
-import { useConversations, Message } from '@/hooks/useConversations';
+import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
+import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
@@ -36,7 +36,7 @@ export const MobileEnhancedChatInterface = ({
 }: MobileEnhancedChatInterfaceProps) => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
-  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsers();
+  const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -52,7 +52,7 @@ export const MobileEnhancedChatInterface = ({
     saveMessage,
     updateConversationTitleIfPlaceholder,
     startNewConversation 
-  } = useConversations();
+  } = useConversationsQuery();
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);

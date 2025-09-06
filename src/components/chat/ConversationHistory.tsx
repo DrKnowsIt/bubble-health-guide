@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Calendar, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useConversations } from '@/hooks/useConversations';
+import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
 
 interface Conversation {
   id: string;
@@ -31,7 +31,7 @@ export const ConversationHistory = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const { deleteConversation: hookDeleteConversation } = useConversations();
+  const { deleteConversation: hookDeleteConversation } = useConversationsQuery();
 
   useEffect(() => {
     if (selectedPatientId && user?.id) {

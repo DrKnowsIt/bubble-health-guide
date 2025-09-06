@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useAISettings } from '@/hooks/useAISettings';
 import { PatientMemoryOverview } from './PatientMemoryOverview';
 import { 
@@ -39,7 +39,7 @@ export const AISettings = ({ selectedUser }: AISettingsProps) => {
   const { subscribed } = useSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsers();
+  const { users, loading: usersLoading, deleteUser, canDeleteUser } = useUsersQuery();
   const { settings, loading: aiSettingsLoading, updateSettings } = useAISettings();
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [clearingMemory, setClearingMemory] = useState<string | null>(null);

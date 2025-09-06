@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface Message {
   id: string;
@@ -26,6 +27,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   // Fetch conversations with caching
   const {
@@ -60,7 +62,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
   // Fetch messages with caching
   const {
-    data: messages = [],
+    data: fetchedMessages = [],
     isLoading: messagesLoading,
   } = useQuery({
     queryKey: [MESSAGES_QUERY_KEY, currentConversation],
@@ -75,13 +77,17 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
       if (error) throw error;
       
-      return (data || []).map(msg => ({
+      const formattedMessages = (data || []).map(msg => ({
         id: msg.id,
         type: msg.type as 'user' | 'ai',
         content: msg.content,
         timestamp: new Date(msg.created_at),
         image_url: msg.image_url
       }));
+      
+      // Update local messages state when data changes
+      setMessages(formattedMessages);
+      return formattedMessages;
     },
     enabled: !!currentConversation,
     staleTime: 30 * 1000, // 30 seconds
@@ -198,7 +204,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
     
     if (createConversationMutation.error) {
-      console.error('Error creating conversation:', createConversationMutation.error);
+      logger.error('Error creating conversation:', createConversationMutation.error);
     }
   }, [createConversationMutation.isSuccess, createConversationMutation.data, createConversationMutation.error, queryClient]);
 
@@ -209,7 +215,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
     
     if (saveMessageMutation.error) {
-      console.error('Error saving message:', saveMessageMutation.error);
+      logger.error('Error saving message:', saveMessageMutation.error);
     }
   }, [saveMessageMutation.isSuccess, saveMessageMutation.error, queryClient, currentConversation]);
 
@@ -228,7 +234,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
     
     if (deleteConversationMutation.error) {
-      console.error('Error deleting conversation:', deleteConversationMutation.error);
+      logger.error('Error deleting conversation:', deleteConversationMutation.error);
       toast({
         title: "Error",
         description: "Failed to delete conversation. Please try again.",
@@ -243,7 +249,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
     
     if (updateTitleMutation.error) {
-      console.error('Error updating conversation title:', updateTitleMutation.error);
+      logger.error('Error updating conversation title:', updateTitleMutation.error);
     }
   }, [updateTitleMutation.isSuccess, updateTitleMutation.error, queryClient]);
 
@@ -253,23 +259,101 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
   const startNewConversation = useCallback(() => {
     setCurrentConversation(null);
+    setMessages([]);
   }, []);
+
+  // Real-time subscription for conversations
+  useEffect(() => {
+    if (!user) return;
+
+    logger.debug('Setting up real-time subscription for conversations');
+
+    const channel = supabase
+      .channel('conversations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          logger.debug('Real-time conversation update:', payload);
+          queryClient.invalidateQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      logger.debug('Cleaning up conversations real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!currentConversation) return;
+
+    logger.debug('Setting up real-time subscription for messages:', currentConversation);
+
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${currentConversation}`
+        },
+        (payload) => {
+          logger.debug('Real-time message update:', payload);
+          queryClient.invalidateQueries({ queryKey: [MESSAGES_QUERY_KEY, currentConversation] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      logger.debug('Cleaning up messages real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [currentConversation, queryClient]);
 
   return {
     conversations,
     currentConversation,
     messages,
+    setMessages,
     loading: conversationsLoading || messagesLoading,
-    createConversation: (title: string, patientId?: string | null) => 
-      createConversationMutation.mutate({ title, patientId }),
-    saveMessage: (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string) =>
-      saveMessageMutation.mutate({ conversationId, type, content, imageUrl }),
+    createConversation: async (title: string, patientId?: string | null): Promise<string | null> => {
+      return new Promise((resolve) => {
+        createConversationMutation.mutate({ title, patientId }, {
+          onSuccess: (data) => resolve(data.id),
+          onError: () => resolve(null)
+        });
+      });
+    },
+    saveMessage: async (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        saveMessageMutation.mutate({ conversationId, type, content, imageUrl }, {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error)
+        });
+      });
+    },
     startNewConversation,
     selectConversation,
     fetchConversations: refetchConversations,
     deleteConversation: deleteConversationMutation.mutate,
-    updateConversationTitleIfPlaceholder: (conversationId: string, newTitle: string) =>
-      updateTitleMutation.mutate({ conversationId, newTitle, onlyIfPlaceholder: true }),
+    updateConversationTitleIfPlaceholder: async (conversationId: string, newTitle: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        updateTitleMutation.mutate({ conversationId, newTitle, onlyIfPlaceholder: true }, {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error)
+        });
+      });
+    },
     isCreatingConversation: createConversationMutation.isPending,
     isSavingMessage: saveMessageMutation.isPending,
     isDeletingConversation: deleteConversationMutation.isPending,

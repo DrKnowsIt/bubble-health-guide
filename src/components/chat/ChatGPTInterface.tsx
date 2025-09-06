@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useConversations, Message } from "@/hooks/useConversations";
+import { useConversationsQuery, Message } from "@/hooks/optimized/useConversationsQuery";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useUsers } from "@/hooks/useUsers";
+import { useUsersQuery } from "@/hooks/optimized/useUsersQuery";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
@@ -1089,9 +1089,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
 export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser }: ChatGPTInterfaceProps) => {
   const { user } = useAuth();
-  const { selectedUser: hookSelectedUser } = useUsers();
+  const { selectedUser: hookSelectedUser } = useUsersQuery();
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
-  const conv = useConversations(selectedUser);
+  const conv = useConversationsQuery(selectedUser);
 
   const handleStartNewConversation = async () => {
     // Reset UI to empty state with examples; defer DB creation until first message
