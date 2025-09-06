@@ -12,7 +12,7 @@ import { logger } from '@/utils/logger';
 import { useSessionPersistence } from '@/hooks/useSessionPersistence';
 import { useAIFreeMode } from '@/hooks/useAIFreeMode';
 import { supabase } from '@/integrations/supabase/client';
-import { HealthTopicsPanel } from './health/HealthTopicsPanel';
+import { AIFreeModeTopicsPanel } from './AIFreeModeTopicsPanel';
 import { AnatomySelector } from './AnatomySelector';
 import { AIFreeModeCompletionModal } from './modals/AIFreeModeCompletionModal';
 import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
@@ -585,17 +585,12 @@ export const AIFreeModeInterface = ({
 
         {/* Right Sidebar - Health Topics */}
         <div className="w-80 flex-shrink-0">
-          <HealthTopicsPanel
-            conversationId={undefined}
-            patientId={patientId || ""}
-            patientName={patientId ? "Patient" : "You"}
-            conversationContext={conversationPath.map(item => 
-              `Q: ${item.question?.question_text || 'Question'} A: ${item.response}`
-            ).join('\n\n')}
-            conversationType="easy_chat"
-            selectedAnatomy={[]}
-            includeSolutions={true}
-            mode="free"
+          <AIFreeModeTopicsPanel
+            conversationPath={conversationPath}
+            patientName={patientId || 'User'}
+            patientId={patientId || 'default'}
+            sessionId={currentSession?.id}
+            healthTopics={healthTopics}
           />
         </div>
       </div>
