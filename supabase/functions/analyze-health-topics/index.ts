@@ -10,12 +10,15 @@ const corsHeaders = {
 interface AnalysisRequest {
   conversation_id?: string;
   patient_id: string;
+  user_id?: string;
   conversation_context: string;
-  conversation_type: 'easy_chat' | 'regular_chat';
-  user_tier: 'free' | 'basic' | 'pro';
+  conversation_type?: 'easy_chat' | 'regular_chat';
+  user_tier?: 'free' | 'basic' | 'pro';
   recent_messages?: any[];
   selected_anatomy?: string[];
   include_solutions?: boolean;
+  analysis_mode?: string;
+  include_testing_recommendations?: boolean;
 }
 
 serve(async (req) => {
@@ -24,16 +27,16 @@ serve(async (req) => {
   }
 
   try {
-    const {
+    const { 
+      conversation_context, 
+      patient_id, 
+      user_id, 
       conversation_id,
-      patient_id,
-      conversation_context,
-      conversation_type = 'regular_chat',
-      user_tier = 'free',
-      recent_messages = [],
-      selected_anatomy = [],
-      include_solutions = true
-    }: AnalysisRequest = await req.json();
+      include_solutions = false,
+      analysis_mode = 'standard',
+      include_testing_recommendations = false,
+      selected_anatomy = []
+    } = await req.json();
 
     if (!patient_id || !conversation_context) {
       return new Response(
@@ -69,6 +72,13 @@ serve(async (req) => {
       );
     }
 
+    // Enhanced conversation type detection
+    const isEasyChatSession = patient_id === 'ai_free_mode_user' || analysis_mode === 'comprehensive_final';
+    const conversation_type = isEasyChatSession ? 'easy_chat' : 'full_chat';
+    
+    // For comprehensive final analysis, treat as basic tier for better insights
+    const user_tier = analysis_mode === 'comprehensive_final' ? 'basic' : (isEasyChatSession ? 'free' : userData.user?.user_metadata?.subscription_tier || 'free');
+
     console.log(`Analyzing ${conversation_type} conversation for ${user_tier} user`);
 
     // Smart caching: Check if content has changed significantly
@@ -77,8 +87,8 @@ serve(async (req) => {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    // Check for recent analysis with same content hash
-    if (conversation_id) {
+    // Skip caching for comprehensive final analysis to ensure fresh insights
+    if (conversation_id && analysis_mode !== 'comprehensive_final') {
       const { data: recentAnalysis } = await supabase
         .from('conversation_diagnoses')
         .select('updated_at, reasoning')
@@ -180,23 +190,36 @@ ${patient.is_pet ? `Species: ${patient.species || 'Not specified'}` : ''}`;
 Selected Anatomy: ${selected_anatomy.join(', ') || 'None specified'}`;
     }
 
-    // Build comprehensive system prompt
-    const systemPrompt = `You are a medical analysis AI that generates health topics and ${include_solutions ? 'holistic solutions' : 'recommendations'} based on conversation context.
+    // System prompt for comprehensive analysis
+    const isComprehensiveAnalysis = analysis_mode === 'comprehensive_final';
+    const systemPrompt = `You are a medical AI assistant analyzing a health conversation for ${conversation_type === 'easy_chat' ? 'AI Free Mode' : 'full chat'}. ${patientContext}
 
-PATIENT CONTEXT:
-${patientContext}${memoryContext}${healthFormsContext}
+${memoryContext}
 
-ANALYSIS MODE: ${conversation_type.toUpperCase()} (${user_tier.toUpperCase()} tier)
+${healthFormsContext}
 
-CONFIDENCE CALIBRATION (CRITICAL):
-- FREE MODE: Use conservative confidence (10-40%) due to limited context
-- BASIC MODE: Use moderate confidence (20-60%) with basic patient data
-- PRO MODE: Use higher confidence (30-80%) with full context and history
+ANALYSIS MODE: ${isComprehensiveAnalysis ? 'COMPREHENSIVE FINAL ANALYSIS' : 'STANDARD ANALYSIS'}
 
-CONFIDENCE GUIDELINES:
-HIGH (70-80%): Multiple specific symptoms, clear patterns, rich context
-MEDIUM (40-69%): Some symptoms mentioned, moderate detail
-LOW (20-39%): Vague mentions, limited specificity
+${isComprehensiveAnalysis ? `
+COMPREHENSIVE ANALYSIS REQUIREMENTS:
+- Provide thorough final analysis of the complete conversation
+- Focus on the most significant health topics with detailed reasoning
+- Include actionable recommendations across multiple categories
+- Suggest appropriate medical tests and evaluations
+- Rank everything by clinical priority and confidence
+` : ''}
+
+CRITICAL INSTRUCTIONS:
+- Analyze conversation for health topics only
+- Base confidence on conversation evidence only
+- NO DISCLAIMERS in responses
+- Be specific about symptoms and concerns discussed
+- ${isComprehensiveAnalysis ? 'Focus on comprehensive insights for final summary' : 'Standard topic identification'}
+
+CONFIDENCE CALIBRATION:
+HIGH (65-80%): Strong evidence from multiple conversation elements, clear symptom patterns
+MODERATE (40-64%): Some evidence present, symptoms mentioned with context
+LOW (20-39%): Limited evidence, vague or single mentions
 VERY LOW (10-19%): Minimal evidence, highly speculative
 
 TOPIC CATEGORIES:
@@ -204,13 +227,23 @@ musculoskeletal, dermatological, gastrointestinal, cardiovascular, respiratory, 
 
 ${include_solutions ? `
 SOLUTION CATEGORIES:
-lifestyle, stress, sleep, nutrition, exercise, mental_health
+lifestyle, stress, sleep, nutrition, exercise, mental_health, medical, general
 
 SOLUTION RULES:
-- NO medications or medical treatments
-- Focus on lifestyle, behavioral, environmental changes
-- Must be actionable and specific to conversation issues
+- Provide actionable lifestyle and self-care recommendations
+- ${isComprehensiveAnalysis ? 'Include holistic approaches (lifestyle, diet, exercise, stress management)' : 'Focus on immediate actionable steps'}
+- Must be specific to conversation issues
 - Target root causes when possible
+- Categorize appropriately for easy organization
+` : ''}
+
+${include_testing_recommendations && isComprehensiveAnalysis ? `
+TESTING RECOMMENDATIONS:
+- Suggest appropriate medical tests based on discussed symptoms
+- Consider common diagnostic evaluations for identified conditions
+- Include both basic screening and specific targeted tests
+- Keep recommendations realistic and commonly ordered
+- Format as brief, clear descriptions
 ` : ''}
 
 Return JSON with this exact structure:
@@ -230,10 +263,15 @@ Return JSON with this exact structure:
       "confidence": 0.55,
       "reasoning": "Why this addresses the conversation issues"
     }
+  ]` : ''}${include_testing_recommendations && isComprehensiveAnalysis ? `,
+  "testing_recommendations": [
+    "Complete Blood Count (CBC) to check for infection or anemia",
+    "Basic Metabolic Panel to assess organ function",
+    "X-ray or imaging if musculoskeletal concerns present"
   ]` : ''}
 }
 
-Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solutions'}.`;
+Ensure exactly ${isComprehensiveAnalysis ? '5' : '4'} topics and ${include_solutions ? (isComprehensiveAnalysis ? '6-8 solutions' : '3-5 solutions') : 'no solutions'}${include_testing_recommendations && isComprehensiveAnalysis ? ' and 4-6 testing recommendations' : ''}.`;
 
     // Make OpenAI API call
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -248,7 +286,7 @@ Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solution
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze: ${conversation_context}` }
         ],
-        max_completion_tokens: include_solutions ? 1500 : 800,
+        max_completion_tokens: include_testing_recommendations ? 2000 : (include_solutions ? 1500 : 800),
         response_format: { type: "json_object" }
       }),
     });
@@ -298,25 +336,33 @@ Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solution
     const topics = (analysisData.topics || [])
       .filter((t: any) => t.topic && t.confidence >= 0.05)
       .map((t: any) => ({
-        topic: t.topic,
-        confidence: Math.min(Math.max(t.confidence, confidenceRange.min), confidenceRange.max),
-        reasoning: t.reasoning || 'No reasoning provided',
+        topic: t.topic?.substring(0, 255) || 'Unknown topic',
+        confidence: Math.min(Math.max(t.confidence || 0.2, confidenceRange.min), confidenceRange.max),
+        reasoning: t.reasoning?.substring(0, 500) || 'No reasoning provided',
         category: t.category || 'other'
       }))
-      .sort((a: any, b: any) => b.confidence - a.confidence); // Sort by confidence DESC
+      .slice(0, isComprehensiveAnalysis ? 5 : 4);
 
     const solutions = include_solutions ? (analysisData.solutions || [])
       .filter((s: any) => s.solution && s.confidence >= 0.05)
       .map((s: any) => ({
-        solution: s.solution,
-        confidence: Math.min(Math.max(s.confidence, confidenceRange.min), confidenceRange.max),
-        reasoning: s.reasoning || 'No reasoning provided',
-        category: s.category || 'lifestyle'
+        solution: s.solution?.substring(0, 255) || 'Unknown solution',
+        confidence: Math.min(Math.max(s.confidence || 0.2, confidenceRange.min), confidenceRange.max),
+        reasoning: s.reasoning?.substring(0, 500) || 'No reasoning provided',
+        category: s.category || 'general'
       }))
-      .sort((a: any, b: any) => b.confidence - a.confidence) : []; // Sort by confidence DESC
+      .slice(0, isComprehensiveAnalysis ? 8 : 5) : [];
 
-    // Store results in database if conversation_id provided
-    if (conversation_id && topics.length > 0) {
+    // Extract testing recommendations for comprehensive analysis
+    const testing_recommendations = (include_testing_recommendations && isComprehensiveAnalysis) 
+      ? (analysisData.testing_recommendations || [])
+          .filter((test: any) => typeof test === 'string' && test.length > 0)
+          .map((test: string) => test.substring(0, 200))
+          .slice(0, 6)
+      : [];
+
+    // Store results in database if conversation_id provided (skip for comprehensive analysis to avoid duplication)
+    if (conversation_id && topics.length > 0 && analysis_mode !== 'comprehensive_final') {
       // Clear existing data for this conversation
       await supabase
         .from('conversation_diagnoses')
@@ -369,8 +415,9 @@ Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solution
       JSON.stringify({ 
         topics,
         solutions,
+        testing_recommendations,
         cached: false,
-        analysis_type: `${conversation_type}_${user_tier}`
+        analysis_type: `${conversation_type}_${user_tier}_${analysis_mode}`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -381,7 +428,8 @@ Ensure exactly 4 topics and ${include_solutions ? '3-5 solutions' : 'no solution
       JSON.stringify({ 
         error: error.message,
         topics: [],
-        solutions: []
+        solutions: [],
+        testing_recommendations: []
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

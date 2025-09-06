@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { FileDown, X, RefreshCw, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
 
 interface AIFreeModeCompletionModalProps {
@@ -27,9 +28,45 @@ export const AIFreeModeCompletionModal = ({
   sessionData 
 }: AIFreeModeCompletionModalProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [finalAnalysis, setFinalAnalysis] = useState<any>(null);
   const { toast } = useToast();
 
-  const generatePDF = async () => {
+  const generateComprehensiveAnalysis = async () => {
+    try {
+      console.log('Generating comprehensive final analysis...');
+      
+      // Prepare conversation context for analysis
+      const conversationContext = sessionData.conversationPath
+        .map(step => `Q: ${step.question?.question_text || 'Unknown question'} A: ${step.response}`)
+        .join('\n');
+
+      const { data, error } = await supabase.functions.invoke('analyze-health-topics', {
+        body: {
+          conversation_context: conversationContext,
+          patient_id: 'ai_free_mode_user',
+          user_id: 'ai_free_mode_user',
+          analysis_mode: 'comprehensive_final',
+          include_solutions: true,
+          include_testing_recommendations: true,
+          selected_anatomy: sessionData.selectedAnatomy
+        }
+      });
+
+      if (error) {
+        console.error('Error generating comprehensive analysis:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('Generated comprehensive analysis:', data);
+      setFinalAnalysis(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to generate comprehensive analysis:', error);
+      throw error;
+    }
+  };
+
+  const generatePDF = async (analysis?: any) => {
     setIsGeneratingPDF(true);
     try {
       const doc = new jsPDF();
@@ -97,48 +134,149 @@ export const AIFreeModeCompletionModal = ({
         currentY += splitSummary.length * 4 + 15;
       }
 
-      // Detailed Conversation Transcript (Q&A)
-      if (sessionData.conversationPath.length > 0) {
+      // Comprehensive Final Analysis Section
+      if (analysis) {
         // Check if we need a new page
         if (currentY + 50 > pageHeight) {
           doc.addPage();
           currentY = 20;
         }
 
-        doc.setFontSize(14);
+        doc.setFontSize(16);
         doc.setFont(undefined, 'bold');
-        doc.text('Conversation Transcript:', 20, currentY);
-        currentY += 8;
+        doc.text('COMPREHENSIVE HEALTH ANALYSIS', 20, currentY);
+        currentY += 10;
 
         doc.setFontSize(9);
         doc.setFont(undefined, 'italic');
-        doc.text('Questions and responses from your guided health conversation:', 20, currentY);
+        doc.text('AI-generated comprehensive analysis based on your complete conversation:', 20, currentY);
         currentY += 10;
 
-        sessionData.conversationPath.forEach((item, index) => {
-          if (currentY + 25 > pageHeight) {
+        // Best Topics to Discuss (Ranked by Confidence)
+        if (analysis.topics && analysis.topics.length > 0) {
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.text('TOP PRIORITY TOPICS FOR DOCTOR DISCUSSION:', 20, currentY);
+          currentY += 8;
+
+          const sortedTopics = analysis.topics
+            .sort((a, b) => b.confidence - a.confidence)
+            .slice(0, 5); // Top 5 topics
+
+          sortedTopics.forEach((topic, index) => {
+            if (currentY + 20 > pageHeight) {
+              doc.addPage();
+              currentY = 20;
+            }
+
+            const confidenceLevel = Math.round(topic.confidence * 100);
+            const displayConfidence = confidenceLevel >= 100 ? 95 : confidenceLevel;
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text(`${index + 1}. ${topic.topic}`, 25, currentY);
+            currentY += 5;
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Priority Level: ${displayConfidence}% confidence`, 30, currentY);
+            currentY += 4;
+
+            if (topic.reasoning) {
+              const splitReasoning = doc.splitTextToSize(`Why this matters: ${topic.reasoning}`, pageWidth - 30);
+              doc.text(splitReasoning, 30, currentY);
+              currentY += splitReasoning.length * 3 + 6;
+            }
+          });
+
+          currentY += 10;
+        }
+
+        // Holistic Recommendations
+        if (analysis.solutions && analysis.solutions.length > 0) {
+          // Check if we need a new page
+          if (currentY + 40 > pageHeight) {
             doc.addPage();
             currentY = 20;
           }
 
-          // Question
-          doc.setFontSize(10);
+          doc.setFontSize(12);
           doc.setFont(undefined, 'bold');
-          const questionText = `Q${index + 1}: ${item.question?.question_text || 'Question not available'}`;
-          const splitQuestion = doc.splitTextToSize(questionText, pageWidth - 20);
-          doc.text(splitQuestion, 20, currentY);
-          currentY += splitQuestion.length * 4 + 2;
+          doc.text('RECOMMENDED APPROACHES:', 20, currentY);
+          currentY += 8;
 
-          // Answer
-          doc.setFontSize(10);
-          doc.setFont(undefined, 'normal');
-          const answerText = `A${index + 1}: ${item.response}`;
-          const splitAnswer = doc.splitTextToSize(answerText, pageWidth - 20);
-          doc.text(splitAnswer, 20, currentY);
-          currentY += splitAnswer.length * 4 + 8;
-        });
+          const categorizedSolutions = {
+            'Lifestyle': analysis.solutions.filter(s => s.category?.includes('lifestyle') || s.category?.includes('general')),
+            'Diet & Nutrition': analysis.solutions.filter(s => s.category?.includes('diet') || s.category?.includes('nutrition')),
+            'Exercise & Movement': analysis.solutions.filter(s => s.category?.includes('exercise') || s.category?.includes('physical')),
+            'Medical': analysis.solutions.filter(s => s.category?.includes('medical') || s.category?.includes('treatment'))
+          };
 
-        currentY += 5;
+          Object.entries(categorizedSolutions).forEach(([category, solutions]) => {
+            if (solutions.length > 0) {
+              if (currentY + 15 > pageHeight) {
+                doc.addPage();
+                currentY = 20;
+              }
+
+              doc.setFontSize(10);
+              doc.setFont(undefined, 'bold');
+              doc.text(`${category}:`, 25, currentY);
+              currentY += 5;
+
+              solutions.slice(0, 3).forEach(solution => { // Top 3 per category
+                if (currentY + 10 > pageHeight) {
+                  doc.addPage();
+                  currentY = 20;
+                }
+
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                const solutionText = `• ${solution.solution}`;
+                const splitSolution = doc.splitTextToSize(solutionText, pageWidth - 30);
+                doc.text(splitSolution, 30, currentY);
+                currentY += splitSolution.length * 3 + 3;
+              });
+
+              currentY += 5;
+            }
+          });
+        }
+
+        // Suggested Testing
+        if (analysis.testing_recommendations && analysis.testing_recommendations.length > 0) {
+          // Check if we need a new page
+          if (currentY + 30 > pageHeight) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.text('SUGGESTED MEDICAL TESTS/EVALUATIONS:', 20, currentY);
+          currentY += 8;
+
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'italic');
+          doc.text('Tests your doctor may consider based on your symptoms:', 20, currentY);
+          currentY += 8;
+
+          analysis.testing_recommendations.slice(0, 6).forEach(test => {
+            if (currentY + 8 > pageHeight) {
+              doc.addPage();
+              currentY = 20;
+            }
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            const testText = `• ${test}`;
+            const splitTest = doc.splitTextToSize(testText, pageWidth - 25);
+            doc.text(splitTest, 25, currentY);
+            currentY += splitTest.length * 3 + 3;
+          });
+
+          currentY += 10;
+        }
       }
 
       // AI Analysis & Potential Health Topics  
@@ -287,8 +425,24 @@ export const AIFreeModeCompletionModal = ({
     }
   };
 
-  const handleExportPDF = () => {
-    generatePDF();
+  const handleExportPDF = async () => {
+    try {
+      // Generate comprehensive analysis first
+      const analysis = await generateComprehensiveAnalysis();
+      
+      // Then generate PDF with the analysis
+      await generatePDF(analysis);
+    } catch (error) {
+      console.error('Error during PDF export:', error);
+      toast({
+        title: "Analysis Generation Failed",
+        description: "Failed to generate comprehensive analysis. Creating basic PDF...",
+        variant: "destructive",
+      });
+      
+      // Fallback to basic PDF without comprehensive analysis
+      await generatePDF();
+    }
   };
 
   const handleStartNewChat = () => {
