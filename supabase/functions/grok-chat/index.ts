@@ -482,7 +482,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-2',
+        model: 'grok-4',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,

@@ -207,13 +207,12 @@ Only return the JSON object. If no new memory-worthy information is found, retur
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini-2025-08-07',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze this conversation and extract memory updates according to the rules.' }
         ],
-        temperature: 0.3,
-        max_tokens: 1000,
+        max_completion_tokens: 1000,
       }),
     });
 
