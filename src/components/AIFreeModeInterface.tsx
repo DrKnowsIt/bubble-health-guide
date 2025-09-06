@@ -89,7 +89,7 @@ export const AIFreeModeInterface = ({
     if (phase === 'chat' && !currentSession && !loading && !hasActiveSession) {
       startNewSession();
     }
-  }, [phase, currentSession, loading, hasActiveSession]); // Remove startNewSession from dependencies
+  }, [phase, currentSession, loading, hasActiveSession, startNewSession])
 
   const handleAnatomySelection = (anatomy: string[]) => {
     setSelectedAnatomyState(anatomy);

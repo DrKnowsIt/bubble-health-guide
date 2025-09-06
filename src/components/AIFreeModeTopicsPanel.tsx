@@ -204,14 +204,14 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
         <CollapsibleContent className="flex-1 flex flex-col min-h-0">
           <CardContent className="flex-1 p-0">
             <Tabs defaultValue="topics" className="h-full flex flex-col min-h-0">
-              <TabsList className="grid w-full grid-cols-1 mx-3 my-3 mb-0 bg-muted/50">
-                <TabsTrigger value="topics" className="text-sm px-3">
+              <TabsList className="grid w-full grid-cols-1 mx-2 my-3 mb-0 bg-muted/50">
+                <TabsTrigger value="topics" className="text-sm px-2">
                   Health Topics
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="topics" className="flex-1 mt-3 mx-3 mb-3 min-h-0">
-                <ScrollArea className="h-full max-h-[calc(100vh-280px)] w-full rounded-md border border-border bg-background/50 [&>[data-radix-scroll-area-scrollbar]]:bg-muted/30 [&>[data-radix-scroll-area-scrollbar]>[data-radix-scroll-area-thumb]]:bg-muted-foreground/50">
+              <TabsContent value="topics" className="flex-1 mt-3 mx-2 mb-3 min-h-0">
+                <ScrollArea className="h-full max-h-[calc(100vh-280px)] w-full rounded-md border border-border bg-background/50 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20">
                   <div className="p-4 space-y-3 pb-6">
                     {loading && conversationPath.length > 0 && (
                       <div className="text-center py-4">
