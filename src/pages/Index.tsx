@@ -7,8 +7,9 @@ import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/Landi
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useConversations } from "@/hooks/useConversations";
+import { useConversationsQuery } from "@/hooks/optimized/useConversationsQuery";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { logger } from "@/utils/logger";
 import { ChatInterfaceWithUsers } from "@/components/chat/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/chat/ChatGPTInterface";
 
@@ -24,10 +25,10 @@ const Index = () => {
   const {
     conversations,
     currentConversation,
-    startNewConversation,
     selectConversation,
+    startNewConversation,
     deleteConversation
-  } = useConversations();
+  } = useConversationsQuery();
   const openAuth = (mode: 'signin' | 'signup') => {
     navigate('/auth', {
       state: {

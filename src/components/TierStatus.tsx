@@ -6,6 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAlphaTester } from '@/hooks/useAlphaTester';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface TierStatusProps {
   showUpgradeButton?: boolean;
@@ -16,8 +17,7 @@ export const TierStatus = ({ showUpgradeButton = true, className = "" }: TierSta
   const { subscribed, subscription_tier, loading, createCheckoutSession, openCustomerPortal, refreshSubscription } = useSubscription();
   const { isAlphaTester, loading: alphaTesterLoading } = useAlphaTester();
 
-  // Debug logging for state changes
-  console.log('TierStatus render:', { isAlphaTester, subscribed, subscription_tier, loading, alphaTesterLoading });
+  logger.debug('TierStatus render:', { isAlphaTester, subscribed, subscription_tier, loading, alphaTesterLoading });
 
   const handleUpgrade = async () => {
     try {

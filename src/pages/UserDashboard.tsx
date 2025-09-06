@@ -5,10 +5,11 @@ import { exportComprehensivePDFForUser } from '@/utils/pdfExport';
 import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useHealthStatsQuery } from '@/hooks/optimized/useHealthStatsQuery';
 import { LoadingSkeleton, StatsLoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { useConversations } from '@/hooks/useConversations';
+import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsTablet } from '@/hooks/use-tablet';
+import { logger } from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -85,7 +86,7 @@ export default function UserDashboard() {
   // This helps prevent issues when switching between modes or tabs
   useEffect(() => {
     if (users.length > 0 && !selectedUser && !loading) {
-      console.log('Dashboard safety check: No user selected but users exist, selecting primary user');
+      logger.debug('Dashboard safety check: No user selected but users exist, selecting primary user');
       const primaryUser = users.find(p => p.is_primary);
       const userToSelect = primaryUser || users[0];
       setSelectedUser(userToSelect);
@@ -95,7 +96,7 @@ export default function UserDashboard() {
   const healthStats = useHealthStatsQuery(selectedUser);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const { currentConversation, messages } = useConversations(selectedUser);
+  const { currentConversation, messages } = useConversationsQuery(selectedUser);
   
   // State for tracking high confidence diagnoses
   const [currentConversationDiagnoses, setCurrentConversationDiagnoses] = useState<any[]>([]);

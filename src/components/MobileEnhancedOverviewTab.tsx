@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useHealthStats } from '@/hooks/useHealthStats';
+import { useHealthStatsQuery } from '@/hooks/optimized/useHealthStatsQuery';
 import { useUsers } from '@/hooks/useUsers';
 import { AISettings } from './AISettings';
 import { FeatureDiscovery } from './FeatureDiscovery';
@@ -47,7 +47,7 @@ interface MobileEnhancedOverviewTabProps {
 export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileEnhancedOverviewTabProps) => {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession, openCustomerPortal } = useSubscription();
-  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStats(selectedUser);
+  const { totalRecords, totalConversations, lastActivityTime, loading } = useHealthStatsQuery(selectedUser);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
 
@@ -67,7 +67,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileE
     try {
       await createCheckoutSession('pro');
     } catch (error) {
-      console.error('Error upgrading subscription:', error);
+      // Error handled by subscription hook
     }
   };
 
@@ -75,7 +75,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileE
     try {
       await openCustomerPortal();
     } catch (error) {
-      console.error('Error opening customer portal:', error);
+      // Error handled by subscription hook
     }
   };
 

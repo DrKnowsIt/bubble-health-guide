@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,8 +11,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, session, loading } = useAuth();
   const location = useLocation();
 
-  // Debug logging for protected route access
-  console.log('ProtectedRoute check:', {
+  logger.debug('ProtectedRoute check:', {
     currentPath: location.pathname,
     userId: user?.id || 'null',
     hasSession: !!session,
@@ -19,7 +19,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   });
 
   if (loading) {
-    console.log('ProtectedRoute - Showing loading state');
+    logger.debug('ProtectedRoute - Showing loading state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -31,13 +31,13 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user || !session) {
-    console.log('ProtectedRoute - Redirecting to auth, missing:', {
+    logger.debug('ProtectedRoute - Redirecting to auth, missing:', {
       user: !user,
       session: !session
     });
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  console.log('ProtectedRoute - Access granted for:', location.pathname);
+  logger.debug('ProtectedRoute - Access granted for:', location.pathname);
   return <>{children}</>;
 };
