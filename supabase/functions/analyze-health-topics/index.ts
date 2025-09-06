@@ -19,6 +19,14 @@ interface AnalysisRequest {
   include_solutions?: boolean;
   analysis_mode?: string;
   include_testing_recommendations?: boolean;
+  enhanced_mode?: boolean;
+  memory_data?: {
+    memories: any[];
+    insights: any[];
+  };
+  strategic_context?: any;
+  subscription_tier?: string;
+  analysis_type?: string;
 }
 
 serve(async (req) => {
@@ -35,7 +43,12 @@ serve(async (req) => {
       include_solutions = false,
       analysis_mode = 'standard',
       include_testing_recommendations = false,
-      selected_anatomy = []
+      selected_anatomy = [],
+      enhanced_mode = false,
+      memory_data,
+      strategic_context,
+      subscription_tier,
+      analysis_type
     } = await req.json();
 
     if (!patient_id || !conversation_context) {
@@ -133,6 +146,50 @@ serve(async (req) => {
     let patientContext = '';
     let memoryContext = '';
     let healthFormsContext = '';
+    let strategicContextText = '';
+
+    // Enhanced mode with comprehensive data integration
+    if (enhanced_mode && (user_tier === 'basic' || user_tier === 'pro')) {
+      console.log('Enhanced mode analysis for', user_tier, 'user');
+      
+      // Use provided memory data
+      if (memory_data?.memories && memory_data.memories.length > 0) {
+        memoryContext = '\n\nPATIENT CONVERSATION MEMORY:\n' + 
+          memory_data.memories.map(m => {
+            const summary = m.summary || '';
+            const memory = typeof m.memory === 'object' ? JSON.stringify(m.memory) : m.memory || '';
+            return `${summary}\nDetails: ${memory.substring(0, 300)}`;
+          }).join('\n\n');
+      }
+
+      // Use provided insights
+      if (memory_data?.insights && memory_data.insights.length > 0) {
+        memoryContext += '\n\nEXTRACTED INSIGHTS:\n' + 
+          memory_data.insights.map(insight => {
+            return `${insight.category || 'General'}: ${insight.key} = ${insight.value}`;
+          }).join('\n');
+      }
+
+      // Use strategic context (doctor notes, priorities, summaries)
+      if (strategic_context) {
+        strategicContextText = '\n\nSTRATEGIC HEALTH CONTEXT:\n';
+        
+        if (strategic_context.priorities && strategic_context.priorities.length > 0) {
+          strategicContextText += 'Health Data Priorities:\n' +
+            strategic_context.priorities.map(p => `- ${p.data_type}: ${p.priority_level} priority`).join('\n');
+        }
+
+        if (strategic_context.doctorNotes && strategic_context.doctorNotes.length > 0) {
+          strategicContextText += '\n\nDoctor Notes:\n' +
+            strategic_context.doctorNotes.map(note => `${note.note_type}: ${note.title}\n${note.content.substring(0, 200)}`).join('\n\n');
+        }
+
+        if (strategic_context.summaries && strategic_context.summaries.length > 0) {
+          strategicContextText += '\n\nHealth Record Summaries:\n' +
+            strategic_context.summaries.map(summary => `${summary.priority_level} Priority: ${summary.summary_text.substring(0, 150)}`).join('\n');
+        }
+      }
+    }
 
     if (user_tier !== 'free') {
       // Enhanced context for Basic/Pro users
@@ -154,33 +211,36 @@ Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
 Gender: ${patient.gender || 'Not specified'}
 ${patient.is_pet ? `Species: ${patient.species || 'Not specified'}` : ''}`;
 
-        // Get conversation memory for enhanced context
-        if (user_tier === 'pro') {
-          const { data: memories } = await supabase
-            .from('conversation_memory')
-            .select('memory_data')
-            .eq('patient_id', patient_id)
-            .eq('user_id', userData.user.id)
-            .order('updated_at', { ascending: false })
-            .limit(5);
+        // Get additional context only if not already provided through enhanced_mode
+        if (!enhanced_mode) {
+          // Get conversation memory for enhanced context
+          if (user_tier === 'pro') {
+            const { data: memories } = await supabase
+              .from('conversation_memory')
+              .select('memory, summary')
+              .eq('patient_id', patient_id)
+              .eq('user_id', userData.user.id)
+              .order('updated_at', { ascending: false })
+              .limit(5);
 
-          if (memories && memories.length > 0) {
-            memoryContext = '\n\nPATIENT HISTORY:\n' + 
-              memories.map(m => JSON.stringify(m.memory_data)).join('\n');
-          }
+            if (memories && memories.length > 0) {
+              memoryContext = '\n\nPATIENT HISTORY:\n' + 
+                memories.map(m => `${m.summary || ''}\n${JSON.stringify(m.memory).substring(0, 200)}`).join('\n\n');
+            }
 
-          // Get health forms data
-          const { data: healthRecords } = await supabase
-            .from('health_records')
-            .select('title, data, record_type')
-            .eq('patient_id', patient_id)
-            .eq('user_id', userData.user.id)
-            .order('created_at', { ascending: false })
-            .limit(3);
+            // Get health forms data
+            const { data: healthRecords } = await supabase
+              .from('health_records')
+              .select('title, data, record_type')
+              .eq('patient_id', patient_id)
+              .eq('user_id', userData.user.id)
+              .order('created_at', { ascending: false })
+              .limit(3);
 
-          if (healthRecords && healthRecords.length > 0) {
-            healthFormsContext = '\n\nHEALTH RECORDS:\n' + 
-              healthRecords.map(hr => `${hr.title} (${hr.record_type}): ${JSON.stringify(hr.data).substring(0, 200)}`).join('\n');
+            if (healthRecords && healthRecords.length > 0) {
+              healthFormsContext = '\n\nHEALTH RECORDS:\n' + 
+                healthRecords.map(hr => `${hr.title} (${hr.record_type}): ${JSON.stringify(hr.data).substring(0, 200)}`).join('\n');
+            }
           }
         }
       }
@@ -192,13 +252,29 @@ Selected Anatomy: ${selected_anatomy.join(', ') || 'None specified'}`;
 
     // System prompt for comprehensive analysis
     const isComprehensiveAnalysis = analysis_mode === 'comprehensive_final';
-    const systemPrompt = `You are a medical AI assistant analyzing a health conversation for ${conversation_type === 'easy_chat' ? 'AI Free Mode' : 'full chat'}. ${patientContext}
+    const isEnhancedMode = enhanced_mode && (user_tier === 'basic' || user_tier === 'pro');
+    
+    let systemPrompt = `You are a medical AI assistant analyzing a health conversation for ${conversation_type === 'easy_chat' ? 'AI Free Mode' : 'full chat'}. ${patientContext}
 
 ${memoryContext}
 
 ${healthFormsContext}
 
-ANALYSIS MODE: ${isComprehensiveAnalysis ? 'COMPREHENSIVE FINAL ANALYSIS' : 'STANDARD ANALYSIS'}
+${strategicContextText}
+
+ANALYSIS MODE: ${isEnhancedMode ? 'ENHANCED COMPREHENSIVE' : (isComprehensiveAnalysis ? 'COMPREHENSIVE FINAL ANALYSIS' : 'STANDARD ANALYSIS')}
+USER TIER: ${user_tier?.toUpperCase()}
+
+${isEnhancedMode ? `
+ENHANCED ANALYSIS REQUIREMENTS:
+- Leverage ALL available data sources (conversation, memory, health records, strategic context)
+- Provide multi-layered health analysis with cross-referenced insights
+- Include priority levels based on clinical significance and data confidence
+- Generate actionable recommendations tailored to patient's complete health profile
+- Consider risk factors from historical data and current symptoms
+- Provide evidence-based reasoning citing specific data sources
+- Include follow-up recommendations for high-confidence findings
+` : ''}
 
 ${isComprehensiveAnalysis ? `
 COMPREHENSIVE ANALYSIS REQUIREMENTS:
@@ -211,42 +287,92 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS:
 
 CRITICAL INSTRUCTIONS:
 - Analyze conversation for health topics only
-- Base confidence on conversation evidence only
+- Base confidence on conversation evidence ${isEnhancedMode ? 'AND available health data' : 'only'}
 - NO DISCLAIMERS in responses
 - Be specific about symptoms and concerns discussed
-- ${isComprehensiveAnalysis ? 'Focus on comprehensive insights for final summary' : 'Standard topic identification'}
+- ${isEnhancedMode ? 'Use comprehensive data to enhance topic identification and confidence' : (isComprehensiveAnalysis ? 'Focus on comprehensive insights for final summary' : 'Standard topic identification')}
 
-CONFIDENCE CALIBRATION:
-HIGH (65-80%): Strong evidence from multiple conversation elements, clear symptom patterns
-MODERATE (40-64%): Some evidence present, symptoms mentioned with context
-LOW (20-39%): Limited evidence, vague or single mentions
+CONFIDENCE CALIBRATION FOR ${user_tier?.toUpperCase()} TIER:
+${user_tier === 'pro' ? `
+HIGH (60-80%): Strong evidence from multiple data sources, clear clinical patterns, comprehensive health profile support
+MODERATE (40-59%): Solid evidence with supporting data, some clinical indicators present
+LOW (25-39%): Limited but relevant evidence, some supporting context available
+VERY LOW (15-24%): Minimal evidence, speculative based on available data
+` : user_tier === 'basic' ? `
+HIGH (50-70%): Good evidence from conversation and basic health data
+MODERATE (35-49%): Some evidence present with limited supporting data  
+LOW (20-34%): Limited evidence, basic context available
 VERY LOW (10-19%): Minimal evidence, highly speculative
+` : `
+HIGH (30-50%): Strong evidence from conversation elements only
+MODERATE (20-29%): Some evidence present, symptoms mentioned
+LOW (15-19%): Limited evidence, single mentions
+VERY LOW (10-14%): Minimal evidence, highly speculative
+`}
 
 TOPIC CATEGORIES:
-musculoskeletal, dermatological, gastrointestinal, cardiovascular, respiratory, neurological, genitourinary, endocrine, psychiatric, infectious, environmental, other
+musculoskeletal, dermatological, gastrointestinal, cardiovascular, respiratory, neurological, genitourinary, endocrine, psychiatric, infectious, environmental, preventive, other`;
 
-${include_solutions ? `
+    if (include_solutions) {
+      systemPrompt += `
+
 SOLUTION CATEGORIES:
-lifestyle, stress, sleep, nutrition, exercise, mental_health, medical, general
+lifestyle, stress, sleep, nutrition, exercise, mental_health, medical, preventive, monitoring, general
 
 SOLUTION RULES:
 - Provide actionable lifestyle and self-care recommendations
-- ${isComprehensiveAnalysis ? 'Include holistic approaches (lifestyle, diet, exercise, stress management)' : 'Focus on immediate actionable steps'}
-- Must be specific to conversation issues
-- Target root causes when possible
-- Categorize appropriately for easy organization
-` : ''}
+- ${isEnhancedMode ? 'Leverage historical data and health patterns for personalized solutions' : (isComprehensiveAnalysis ? 'Include holistic approaches (lifestyle, diet, exercise, stress management)' : 'Focus on immediate actionable steps')}
+- Must be specific to conversation issues ${isEnhancedMode ? 'and patient health profile' : ''}
+- Target root causes when possible using ${isEnhancedMode ? 'comprehensive health data' : 'conversation context'}
+- Include timeline guidance (immediate, short_term, long_term)
+- Consider contraindications based on ${isEnhancedMode ? 'available health data' : 'conversation context'}
+- Categorize appropriately for easy organization`;
+    }
 
-${include_testing_recommendations && isComprehensiveAnalysis ? `
+    if (include_testing_recommendations && (isComprehensiveAnalysis || isEnhancedMode)) {
+      systemPrompt += `
+
 TESTING RECOMMENDATIONS:
-- Suggest appropriate medical tests based on discussed symptoms
+- Suggest appropriate medical tests based on discussed symptoms ${isEnhancedMode ? 'and health profile' : ''}
 - Consider common diagnostic evaluations for identified conditions
 - Include both basic screening and specific targeted tests
 - Keep recommendations realistic and commonly ordered
-- Format as brief, clear descriptions
-` : ''}
+- ${isEnhancedMode ? 'Prioritize based on clinical significance and patient history' : 'Format as brief, clear descriptions'}`;
+    }
 
-Return JSON with this exact structure:
+    const responseStructure = isEnhancedMode ? `
+{
+  "topics": [
+    {
+      "topic": "Specific Health Topic",
+      "confidence": 0.65,
+      "reasoning": "Evidence-based justification with data sources: ${contentHashString.substring(0, 8)}",
+      "category": "musculoskeletal",
+      "priority_level": "high|medium|low",
+      "data_sources": ["conversation", "memory", "health_records"],
+      "risk_factors": ["relevant risk factors from data"],
+      "recommendations": ["specific actionable recommendations"],
+      "follow_up_required": true
+    }
+  ]${include_solutions ? `,
+  "solutions": [
+    {
+      "solution": "Specific actionable solution",
+      "category": "lifestyle",
+      "confidence": 0.55,
+      "reasoning": "Why this addresses the issues based on comprehensive data",
+      "timeline": "immediate|short_term|long_term",
+      "evidence_strength": "strong|moderate|weak",
+      "contraindications": ["potential contraindications if any"],
+      "monitoring_required": true
+    }
+  ]` : ''}${include_testing_recommendations && (isComprehensiveAnalysis || isEnhancedMode) ? `,
+  "testing_recommendations": [
+    "Complete Blood Count (CBC) to check for infection or anemia",
+    "Basic Metabolic Panel to assess organ function",
+    "X-ray or imaging if musculoskeletal concerns present"
+  ]` : ''}
+}` : `
 {
   "topics": [
     {
@@ -269,9 +395,14 @@ Return JSON with this exact structure:
     "Basic Metabolic Panel to assess organ function",
     "X-ray or imaging if musculoskeletal concerns present"
   ]` : ''}
-}
+}`;
 
-Ensure exactly ${isComprehensiveAnalysis ? '5' : '4'} topics and ${include_solutions ? (isComprehensiveAnalysis ? '6-8 solutions' : '3-5 solutions') : 'no solutions'}${include_testing_recommendations && isComprehensiveAnalysis ? ' and 4-6 testing recommendations' : ''}.`;
+    systemPrompt += `
+
+Return JSON with this exact structure:
+${responseStructure}
+
+Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics and ${include_solutions ? (isEnhancedMode ? '6-8 solutions' : (isComprehensiveAnalysis ? '6-8 solutions' : '3-5 solutions')) : 'no solutions'}${include_testing_recommendations && (isComprehensiveAnalysis || isEnhancedMode) ? ' and 4-6 testing recommendations' : ''}.`;
 
     // Make OpenAI API call
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -335,23 +466,54 @@ Ensure exactly ${isComprehensiveAnalysis ? '5' : '4'} topics and ${include_solut
     // Validate and clean data with tier-specific confidence ranges
     const topics = (analysisData.topics || [])
       .filter((t: any) => t.topic && t.confidence >= 0.05)
-      .map((t: any) => ({
-        topic: t.topic?.substring(0, 255) || 'Unknown topic',
-        confidence: Math.min(Math.max(t.confidence || 0.2, confidenceRange.min), confidenceRange.max),
-        reasoning: t.reasoning?.substring(0, 500) || 'No reasoning provided',
-        category: t.category || 'other'
-      }))
-      .slice(0, isComprehensiveAnalysis ? 5 : 4);
+      .map((t: any) => {
+        const baseTopicData = {
+          topic: t.topic?.substring(0, 255) || 'Unknown topic',
+          confidence: Math.min(Math.max(t.confidence || 0.2, confidenceRange.min), confidenceRange.max),
+          reasoning: t.reasoning?.substring(0, 500) || 'No reasoning provided',
+          category: t.category || 'other'
+        };
+
+        // Add enhanced fields for enhanced mode
+        if (isEnhancedMode) {
+          return {
+            ...baseTopicData,
+            priority_level: t.priority_level || 'medium',
+            data_sources: Array.isArray(t.data_sources) ? t.data_sources : ['conversation'],
+            risk_factors: Array.isArray(t.risk_factors) ? t.risk_factors.map((rf: string) => rf.substring(0, 100)) : undefined,
+            recommendations: Array.isArray(t.recommendations) ? t.recommendations.map((rec: string) => rec.substring(0, 150)) : undefined,
+            follow_up_required: Boolean(t.follow_up_required)
+          };
+        }
+
+        return baseTopicData;
+      })
+      .slice(0, isEnhancedMode || isComprehensiveAnalysis ? 6 : 4);
 
     const solutions = include_solutions ? (analysisData.solutions || [])
       .filter((s: any) => s.solution && s.confidence >= 0.05)
-      .map((s: any) => ({
-        solution: s.solution?.substring(0, 255) || 'Unknown solution',
-        confidence: Math.min(Math.max(s.confidence || 0.2, confidenceRange.min), confidenceRange.max),
-        reasoning: s.reasoning?.substring(0, 500) || 'No reasoning provided',
-        category: s.category || 'general'
-      }))
-      .slice(0, isComprehensiveAnalysis ? 8 : 5) : [];
+      .map((s: any) => {
+        const baseSolutionData = {
+          solution: s.solution?.substring(0, 255) || 'Unknown solution',
+          confidence: Math.min(Math.max(s.confidence || 0.2, confidenceRange.min), confidenceRange.max),
+          reasoning: s.reasoning?.substring(0, 500) || 'No reasoning provided',
+          category: s.category || 'general'
+        };
+
+        // Add enhanced fields for enhanced mode
+        if (isEnhancedMode) {
+          return {
+            ...baseSolutionData,
+            timeline: s.timeline || 'short_term',
+            evidence_strength: s.evidence_strength || 'moderate',
+            contraindications: Array.isArray(s.contraindications) ? s.contraindications.map((ci: string) => ci.substring(0, 100)) : undefined,
+            monitoring_required: Boolean(s.monitoring_required)
+          };
+        }
+
+        return baseSolutionData;
+      })
+      .slice(0, isEnhancedMode ? 8 : (isComprehensiveAnalysis ? 8 : 5)) : [];
 
     // Extract testing recommendations for comprehensive analysis
     const testing_recommendations = (include_testing_recommendations && isComprehensiveAnalysis) 

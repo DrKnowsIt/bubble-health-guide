@@ -9,6 +9,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { useEnhancedHealthTopics } from '@/hooks/useEnhancedHealthTopics';
+import { EnhancedHealthTopicsPanel } from '@/components/EnhancedHealthTopicsPanel';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
 import { UserSelector } from '../UserSelector';
@@ -32,10 +34,11 @@ interface ChatInterfaceWithUsersProps {
 export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, selectedUser: propSelectedUser }: ChatInterfaceWithUsersProps) => {
   const { user } = useAuth();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { subscribed } = useSubscription();
+  const { subscribed, subscription_tier } = useSubscription();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
+
   const { 
     conversations,
     messages, 
