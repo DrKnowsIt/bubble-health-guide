@@ -285,6 +285,42 @@ export const AIFreeModeInterface = ({
   return (
     <>
       <div className="h-full flex gap-4 overflow-hidden">
+        {/* Conversation History Panel */}
+        {conversationPath.length > 0 && (
+          <Card className="w-80 flex-shrink-0">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Conversation History
+              </CardTitle>
+            </CardHeader>
+            <ScrollArea className="flex-1">
+              <CardContent className="pt-0 space-y-3">
+                {conversationPath.map((item, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        Question {index + 1}
+                      </p>
+                      <p className="text-sm">
+                        {item.question?.question_text || 'Loading question...'}
+                      </p>
+                    </div>
+                    <div className="bg-primary/10 p-3 rounded-lg">
+                      <p className="text-xs font-medium text-primary mb-1">
+                        Your Answer
+                      </p>
+                      <p className="text-sm">
+                        {item.response}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </ScrollArea>
+          </Card>
+        )}
+
         {/* Medical Image Prompt for Basic/Pro Users */}
         {medicalImagePrompt && medicalImagePrompt.isVisible && (
           <Card className="border-primary/20 bg-primary/5">
@@ -323,7 +359,7 @@ export const AIFreeModeInterface = ({
           </Card>
         )}
 
-        {/* Main Chat Area - Left Side */}
+        {/* Main Chat Area - Center */}
         <div className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
           {/* Selected Anatomy & Progress indicator */}
           <div className="flex items-center justify-between mb-2">
