@@ -558,6 +558,39 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
     return hasChanges && changedFields.length > 0;
   };
 
+  // Function to manually refresh a single form's completion
+  const refreshFormCompletion = async (formId: string) => {
+    if (!user?.id || !selectedPatient) return;
+    
+    const currentFormSet = getCurrentFormSet();
+    const form = currentFormSet.find(f => f.id === formId);
+    if (!form) return;
+
+    try {
+      const { data: existingRecords, error } = await supabase
+        .from('health_records')
+        .select('data')
+        .eq('user_id', user.id)
+        .eq('record_type', form.id)
+        .eq('patient_id', selectedPatient?.id === 'none' ? null : selectedPatient?.id || null)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (!error && existingRecords?.[0]) {
+        const recordData = existingRecords[0].data && typeof existingRecords[0].data === 'object' && !Array.isArray(existingRecords[0].data) 
+          ? existingRecords[0].data as Record<string, any>
+          : {};
+        
+        const completion = calculateFormCompletion(recordData, form);
+        setFormCompletions(prev => ({ ...prev, [form.id]: completion }));
+      } else {
+        setFormCompletions(prev => ({ ...prev, [form.id]: 0 }));
+      }
+    } catch (error) {
+      console.error('Error refreshing form completion:', error);
+    }
+  };
+
   // Load completion percentages for all forms
   const loadFormCompletions = async () => {
     if (!user?.id || !selectedPatient) return;
@@ -641,6 +674,10 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         setExistingRecordId(existingRecord.id);
         setLastSavedAt(existingRecord.updated_at);
         setHasUnsavedChanges(false);
+        
+        // Update completion percentage for this form
+        const completion = calculateFormCompletion(recordData, form);
+        setFormCompletions(prev => ({ ...prev, [form.id]: completion }));
       } else {
         // No existing data, start fresh
         console.log(`🔍 DEBUG: No existing data found for ${form.id}, starting fresh`);
@@ -649,6 +686,9 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
         setExistingRecordId(null);
         setLastSavedAt(null);
         setHasUnsavedChanges(false);
+        
+        // Update completion percentage to 0% for this form
+        setFormCompletions(prev => ({ ...prev, [form.id]: 0 }));
       }
     } catch (error) {
       console.error('Error loading form data:', error);
@@ -1021,6 +1061,9 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       setLastSavedAt(null);
       setShowClearConfirmation(false);
 
+      // Update completion percentage to 0% for this form
+      setFormCompletions(prev => ({ ...prev, [selectedForm.id]: 0 }));
+
       toast({
         title: "Form Cleared",
         description: "All form data has been cleared successfully.",
@@ -1375,6 +1418,8 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                         if (selectedPatient || users.length === 0) {
                           setSelectedForm(form);
                           await loadExistingFormData(form);
+                          // Refresh completion for this specific form to ensure accuracy
+                          await refreshFormCompletion(form.id);
                         }
                       }}
                     >
