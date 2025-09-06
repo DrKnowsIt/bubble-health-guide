@@ -112,7 +112,7 @@ Based on this conversation history, what should the next logical question be? Ge
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 300, // Reduced tokens - sufficient for questions
+        max_completion_tokens: 800, // Increased for GPT-5-mini reasoning tokens
         stream: false
       }),
       signal: controller.signal
@@ -140,7 +140,46 @@ Based on this conversation history, what should the next logical question be? Ge
       // Check if it's a length issue
       if (data.choices?.[0]?.finish_reason === 'length') {
         console.error('Response was truncated due to length limit');
-        throw new Error('Response truncated - increasing token limit and retrying');
+        
+        // Retry with higher token limit
+        console.log('Retrying with increased token limit...');
+        const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-5-mini-2025-08-07',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_completion_tokens: 1200, // Higher limit for retry
+            stream: false
+          }),
+        });
+        
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          const retryContent = retryData.choices?.[0]?.message?.content;
+          
+          if (retryContent && retryContent.trim() !== '') {
+            console.log('Retry successful with content:', retryContent);
+            try {
+              const retryQuestionData = JSON.parse(retryContent);
+              if (retryQuestionData.question && Array.isArray(retryQuestionData.options)) {
+                return new Response(JSON.stringify(retryQuestionData), {
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+              }
+            } catch (retryParseError) {
+              console.error('Failed to parse retry response:', retryContent);
+            }
+          }
+        }
+        
+        throw new Error('Response truncated even after retry - using fallback');
       }
       
       throw new Error('No content received from OpenAI');
