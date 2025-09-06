@@ -593,10 +593,24 @@ options: [
         
         // Restore conversation path from responses
         const sessionResponses = session.easy_chat_responses || [];
-        const restoredPath = sessionResponses.map((resp: any) => ({
-          question: { question_text: `Question ${resp.question_id}` } as AIFreeModeQuestion,
-          response: resp.response_text
-        }));
+        
+        // First try to get conversation path from session_data if available
+        let restoredPath = [];
+        const sessionData = session.session_data as any;
+        if (sessionData && sessionData.conversation_path) {
+          console.log('Restoring conversation path from session_data');
+          restoredPath = sessionData.conversation_path.map((item: any) => ({
+            question: { question_text: item.question_text } as AIFreeModeQuestion,
+            response: item.response
+          }));
+        } else {
+          // Fallback to reconstructing from responses (less ideal)
+          console.log('Reconstructing conversation path from responses');
+          restoredPath = sessionResponses.map((resp: any) => ({
+            question: { question_text: `Question ${resp.question_id}` } as AIFreeModeQuestion,
+            response: resp.response_text
+          }));
+        }
         
         setCurrentSession(session);
         setConversationPath(restoredPath);
@@ -849,6 +863,21 @@ options: [
       }];
       setConversationPath(newPath);
 
+      // Save conversation path to session_data for proper recovery
+      await supabase
+        .from('easy_chat_sessions')
+        .update({ 
+          session_data: {
+            ...currentSession.session_data,
+            conversation_path: newPath.map(p => ({
+              question_text: p.question.question_text,
+              response: p.response
+            }))
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentSession.id);
+
       // Check if we should complete (min 10, max 20 questions)
       const shouldComplete = await checkIfReadyToComplete(newPath);
       if (shouldComplete) {
@@ -923,6 +952,21 @@ options: [
         }];
         setConversationPath(newPath);
 
+        // Save conversation path to session_data for proper recovery
+        await supabase
+          .from('easy_chat_sessions')
+          .update({ 
+            session_data: {
+              ...currentSession.session_data,
+              conversation_path: newPath.map(p => ({
+                question_text: p.question.question_text,
+                response: p.response
+              }))
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentSession.id);
+
         // Check if we should complete (min 10, max 20 questions)
         const shouldComplete = await checkIfReadyToComplete(newPath);
         if (shouldComplete) {
@@ -959,6 +1003,21 @@ options: [
           response: responseText 
         }];
         setConversationPath(newPath);
+
+        // Save conversation path to session_data for proper recovery
+        await supabase
+          .from('easy_chat_sessions')
+          .update({ 
+            session_data: {
+              ...currentSession.session_data,
+              conversation_path: newPath.map(p => ({
+                question_text: p.question.question_text,
+                response: p.response
+              }))
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentSession.id);
 
         // Check if we should complete (min 10, max 20 questions)
         const shouldComplete = await checkIfReadyToComplete(newPath);
