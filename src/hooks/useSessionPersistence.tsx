@@ -14,10 +14,11 @@ interface SessionData {
   sessionComplete?: boolean;
 }
 
-export const useSessionPersistence = (sessionId: string) => {
+export const useSessionPersistence = (sessionId: string, disabled: boolean = false) => {
   const STORAGE_KEY = `aifreesession_${sessionId}`;
   
   const saveSessionData = useCallback((data: Partial<SessionData>) => {
+    if (disabled) return; // No-op when disabled
     try {
       const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
       const updated = {
@@ -35,9 +36,10 @@ export const useSessionPersistence = (sessionId: string) => {
     } catch (error) {
       console.error('Failed to save session data:', error);
     }
-  }, [STORAGE_KEY, sessionId]);
+  }, [STORAGE_KEY, sessionId, disabled]);
 
   const loadSessionData = useCallback((): SessionData | null => {
+    if (disabled) return null; // No-op when disabled
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) return null;
@@ -60,7 +62,7 @@ export const useSessionPersistence = (sessionId: string) => {
       console.error('Failed to load session data:', error);
       return null;
     }
-  }, [STORAGE_KEY]);
+  }, [STORAGE_KEY, disabled]);
 
   const clearSessionData = useCallback(() => {
     try {

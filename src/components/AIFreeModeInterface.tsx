@@ -38,7 +38,6 @@ export const AIFreeModeInterface = ({
   const [phase, setPhase] = useState<ChatPhase>('anatomy-selection');
   const [selectedAnatomyState, setSelectedAnatomyState] = useState<string[]>(selectedAnatomy || []);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [sessionRecovered, setSessionRecovered] = useState(false);
   
   const { subscription_tier } = useSubscription();
   const { 
@@ -48,9 +47,9 @@ export const AIFreeModeInterface = ({
     closeImagePrompt 
   } = useMedicalImagePrompts();
 
-  // Session persistence - use stable session ID that doesn't change on refresh
+  // Session persistence - disabled for AI Free Mode to ensure fresh sessions
   const sessionId = `enhanced_${patientId || 'default'}_aifreechat`;
-  const { saveSessionData, loadSessionData, clearSessionData } = useSessionPersistence(sessionId);
+  const { saveSessionData, loadSessionData, clearSessionData } = useSessionPersistence(sessionId, true);
 
   // Use the enhanced hook if provided, otherwise use the base hook with enhanced features
   const hookResult = useAIFreeModeHook || useAIFreeMode(patientId, selectedAnatomyState);
@@ -75,50 +74,15 @@ export const AIFreeModeInterface = ({
   const [showTextInput, setShowTextInput] = useState(false);
   const [textInput, setTextInput] = useState('');
 
-  // Save session data whenever important state changes
-  const saveCurrentState = useCallback(() => {
-    saveSessionData({
-      phase,
-      selectedAnatomy: selectedAnatomyState,
-      conversationPath,
-      healthTopics: healthTopics || [],
-      sessionComplete: showCompletionModal,
-      timestamp: Date.now()
-    });
-  }, [phase, selectedAnatomyState, conversationPath, healthTopics, showCompletionModal, saveSessionData]);
+  // No state persistence in AI Free Mode
 
-  // Load session data on mount
+  // Clear any existing session data on mount to ensure fresh start
   useEffect(() => {
-    const savedData = loadSessionData();
-    if (savedData && !sessionRecovered) {
-      logger.debug('Loading saved session data:', savedData);
-      
-      if (savedData.phase) {
-        setPhase(savedData.phase as ChatPhase);
-        
-        if (savedData.selectedAnatomy) {
-          setSelectedAnatomyState(savedData.selectedAnatomy);
-        }
-        
-        if (savedData.sessionComplete) {
-          setShowCompletionModal(true);
-        }
-        
-        setSessionRecovered(true);
-        logger.debug('Session state restored from localStorage');
-      }
-    }
-  }, [loadSessionData, sessionRecovered]);
+    clearSessionData();
+    logger.debug('AI Free Mode: Cleared any existing session data for fresh start');
+  }, [clearSessionData]);
 
-  // Save state changes (but not for completed sessions)
-  useEffect(() => {
-    if (sessionRecovered || phase !== 'anatomy-selection') {
-      // Don't save state if session is completed
-      if (!showCompletionModal && !isCompleted) {
-        saveCurrentState();
-      }
-    }
-  }, [phase, selectedAnatomyState, conversationPath, saveCurrentState, sessionRecovered, showCompletionModal, isCompleted]);
+  // No state saving in AI Free Mode - disabled above
 
   useEffect(() => {
     // Auto-start session when component mounts, but only once
@@ -148,7 +112,6 @@ export const AIFreeModeInterface = ({
     setPhase('anatomy-selection');
     setSelectedAnatomyState([]);
     setShowCompletionModal(false);
-    setSessionRecovered(false);
   };
 
   const handleRestartAnalysis = async () => {
@@ -181,7 +144,6 @@ export const AIFreeModeInterface = ({
     setPhase('anatomy-selection');
     setSelectedAnatomyState([]);
     setShowCompletionModal(false);
-    setSessionRecovered(false);
   };
 
   // Handle completed session and clear saved data
@@ -193,25 +155,7 @@ export const AIFreeModeInterface = ({
     }
   }, [isCompleted, phase, clearSessionData]);
 
-  // Session recovery - restore active sessions on page refresh (but not during intentional restarts)
-  useEffect(() => {
-    if (hasActiveSession && currentSession && !sessionRecovered && phase === 'anatomy-selection') {
-      // Only recover if this isn't a fresh restart (check if we have saved session data)
-      const savedData = loadSessionData();
-      if (savedData && savedData.phase === 'chat') {
-        logger.debug('Recovering active session from page refresh');
-        
-        // Extract selected anatomy from session data
-        const sessionData = currentSession.session_data as any;
-        if (sessionData?.selected_anatomy) {
-          setSelectedAnatomyState(sessionData.selected_anatomy);
-          setPhase('chat');
-          setSessionRecovered(true);
-          logger.debug('Session recovered with anatomy:', sessionData.selected_anatomy);
-        }
-      }
-    }
-  }, [hasActiveSession, currentSession, sessionRecovered, phase, loadSessionData]);
+  // No session recovery in AI Free Mode - always start fresh
 
   const handleResponseClick = async (value: string, text: string) => {
     // Prevent interaction during loading
