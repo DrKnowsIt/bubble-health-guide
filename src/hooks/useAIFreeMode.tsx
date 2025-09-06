@@ -358,19 +358,22 @@ options: [
     }
   }, [patientId]);
 
-  const generateNextQuestion = useCallback(async (retryCount = 0): Promise<void> => {
+  const generateNextQuestion = useCallback(async (pathToUse?: Array<{ question: AIFreeModeQuestion; response: string }>, retryCount = 0): Promise<void> => {
     const maxRetries = 2;
+    
+    // Use provided path or current state - this ensures we use the most up-to-date conversation
+    const currentPath = pathToUse || conversationPath;
     
     try {
       console.log('Generating next dynamic question...');
-      console.log('Current conversation path length:', conversationPath.length);
-      conversationPath.forEach((item, index) => {
+      console.log('Current conversation path length:', currentPath.length);
+      currentPath.forEach((item, index) => {
         console.log(`Path ${index + 1}: Q="${item.question?.question_text}" A="${item.response}"`);
       });
       
       const { data, error } = await supabase.functions.invoke('generate-easy-chat-question', {
         body: { 
-          conversationPath,
+          conversationPath: currentPath,
           patientId,
           anatomyContext: selectedAnatomy && selectedAnatomy.length > 0 
             ? `Body areas of interest: ${selectedAnatomy.join(', ')}`
@@ -401,7 +404,7 @@ options: [
       if (retryCount < maxRetries) {
         console.log(`Retrying question generation (${retryCount + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-        return generateNextQuestion(retryCount + 1);
+        return generateNextQuestion(currentPath, retryCount + 1);
       }
       
         // Check minimum questions before considering completion
@@ -409,8 +412,8 @@ options: [
           console.log('Not enough questions yet, generating fallback question');
           
           // Generate client-side fallback question based on anatomy and conversation length
-          const baseQuestion = generateClientFallbackQuestion(conversationPath, selectedAnatomy);
-          const contextualQuestion = generateContextualAnswers(baseQuestion, conversationPath);
+          const baseQuestion = generateClientFallbackQuestion(currentPath, selectedAnatomy);
+          const contextualQuestion = generateContextualAnswers(baseQuestion, currentPath);
           setDynamicQuestion(contextualQuestion);
         } else {
         // Only complete if we have enough questions and AI confirms readiness
@@ -887,7 +890,7 @@ options: [
       } else {
         console.log('Continuing conversation after text input, switching to AI questions');
         setUseDynamicQuestions(true);
-        await generateNextQuestion();
+        await generateNextQuestion(newPath);
         setLoading(false);
       }
       
@@ -974,7 +977,7 @@ options: [
           await completeSession(newPath);
           setLoading(false);
         } else {
-          await generateNextQuestion();
+          await generateNextQuestion(newPath);
           setLoading(false);
         }
         
