@@ -28,7 +28,7 @@ const Index = () => {
     selectConversation,
     startNewConversation,
     deleteConversation
-  } = useConversationsQuery();
+  } = useConversationsQuery(null);
   const openAuth = (mode: 'signin' | 'signup') => {
     navigate('/auth', {
       state: {
