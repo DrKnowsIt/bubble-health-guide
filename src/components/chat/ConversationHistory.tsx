@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Calendar, Plus, Trash2 } from 'lucide-react';
+import { ConversationAuthPrompt } from '@/components/ConversationAuthPrompt';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
@@ -114,6 +115,16 @@ export const ConversationHistory = ({
             Select a patient to view chat history
           </p>
         </CardContent>
+      </Card>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card className="h-full">
+        <div className="p-4">
+          <ConversationAuthPrompt message="Sign in to view your conversation history." />
+        </div>
       </Card>
     );
   }

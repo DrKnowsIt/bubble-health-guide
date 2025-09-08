@@ -278,14 +278,16 @@ export const useConversationsQuery = (selectedUser?: any) => {
     setMessages([]);
   }, []);
 
-  // Real-time subscription for conversations
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) {
+      console.warn('⚠️ No user ID available for conversations query - user may need to authenticate');
+      return;
+    }
 
-    logger.debug('Setting up real-time subscription for conversations');
-
+    console.log('🔄 Setting up real-time conversation subscription');
+    
     const channel = supabase
-      .channel('conversations-realtime')
+      .channel('conversations_changes')
       .on(
         'postgres_changes',
         {
@@ -295,17 +297,19 @@ export const useConversationsQuery = (selectedUser?: any) => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          logger.debug('Real-time conversation update:', payload);
-          queryClient.invalidateQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
+          console.log('📡 Conversation change:', payload);
+          queryClient.invalidateQueries({ 
+            queryKey: ['conversations', user.id, selectedUser] 
+          });
         }
       )
       .subscribe();
 
     return () => {
-      logger.debug('Cleaning up conversations real-time subscription');
+      console.log('🔌 Cleaning up conversation subscription');
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [user?.id, selectedUser, queryClient]);
 
   // Real-time subscription for messages
   useEffect(() => {

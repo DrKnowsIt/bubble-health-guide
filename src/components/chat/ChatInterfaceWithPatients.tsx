@@ -13,6 +13,8 @@ import { useEnhancedHealthTopics } from '@/hooks/useEnhancedHealthTopics';
 import { EnhancedHealthTopicsPanel } from '@/components/EnhancedHealthTopicsPanel';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
+import { useConversationStateGuard } from '@/hooks/useConversationStateGuard';
+import { ConversationAuthPrompt } from '@/components/ConversationAuthPrompt';
 import { UserSelector } from '../UserSelector';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
 import { TierStatus } from '../TierStatus';
@@ -76,6 +78,13 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     clearPendingAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
 
+  // Conversation state protection
+  const { 
+    saveConversationState, 
+    handleConversationError,
+    restoreConversationState 
+  } = useConversationStateGuard();
+
 
   const {
     isRecording,
@@ -102,9 +111,26 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Auto-save conversation state before navigation or when important changes happen
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (user && currentConversation && selectedUser) {
+      const conversationState = {
+        conversationId: currentConversation,
+        selectedUserId: selectedUser.id,
+        lastActivity: Date.now(),
+        messages: messages
+      };
+      
+      saveConversationState(conversationState);
+    }
+  }, [currentConversation, selectedUser, messages, saveConversationState, user]);
+
+  // Handle conversation loading errors with better UX
+  useEffect(() => {
+    if (!user && !usersLoading && currentConversation) {
+      handleConversationError("You need to sign in to access your conversations.");
+    }
+  }, [user, usersLoading, currentConversation, handleConversationError]);
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {
@@ -420,6 +446,10 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                       Choose a user from the dropdown to start chatting.
                     </p>
                   </div>
+                </div>
+              ) : !user ? (
+                <div className="flex items-center justify-center h-full">
+                  <ConversationAuthPrompt message="Please sign in to access the chat and your conversation history." />
                 </div>
               ) : (
                   <>
