@@ -11,6 +11,7 @@ import { useConversationsQuery, Message } from '@/hooks/optimized/useConversatio
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
+import { useUnifiedAnalysis } from '@/hooks/useUnifiedAnalysis';
 import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
@@ -69,7 +70,21 @@ export const MobileEnhancedChatInterface = ({
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
 
-  // Analysis notifications
+  // Unified analysis system
+  const { 
+    analysisState, 
+    updateMessageCount, 
+    checkScheduledAnalysis,
+    cleanup 
+  } = useUnifiedAnalysis({
+    conversationId: currentConversation,
+    patientId: selectedUser?.id || null,
+    onAnalysisComplete: (results) => {
+      console.log('[MobileChat] Analysis completed:', results);
+    }
+  });
+
+  // Legacy analysis notifications (for background features)
   const {
     startAnalysis,
     performDiagnosisAnalysis,
@@ -108,6 +123,13 @@ export const MobileEnhancedChatInterface = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   // Load diagnoses when conversation or patient changes
   useEffect(() => {
@@ -258,62 +280,13 @@ export const MobileEnhancedChatInterface = ({
           console.error('Error analyzing conversation for diagnosis:', error);
         });
 
-        // Enhanced background analysis with notifications
-        const messageId = aiMessage.id;
+        // Update message count and trigger unified analysis
+        const newMessageCount = analysisState.messageCount + 1;
+        updateMessageCount(newMessageCount);
         
-        // Initialize analysis state for this message
-        setMessageAnalysis(prev => ({
-          ...prev,
-          [messageId]: { isAnalyzing: true, results: {} }
-        }));
-        
-        // Start analysis tracking
-        const { updateResult, completeAnalysis } = startAnalysis(messageId);
-        
-        // Run all analyses in parallel with proper tracking
-        Promise.allSettled([
-          performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => {
-              updateResult('diagnosis', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: {
-                  ...prev[messageId],
-                  results: { ...prev[messageId]?.results, diagnosis: result }
-                }
-              }));
-            }),
-          
-          performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => {
-              updateResult('solution', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: {
-                  ...prev[messageId],
-                  results: { ...prev[messageId]?.results, solution: result }
-                }
-              }));
-            }),
-          
-          performMemoryAnalysis(conversationId, selectedUser.id)
-            .then(result => {
-              updateResult('memory', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: {
-                  ...prev[messageId],
-                  results: { ...prev[messageId]?.results, memory: result }
-                }
-              }));
-            })
-        ]).finally(() => {
-          completeAnalysis();
-          setMessageAnalysis(prev => ({
-            ...prev,
-            [messageId]: { ...prev[messageId], isAnalyzing: false }
-          }));
-        });
+        // Check for scheduled analysis (regular every 4, deep every 16)
+        const allMessages = [...messages, userMessage, aiMessage];
+        checkScheduledAnalysis(allMessages);
       }, 200); // Delay background analyses to avoid interfering with typing state
     } catch (error: any) {
       console.error('Error sending message:', error);

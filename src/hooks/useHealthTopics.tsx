@@ -257,21 +257,10 @@ export const useHealthTopics = ({
     }
   }, [conversationId, user?.id, patientId, includeSolutions]);
 
-  // Debounced analysis trigger
+  // Debounced analysis trigger - DISABLED for unified system  
   useEffect(() => {
-    if (analysisTimeoutRef.current) {
-      clearTimeout(analysisTimeoutRef.current);
-    }
-
-    analysisTimeoutRef.current = setTimeout(() => {
-      analyzeHealthTopics();
-    }, 1000); // 1 second debounce
-
-    return () => {
-      if (analysisTimeoutRef.current) {
-        clearTimeout(analysisTimeoutRef.current);
-      }
-    };
+    // Disable automatic analysis - unified system handles all timing
+    return;
   }, [conversationContext, analyzeHealthTopics]);
 
   // Load existing feedback and data on mount

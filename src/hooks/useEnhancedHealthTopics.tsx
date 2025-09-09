@@ -303,23 +303,11 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
     analyzeHealthTopics(true);
   }, [analyzeHealthTopics]);
 
-  // Debounced analysis effect
+  // Debounced analysis trigger - DISABLED for unified system
+  // Analysis is now handled by the unified analysis system in the main chat components
   useEffect(() => {
-    if (!options.conversationContext?.trim()) return;
-
-    if (analysisTimeoutRef.current) {
-      clearTimeout(analysisTimeoutRef.current);
-    }
-
-    analysisTimeoutRef.current = setTimeout(() => {
-      analyzeHealthTopics();
-    }, 1500);
-
-    return () => {
-      if (analysisTimeoutRef.current) {
-        clearTimeout(analysisTimeoutRef.current);
-      }
-    };
+    // Disable automatic analysis - unified system handles all timing
+    return;
   }, [options.conversationContext, analyzeHealthTopics]);
 
   // Initial data loading
