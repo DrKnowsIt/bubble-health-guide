@@ -244,21 +244,27 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
         <CollapsibleContent>
           <CardContent>
             <Tabs defaultValue="topics" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="topics" className="flex items-center gap-2">
-                  <Layers className="h-4 w-4" />
-                  Health Topics
+              <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+                <TabsTrigger value="topics" className="flex-col items-center gap-1 py-3 px-2 text-xs">
+                  <div className="flex items-center gap-1">
+                    <Layers className="h-3 w-3" />
+                    <span className="hidden sm:inline">Health Topics</span>
+                    <span className="sm:hidden">Topics</span>
+                  </div>
                   {!isEmpty && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                    <Badge variant="secondary" className="text-xs px-1 py-0 h-4 min-w-[1rem]">
                       {diagnoses.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Holistic Solutions
+                <TabsTrigger value="solutions" className="flex-col items-center gap-1 py-3 px-2 text-xs">
+                  <div className="flex items-center gap-1">
+                    <Target className="h-3 w-3" />
+                    <span className="hidden sm:inline">Holistic Solutions</span>
+                    <span className="sm:hidden">Solutions</span>
+                  </div>
                   {!solutionsEmpty && (
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                    <Badge variant="secondary" className="text-xs px-1 py-0 h-4 min-w-[1rem]">
                       {solutions.length}
                     </Badge>
                   )}
@@ -278,36 +284,40 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                   <>
                      <div className="space-y-4">
                         {groupedDiagnoses.map((group, groupIndex) => (
-                          <div key={groupIndex} className={`border rounded-lg overflow-hidden ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-900/10' : 'bg-teal-900/10'}`}>
+                          <div key={groupIndex} className={`border rounded-lg overflow-hidden ${getCategoryColor(group.category)}`}>
                             <div className="p-4">
-                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <div className="flex flex-col md:flex-row gap-4 md:items-start md:justify-between">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
                                   <div className="flex-shrink-0">
                                     <span className="text-2xl">{getCategoryIcon(group.category)}</span>
                                   </div>
-                                  <div className="min-w-0 flex-1">
-                                    <h3 className="font-semibold text-base leading-tight text-foreground break-words">
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-base leading-tight text-foreground hyphens-auto" style={{ wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
                                       {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
                                     </h3>
-                                    <Badge className={`mt-2 text-xs ${getCategoryColor(group.category)}`}>
-                                      {getConfidenceLevel(group.primary.confidence)}
-                                    </Badge>
+                                    <div className="mt-2">
+                                      <Badge className={`text-xs ${getCategoryColor(group.category)}`}>
+                                        {getConfidenceLevel(group.primary.confidence)}
+                                      </Badge>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex-shrink-0 text-right">
-                                  <div className="text-sm font-medium mb-2">
-                                    {Math.round(group.primary.confidence * 100)}%
-                                  </div>
-                                  <Progress 
-                                    value={group.primary.confidence * 100} 
-                                    className="w-20 h-3 mb-2"
-                                  />
-                                  {group.primary.updated_at && (
-                                    <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-                                      <Clock className="h-3 w-3 flex-shrink-0" />
-                                      <span className="truncate">{formatDate(group.primary.updated_at)}</span>
+                                <div className="flex-shrink-0 md:text-right">
+                                  <div className="flex md:flex-col items-center md:items-end gap-3 md:gap-2">
+                                    <div className="text-sm font-medium">
+                                      {Math.round(group.primary.confidence * 100)}%
                                     </div>
-                                  )}
+                                    <Progress 
+                                      value={group.primary.confidence * 100} 
+                                      className="w-20 h-3"
+                                    />
+                                    {group.primary.updated_at && (
+                                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3 w-3 flex-shrink-0" />
+                                        <span className="whitespace-nowrap">{formatDate(group.primary.updated_at)}</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             
