@@ -252,10 +252,13 @@ export const MobileEnhancedChatInterface = ({
           `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
         );
         
-        if (data.imageSuggestion) {
-          triggerImagePrompt(messageContent, data.imageSuggestion, recentContext);
-        } else {
-          triggerImagePrompt(messageContent, undefined, recentContext);
+        // Only trigger image prompts for human patients, not pets
+        if (!selectedUser?.is_pet) {
+          if (data.imageSuggestion) {
+            triggerImagePrompt(messageContent, data.imageSuggestion, recentContext);
+          } else {
+            triggerImagePrompt(messageContent, undefined, recentContext);
+          }
         }
       }, 100); // Small delay to ensure typing state is properly managed
 

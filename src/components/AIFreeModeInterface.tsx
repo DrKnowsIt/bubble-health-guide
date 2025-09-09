@@ -17,6 +17,7 @@ import { AnatomySelector } from './AnatomySelector';
 import { AIFreeModeCompletionModal } from './modals/AIFreeModeCompletionModal';
 import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 
 type ChatPhase = 'anatomy-selection' | 'chat' | 'completed';
 
@@ -40,6 +41,7 @@ export const AIFreeModeInterface = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   
   const { subscription_tier } = useSubscription();
+  const { selectedUser } = useUsersQuery();
   const { 
     currentPrompt: medicalImagePrompt,
     triggerImagePrompt,
@@ -169,8 +171,8 @@ export const AIFreeModeInterface = ({
     // Submit the response
     submitResponse(value, text);
     
-    // For Basic/Pro users, trigger medical image prompts based on symptoms
-    if ((subscription_tier === 'basic' || subscription_tier === 'pro') && text && patientId) {
+    // For Basic/Pro users, trigger medical image prompts based on symptoms (but not for pets)
+    if ((subscription_tier === 'basic' || subscription_tier === 'pro') && text && patientId && !selectedUser?.is_pet) {
       logger.debug('Triggering medical image analysis for Basic/Pro user');
       const conversationContext = conversationPath.map(p => 
         `Q: ${p.question?.question_text} A: ${p.response}`

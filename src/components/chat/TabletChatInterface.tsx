@@ -195,10 +195,13 @@ export const TabletChatInterface = ({
         `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
       );
       
-      if (data.imageSuggestion) {
-        await triggerImagePrompt(currentInput, data.imageSuggestion, recentContext);
-      } else {
-        await triggerImagePrompt(currentInput, undefined, recentContext);
+      // Only trigger image prompts for human patients, not pets
+      if (!selectedUser?.is_pet) {
+        if (data.imageSuggestion) {
+          await triggerImagePrompt(currentInput, data.imageSuggestion, recentContext);
+        } else {
+          await triggerImagePrompt(currentInput, undefined, recentContext);
+        }
       }
 
       // Background analysis for diagnoses and solutions (fire-and-forget)

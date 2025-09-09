@@ -505,12 +505,15 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
       );
       
-      if (data.imageSuggestion) {
-        console.log('🤖 ChatGPTInterface: Using AI image suggestion:', data.imageSuggestion);
-        await triggerImagePrompt(textToSend, data.imageSuggestion, recentContext);
-      } else {
-        console.log('🔍 ChatGPTInterface: Analyzing user message for medical images');
-        await triggerImagePrompt(textToSend, undefined, recentContext);
+      // Only trigger image prompts for human patients, not pets
+      if (!selectedUser?.is_pet) {
+        if (data.imageSuggestion) {
+          console.log('🤖 ChatGPTInterface: Using AI image suggestion:', data.imageSuggestion);
+          await triggerImagePrompt(textToSend, data.imageSuggestion, recentContext);
+        } else {
+          console.log('🔍 ChatGPTInterface: Analyzing user message for medical images');
+          await triggerImagePrompt(textToSend, undefined, recentContext);
+        }
       }
 
       // Update message count and trigger unified analysis
