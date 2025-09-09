@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
+import { LoadingSkeleton, StatsLoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { exportComprehensivePDFForUser } from '@/utils/pdfExport';
 import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
 import { useHealthStatsQuery } from '@/hooks/optimized/useHealthStatsQuery';
-import { LoadingSkeleton, StatsLoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,6 +25,9 @@ import { AddFamilyMemberDialog } from '@/components/modals/AddFamilyMemberDialog
 import { AIFreeModeInterface } from '@/components/AIFreeModeInterface';
 import { FreeUsersOnlyGate } from '@/components/FreeUsersOnlyGate';
 import { useFinalMedicalAnalysis } from '@/hooks/useFinalMedicalAnalysis';
+import { EpisodeBasedChatInterface } from '@/components/health/EpisodeBasedChatInterface';
+import { HealthEpisodesPanel } from '@/components/health/HealthEpisodesPanel';
+import { useHealthEpisodes } from '@/hooks/useHealthEpisodes';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
@@ -97,9 +100,14 @@ export default function UserDashboard() {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const { currentConversation, messages } = useConversationsQuery(selectedUser);
+  const { activeEpisode, setActiveEpisode } = useHealthEpisodes(selectedUser?.id);
   
   // State for tracking high confidence diagnoses
   const [currentConversationDiagnoses, setCurrentConversationDiagnoses] = useState<any[]>([]);
+
+  const handleEpisodeSelect = (episode: any) => {
+    setActiveEpisode(episode);
+  };
   
   // Fetch diagnoses for current conversation
   useEffect(() => {

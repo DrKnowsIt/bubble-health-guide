@@ -125,6 +125,62 @@ export type Database = {
         }
         Relationships: []
       }
+      confirmed_medical_history: {
+        Row: {
+          condition_name: string
+          confirmed_by_doctor: boolean
+          created_at: string
+          diagnosis_date: string | null
+          doctor_confirmation_id: string | null
+          id: string
+          last_reviewed_date: string | null
+          notes: string | null
+          patient_id: string | null
+          severity: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          condition_name: string
+          confirmed_by_doctor?: boolean
+          created_at?: string
+          diagnosis_date?: string | null
+          doctor_confirmation_id?: string | null
+          id?: string
+          last_reviewed_date?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          severity?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          condition_name?: string
+          confirmed_by_doctor?: boolean
+          created_at?: string
+          diagnosis_date?: string | null
+          doctor_confirmation_id?: string | null
+          id?: string
+          last_reviewed_date?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          severity?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_confirmed_history_doctor_confirmation"
+            columns: ["doctor_confirmation_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_confirmations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_diagnoses: {
         Row: {
           category: string
@@ -183,6 +239,7 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          health_episode_id: string | null
           id: string
           memory: Json
           patient_id: string
@@ -193,6 +250,7 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
+          health_episode_id?: string | null
           id?: string
           memory?: Json
           patient_id: string
@@ -203,6 +261,7 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
+          health_episode_id?: string | null
           id?: string
           memory?: Json
           patient_id?: string
@@ -216,6 +275,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: true
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_memory_episode"
+            columns: ["health_episode_id"]
+            isOneToOne: false
+            referencedRelation: "health_episodes"
             referencedColumns: ["id"]
           },
         ]
@@ -262,6 +328,7 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string
+          health_episode_id: string | null
           id: string
           patient_id: string | null
           title: string
@@ -270,6 +337,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          health_episode_id?: string | null
           id?: string
           patient_id?: string | null
           title: string
@@ -278,13 +346,22 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          health_episode_id?: string | null
           id?: string
           patient_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversations_episode"
+            columns: ["health_episode_id"]
+            isOneToOne: false
+            referencedRelation: "health_episodes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       diagnosis_feedback: {
         Row: {
@@ -315,6 +392,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      doctor_confirmations: {
+        Row: {
+          confidence_level: string
+          confirmation_date: string
+          confirmation_type: string
+          confirmed_diagnosis: string | null
+          created_at: string
+          doctor_notes: string | null
+          health_episode_id: string | null
+          id: string
+          next_followup_date: string | null
+          patient_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_level?: string
+          confirmation_date: string
+          confirmation_type: string
+          confirmed_diagnosis?: string | null
+          created_at?: string
+          doctor_notes?: string | null
+          health_episode_id?: string | null
+          id?: string
+          next_followup_date?: string | null
+          patient_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_level?: string
+          confirmation_date?: string
+          confirmation_type?: string
+          confirmed_diagnosis?: string | null
+          created_at?: string
+          doctor_notes?: string | null
+          health_episode_id?: string | null
+          id?: string
+          next_followup_date?: string | null
+          patient_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_doctor_confirmations_episode"
+            columns: ["health_episode_id"]
+            isOneToOne: false
+            referencedRelation: "health_episodes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       doctor_notes: {
         Row: {
@@ -538,6 +668,48 @@ export type Database = {
           id?: string
           priority_level?: string
           subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_episodes: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          episode_description: string | null
+          episode_title: string
+          episode_type: string
+          id: string
+          patient_id: string | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          episode_description?: string | null
+          episode_title: string
+          episode_type?: string
+          id?: string
+          patient_id?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          episode_description?: string | null
+          episode_title?: string
+          episode_type?: string
+          id?: string
+          patient_id?: string | null
+          start_date?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
