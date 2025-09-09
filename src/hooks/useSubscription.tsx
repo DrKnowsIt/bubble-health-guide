@@ -61,6 +61,25 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         subscription_end,
       });
 
+      // Check if subscription tier changed (potential downgrade)
+      const oldTier = state.subscription_tier;
+      if (oldTier && normalizedTier && oldTier !== normalizedTier && oldTier === 'pro' && normalizedTier === 'basic') {
+        console.log('Subscription downgrade detected, running cleanup...');
+        try {
+          await supabase.functions.invoke('subscription-downgrade-cleanup', {
+            body: {
+              user_id: user.id,
+              from_tier: oldTier,
+              to_tier: normalizedTier
+            }
+          });
+          console.log('Subscription cleanup completed');
+        } catch (cleanupError) {
+          console.error('Error in subscription cleanup:', cleanupError);
+          // Don't fail the subscription check if cleanup fails
+        }
+      }
+
       setState({
         subscribed,
         subscription_tier: normalizedTier,
@@ -71,7 +90,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
       console.error('Error checking subscription:', err);
       setState((prev) => ({ ...prev, loading: false }));
     }
-  }, [user]);
+  }, [user, state.subscription_tier]);
 
   const createCheckoutSession = useCallback(async (plan: 'basic' | 'pro' = 'pro') => {
     if (!user) throw new Error('User must be authenticated');

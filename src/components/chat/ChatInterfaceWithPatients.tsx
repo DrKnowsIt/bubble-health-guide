@@ -125,12 +125,34 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     }
   }, [currentConversation, selectedUser, messages, saveConversationState, user]);
 
-  // Handle conversation loading errors with better UX
-  useEffect(() => {
-    if (!user && !usersLoading && currentConversation) {
-      handleConversationError("You need to sign in to access your conversations.");
-    }
-  }, [user, usersLoading, currentConversation, handleConversationError]);
+    // Auto-migrate orphaned conversations to episodes on first load
+    useEffect(() => {
+      const migrateOrphanedConversations = async () => {
+        if (!user) return;
+        
+        try {
+          const { data } = await supabase.functions.invoke('migrate-conversations-to-episodes');
+          if (data?.migrated > 0) {
+            console.log(`Migrated ${data.migrated} conversations to episodes`);
+            toast({
+              title: "Chat History Updated",
+              description: `We've organized ${data.migrated} of your previous conversations into health episodes for better tracking.`,
+              duration: 5000,
+            });
+          }
+        } catch (error) {
+          console.error('Migration error:', error);
+          // Don't show error to user as this is a background operation
+        }
+      };
+      
+      // Only run once per session
+      const hasRunMigration = sessionStorage.getItem('conversations_migrated');
+      if (!hasRunMigration && user) {
+        migrateOrphanedConversations();
+        sessionStorage.setItem('conversations_migrated', 'true');
+      }
+    }, [user]);
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {

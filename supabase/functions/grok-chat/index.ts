@@ -50,29 +50,68 @@ serve(async (req) => {
       );
     }
 
-    // If conversation_id is provided, verify it belongs to the current patient
-    if (conversation_id && patient_id) {
-      const { data: convData, error: convErr } = await supabase
-        .from('conversations')
-        .select('patient_id, user_id')
-        .eq('id', conversation_id)
-        .single();
-
-      if (convErr || !convData || convData.patient_id !== patient_id || convData.user_id !== userData.user.id) {
-        console.log('🚨 Conversation validation failed:', {
-          conversationId: conversation_id,
-          expectedPatientId: patient_id,
-          actualPatientId: convData?.patient_id,
-          expectedUserId: userData.user.id,
-          actualUserId: convData?.user_id,
-          error: convErr
-        });
-        return new Response(
-          JSON.stringify({ error: 'Invalid conversation context' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // Check for existing conversations without episodes and auto-assign them
+      if (conversation_id && patient_id) {
+        const { data: existingConversation } = await supabase
+          .from('conversations')
+          .select('health_episode_id')
+          .eq('id', conversation_id)
+          .single();
+        
+        // If conversation exists but has no episode, create a general episode for it
+        if (existingConversation && !existingConversation.health_episode_id) {
+          console.log('🔄 Auto-creating episode for existing conversation');
+          
+          // Create a general episode for this conversation
+          const { data: newEpisode } = await supabase
+            .from('health_episodes')
+            .insert({
+              user_id: user_id,
+              patient_id: patient_id,
+              episode_title: 'Previous Health Discussion',
+              episode_description: 'Auto-created episode for existing conversation',
+              episode_type: 'symptoms',
+              start_date: new Date().toISOString().split('T')[0],
+              status: 'active'
+            })
+            .select()
+            .single();
+          
+          if (newEpisode) {
+            // Link the conversation to the new episode
+            await supabase
+              .from('conversations')
+              .update({ health_episode_id: newEpisode.id })
+              .eq('id', conversation_id);
+              
+            console.log('✅ Linked conversation to new episode:', newEpisode.id);
+          }
+        }
       }
-    }
+      
+      // If conversation_id is provided, verify it belongs to the current patient
+      if (conversation_id && patient_id) {
+        const { data: convData, error: convErr } = await supabase
+          .from('conversations')
+          .select('patient_id, user_id')
+          .eq('id', conversation_id)
+          .single();
+
+        if (convErr || !convData || convData.patient_id !== patient_id || convData.user_id !== userData.user.id) {
+          console.log('🚨 Conversation validation failed:', {
+            conversationId: conversation_id,
+            expectedPatientId: patient_id,
+            actualPatientId: convData?.patient_id,
+            expectedUserId: userData.user.id,
+            actualUserId: convData?.user_id,
+            error: convErr
+          });
+          return new Response(
+            JSON.stringify({ error: 'Invalid conversation context' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
     
     const user_id = userData.user.id;
 
@@ -198,13 +237,41 @@ Last Updated: ${new Date(healthReport.updated_at).toLocaleDateString()}
 Note: This comprehensive report analyzes all health data together and provides holistic insights.`;
       }
 
-      // Get health records
+      // Get health records filtered by subscription tier
       const { data: allHealthRecords } = await supabase
         .from('health_records')
         .select('*')
         .eq('patient_id', patient_id)
         .eq('user_id', user_id)
         .order('created_at', { ascending: false });
+
+      // Filter health records based on subscription tier
+      let filteredHealthRecords = allHealthRecords || [];
+      if (subscriptionTier === 'basic') {
+        // Define allowed record types for basic tier
+        const allowedBasicTypes = isPet ? [
+          'pet_general_notes',
+          'pet_basic_info',
+          'pet_current_health',
+          'pet_health_observations',
+          'pet_veterinary_history',
+          'pet_behavior_lifestyle',
+          'pet_diet_nutrition',
+          'pet_emergency_contacts'
+        ] : [
+          'general_health_notes',
+          'personal_demographics', 
+          'medical_history', 
+          'vital_signs_current', 
+          'patient_observations'
+        ];
+        
+        filteredHealthRecords = allHealthRecords?.filter(record => 
+          allowedBasicTypes.includes(record.record_type)
+        ) || [];
+        
+        console.log(`🔒 Filtered health records for ${subscriptionTier} tier: ${filteredHealthRecords.length}/${allHealthRecords?.length || 0} records`);
+      }
 
       console.log('🎯 Patient selected:', patient.first_name, patient.last_name, 'ID:', patient.id);
       console.log('📝 Patient context being used for AI response generation');
@@ -222,11 +289,11 @@ PATIENT PROFILE:
 - Relationship: ${patient.relationship}
 - Primary User: ${patient.is_primary ? 'Yes' : 'No'}`;
 
-      // Build health records context
+      // Build health records context using filtered records
       let healthRecordsText = '\n\nHEALTH RECORDS:';
-      if (allHealthRecords?.length) {
+      if (filteredHealthRecords?.length) {
         healthRecordsText += '\n\nRECENT HEALTH RECORDS:';
-        allHealthRecords.slice(0, 5).forEach(record => {
+        filteredHealthRecords.slice(0, 5).forEach(record => {
           healthRecordsText += `\n- ${record.title} (${record.record_type}) - ${new Date(record.created_at).toLocaleDateString()}`;
           if (record.data) {
             const dataStr = JSON.stringify(record.data).substring(0, 100);
@@ -234,8 +301,8 @@ PATIENT PROFILE:
           }
         });
         
-        if (allHealthRecords.length > 5) {
-          healthRecordsText += `\n  ... and ${allHealthRecords.length - 5} more records available`;
+        if (filteredHealthRecords.length > 5) {
+          healthRecordsText += `\n  ... and ${filteredHealthRecords.length - 5} more records available`;
         }
       } else {
         healthRecordsText += '\n\nNo health records available';
@@ -243,8 +310,8 @@ PATIENT PROFILE:
 
       patientContext += healthRecordsText;
 
-      // Build health forms context - Include ALL health record types for comprehensive AI analysis
-      const healthForms = allHealthRecords || [];
+      // Build health forms context - Use filtered health records for subscription tier compliance
+      const healthForms = filteredHealthRecords || [];
       
       if (healthForms.length > 0) {
         healthFormsContext = '\n\nHEALTH FORMS & RECORDS DATA:';

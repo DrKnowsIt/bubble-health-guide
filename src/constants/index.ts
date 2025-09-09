@@ -47,6 +47,37 @@ export const PDF_CONFIG = {
   TITLE_FONT_SIZE: 16
 } as const;
 
+// Health Record Subscription Tier Mappings
+export const HEALTH_RECORD_TIERS = {
+  BASIC_HUMAN_FORMS: [
+    'general_health_notes',
+    'personal_demographics', 
+    'medical_history', 
+    'vital_signs_current', 
+    'patient_observations'
+  ],
+  BASIC_PET_FORMS: [
+    'pet_general_notes',
+    'pet_basic_info',
+    'pet_current_health',
+    'pet_health_observations',
+    'pet_veterinary_history',
+    'pet_behavior_lifestyle',
+    'pet_diet_nutrition',
+    'pet_emergency_contacts'
+  ],
+  // All other record types are PRO-only
+  PRO_HUMAN_FORMS: [
+    'family_history',
+    'blood_panel_current',
+    'blood_panel_historical',
+    'vital_signs_historical',
+    'diet_nutrition_detailed',
+    'workout_routine',
+    'dna_genetics'
+  ]
+} as const;
+
 // Session Storage Keys
 export const STORAGE_KEYS = {
   AI_FREE_MODE_SESSION: 'aiFreeMode_sessionData',
