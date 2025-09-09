@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Clock, Layers } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Layers } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationSolutions } from '@/hooks/useConversationSolutions';
@@ -291,28 +291,20 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                                   <div className="flex-shrink-0">
                                     <span className="text-2xl">{getCategoryIcon(group.category)}</span>
                                   </div>
-                                  <div className="flex-1">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-1">
-                                      <h3 className="font-semibold text-base leading-tight text-foreground overflow-hidden text-ellipsis">
-                                        {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
-                                      </h3>
-                                      <Badge className={`text-xs self-start sm:self-center flex-shrink-0 ${getCategoryColor(group.category)}`}>
-                                        {getConfidenceLevel(group.primary.confidence)}
-                                      </Badge>
-                                    </div>
-                                  </div>
+                                   <div className="flex-1">
+                                     <h3 className="font-semibold text-base leading-tight text-foreground">
+                                       {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
+                                     </h3>
+                                   </div>
                                 </div>
                                 <div className="flex-shrink-0 md:text-right">
-                                  <div className="flex md:flex-col items-center md:items-end gap-3 md:gap-2">
+                                  <div className="flex md:flex-col items-center md:items-end gap-1">
                                     <div className="text-sm font-medium">
                                       {Math.round(group.primary.confidence * 100)}%
                                     </div>
-                                    {group.primary.updated_at && (
-                                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                        <Clock className="h-3 w-3 flex-shrink-0" />
-                                        <span className="whitespace-nowrap">{formatDate(group.primary.updated_at)}</span>
-                                      </div>
-                                    )}
+                                    <div className="text-xs text-muted-foreground">
+                                      {getConfidenceLevel(group.primary.confidence)}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
