@@ -50,6 +50,8 @@ serve(async (req) => {
       );
     }
 
+    const user_id = userData.user.id;
+
       // Check for existing conversations without episodes and auto-assign them
       if (conversation_id && patient_id) {
         const { data: existingConversation } = await supabase
@@ -112,8 +114,6 @@ serve(async (req) => {
           );
         }
       }
-    
-    const user_id = userData.user.id;
 
     // Get user subscription tier and status
     const { data: subscription } = await supabase
