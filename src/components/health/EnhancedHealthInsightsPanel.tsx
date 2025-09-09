@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -399,21 +399,26 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                     <div className="space-y-4">
                       {solutions.map((solution, index) => (
                         <div key={index} className="p-4 border rounded-lg bg-card">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{getSolutionCategoryIcon(solution.category)}</span>
-                              <Badge className={`text-xs ${getSolutionCategoryColor(solution.category)}`}>
-                                {solution.category.replace('_', ' ')}
-                              </Badge>
-                            </div>
-                            <div className="text-right ml-4 flex-shrink-0">
-                              <div className="text-sm font-medium mb-1">
-                                {getConfidenceLevel(solution.confidence)}
+                          <div className="flex flex-col md:flex-row gap-4 md:items-start md:justify-between mb-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0">
+                                <span className="text-lg">{getSolutionCategoryIcon(solution.category)}</span>
                               </div>
-                              <Progress 
-                                value={solution.confidence * 100} 
-                                className="w-24 h-2"
-                              />
+                              <div className="flex-1">
+                                <Badge className={`text-xs ${getSolutionCategoryColor(solution.category)}`}>
+                                  {solution.category.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0 md:text-right">
+                              <div className="flex md:flex-col items-center md:items-end gap-1">
+                                <div className="text-sm font-medium">
+                                  {Math.round(solution.confidence * 100)}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {getConfidenceLevel(solution.confidence)}
+                                </div>
+                              </div>
                             </div>
                           </div>
                           
