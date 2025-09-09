@@ -292,7 +292,7 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                                     <span className="text-2xl">{getCategoryIcon(group.category)}</span>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-base leading-tight text-foreground hyphens-auto" style={{ wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
+                                    <h3 className="font-semibold text-base leading-tight text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-[120px]">
                                       {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
                                     </h3>
                                     <div className="mt-2">
