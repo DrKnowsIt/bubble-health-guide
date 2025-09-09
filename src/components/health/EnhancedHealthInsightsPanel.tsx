@@ -277,37 +277,39 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                 ) : (
                   <>
                      <div className="space-y-4">
-                       {groupedDiagnoses.map((group, groupIndex) => (
-                         <div key={groupIndex} className={`border-2 rounded-lg ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-900/20' : 'bg-teal-900/20'}`}>
-                           <div className="p-4 backdrop-blur">
-                             <div className="flex items-start justify-between mb-3">
-                               <div className="flex items-center gap-3 flex-1 mr-4">
-                                 <span className="text-2xl">{getCategoryIcon(group.category)}</span>
-                                 <div>
-                                   <h3 className="font-semibold text-base leading-tight">
-                                     {group.primary.diagnosis}
-                                   </h3>
-                                   <Badge className={`mt-1 text-xs ${getCategoryColor(group.category)}`}>
-                                     {getConfidenceLevel(group.primary.confidence)}
-                                   </Badge>
-                                 </div>
-                               </div>
-                             <div className="text-right flex-shrink-0">
-                               <div className="text-sm font-medium mb-1">
-                                 {Math.round(group.primary.confidence * 100)}%
-                               </div>
-                               <Progress 
-                                 value={group.primary.confidence * 100} 
-                                 className="w-20 h-3"
-                               />
-                               {group.primary.updated_at && (
-                                 <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                   <Clock className="h-3 w-3" />
-                                   {formatDate(group.primary.updated_at)}
-                                 </div>
-                               )}
-                             </div>
-                             </div>
+                        {groupedDiagnoses.map((group, groupIndex) => (
+                          <div key={groupIndex} className={`border rounded-lg overflow-hidden ${getCategoryColor(group.category)} ${group.category === 'high_confidence' ? 'bg-green-900/10' : 'bg-teal-900/10'}`}>
+                            <div className="p-4">
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex items-start gap-3 min-w-0 flex-1">
+                                  <div className="flex-shrink-0">
+                                    <span className="text-2xl">{getCategoryIcon(group.category)}</span>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <h3 className="font-semibold text-base leading-tight text-foreground break-words">
+                                      {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
+                                    </h3>
+                                    <Badge className={`mt-2 text-xs ${getCategoryColor(group.category)}`}>
+                                      {getConfidenceLevel(group.primary.confidence)}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="flex-shrink-0 text-right">
+                                  <div className="text-sm font-medium mb-2">
+                                    {Math.round(group.primary.confidence * 100)}%
+                                  </div>
+                                  <Progress 
+                                    value={group.primary.confidence * 100} 
+                                    className="w-20 h-3 mb-2"
+                                  />
+                                  {group.primary.updated_at && (
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                                      <Clock className="h-3 w-3 flex-shrink-0" />
+                                      <span className="truncate">{formatDate(group.primary.updated_at)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             
                             {group.primary.reasoning && (
                               <div className="mb-4">
