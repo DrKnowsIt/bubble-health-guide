@@ -276,15 +276,40 @@ Note: This comprehensive report analyzes all health data together and provides h
       console.log('🎯 Patient selected:', patient.first_name, patient.last_name, 'ID:', patient.id);
       console.log('📝 Patient context being used for AI response generation');
       
-      // Build comprehensive patient context
-      const patientAge = patient.date_of_birth 
-        ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-        : null;
+      // De-identify patient data before sending to external AI
+      const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+      const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patient_id,
+          patient_context: {
+            first_name: patient.first_name,
+            last_name: patient.last_name,
+            date_of_birth: patient.date_of_birth,
+            gender: patient.gender,
+            relationship: patient.relationship,
+            is_primary: patient.is_primary
+          }
+        }),
+      });
 
+      if (!deIdentifyResponse.ok) {
+        console.error('Failed to de-identify patient data');
+        throw new Error('Failed to de-identify patient data');
+      }
+
+      const deIdentifiedData = await deIdentifyResponse.json();
+      console.log('Successfully de-identified patient data for AI processing');
+
+      // Build HIPAA-compliant patient context using de-identified data
       patientContext = `
 PATIENT PROFILE:
-- Name: ${patient.first_name} ${patient.last_name}
-- Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
+- Patient ID: ${deIdentifiedData.patient_token}
+- Age Range: ${deIdentifiedData.age_range}
 - Gender: ${patient.gender || 'Not specified'}
 - Relationship: ${patient.relationship}
 - Primary User: ${patient.is_primary ? 'Yes' : 'No'}`;

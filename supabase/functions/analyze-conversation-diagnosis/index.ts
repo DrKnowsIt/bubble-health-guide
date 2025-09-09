@@ -77,11 +77,38 @@ serve(async (req) => {
     const highConfidenceDiagnoses = existingDiagnoses?.filter(d => d.confidence >= 0.7) || [];
     const allExistingDiagnoses = existingDiagnoses || [];
 
-    // Build conversation context for analysis - focus on the current conversation topic
-    const conversationText = recent_messages
-      .filter((msg: any) => msg.type === 'user')
-      .map((msg: any) => msg.content)
-      .join(' ');
+    // De-identify patient data before AI analysis
+    const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+    const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
+      method: 'POST',
+      headers: {
+        'Authorization': req.headers.get('Authorization') || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        patient_id: patient_id,
+        conversation_text: recent_messages
+          .filter((msg: any) => msg.type === 'user')
+          .map((msg: any) => msg.content)
+          .join(' '),
+        patient_context: {
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+          date_of_birth: patient.date_of_birth
+        }
+      }),
+    });
+
+    if (!deIdentifyResponse.ok) {
+      console.error('Failed to de-identify patient data');
+      throw new Error('Failed to de-identify patient data');
+    }
+
+    const deIdentifiedData = await deIdentifyResponse.json();
+    console.log('Successfully de-identified data for diagnosis analysis');
+
+    // Build conversation context for analysis with de-identified data
+    const conversationText = deIdentifiedData.de_identified_text || '';
 
     console.log('Analyzing conversation text:', conversationText);
 

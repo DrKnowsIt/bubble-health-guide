@@ -192,7 +192,28 @@ serve(async (req) => {
     }
 
     if (user_tier !== 'free') {
-      // Enhanced context for Basic/Pro users
+      // De-identify patient data before AI analysis
+      const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+      const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patient_id
+        }),
+      });
+
+      if (!deIdentifyResponse.ok) {
+        console.error('Failed to de-identify patient data');
+        throw new Error('Failed to de-identify patient data');
+      }
+
+      const deIdentifiedData = await deIdentifyResponse.json();
+      console.log('Successfully de-identified data for health topics analysis');
+
+      // Enhanced context for Basic/Pro users with de-identified data
       const { data: patient } = await supabase
         .from('patients')
         .select('*')
@@ -201,13 +222,10 @@ serve(async (req) => {
         .maybeSingle();
 
       if (patient) {
-        const patientAge = patient.date_of_birth 
-          ? Math.floor((new Date().getTime() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-          : null;
-
+        // Use de-identified patient context
         patientContext = `
-Patient: ${patient.first_name} ${patient.last_name}
-Age: ${patientAge ? `${patientAge} years old` : 'Unknown'}
+Patient ID: ${deIdentifiedData.patient_token}
+Age Range: ${deIdentifiedData.age_range}
 Gender: ${patient.gender || 'Not specified'}
 ${patient.is_pet ? `Species: ${patient.species || 'Not specified'}` : ''}`;
 

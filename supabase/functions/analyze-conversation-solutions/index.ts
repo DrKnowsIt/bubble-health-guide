@@ -70,10 +70,34 @@ serve(async (req) => {
 
     const existingSolutionTexts = existingSolutions?.map(s => s.solution) || [];
 
-    // Build conversation context
-    const conversationText = recent_messages?.map((msg: any) => 
+    // De-identify patient data before AI analysis
+    const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+    const rawConversationText = recent_messages?.map((msg: any) => 
       msg.type === 'user' ? `User: ${msg.content}` : `Assistant: ${msg.content}`
     ).join('\n') || '';
+
+    const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
+      method: 'POST',
+      headers: {
+        'Authorization': req.headers.get('Authorization') || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        patient_id: patient_id,
+        conversation_text: rawConversationText
+      }),
+    });
+
+    if (!deIdentifyResponse.ok) {
+      console.error('Failed to de-identify patient data');
+      throw new Error('Failed to de-identify patient data');
+    }
+
+    const deIdentifiedData = await deIdentifyResponse.json();
+    console.log('Successfully de-identified data for solutions analysis');
+
+    // Build conversation context with de-identified data
+    const conversationText = deIdentifiedData.de_identified_text || '';
 
     // Create prompt for holistic solution analysis
     const systemPrompt = `You are a holistic wellness advisor. Your task is to analyze health conversations and suggest evidence-based holistic solutions with REALISTIC confidence scores.

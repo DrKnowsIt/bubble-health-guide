@@ -103,11 +103,35 @@ serve(async (req) => {
       .order('updated_at', { ascending: false })
       .limit(3);
 
-    // Prepare conversation text for analysis
-    const conversationText = messages
+    // De-identify patient data before AI analysis
+    const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+    const rawConversationText = messages
       .reverse()
       .map(msg => `${msg.type === 'user' ? 'Patient' : 'AI'}: ${msg.content}`)
       .join('\n');
+
+    const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader ? `Bearer ${authHeader}` : '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        patient_id: patient_id,
+        conversation_text: rawConversationText
+      }),
+    });
+
+    if (!deIdentifyResponse.ok) {
+      console.error('Failed to de-identify patient data');
+      throw new Error('Failed to de-identify patient data');
+    }
+
+    const deIdentifiedData = await deIdentifyResponse.json();
+    console.log('Successfully de-identified data for memory analysis');
+
+    // Prepare conversation text for analysis with de-identified data
+    const conversationText = deIdentifiedData.de_identified_text || '';
 
     // Get patient info to determine if this is a pet
     const { data: patient, error: patientError } = await supabase
