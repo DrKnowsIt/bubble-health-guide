@@ -250,9 +250,9 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       await saveMessage(conversationId, 'ai', aiMessage.content);
       onSendMessage?.(currentInput);
 
-        // Enhanced background analysis with notifications - add delay for database sync
+        // Background analysis - run separately without affecting main chat flow
         if (user && conversationId && selectedUser?.id) {
-          // Wait for messages to be properly saved before analysis
+          // Delay to ensure typing state is properly managed and avoid interference
           setTimeout(async () => {
             // Fetch fresh messages from database to ensure consistency
             const { data: freshMessages } = await supabase
@@ -270,70 +270,70 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
             
             const messageId = aiMessage.id;
         
-        console.log('[ChatInterface] Starting analysis for message:', messageId);
+            console.log('[ChatInterface] Starting background analysis for message:', messageId);
         
-        // Initialize analysis state for this message
-        setMessageAnalysis(prev => ({
-          ...prev,
-          [messageId]: [
-            { type: 'diagnosis', status: 'loading' },
-            { type: 'solution', status: 'loading' },
-            { type: 'memory', status: 'loading' }
-          ]
-        }));
+            // Initialize analysis state for this message
+            setMessageAnalysis(prev => ({
+              ...prev,
+              [messageId]: [
+                { type: 'diagnosis', status: 'loading' },
+                { type: 'solution', status: 'loading' },
+                { type: 'memory', status: 'loading' }
+              ]
+            }));
         
-        // Run all analyses in parallel with proper tracking
-        Promise.allSettled([
-          performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => {
-              console.log('[ChatInterface] Diagnosis analysis result:', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'diagnosis' ? result : r
-                ) || [result]
-              }));
-              return result;
-            }),
-          
-          performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
-            .then(result => {
-              console.log('[ChatInterface] Solution analysis result:', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'solution' ? result : r
-                ) || [result]
-              }));
-              return result;
-            }),
-          
-          performMemoryAnalysis(conversationId, selectedUser.id)
-            .then(result => {
-              console.log('[ChatInterface] Memory analysis result:', result);
-              setMessageAnalysis(prev => ({
-                ...prev,
-                [messageId]: prev[messageId]?.map(r => 
-                  r.type === 'memory' ? result : r
-                ) || [result]
-              }));
-              return result;
-            })
-        ]).then(results => {
-          console.log('[ChatInterface] All analyses complete for message:', messageId, results);
-          // Auto-clear after 10 seconds
-          setTimeout(() => {
-            setMessageAnalysis(prev => {
-              const newState = { ...prev };
-              delete newState[messageId];
-              return newState;
+            // Run all analyses in parallel with proper tracking
+            Promise.allSettled([
+              performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
+                .then(result => {
+                  console.log('[ChatInterface] Diagnosis analysis result:', result);
+                  setMessageAnalysis(prev => ({
+                    ...prev,
+                    [messageId]: prev[messageId]?.map(r => 
+                      r.type === 'diagnosis' ? result : r
+                    ) || [result]
+                  }));
+                  return result;
+                }),
+              
+              performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
+                .then(result => {
+                  console.log('[ChatInterface] Solution analysis result:', result);
+                  setMessageAnalysis(prev => ({
+                    ...prev,
+                    [messageId]: prev[messageId]?.map(r => 
+                      r.type === 'solution' ? result : r
+                    ) || [result]
+                  }));
+                  return result;
+                }),
+              
+              performMemoryAnalysis(conversationId, selectedUser.id)
+                .then(result => {
+                  console.log('[ChatInterface] Memory analysis result:', result);
+                  setMessageAnalysis(prev => ({
+                    ...prev,
+                    [messageId]: prev[messageId]?.map(r => 
+                      r.type === 'memory' ? result : r
+                    ) || [result]
+                  }));
+                  return result;
+                })
+            ]).then(results => {
+              console.log('[ChatInterface] All background analyses complete for message:', messageId, results);
+              // Auto-clear after 10 seconds
+              setTimeout(() => {
+                setMessageAnalysis(prev => {
+                  const newState = { ...prev };
+                  delete newState[messageId];
+                  return newState;
+                });
+              }, 10000);
+            }).catch(error => {
+              console.error('[ChatInterface] Background analysis error:', error);
             });
-          }, 10000);
-        }).catch(error => {
-          console.error('[ChatInterface] Analysis error:', error);
-        });
-          }, 2000); // 2 second delay to ensure database consistency
-      }
+          }, 500); // Shorter delay but still ensures typing state is cleared first
+        }
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {

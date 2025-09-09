@@ -221,94 +221,100 @@ export const MobileEnhancedChatInterface = ({
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
 
-      // Check for AI image suggestion or trigger based on user message
-      const recentContext = [...messages, 
-        { type: 'user', content: messageContent }
-      ].slice(-4).map(msg => 
-        `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
-      );
-      
-      if (data.imageSuggestion) {
-        await triggerImagePrompt(messageContent, data.imageSuggestion, recentContext);
-      } else {
-        await triggerImagePrompt(messageContent, undefined, recentContext);
-      }
-
-      // Call separate diagnosis analysis (background)
-      const recentMessages = [...messages, 
-        { type: 'user', content: messageContent },
-        { type: 'ai', content: aiResponse }
-      ]; // Use full conversation instead of slice(-6)
-
-      supabase.functions.invoke('analyze-conversation-diagnosis', {
-        body: {
-          conversation_id: conversationId,
-          patient_id: selectedUser.id,
-          recent_messages: recentMessages
+      // Background operations - run without affecting typing state
+      setTimeout(async () => {
+        // Check for AI image suggestion or trigger based on user message
+        const recentContext = [...messages, 
+          { type: 'user', content: messageContent }
+        ].slice(-4).map(msg => 
+          `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+        );
+        
+        if (data.imageSuggestion) {
+          triggerImagePrompt(messageContent, data.imageSuggestion, recentContext);
+        } else {
+          triggerImagePrompt(messageContent, undefined, recentContext);
         }
-      }).then(() => {
-        // Reload diagnoses after analysis
-        loadDiagnosesForConversation();
-      }).catch(error => {
-        console.error('Error analyzing conversation for diagnosis:', error);
-      });
+      }, 100); // Small delay to ensure typing state is properly managed
 
-      // Enhanced background analysis with notifications
-      const messageId = aiMessage.id;
-      
-      // Initialize analysis state for this message
-      setMessageAnalysis(prev => ({
-        ...prev,
-        [messageId]: { isAnalyzing: true, results: {} }
-      }));
-      
-      // Start analysis tracking
-      const { updateResult, completeAnalysis } = startAnalysis(messageId);
-      
-      // Run all analyses in parallel with proper tracking
-      Promise.allSettled([
-        performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
-          .then(result => {
-            updateResult('diagnosis', result);
-            setMessageAnalysis(prev => ({
-              ...prev,
-              [messageId]: {
-                ...prev[messageId],
-                results: { ...prev[messageId]?.results, diagnosis: result }
-              }
-            }));
-          }),
+      // Background analysis - run separately without affecting main chat flow
+      setTimeout(() => {
+        // Call separate diagnosis analysis (background)
+        const recentMessages = [...messages, 
+          { type: 'user', content: messageContent },
+          { type: 'ai', content: aiResponse }
+        ]; // Use full conversation instead of slice(-6)
+
+        supabase.functions.invoke('analyze-conversation-diagnosis', {
+          body: {
+            conversation_id: conversationId,
+            patient_id: selectedUser.id,
+            recent_messages: recentMessages
+          }
+        }).then(() => {
+          // Reload diagnoses after analysis
+          loadDiagnosesForConversation();
+        }).catch(error => {
+          console.error('Error analyzing conversation for diagnosis:', error);
+        });
+
+        // Enhanced background analysis with notifications
+        const messageId = aiMessage.id;
         
-        performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
-          .then(result => {
-            updateResult('solution', result);
-            setMessageAnalysis(prev => ({
-              ...prev,
-              [messageId]: {
-                ...prev[messageId],
-                results: { ...prev[messageId]?.results, solution: result }
-              }
-            }));
-          }),
-        
-        performMemoryAnalysis(conversationId, selectedUser.id)
-          .then(result => {
-            updateResult('memory', result);
-            setMessageAnalysis(prev => ({
-              ...prev,
-              [messageId]: {
-                ...prev[messageId],
-                results: { ...prev[messageId]?.results, memory: result }
-              }
-            }));
-          })
-      ]).finally(() => {
-        completeAnalysis();
+        // Initialize analysis state for this message
         setMessageAnalysis(prev => ({
           ...prev,
-          [messageId]: { ...prev[messageId], isAnalyzing: false }
+          [messageId]: { isAnalyzing: true, results: {} }
         }));
-      });
+        
+        // Start analysis tracking
+        const { updateResult, completeAnalysis } = startAnalysis(messageId);
+        
+        // Run all analyses in parallel with proper tracking
+        Promise.allSettled([
+          performDiagnosisAnalysis(conversationId, selectedUser.id, recentMessages)
+            .then(result => {
+              updateResult('diagnosis', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: {
+                  ...prev[messageId],
+                  results: { ...prev[messageId]?.results, diagnosis: result }
+                }
+              }));
+            }),
+          
+          performSolutionAnalysis(conversationId, selectedUser.id, recentMessages)
+            .then(result => {
+              updateResult('solution', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: {
+                  ...prev[messageId],
+                  results: { ...prev[messageId]?.results, solution: result }
+                }
+              }));
+            }),
+          
+          performMemoryAnalysis(conversationId, selectedUser.id)
+            .then(result => {
+              updateResult('memory', result);
+              setMessageAnalysis(prev => ({
+                ...prev,
+                [messageId]: {
+                  ...prev[messageId],
+                  results: { ...prev[messageId]?.results, memory: result }
+                }
+              }));
+            })
+        ]).finally(() => {
+          completeAnalysis();
+          setMessageAnalysis(prev => ({
+            ...prev,
+            [messageId]: { ...prev[messageId], isAnalyzing: false }
+          }));
+        });
+      }, 200); // Delay background analyses to avoid interfering with typing state
     } catch (error: any) {
       console.error('Error sending message:', error);
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
