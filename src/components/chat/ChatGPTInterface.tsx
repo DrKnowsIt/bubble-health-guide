@@ -118,7 +118,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     convAtRef.current = currentConversation;
     requestSeqRef.current += 1; // bump sequence to mark previous requests as stale
     setIsTyping(false);
-    updateMessageCount(0); // Reset message count for new conversation
+    if (updateMessageCount) {
+      updateMessageCount(0); // Reset message count for new conversation
+    }
   }, [currentConversation, updateMessageCount]);
 
   // Load diagnoses when conversation or patient changes
@@ -513,7 +515,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       // Update message count and trigger unified analysis
       const newMessageCount = analysisState.messageCount + 1;
-      updateMessageCount(newMessageCount);
+      if (updateMessageCount) {
+        updateMessageCount(newMessageCount);
+      }
       
       // Check for scheduled analysis (regular every 4, deep every 16)
       const allMessages = [...messages, userMessage, aiMessage];

@@ -282,7 +282,9 @@ export const MobileEnhancedChatInterface = ({
 
         // Update message count and trigger unified analysis
         const newMessageCount = analysisState.messageCount + 1;
-        updateMessageCount(newMessageCount);
+        if (updateMessageCount) {
+          updateMessageCount(newMessageCount);
+        }
         
         // Check for scheduled analysis (regular every 4, deep every 16)
         const allMessages = [...messages, userMessage, aiMessage];
