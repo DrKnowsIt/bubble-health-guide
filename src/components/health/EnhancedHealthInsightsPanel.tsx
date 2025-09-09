@@ -307,10 +307,6 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                                     <div className="text-sm font-medium">
                                       {Math.round(group.primary.confidence * 100)}%
                                     </div>
-                                    <Progress 
-                                      value={group.primary.confidence * 100} 
-                                      className="w-20 h-3"
-                                    />
                                     {group.primary.updated_at && (
                                       <div className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Clock className="h-3 w-3 flex-shrink-0" />
