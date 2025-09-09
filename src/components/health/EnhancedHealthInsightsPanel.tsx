@@ -291,12 +291,12 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                                   <div className="flex-shrink-0">
                                     <span className="text-2xl">{getCategoryIcon(group.category)}</span>
                                   </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <h3 className="font-semibold text-base leading-tight text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-[120px]">
+                                  <div className="flex-1">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-1">
+                                      <h3 className="font-semibold text-base leading-tight text-foreground overflow-hidden text-ellipsis">
                                         {group.primary.diagnosis.replace(/\b(possible|potential|suspected|likely)\s+/gi, '').trim()}
                                       </h3>
-                                      <Badge className={`text-xs flex-shrink-0 ${getCategoryColor(group.category)}`}>
+                                      <Badge className={`text-xs self-start sm:self-center flex-shrink-0 ${getCategoryColor(group.category)}`}>
                                         {getConfidenceLevel(group.primary.confidence)}
                                       </Badge>
                                     </div>
