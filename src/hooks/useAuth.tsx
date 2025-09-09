@@ -358,6 +358,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Make sure useAuth is properly exported as a named export
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
