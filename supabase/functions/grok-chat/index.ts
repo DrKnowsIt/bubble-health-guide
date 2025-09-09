@@ -52,47 +52,47 @@ serve(async (req) => {
 
     const user_id = userData.user.id;
 
-      // Check for existing conversations without episodes and auto-assign them
-      if (conversation_id && patient_id) {
-        const { data: existingConversation } = await supabase
-          .from('conversations')
-          .select('health_episode_id')
-          .eq('id', conversation_id)
+    // Check for existing conversations without episodes and auto-assign them
+    if (conversation_id && patient_id) {
+      const { data: existingConversation } = await supabase
+        .from('conversations')
+        .select('health_episode_id')
+        .eq('id', conversation_id)
+        .single();
+      
+      // If conversation exists but has no episode, create a general episode for it
+      if (existingConversation && !existingConversation.health_episode_id) {
+        console.log('🔄 Auto-creating episode for existing conversation');
+        
+        // Create a general episode for this conversation
+        const { data: newEpisode } = await supabase
+          .from('health_episodes')
+          .insert({
+            user_id: user_id,
+            patient_id: patient_id,
+            episode_title: 'Previous Health Discussion',
+            episode_description: 'Auto-created episode for existing conversation',
+            episode_type: 'symptoms',
+            start_date: new Date().toISOString().split('T')[0],
+            status: 'active'
+          })
+          .select()
           .single();
         
-        // If conversation exists but has no episode, create a general episode for it
-        if (existingConversation && !existingConversation.health_episode_id) {
-          console.log('🔄 Auto-creating episode for existing conversation');
-          
-          // Create a general episode for this conversation
-          const { data: newEpisode } = await supabase
-            .from('health_episodes')
-            .insert({
-              user_id: user_id,
-              patient_id: patient_id,
-              episode_title: 'Previous Health Discussion',
-              episode_description: 'Auto-created episode for existing conversation',
-              episode_type: 'symptoms',
-              start_date: new Date().toISOString().split('T')[0],
-              status: 'active'
-            })
-            .select()
-            .single();
-          
-          if (newEpisode) {
-            // Link the conversation to the new episode
-            await supabase
-              .from('conversations')
-              .update({ health_episode_id: newEpisode.id })
-              .eq('id', conversation_id);
-              
-            console.log('✅ Linked conversation to new episode:', newEpisode.id);
-          }
+        if (newEpisode) {
+          // Link the conversation to the new episode
+          await supabase
+            .from('conversations')
+            .update({ health_episode_id: newEpisode.id })
+            .eq('id', conversation_id);
+            
+          console.log('✅ Linked conversation to new episode:', newEpisode.id);
         }
       }
-      
-      // If conversation_id is provided, verify it belongs to the current patient
-      if (conversation_id && patient_id) {
+    }
+    
+    // If conversation_id is provided, verify it belongs to the current patient
+    if (conversation_id && patient_id) {
         const { data: convData, error: convErr } = await supabase
           .from('conversations')
           .select('patient_id, user_id')
