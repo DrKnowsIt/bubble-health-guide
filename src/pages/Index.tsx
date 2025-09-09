@@ -53,7 +53,7 @@ const Index = () => {
                   <span className="text-primary font-semibold">DrKnowsIt</span> - for you and your pets
                 </p>
                 <p className="mobile-text-xs text-muted-foreground/70">
-                  Powered by Grok
+                  Powered by Grok • Medical images via ISIC Archive
                 </p>
                 
                 {/* Compact Disclaimer - Better mobile formatting */}
@@ -100,6 +100,9 @@ const Index = () => {
                   <div className="mb-6">
                     <p className="text-sm text-muted-foreground/80">
                       Powered by GPT-5, Grok & more • Available 24/7
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-2">
+                      Dermatological image examples powered by ISIC Archive
                     </p>
                   </div>
                 </div>
