@@ -176,7 +176,7 @@ PATIENT CONTEXT:
 ${patientContext}
 
 CONFIDENCE CALIBRATION GUIDELINES:
-Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH in the conversation:
+Calculate realistic confidence percentages (10-90%) based on EVIDENCE STRENGTH and MEDICAL RARITY:
 
 HIGH CONFIDENCE (70-90%):
 - Multiple specific symptoms clearly described
@@ -200,7 +200,14 @@ LOW CONFIDENCE (10-39%):
 - Highly speculative connections
 - Very brief mentions without context
 - General wellness discussions
+- RARE CONDITIONS (prevalence <1%): Maximum 35% confidence regardless of symptoms
 Example: "Should I be worried about my pet's health?" = 25% confidence for "General Health Concern"
+
+ENHANCED RARITY-BASED CONFIDENCE ADJUSTMENT:
+- Rare diseases/conditions (prevalence <1%): Cap confidence at 35% even with clear symptoms
+- Uncommon conditions (prevalence 1-5%): Cap confidence at 60%
+- Common conditions (prevalence >5%): Use standard evidence-based confidence ranges
+- Consider breed-specific predispositions for pets but still apply rarity adjustments
 
 CRITICAL DUPLICATE PREVENTION RULES:
 - BEFORE creating any diagnosis, check the existing diagnoses list above
@@ -266,7 +273,14 @@ LOW CONFIDENCE (10-39%):
 - Highly speculative connections
 - Very brief mentions without context
 - General wellness discussions
+- RARE CONDITIONS (prevalence <1%): Maximum 35% confidence regardless of symptoms
 Example: "I sometimes wonder about my heart health" = 25% confidence for "Cardiac Concern"
+
+ENHANCED RARITY-BASED CONFIDENCE ADJUSTMENT:
+- Rare diseases/conditions (prevalence <1%): Cap confidence at 35% even with clear symptoms
+- Uncommon conditions (prevalence 1-5%): Cap confidence at 60%  
+- Common conditions (prevalence >5%): Use standard evidence-based confidence ranges
+- Consider demographic factors but prioritize medical rarity in confidence scoring
 
 CRITICAL DUPLICATE PREVENTION RULES:
 - BEFORE creating any diagnosis, check the existing diagnoses list above

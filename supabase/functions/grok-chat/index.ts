@@ -407,6 +407,35 @@ PATIENT PROFILE:
       memoryContext = '\n\nCONVERSATION MEMORY: Disabled by user preference';
     }
 
+    // Enhanced Pain Assessment for Basic/Pro Users
+    let painAssessmentPrompt = '';
+    const lastMessage = message?.toLowerCase() || '';
+    
+    // Pain detection keywords
+    const painKeywords = ['pain', 'hurt', 'ache', 'sore', 'tender', 'throb', 'sharp', 'dull', 'burning', 'stab'];
+    const bodyParts = ['arm', 'leg', 'back', 'neck', 'head', 'chest', 'stomach', 'abdomen', 'shoulder', 'knee', 'ankle', 'wrist', 'elbow', 'hip'];
+    
+    const hasPainMention = painKeywords.some(keyword => lastMessage.includes(keyword));
+    const hasBodyPartMention = bodyParts.some(part => lastMessage.includes(part));
+    
+    // For Basic/Pro users, add enhanced pain localization prompts
+    if (isSubscribed && (subscriptionTier === 'basic' || subscriptionTier === 'pro') && hasPainMention && hasBodyPartMention) {
+      painAssessmentPrompt = `
+ENHANCED PAIN ASSESSMENT (Basic/Pro Feature):
+If the user mentions pain in a general area (like "arm pain"), guide them through specific localization:
+- Ask for EXACT location: "To help narrow down the cause, can you describe exactly where in your ${bodyParts.find(part => lastMessage.includes(part)) || 'affected area'} the pain is? (For arm: upper arm, elbow, forearm, wrist)"
+- Suggest diagnostic movements: "Does the pain change when you move in certain ways? Try gently [specific movement] - does that increase or decrease the pain?"
+- Ask about sensation type: "Is it a sharp, dull, throbbing, or burning sensation?"
+- Inquire about patterns: "When is it worst? (morning, evening, during activity, at rest)"
+
+HOLISTIC ANALYSIS INSTRUCTIONS:
+- Consider interconnected causes (neck issues causing arm pain, heart conditions causing left arm pain, etc.)
+- Reference health forms and conversation memory for broader context
+- Look for patterns across different body systems
+- Think beyond obvious symptoms to underlying causes
+`;
+    }
+
     // Build comprehensive system prompt with current date/time
     const currentDateTime = new Date().toLocaleString('en-US', {
       timeZone: 'UTC',
@@ -457,6 +486,8 @@ PATIENT PROFILE:
       systemPrompt = `You are DrKnowsIt, a conversational AI pet health assistant. Keep responses SHORT and natural - like a quick chat with a friend who happens to know about pet health.
 
 CURRENT DATE & TIME: ${currentDateTime} (UTC)
+
+${painAssessmentPrompt}
 
 ${comprehensiveHealthReport}
 ${patientContext}${healthFormsContext}

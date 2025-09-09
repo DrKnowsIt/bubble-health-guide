@@ -94,6 +94,41 @@ serve(async (req) => {
 
     console.log(`Analyzing ${conversation_type} conversation for ${user_tier} user`);
 
+    // Get user subscription tier for enhanced analysis
+    const { data: subscription } = await supabase
+      .from('subscribers')
+      .select('subscription_tier, subscribed')
+      .eq('user_id', userData.user.id)
+      .single();
+
+    const subscriptionTier = subscription?.subscription_tier || 'free';
+    const isSubscribed = subscription?.subscribed === true;
+    console.log('User subscription tier:', subscriptionTier, 'Subscribed:', isSubscribed);
+
+    // Enhanced analysis for basic and pro tier - get strategic context
+    let strategicContext = '';
+    let holisticAnalysisPrompt = '';
+    
+    if (isSubscribed && (subscriptionTier === 'basic' || subscriptionTier === 'enhanced' || subscriptionTier === 'pro')) {
+      // Enhanced holistic analysis for Basic/Pro users
+      holisticAnalysisPrompt = `
+HOLISTIC CROSS-SYSTEM ANALYSIS (Basic/Pro Feature):
+- Consider interconnected health issues beyond obvious symptoms
+- Look for referred pain patterns (neck → arm pain, heart → left arm pain, digestive → back pain)
+- Cross-reference health forms and memory for broader context patterns
+- Consider underlying conditions that could cause multiple symptoms
+- Think about lifestyle factors, medications, and environmental causes
+- For nutritional deficiencies (like iron), suggest specific discussions: "Consider discussing appropriate iron supplementation dosage with your doctor"
+- Always recommend consulting healthcare providers for specific dosages and treatments
+
+ENHANCED CONFIDENCE CALIBRATION:
+- Rare medical conditions should have appropriately low confidence (15-35%)
+- Common conditions with clear symptoms can have higher confidence (60-85%)  
+- Adjust confidence based on medical prevalence in the population
+- Factor in symptom specificity and patient demographics
+`;
+    }
+
     // Smart caching: Check if content has changed significantly
     const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(conversation_context));
     const contentHashString = Array.from(new Uint8Array(contentHash))
@@ -280,8 +315,10 @@ ${healthFormsContext}
 
 ${strategicContextText}
 
+${holisticAnalysisPrompt}
+
 ANALYSIS MODE: ${isEnhancedMode ? 'ENHANCED COMPREHENSIVE' : (isComprehensiveAnalysis ? 'COMPREHENSIVE FINAL ANALYSIS' : 'STANDARD ANALYSIS')}
-USER TIER: ${user_tier?.toUpperCase()}
+USER TIER: ${subscriptionTier?.toUpperCase() || user_tier?.toUpperCase()}
 
 ${isEnhancedMode ? `
 ENHANCED ANALYSIS REQUIREMENTS:
