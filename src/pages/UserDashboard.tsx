@@ -330,7 +330,7 @@ export default function UserDashboard() {
                    ) : (
                      <>
                        <FileText className="h-3 w-3 mr-2" />
-                       Report
+                        Compile Health Report for Doctor
                      </>
                    )}
                  </Button>
