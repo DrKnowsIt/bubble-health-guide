@@ -415,6 +415,123 @@
   }
 }
 
+/* Tablet-specific styles for enhanced chat interface */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet Header Layout */
+  .tablet-header {
+    @apply px-4 py-3 min-h-[80px];
+  }
+  
+  .tablet-header-container {
+    @apply flex items-center justify-between gap-4 max-w-full;
+  }
+  
+  .tablet-user-section {
+    @apply flex items-center gap-3 min-w-0 flex-1;
+  }
+  
+  .tablet-avatar {
+    @apply h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0;
+  }
+  
+  .tablet-user-info {
+    @apply min-w-0 flex-1;
+  }
+  
+  .tablet-user-name {
+    @apply font-semibold text-lg truncate text-foreground leading-tight;
+  }
+  
+  .tablet-user-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .tablet-dropdown-container {
+    @apply flex-shrink-0 ml-4 min-w-[200px];
+    z-index: 50;
+  }
+  
+  .tablet-action-section {
+    @apply flex items-center gap-2 flex-shrink-0 ml-4;
+  }
+  
+  .tablet-action-button {
+    @apply h-12 w-12 p-0 hover:bg-muted/80 transition-colors touch-manipulation;
+  }
+
+  /* Tablet Chat Messages */
+  .tablet-messages-container {
+    @apply flex-1 overflow-y-auto px-4 py-6 space-y-6 min-h-0;
+  }
+  
+  .tablet-message-row {
+    @apply flex max-w-[90%] gap-3;
+  }
+
+  /* Tablet Input Area */
+  .tablet-input-area {
+    @apply border-t bg-card/50 backdrop-blur-sm p-4 flex-shrink-0;
+  }
+  
+  .tablet-input-container {
+    @apply max-w-full mx-auto;
+  }
+
+  /* Tablet-specific touch targets */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Small tablet adjustments (768px - 900px) */
+@media screen and (min-width: 768px) and (max-width: 900px) {
+  .tablet-header {
+    @apply px-3 py-2 min-h-[72px];
+  }
+  
+  .tablet-user-name {
+    @apply text-base;
+  }
+  
+  .tablet-dropdown-container {
+    @apply min-w-[180px];
+  }
+  
+  .tablet-messages-container {
+    @apply px-3 py-4 space-y-4;
+  }
+  
+  .tablet-message-row {
+    @apply max-w-[95%] gap-2;
+  }
+}
+
+/* Large tablet adjustments (901px - 1023px) */
+@media screen and (min-width: 901px) and (max-width: 1023px) {
+  .tablet-header-container {
+    @apply gap-6;
+  }
+  
+  .tablet-dropdown-container {
+    @apply min-w-[220px];
+  }
+  
+  .tablet-messages-container {
+    @apply px-6 py-8 space-y-8;
+  }
+}
+
+/* Ensure dropdown has proper z-index and background */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+.tablet-dropdown-container [data-radix-popper-content-wrapper] > div {
+  @apply bg-popover border border-border shadow-lg backdrop-blur-sm;
+  min-width: 200px;
+}
+
 /* Custom scrollbar styling for dark mode */
 ::-webkit-scrollbar {
   width: 8px;

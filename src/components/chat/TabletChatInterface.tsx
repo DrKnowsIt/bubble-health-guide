@@ -286,38 +286,46 @@ export const TabletChatInterface = ({
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex flex-col bg-background relative">
-        {/* Clean Header */}
-        <div className="border-b bg-card/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between flex-shrink-0 shadow-sm">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-lg truncate text-foreground">
-                {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
+        {/* Responsive Tablet Header */}
+        <div className="tablet-header border-b bg-card/95 backdrop-blur-sm flex-shrink-0 shadow-sm">
+          <div className="tablet-header-container">
+            {/* User Info Section */}
+            <div className="tablet-user-section">
+              <div className="tablet-avatar">
+                <Users className="h-6 w-6 text-primary" />
               </div>
-              {selectedUser && (
-                <div className="text-sm text-muted-foreground">AI Health Assistant</div>
-              )}
+              <div className="tablet-user-info">
+                <div className="tablet-user-name">
+                  {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
+                </div>
+                {selectedUser && (
+                  <div className="tablet-user-subtitle">AI Health Assistant</div>
+                )}
+              </div>
             </div>
-            <UserDropdown
-              users={users}
-              selectedUser={selectedUser}
-              onUserSelect={handleUserSelect}
-              open={false}
-              onOpenChange={() => {}}
-            />
-          </div>
-          
-          <div className="flex items-center gap-3 flex-shrink-0 ml-6">
-            <Button 
-              variant="ghost" 
-              size="lg"
-              onClick={() => setShowHistory(true)}
-              className="h-12 w-12 p-0 hover:bg-muted/80 transition-colors touch-manipulation"
-            >
-              <History className="h-5 w-5" />
-            </Button>
+            
+            {/* Patient Selection */}
+            <div className="tablet-dropdown-container">
+              <UserDropdown
+                users={users}
+                selectedUser={selectedUser}
+                onUserSelect={handleUserSelect}
+                open={false}
+                onOpenChange={() => {}}
+              />
+            </div>
+            
+            {/* Action Button */}
+            <div className="tablet-action-section">
+              <Button 
+                variant="ghost" 
+                size="lg"
+                onClick={() => setShowHistory(true)}
+                className="tablet-action-button"
+              >
+                <History className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -335,14 +343,14 @@ export const TabletChatInterface = ({
           ) : (
             <>
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 min-h-0">
+              <div className="tablet-messages-container">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`flex max-w-[85%] gap-4 ${
+                      className={`tablet-message-row ${
                         message.type === 'user' ? "flex-row-reverse" : "flex-row"
                       }`}
                     >
@@ -393,9 +401,9 @@ export const TabletChatInterface = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Modern Input Area */}
-              <div className="border-t bg-card/50 backdrop-blur-sm p-6 flex-shrink-0">
-                <div className="max-w-4xl mx-auto">
+              {/* Tablet Input Area */}
+              <div className="tablet-input-area">
+                <div className="tablet-input-container">
                   <div className="relative bg-background rounded-2xl border shadow-lg overflow-hidden">
                     <Textarea
                       value={inputValue}
