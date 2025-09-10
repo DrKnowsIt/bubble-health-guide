@@ -463,7 +463,7 @@
   .tablet-messages-container {
     @apply overflow-y-auto px-4 py-6 space-y-6;
     flex: 1 1 auto;
-    max-height: calc(100vh - 240px);
+    min-height: 0;
   }
   
   .tablet-message-row {

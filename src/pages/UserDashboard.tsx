@@ -437,14 +437,14 @@ export default function UserDashboard() {
           )}
 
           {/* Tab Content */}
-          <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1 p-4" : "")}>
+          <div className={cn("flex-1 overflow-hidden min-h-0 flex flex-col", isMobile ? "order-1" : isTablet ? "order-1" : "")}>
             <TabsContent value="easy-chat" className="h-full mt-0 pt-4">
               <FreeUsersOnlyGate>
                 <AIFreeModeInterface patientId={selectedUser?.id} />
               </FreeUsersOnlyGate>
             </TabsContent>
 
-            <TabsContent value="chat" className="h-full mt-0 pt-4">
+            <TabsContent value="chat" className="h-full mt-0 pt-0">
               {isMobile ? (
                 <MobileEnhancedChatInterface 
                   selectedUser={selectedUser}

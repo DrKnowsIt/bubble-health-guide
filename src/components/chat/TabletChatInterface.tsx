@@ -329,8 +329,8 @@ export const TabletChatInterface = ({
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className={`flex flex-col ${messages.length > 0 ? 'flex-1 min-h-0' : 'flex-grow-0'}`}>
+        {/* Main Chat Area - Always fill available space */}
+        <div className="flex flex-col flex-1 min-h-0">
           {!selectedUser ? (
             <div className="flex-1 flex items-center justify-center p-8">
               <UserSelectionGuide
@@ -340,12 +340,23 @@ export const TabletChatInterface = ({
                 description="Select a patient to begin an intelligent health conversation with our AI assistant"
               />
             </div>
+          ) : messages.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Bot className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Ready to help with your health</h3>
+                  <p className="text-muted-foreground mt-2">Start a conversation by describing your symptoms or health concerns below.</p>
+                </div>
+              </div>
+            </div>
           ) : (
             <>
               {/* Messages Area */}
-              {messages.length > 0 && (
-                <div className="tablet-messages-container">
-                  {messages.map((message) => (
+              <div className="tablet-messages-container">
+                {messages.map((message) => (
                     <div
                       key={message.id}
                       className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
@@ -401,7 +412,6 @@ export const TabletChatInterface = ({
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-              )}
 
               {/* Tablet Input Area */}
               <div className="tablet-input-area">
