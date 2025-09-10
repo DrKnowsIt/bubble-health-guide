@@ -43,6 +43,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useToast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { ExportProgressModal } from '@/components/modals/ExportProgressModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function UserDashboard() {
   console.log('UserDashboard: Component rendering started');
@@ -55,6 +65,7 @@ export default function UserDashboard() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [showMobileReportConfirm, setShowMobileReportConfirm] = useState(false);
   
   console.log('UserDashboard: State initialized', {
     user: !!user,
@@ -214,6 +225,28 @@ export default function UserDashboard() {
       return;
     }
     setAddFamilyDialogOpen(true);
+  };
+
+  // Mobile report click handler - shows confirmation dialog
+  const handleMobileReportClick = () => {
+    if (!selectedUser) return;
+    
+    if (!hasHealthData) {
+      toast({
+        title: "Not enough data yet",
+        description: "DrKnowsIt doesn't know much about you yet to generate a comprehensive medical report. Try having some conversations or adding health records first.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    setShowMobileReportConfirm(true);
+  };
+
+  // Confirm report generation - proceeds with the actual export
+  const handleConfirmReportGeneration = () => {
+    setShowMobileReportConfirm(false);
+    exportToPDF();
   };
 
   // Tab configuration with subscription requirements
@@ -388,30 +421,30 @@ export default function UserDashboard() {
                    <Activity className="h-5 w-5" />
                    <span className="text-xs font-medium">Overview</span>
                  </TabsTrigger>
-                 {selectedUser && hasAccess('basic') && (
-                   <Button
-                     onClick={exportToPDF}
-                     variant="ghost"
-                     className={cn(
-                       "flex flex-col items-center justify-center gap-1 py-3 h-auto rounded-md transition-all duration-300",
-                       analysisLoading || !hasHealthData 
-                         ? "opacity-50 cursor-not-allowed" 
-                         : (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
-                            messages.length >= 10 && 
-                            !analysisLoading && hasHealthData)
-                           ? "bg-gradient-to-r from-green-500/20 to-green-400/20 border border-green-500/30 text-green-600 animate-pulse"
-                           : "hover:bg-muted/50"
-                     )}
-                     disabled={analysisLoading || !hasHealthData}
-                   >
-                     {analysisLoading ? (
-                       <Loader2 className="h-5 w-5 animate-spin" />
-                     ) : (
-                       <FileText className="h-5 w-5" />
-                     )}
-                     <span className="text-xs font-medium">Report</span>
-                   </Button>
-                 )}
+                  {selectedUser && hasAccess('basic') && (
+                    <Button
+                      onClick={handleMobileReportClick}
+                      variant="ghost"
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 py-3 h-auto rounded-md transition-all duration-300",
+                        analysisLoading || !hasHealthData 
+                          ? "opacity-50 cursor-not-allowed" 
+                          : (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                             messages.length >= 10 && 
+                             !analysisLoading && hasHealthData)
+                            ? "bg-gradient-to-r from-green-500/20 to-green-400/20 border border-green-500/30 text-green-600 animate-pulse"
+                            : "hover:bg-muted/50"
+                      )}
+                      disabled={analysisLoading || !hasHealthData}
+                    >
+                      {analysisLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <FileText className="h-5 w-5" />
+                      )}
+                      <span className="text-xs font-medium">Report</span>
+                    </Button>
+                  )}
               </TabsList>
             </div>
           ) : isTablet ? (
@@ -636,6 +669,25 @@ export default function UserDashboard() {
         open={exportModalOpen} 
         onOpenChange={setExportModalOpen} 
       />
+
+      {/* Mobile Report Confirmation Dialog */}
+      <AlertDialog open={showMobileReportConfirm} onOpenChange={setShowMobileReportConfirm}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Generate Medical Report?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will analyze all your health conversations and records to create a comprehensive medical report for your doctor. 
+              The process may take a moment to complete.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReportGeneration}>
+              Generate Report
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
