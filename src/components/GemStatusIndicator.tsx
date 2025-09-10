@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useGemStatus } from '@/hooks/useGemStatus';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { formatTimeUntilReset } from '@/utils/gemTracking';
 import { Clock, Gem } from 'lucide-react';
 
 export const GemStatusIndicator = () => {
+  const isMobile = useIsMobile();
   const { gemStatus, canChat, currentGems, maxGems, timeUntilReset } = useGemStatus();
   const [timeLeft, setTimeLeft] = useState(timeUntilReset);
 
@@ -23,6 +25,7 @@ export const GemStatusIndicator = () => {
   }, [timeUntilReset]);
 
   if (!gemStatus) return null;
+  if (isMobile) return null;
 
   const gemPercentage = maxGems > 0 ? (currentGems / maxGems) * 100 : 0;
   const isLow = currentGems <= 10;
