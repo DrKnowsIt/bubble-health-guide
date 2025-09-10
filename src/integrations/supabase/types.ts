@@ -1202,6 +1202,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_gems: {
+        Row: {
+          created_at: string
+          current_gems: number
+          id: string
+          last_reset_at: string
+          max_gems: number
+          next_reset_at: string
+          subscription_tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_gems?: number
+          id?: string
+          last_reset_at?: string
+          max_gems?: number
+          next_reset_at?: string
+          subscription_tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_gems?: number
+          id?: string
+          last_reset_at?: string
+          max_gems?: number
+          next_reset_at?: string
+          subscription_tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

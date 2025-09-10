@@ -7,96 +7,100 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Rate limits by subscription tier (messages per day)
-const RATE_LIMITS = {
-  free: 10,
-  basic: 100,
-  pro: 500,
-  enterprise: 1000
+// Gem limits by subscription tier (every 3 hours)
+const GEM_LIMITS = {
+  basic: 50,
+  pro: 200,
+  enterprise: 500
 } as const;
 
-// Token costs per 1K tokens (USD)
-const TOKEN_COSTS = {
-  'grok-beta': { input: 0.002, output: 0.010 },
-  'grok-2-1212': { input: 0.002, output: 0.010 }
-} as const;
+// Token to gem conversion (1000 tokens = 1 gem approximately)
+const TOKENS_PER_GEM = 1000;
 
-function calculateTokenCost(model: string, inputTokens: number, outputTokens: number): number {
-  const modelKey = model as keyof typeof TOKEN_COSTS;
-  const costs = TOKEN_COSTS[modelKey] || TOKEN_COSTS['grok-beta'];
-  
-  const inputCost = (inputTokens / 1000) * costs.input;
-  const outputCost = (outputTokens / 1000) * costs.output;
-  
-  return inputCost + outputCost;
+function calculateGemsFromTokens(inputTokens: number, outputTokens: number): number {
+  const totalTokens = inputTokens + outputTokens;
+  return Math.ceil(totalTokens / TOKENS_PER_GEM);
 }
 
-async function checkRateLimit(supabaseAdmin: any, userId: string, subscriptionTier: string): Promise<{ allowed: boolean; usage: any }> {
-  const today = new Date().toISOString().split('T')[0];
-  
+async function checkGemStatus(supabaseAdmin: any, userId: string): Promise<{ allowed: boolean; current_gems: number; time_until_reset?: number }> {
   try {
     const { data, error } = await supabaseAdmin
-      .from('daily_usage_limits')
+      .from('user_gems')
       .select('*')
       .eq('user_id', userId)
-      .eq('date', today)
       .maybeSingle();
     
     if (error) {
-      console.error('Error checking rate limit:', error);
-      return { allowed: true, usage: { messages_used: 0 } };
+      console.error('Error checking gem status:', error);
+      return { allowed: false, current_gems: 0 };
     }
     
-    const currentUsage = data?.messages_used || 0;
-    const tierKey = subscriptionTier.toLowerCase() as keyof typeof RATE_LIMITS;
-    const limit = RATE_LIMITS[tierKey] || RATE_LIMITS.basic;
+    if (!data) {
+      // Initialize gems for new user
+      const tierKey = 'basic' as keyof typeof GEM_LIMITS;
+      const maxGems = GEM_LIMITS[tierKey];
+      
+      await supabaseAdmin
+        .from('user_gems')
+        .insert({
+          user_id: userId,
+          current_gems: maxGems,
+          max_gems: maxGems,
+          subscription_tier: 'basic',
+          last_reset_at: new Date().toISOString(),
+          next_reset_at: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString()
+        });
+      
+      return { allowed: true, current_gems: maxGems };
+    }
     
-    const usage = {
-      messages_used: currentUsage,
-      tokens_used: data?.tokens_used || 0,
-      cost_incurred: data?.cost_incurred || 0,
-      limit_reached: currentUsage >= limit
-    };
+    const now = new Date();
+    const nextReset = new Date(data.next_reset_at);
+    const timeUntilReset = nextReset.getTime() - now.getTime();
+    
+    // Auto-reset if time has passed
+    if (timeUntilReset <= 0) {
+      await supabaseAdmin
+        .from('user_gems')
+        .update({
+          current_gems: data.max_gems,
+          last_reset_at: now.toISOString(),
+          next_reset_at: new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString()
+        })
+        .eq('user_id', userId);
+      
+      return { allowed: true, current_gems: data.max_gems };
+    }
     
     return {
-      allowed: currentUsage < limit,
-      usage
+      allowed: data.current_gems > 0,
+      current_gems: data.current_gems,
+      time_until_reset: Math.max(0, timeUntilReset)
     };
   } catch (error) {
-    console.error('Error in checkRateLimit:', error);
-    return { allowed: true, usage: { messages_used: 0 } };
+    console.error('Error in checkGemStatus:', error);
+    return { allowed: false, current_gems: 0 };
   }
 }
 
-async function trackUsage(supabaseAdmin: any, data: any): Promise<void> {
-  const totalTokens = data.input_tokens + data.output_tokens;
-  const estimatedCost = calculateTokenCost(data.model_used, data.input_tokens, data.output_tokens);
-  
+async function deductGems(supabaseAdmin: any, userId: string, gemsToDeduct: number): Promise<{ success: boolean; remaining_gems: number }> {
   try {
-    // Track individual usage
-    await supabaseAdmin
-      .from('ai_usage_tracking')
-      .insert({
-        ...data,
-        total_tokens: totalTokens,
-        estimated_cost: estimatedCost
-      });
-    
-    // Update daily usage limits
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Use the increment function for atomic operations
-    await supabaseAdmin.functions.invoke('increment-daily-usage', {
+    const { data, error } = await supabaseAdmin.functions.invoke('deduct-gems', {
       body: {
-        p_user_id: data.user_id,
-        p_date: today,
-        p_messages: 1,
-        p_tokens: totalTokens,
-        p_cost: estimatedCost
+        user_id: userId,
+        gems_to_deduct: gemsToDeduct
       }
     });
+    
+    if (error) {
+      console.error('Error deducting gems:', error);
+      return { success: false, remaining_gems: 0 };
+    }
+    
+    return data;
   } catch (error) {
-    console.error('Error in trackUsage:', error);
+    console.error('Error in deductGems:', error);
+    return { success: false, remaining_gems: 0 };
   }
 }
 
@@ -218,22 +222,26 @@ serve(async (req) => {
     const subscriptionTier = subscription?.subscription_tier || 'basic';
     const isSubscribed = subscription?.subscribed === true;
 
-    // Check rate limits first
+    // Check gem status first
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    const { allowed, usage } = await checkRateLimit(supabaseAdmin, user_id, subscriptionTier);
+    const { allowed, current_gems, time_until_reset } = await checkGemStatus(supabaseAdmin, user_id);
     
     if (!allowed) {
-      console.log(`Rate limit exceeded for user ${user_id}. Usage: ${usage.messages_used}`);
+      console.log(`No gems remaining for user ${user_id}. Current gems: ${current_gems}`);
+      const hours = time_until_reset ? Math.floor(time_until_reset / (1000 * 60 * 60)) : 0;
+      const minutes = time_until_reset ? Math.floor((time_until_reset % (1000 * 60 * 60)) / (1000 * 60)) : 0;
+      
       return new Response(
         JSON.stringify({ 
-          error: 'Daily message limit reached',
-          usage: usage,
+          error: 'No gems remaining',
+          current_gems,
+          time_until_reset,
           subscription_tier: subscriptionTier,
-          message: `You've reached your daily limit of ${usage.messages_used} messages. Please upgrade your plan to continue using AI features.`
+          message: `💎 You have no gems remaining. Your gems will refill in ${hours}h ${minutes}m.`
         }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -770,25 +778,44 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Grok response generated successfully');
     
-    // Track usage after successful response
+    // Deduct gems after successful response
     const inputTokens = data.usage?.prompt_tokens || message.length / 4; // Estimate if not provided
     const outputTokens = data.usage?.completion_tokens || cleanedResponse.length / 4; // Estimate if not provided
+    const gemsToDeduct = calculateGemsFromTokens(inputTokens, outputTokens);
     
-    await trackUsage(supabaseAdmin, {
-      user_id: user_id,
-      patient_id: patient_id || null,
-      function_name: 'grok-chat',
-      model_used: 'grok-beta',
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-      request_type: 'chat',
-      subscription_tier: subscriptionTier
-    });
+    console.log(`Deducting ${gemsToDeduct} gems for user ${user_id} (tokens: ${inputTokens + outputTokens})`);
+    
+    const { success, remaining_gems } = await deductGems(supabaseAdmin, user_id, gemsToDeduct);
+    
+    if (!success) {
+      console.warn(`Failed to deduct gems for user ${user_id}, but response was generated`);
+    }
+    
+    // Still track usage for analytics (but gems are the primary rate limiting mechanism)
+    try {
+      await supabaseAdmin
+        .from('ai_usage_tracking')
+        .insert({
+          user_id: user_id,
+          patient_id: patient_id || null,
+          function_name: 'grok-chat',
+          model_used: 'grok-beta',
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          total_tokens: inputTokens + outputTokens,
+          estimated_cost: 0, // Cost is now managed via gems
+          request_type: 'chat',
+          subscription_tier: subscriptionTier
+        });
+    } catch (error) {
+      console.error('Error tracking usage (non-critical):', error);
+    }
     
     return new Response(
       JSON.stringify({ 
         message: cleanedResponse,
-        usage: data.usage
+        usage: data.usage,
+        gems_remaining: remaining_gems
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

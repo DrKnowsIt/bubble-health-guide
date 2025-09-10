@@ -24,7 +24,9 @@ import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmatio
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
+import { useGemStatus } from '@/hooks/useGemStatus';
+import { GemStatusIndicator } from '../GemStatusIndicator';
+import { formatTimeUntilReset } from '@/utils/gemTracking';
 
 interface MobileEnhancedChatInterfaceProps {
   selectedUser?: User | null;
@@ -38,6 +40,7 @@ export const MobileEnhancedChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
+  const { canChat, currentGems, maxGems, refreshGemStatus, timeUntilReset } = useGemStatus();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -175,6 +178,18 @@ export const MobileEnhancedChatInterface = ({
   const handleSendMessage = async () => {
     if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
 
+    // Check gems before sending
+    if (!canChat) {
+      const hours = Math.floor(timeUntilReset / (1000 * 60 * 60));
+      const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+      toast({ 
+        title: '💎 No gems remaining', 
+        description: `Wait ${hours}h ${minutes}m for your gems to refill.`,
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
     const imageUrl = pendingImageUrl || undefined;
 
@@ -242,6 +257,11 @@ export const MobileEnhancedChatInterface = ({
 
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
+
+      // Refresh gem status after successful response
+      if (data.gems_remaining !== undefined) {
+        refreshGemStatus();
+      }
 
       // Background operations - run without affecting typing state
       setTimeout(async () => {
@@ -503,88 +523,103 @@ export const MobileEnhancedChatInterface = ({
 
               {/* Enhanced Input Area */}
               <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
-              {pendingImageUrl && (
-                <div className="mb-3 p-2 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ImagePlus className="h-4 w-4" />
-                    <span className="text-sm font-medium">Image attached</span>
+                {/* Gem Status */}
+                <GemStatusIndicator />
+                
+                {/* Chat disabled message when no gems */}
+                {!canChat && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                      <span>💎</span>
+                      <span>
+                        No gems remaining. Wait {formatTimeUntilReset(timeUntilReset)} for refill.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {pendingImageUrl && (
+                  <div className="mb-3 p-2 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ImagePlus className="h-4 w-4" />
+                      <span className="text-sm font-medium">Image attached</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingImageUrl(null)}
+                        className="h-6 w-6 p-0 ml-auto"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <img 
+                      src={pendingImageUrl} 
+                      alt="Pending upload" 
+                      className="max-w-full max-h-32 rounded object-cover"
+                    />
+                  </div>
+                )}
+                
+                <div className="relative">
+                  <Textarea
+                    placeholder={canChat ? "Describe your symptoms or ask a health question..." : "No gems remaining - wait for refill"}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
+                    disabled={!selectedUser || !canChat}
+                  />
+                  
+                  {/* Buttons positioned inside the textarea */}
+                  <div className="absolute right-2 bottom-2 flex gap-1">
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!selectedUser || isUploading || !canChat}
+                        className="h-8 w-8 p-0 hover:bg-muted"
+                        asChild
+                      >
+                        <span>
+                          {isUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-4 w-4" />
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
                     <Button
-                      variant="ghost"
+                      variant={isRecording ? "destructive" : "ghost"}
                       size="sm"
-                      onClick={() => setPendingImageUrl(null)}
-                      className="h-6 w-6 p-0 ml-auto"
+                      onClick={toggleRecording}
+                      disabled={!selectedUser || isProcessing || !canChat}
+                      className="h-8 w-8 p-0 hover:bg-muted"
                     >
-                      <X className="h-3 w-3" />
+                      {isRecording ? (
+                        <MicOff className="h-4 w-4" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button 
+                      onClick={handleSendMessage}
+                      disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !canChat}
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <Send className="h-4 w-4" />
                     </Button>
                   </div>
-                  <img 
-                    src={pendingImageUrl} 
-                    alt="Pending upload" 
-                    className="max-w-full max-h-32 rounded object-cover"
-                  />
                 </div>
-              )}
-              
-              <div className="relative">
-                <Textarea
-                  placeholder="Describe your symptoms or ask a health question..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
-                  disabled={!selectedUser}
-                />
-                
-                {/* Buttons positioned inside the textarea */}
-                <div className="absolute right-2 bottom-2 flex gap-1">
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!selectedUser || isUploading}
-                      className="h-8 w-8 p-0 hover:bg-muted"
-                      asChild
-                    >
-                      <span>
-                        {isUploading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <ImagePlus className="h-4 w-4" />
-                        )}
-                      </span>
-                    </Button>
-                  </label>
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    variant={isRecording ? "destructive" : "ghost"}
-                    size="sm"
-                    onClick={toggleRecording}
-                    disabled={!selectedUser || isProcessing}
-                    className="h-8 w-8 p-0 hover:bg-muted"
-                  >
-                    {isRecording ? (
-                      <MicOff className="h-4 w-4" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button 
-                    onClick={handleSendMessage}
-                    disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-                
+                  
                 {isProcessing && (
                   <div className="flex items-center justify-center text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
