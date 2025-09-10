@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, History, Users, Brain, ChevronDown, ImagePlus, X, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, History, Users, BarChart3, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
@@ -19,10 +16,8 @@ import { SubscriptionGate } from '../SubscriptionGate';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmationModal';
-import { ChatMessage } from './ChatMessage';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
 
 interface TabletChatInterfaceProps {
   selectedUser?: User | null;
@@ -56,16 +51,13 @@ export const TabletChatInterface = ({
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showAssessment, setShowAssessment] = useState(true);
-  const [isAssessmentCollapsed, setIsAssessmentCollapsed] = useState(false);
-  const [activeAssessmentTab, setActiveAssessmentTab] = useState('diagnoses');
+  const [showAssessment, setShowAssessment] = useState(false);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Stale reply guard
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
-
 
   const {
     isRecording,
@@ -170,7 +162,7 @@ export const TabletChatInterface = ({
       const cleanResponse = rawResponse
         .replace(/\{[\s\S]*?"diagnosis"[\s\S]*?\}/gi, '')
         .replace(/\{[\s\S]*?"suggested_forms"[\s\S]*?\}/gi, '')
-        .replace(/\[IMAGE_SUGGESTION:[\s\S]*?\]/gi, '') // Remove image suggestion from display
+        .replace(/\[IMAGE_SUGGESTION:[\s\S]*?\]/gi, '')
         .replace(/\s{2,}/g, ' ')
         .replace(/\s+,/g, ',')
         .replace(/,\s+\./g, '.')
@@ -207,7 +199,7 @@ export const TabletChatInterface = ({
 
       // Background analysis for diagnoses and solutions (fire-and-forget)
       if (user && conversationId && selectedUser?.id) {
-        const recentMessages = [...messages, userMessage, aiMessage]; // Use full conversation instead of slice(-6)
+        const recentMessages = [...messages, userMessage, aiMessage];
         
         // Background diagnosis analysis (fire-and-forget)
         supabase.functions.invoke('analyze-conversation-diagnosis', {
@@ -293,276 +285,284 @@ export const TabletChatInterface = ({
 
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
-      <div className="h-full flex bg-background overflow-hidden">
-        {/* Main Chat Area - Flexible Layout for Tablet */}
-        <div className={cn(
-          "flex-1 flex flex-col min-h-0 transition-smooth",
-          isAssessmentCollapsed ? "mr-0" : "lg:mr-80 xl:mr-96"
-        )}>
-          {/* Compact Header */}
-          <div className="border-b bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between flex-shrink-0 min-h-[60px]">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-sm truncate">
-                    {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
-                  </div>
-                </div>
-                <UserDropdown
-                  users={users}
-                  selectedUser={selectedUser}
-                  onUserSelect={handleUserSelect}
-                  open={false}
-                  onOpenChange={() => {}}
-                />
+      <div className="h-full flex flex-col bg-background relative">
+        {/* Clean Header */}
+        <div className="border-b bg-card/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between flex-shrink-0 shadow-sm">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-lg truncate text-foreground">
+                {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
               </div>
+              {selectedUser && (
+                <div className="text-sm text-muted-foreground">AI Health Assistant</div>
+              )}
             </div>
-            
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* History Sheet - Bottom drawer for tablet */}
-              <Sheet open={showHistory} onOpenChange={setShowHistory}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
-                    <History className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[70vh] rounded-t-xl">
-                  <SheetHeader className="pb-4">
-                    <SheetTitle>Conversation History</SheetTitle>
-                  </SheetHeader>
-                  <div className="h-full overflow-hidden">
-                    <ConversationHistory
-                      selectedPatientId={selectedUser?.id}
-                      onConversationSelect={handleConversationSelect}
-                      onNewConversation={handleNewConversation}
-                      activeConversationId={currentConversation}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-              
-              {/* Assessment Panel Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAssessmentCollapsed(!isAssessmentCollapsed)}
-                className="h-10 w-10 p-0"
-              >
-                {isAssessmentCollapsed ? (
-                  <ChevronLeft className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            <UserDropdown
+              users={users}
+              selectedUser={selectedUser}
+              onUserSelect={handleUserSelect}
+              open={false}
+              onOpenChange={() => {}}
+            />
           </div>
-
-          {/* Chat Messages - Main content area */}
-          <div className="flex-1 flex flex-col min-h-0">
-            {!selectedUser ? (
-              <div className="flex-1 flex items-center justify-center p-6">
-                <UserSelectionGuide
-                  hasUsers={users.length > 0}
-                  hasSelectedUser={!!selectedUser}
-                  title="Start Your AI Health Chat"
-                  description="Select a patient to begin an intelligent health conversation with our AI assistant"
-                />
-              </div>
-            ) : (
-              <>
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 min-h-0">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`flex max-w-[80%] sm:max-w-[75%] gap-3 ${
-                          message.type === 'user' ? "flex-row-reverse" : "flex-row"
-                        }`}
-                      >
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
-                            message.type === 'user' 
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {message.type === 'user' ? (
-                            <UserIcon className="h-5 w-5" />
-                          ) : (
-                            <Bot className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div
-                          className={`px-5 py-4 rounded-2xl max-w-full overflow-hidden shadow-sm transition-smooth ${
-                            message.type === 'user'
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-muted text-foreground"
-                          }`}
-                        >
-                          <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
-                            {message.content}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="flex gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                          <Bot className="h-5 w-5" />
-                        </div>
-                        <div className="bg-muted px-5 py-4 rounded-2xl shadow-sm">
-                          <div className="flex space-x-2">
-                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Enhanced Input Area */}
-                <div className="border-t bg-background/95 backdrop-blur p-6 flex-shrink-0">
-                  <div className="relative">
-                    <Textarea
-                      placeholder="Describe your symptoms or ask a health question..."
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="min-h-[4rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors text-base pr-44 rounded-xl"
-                      disabled={!selectedUser}
-                    />
-                    
-                    {/* Enhanced Touch-Friendly Buttons */}
-                    <div className="absolute right-4 bottom-4 flex gap-3">
-                      <label htmlFor="image-upload-tablet" className="cursor-pointer">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={!selectedUser || isUploading}
-                          className="h-10 w-10 p-0 hover:bg-muted rounded-full transition-smooth"
-                          asChild
-                        >
-                          <span>
-                            {isUploading ? (
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <ImagePlus className="h-5 w-5" />
-                            )}
-                          </span>
-                        </Button>
-                      </label>
-                      <input
-                        id="image-upload-tablet"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        variant={isRecording ? "destructive" : "ghost"}
-                        size="sm"
-                        onClick={toggleRecording}
-                        disabled={!selectedUser || isProcessing}
-                        className="h-10 w-10 p-0 rounded-full transition-smooth"
-                      >
-                        {isRecording ? (
-                          <MicOff className="h-5 w-5" />
-                        ) : (
-                          <Mic className="h-5 w-5" />
-                        )}
-                      </Button>
-                      <Button 
-                        onClick={handleSendMessage}
-                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
-                        size="sm"
-                        className="h-10 w-10 p-0 rounded-full transition-smooth"
-                      >
-                        <Send className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {isProcessing && (
-                    <div className="flex items-center justify-center text-sm text-muted-foreground mt-4">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Processing voice recording...
-                    </div>
-                  )}
-                  
-                  {pendingImageUrl && (
-                    <div className="flex items-center gap-2 mt-3 p-2 bg-muted rounded-lg">
-                      <ImagePlus className="h-4 w-4" />
-                      <span className="text-sm">Image ready to send</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setPendingImageUrl(null)}
-                        className="h-6 w-6 p-0 ml-auto"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+          
+          <div className="flex items-center gap-3 flex-shrink-0 ml-6">
+            <Button 
+              variant="ghost" 
+              size="lg"
+              onClick={() => setShowHistory(true)}
+              className="h-12 w-12 p-0 hover:bg-muted/80 transition-colors touch-manipulation"
+            >
+              <History className="h-5 w-5" />
+            </Button>
           </div>
         </div>
 
-        {/* Floating Assessment Panel - Tablet Optimized */}
-        {!isAssessmentCollapsed && (
-          <div className="fixed right-0 top-0 bottom-0 w-80 xl:w-96 bg-background border-l shadow-elevated z-40 flex flex-col">
-            <div className="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
-              <h3 className="font-medium flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
-                Health Assessment
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAssessmentCollapsed(true)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {!selectedUser ? (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <UserSelectionGuide
+                hasUsers={users.length > 0}
+                hasSelectedUser={!!selectedUser}
+                title="Start Your AI Health Chat"
+                description="Select a patient to begin an intelligent health conversation with our AI assistant"
+              />
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
+          ) : (
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 min-h-0">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`flex max-w-[85%] gap-4 ${
+                        message.type === 'user' ? "flex-row-reverse" : "flex-row"
+                      }`}
+                    >
+                      <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-full flex-shrink-0 shadow-sm ${
+                          message.type === 'user' 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-card border text-muted-foreground"
+                        }`}
+                      >
+                        {message.type === 'user' ? (
+                          <UserIcon className="h-5 w-5" />
+                        ) : (
+                          <Bot className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div
+                        className={`px-6 py-4 rounded-3xl max-w-full overflow-hidden shadow-sm border ${
+                          message.type === 'user'
+                            ? "bg-primary text-primary-foreground border-primary/20" 
+                            : "bg-card text-card-foreground border-border/50"
+                        }`}
+                      >
+                        <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
+                          {message.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex gap-4">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card border text-muted-foreground shadow-sm">
+                        <Bot className="h-5 w-5" />
+                      </div>
+                      <div className="bg-card border border-border/50 px-6 py-4 rounded-3xl shadow-sm">
+                        <div className="flex space-x-2">
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Modern Input Area */}
+              <div className="border-t bg-card/50 backdrop-blur-sm p-6 flex-shrink-0">
+                <div className="max-w-4xl mx-auto">
+                  <div className="relative bg-background rounded-2xl border shadow-lg overflow-hidden">
+                    <Textarea
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Describe your symptoms or ask health questions..."
+                      className="min-h-[64px] max-h-32 resize-none border-0 bg-transparent pr-20 text-base placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
+                      disabled={isTyping || !selectedUser}
+                    />
+                    
+                    {pendingImageUrl && (
+                      <div className="m-4 mb-2 relative inline-block">
+                        <img 
+                          src={pendingImageUrl} 
+                          alt="Uploaded" 
+                          className="h-24 w-24 object-cover rounded-xl border shadow-sm"
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-lg"
+                          onClick={() => setPendingImageUrl(null)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Action Bar */}
+                    <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        {/* Voice Recording */}
+                        <Button
+                          type="button"
+                          variant={isRecording ? "destructive" : "ghost"}
+                          size="lg"
+                          onClick={toggleRecording}
+                          disabled={isTyping || !selectedUser}
+                          className="h-12 w-12 p-0 rounded-full transition-all duration-200 touch-manipulation"
+                        >
+                          {isProcessing ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : isRecording ? (
+                            <MicOff className="h-5 w-5" />
+                          ) : (
+                            <Mic className="h-5 w-5" />
+                          )}
+                        </Button>
+
+                        {/* Image Upload */}
+                        <div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="image-upload-tablet"
+                            disabled={isTyping || isUploading || !selectedUser}
+                          />
+                          <Button
+                            asChild
+                            type="button"
+                            variant="ghost"
+                            size="lg"
+                            className="h-12 w-12 p-0 rounded-full hover:bg-accent touch-manipulation"
+                            disabled={isTyping || isUploading || !selectedUser}
+                          >
+                            <label htmlFor="image-upload-tablet" className="cursor-pointer">
+                              {isUploading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5" />
+                              )}
+                            </label>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Send Button */}
+                      <Button
+                        type="button"
+                        onClick={handleSendMessage}
+                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
+                        size="lg"
+                        className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 disabled:opacity-50 shadow-lg touch-manipulation"
+                      >
+                        {isTyping ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Floating Health Assessment Button */}
+        {selectedUser && (
+          <div className="fixed bottom-6 right-6 z-20">
+            <Button
+              onClick={() => setShowAssessment(true)}
+              size="lg"
+              className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-xl border-4 border-background/80 backdrop-blur-sm transition-all duration-200 touch-manipulation"
+            >
+              <BarChart3 className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
+
+        {/* History Bottom Sheet */}
+        <Sheet open={showHistory} onOpenChange={setShowHistory}>
+          <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl border-t shadow-2xl">
+            <SheetHeader className="pb-6 border-b">
+              <SheetTitle className="text-xl font-semibold">Conversation History</SheetTitle>
+            </SheetHeader>
+            <div className="h-full overflow-hidden pt-6">
+              <ConversationHistory
+                selectedPatientId={selectedUser?.id}
+                onConversationSelect={handleConversationSelect}
+                onNewConversation={handleNewConversation}
+                activeConversationId={currentConversation}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Health Assessment Bottom Sheet */}
+        <Sheet open={showAssessment} onOpenChange={setShowAssessment}>
+          <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl border-t shadow-2xl">
+            <SheetHeader className="pb-6 border-b">
+              <SheetTitle className="text-xl font-semibold flex items-center gap-3">
+                <BarChart3 className="h-6 w-6 text-primary" />
+                Health Assessment
+              </SheetTitle>
+            </SheetHeader>
+            <div className="h-full overflow-hidden pt-6">
               <EnhancedHealthInsightsPanel 
-                diagnoses={selectedUser && selectedUser.probable_diagnoses ? selectedUser.probable_diagnoses : []}
-                patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'No Patient Selected'}
+                diagnoses={[]}
+                patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
                 patientId={selectedUser?.id || ''}
                 conversationId={currentConversation}
               />
             </div>
-          </div>
-        )}
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Medical Image Confirmation Modal */}
-        <MedicalImageConfirmationModal
-          isOpen={currentPrompt?.isVisible || false}
-          onClose={closeImagePrompt}
-          searchTerm={currentPrompt?.searchTerm || ''}
-          images={currentPrompt?.images || []}
-          onFeedback={(imageId, matches, searchTerm) => 
-            handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
-          }
-          loading={imagePromptLoading}
-          intent={currentPrompt?.intent}
-          aiSuggestion={currentPrompt?.aiSuggestion}
-        />
+      <MedicalImageConfirmationModal
+        isOpen={currentPrompt?.isVisible || false}
+        onClose={closeImagePrompt}
+        searchTerm={currentPrompt?.searchTerm || ''}
+        images={currentPrompt?.images || []}
+        onFeedback={(imageId, matches, searchTerm) => 
+          handleImageFeedback(imageId, matches, searchTerm, currentConversation, selectedUser?.id)
+        }
+        loading={imagePromptLoading}
+        intent={currentPrompt?.intent}
+        aiSuggestion={currentPrompt?.aiSuggestion}
+      />
     </SubscriptionGate>
   );
 };

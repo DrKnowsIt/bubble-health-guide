@@ -218,15 +218,60 @@
     }
   }
 
-  @media (min-width: 901px) and (max-width: 1023px) {
-    /* Large tablets - comfortable layout */
-    .tablet-assessment-panel {
-      width: 320px;
-    }
-    
-    .tablet-header {
-      padding: 1rem 1.5rem;
-    }
+/* Tablet optimizations - Modern clean design */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Touch-friendly interactions */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Ensure proper spacing for tablet interfaces */
+  .tablet-spacing {
+    padding: 1.5rem;
+  }
+  
+  /* Optimize button sizing for tablets */
+  .tablet-button {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Better message spacing on tablets */
+  .tablet-messages {
+    gap: 2rem;
+  }
+  
+  /* Enhanced input area for tablets */
+  .tablet-input-enhanced {
+    padding: 1.5rem;
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Touch-specific hover states */
+@media (hover: none) {
+  .hover\:bg-accent:hover {
+    background-color: initial;
+  }
+  
+  .hover\:bg-accent:active {
+    background-color: hsl(var(--accent));
+  }
+  
+  .hover\:bg-muted\/80:hover {
+    background-color: initial;
+  }
+  
+  .hover\:bg-muted\/80:active {
+    background-color: hsl(var(--muted) / 0.8);
+  }
+}
+
+/* Smooth transitions for tablet interactions */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
     
     .tablet-message-spacing {
       padding: 1.5rem;
