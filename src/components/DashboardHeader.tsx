@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle } from "lucide-react";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { TierStatus } from "@/components/TierStatus";
+import { useGemStatus } from "@/hooks/useGemStatus";
+import { formatTimeUntilReset } from "@/utils/gemTracking";
 interface DashboardHeaderProps {
   className?: string;
 }
@@ -22,6 +24,7 @@ export const DashboardHeader = ({
     subscription_tier,
     subscribed
   } = useSubscription();
+  const { currentGems, maxGems, canChat, timeUntilReset } = useGemStatus();
   const location = useLocation();
   const onDashboard = location.pathname.startsWith('/dashboard');
 
@@ -76,6 +79,21 @@ export const DashboardHeader = ({
 
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
+          {/* Gem Status Indicator */}
+          {subscribed && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full">
+              <Gem className={`h-4 w-4 ${canChat ? 'text-primary' : 'text-destructive'}`} />
+              <span className="text-sm font-medium">
+                {currentGems}/{maxGems}
+              </span>
+              {!canChat && timeUntilReset > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  ({formatTimeUntilReset(timeUntilReset)})
+                </span>
+              )}
+            </div>
+          )}
+          
           {/* Enhanced Tier Status */}
           <TierStatus showUpgradeButton={true} className="hidden md:flex" />
 
@@ -120,6 +138,23 @@ export const DashboardHeader = ({
               <div className="p-2 md:hidden">
                 <TierStatus showUpgradeButton={true} className="text-xs" />
               </div>
+              
+              {/* Mobile Gem Status */}
+              {subscribed && (
+                <div className="p-2 md:hidden">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Gem className={`h-4 w-4 ${canChat ? 'text-primary' : 'text-destructive'}`} />
+                    <span className="font-medium">
+                      {currentGems}/{maxGems} gems
+                    </span>
+                    {!canChat && timeUntilReset > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        (refill in {formatTimeUntilReset(timeUntilReset)})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <DropdownMenuSeparator className="md:hidden" />
               {!onDashboard && (
                 <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
