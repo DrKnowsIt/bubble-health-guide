@@ -318,15 +318,15 @@ export default function UserDashboard() {
                    onClick={exportToPDF}
                    size="sm"
                    variant="outline"
-                   className={cn(
-                     "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full",
-                     // Flash green when there's at least 1 high confidence topic (>=70%) and 10+ back-and-forth messages in current chat
-                     (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
-                      messages.length >= 10 && 
-                      !analysisLoading && hasHealthData)
-                       ? "animate-pulse border-green-500 bg-green-50 hover:bg-green-100 text-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                       : ""
-                   )}
+                    className={cn(
+                      "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full transition-all duration-300",
+                      // Shimmer when there's enough data from active unresolved session (high confidence diagnoses + substantial conversation)
+                      (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                       messages.length >= 10 && 
+                       !analysisLoading && hasHealthData)
+                        ? "animate-shimmer border-green-500 bg-gradient-to-r from-green-500 via-green-400 to-green-500 bg-[length:200%_100%] hover:from-green-600 hover:via-green-500 hover:to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)] ring-2 ring-green-400/30"
+                        : ""
+                    )}
                    aria-label="Export medical report"
                    disabled={analysisLoading || !hasHealthData}
                  >
