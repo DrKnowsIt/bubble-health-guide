@@ -1136,6 +1136,42 @@ export type Database = {
         }
         Relationships: []
       }
+      request_tracking: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          patient_id: string | null
+          request_type: string
+          success: boolean | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          request_type: string
+          success?: boolean | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          request_type?: string
+          success?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       solution_feedback: {
         Row: {
           created_at: string
