@@ -532,30 +532,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                   />
                   {/* Buttons positioned inside the textarea */}
                   <div className="absolute bottom-2 right-2 flex gap-1">
-                    <label htmlFor="image-upload-patients" className="cursor-pointer">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={!selectedUser || isUploading}
-                        className="h-7 w-7 p-0 hover:bg-muted"
-                        asChild
-                      >
-                        <span>
-                          {isUploading ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <ImagePlus className="h-3 w-3" />
-                          )}
-                        </span>
-                      </Button>
-                    </label>
-                    <input
-                      id="image-upload-patients"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+{/* Image upload temporarily disabled */}
                     <Button
                       variant="ghost"
                       size="sm"

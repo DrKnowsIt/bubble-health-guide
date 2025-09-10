@@ -465,33 +465,7 @@ export const TabletChatInterface = ({
                           )}
                         </Button>
 
-                        {/* Image Upload */}
-                        <div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            id="image-upload-tablet"
-                            disabled={isTyping || isUploading || !selectedUser}
-                          />
-                          <Button
-                            asChild
-                            type="button"
-                            variant="ghost"
-                            size="lg"
-                            className="h-12 w-12 p-0 rounded-full hover:bg-accent touch-manipulation"
-                            disabled={isTyping || isUploading || !selectedUser}
-                          >
-                            <label htmlFor="image-upload-tablet" className="cursor-pointer">
-                              {isUploading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                              ) : (
-                                <ImagePlus className="h-5 w-5" />
-                              )}
-                            </label>
-                          </Button>
-                        </div>
+{/* Image upload temporarily disabled */}
                       </div>
 
                       {/* Send Button */}

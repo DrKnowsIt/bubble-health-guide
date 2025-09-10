@@ -888,24 +888,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 />
               </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-
-              <Button
-                onClick={handleImageButtonClick}
-                disabled={!subscribed || isUploading}
-                size="lg"
-                variant="outline"
-                className="rounded-xl px-3 hidden"
-                aria-label="Upload image for analysis"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
+{/* Image upload temporarily disabled */}
 
               <Button 
                 onClick={() => handleSendMessage()}

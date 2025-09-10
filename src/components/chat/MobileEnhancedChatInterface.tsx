@@ -594,30 +594,7 @@ export const MobileEnhancedChatInterface = ({
                   
                   {/* Buttons positioned inside the textarea */}
                   <div className="absolute right-2 bottom-2 flex gap-1">
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={!selectedUser || isUploading || !canChat}
-                        className="h-8 w-8 p-0 hover:bg-muted"
-                        asChild
-                      >
-                        <span>
-                          {isUploading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ImagePlus className="h-4 w-4" />
-                          )}
-                        </span>
-                      </Button>
-                    </label>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+                    {/* Image upload temporarily disabled */}
                     <Button
                       variant={isRecording ? "destructive" : "ghost"}
                       size="sm"
