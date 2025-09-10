@@ -310,10 +310,45 @@ export default function UserDashboard() {
             </TooltipContent>
           </Tooltip>
 
-           {/* Export Medical Report Button - Only for subscribed users */}
-           {selectedUser && hasAccess('basic') && (
-             <Tooltip>
-               <TooltipTrigger asChild>
+           {/* Export Medical Report Button - Only for subscribed users - Mobile: Floating position */}
+           {selectedUser && hasAccess('basic') && isMobile && (
+             <div className="fixed bottom-20 right-4 z-50">
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <Button
+                     onClick={exportToPDF}
+                     size="lg"
+                     variant="outline"
+                      className={cn(
+                        "h-14 w-14 rounded-full bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 shadow-lg transition-all duration-300",
+                        // Shimmer when there's enough data from active unresolved session (high confidence diagnoses + substantial conversation)
+                        (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
+                         messages.length >= 10 && 
+                         !analysisLoading && hasHealthData)
+                          ? "animate-shimmer border-green-500 bg-gradient-to-r from-green-500 via-green-400 to-green-500 bg-[length:200%_100%] hover:from-green-600 hover:via-green-500 hover:to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)] ring-2 ring-green-400/30"
+                          : ""
+                      )}
+                     aria-label="Export medical report"
+                     disabled={analysisLoading || !hasHealthData}
+                   >
+                     {analysisLoading ? (
+                       <Loader2 className="h-5 w-5 animate-spin" />
+                     ) : (
+                       <FileText className="h-5 w-5" />
+                     )}
+                   </Button>
+                 </TooltipTrigger>
+                 <TooltipContent side="left">
+                   <p>Export Medical Report</p>
+                 </TooltipContent>
+               </Tooltip>
+             </div>
+           )}
+
+            {/* Export Medical Report Button - Desktop/Tablet: Header position */}
+            {selectedUser && hasAccess('basic') && !isMobile && (
+              <Tooltip>
+                <TooltipTrigger asChild>
                  <Button
                    onClick={exportToPDF}
                    size="sm"
