@@ -344,61 +344,65 @@ export const TabletChatInterface = ({
             <>
               {/* Messages Area */}
               <div className="tablet-messages-container">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`tablet-message-row ${
-                        message.type === 'user' ? "flex-row-reverse" : "flex-row"
-                      }`}
-                    >
+                {messages.length > 0 && (
+                  <>
+                    {messages.map((message) => (
                       <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-full flex-shrink-0 shadow-sm ${
-                          message.type === 'user' 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-card border text-muted-foreground"
-                        }`}
+                        key={message.id}
+                        className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"}`}
                       >
-                        {message.type === 'user' ? (
-                          <UserIcon className="h-5 w-5" />
-                        ) : (
-                          <Bot className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div
-                        className={`px-6 py-4 rounded-3xl max-w-full overflow-hidden shadow-sm border ${
-                          message.type === 'user'
-                            ? "bg-primary text-primary-foreground border-primary/20" 
-                            : "bg-card text-card-foreground border-border/50"
-                        }`}
-                      >
-                        <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
-                          {message.content}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex gap-4">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card border text-muted-foreground shadow-sm">
-                        <Bot className="h-5 w-5" />
-                      </div>
-                      <div className="bg-card border border-border/50 px-6 py-4 rounded-3xl shadow-sm">
-                        <div className="flex space-x-2">
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div
+                          className={`tablet-message-row ${
+                            message.type === 'user' ? "flex-row-reverse" : "flex-row"
+                          }`}
+                        >
+                          <div
+                            className={`flex h-11 w-11 items-center justify-center rounded-full flex-shrink-0 shadow-sm ${
+                              message.type === 'user' 
+                                ? "bg-primary text-primary-foreground" 
+                                : "bg-card border text-muted-foreground"
+                            }`}
+                          >
+                            {message.type === 'user' ? (
+                              <UserIcon className="h-5 w-5" />
+                            ) : (
+                              <Bot className="h-5 w-5" />
+                            )}
+                          </div>
+                          <div
+                            className={`px-6 py-4 rounded-3xl max-w-full overflow-hidden shadow-sm border ${
+                              message.type === 'user'
+                                ? "bg-primary text-primary-foreground border-primary/20" 
+                                : "bg-card text-card-foreground border-border/50"
+                            }`}
+                          >
+                            <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
+                              {message.content}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    ))}
+
+                    {isTyping && (
+                      <div className="flex justify-start">
+                        <div className="flex gap-4">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card border text-muted-foreground shadow-sm">
+                            <Bot className="h-5 w-5" />
+                          </div>
+                          <div className="bg-card border border-border/50 px-6 py-4 rounded-3xl shadow-sm">
+                            <div className="flex space-x-2">
+                              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Tablet Input Area */}
