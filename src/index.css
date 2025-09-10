@@ -461,7 +461,9 @@
 
   /* Tablet Chat Messages */
   .tablet-messages-container {
-    @apply flex-1 overflow-y-auto px-4 py-6 space-y-6 min-h-0;
+    @apply overflow-y-auto px-4 py-6 space-y-6 min-h-0;
+    flex: 1 1 auto;
+    min-height: 200px;
   }
   
   .tablet-message-row {
