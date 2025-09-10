@@ -5,6 +5,7 @@ import { useSubscription } from './useSubscription';
 import { useAnalysisNotifications } from './useAnalysisNotifications';
 import { useConversationMemory } from './useConversationMemory';
 import { useStrategicReferencing } from './useStrategicReferencing';
+import { useAnalysisThrottling } from './useAnalysisThrottling';
 
 export interface UnifiedAnalysisOptions {
   conversationId: string | null;
@@ -19,6 +20,11 @@ export interface AnalysisState {
   messageCount: number;
   messagesUntilAnalysis: number;
   messagesUntilDeepAnalysis: number;
+  queueStatus?: {
+    activeCount: number;
+    queuedCount: number;
+    maxConcurrent: number;
+  };
 }
 
 // Deep analysis rotating stages
@@ -35,6 +41,13 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   const { subscription_tier } = useSubscription();
   const { memories, insights } = useConversationMemory(patientId || undefined);
   const { getStrategicContext } = useStrategicReferencing(patientId);
+  const { 
+    canRunAnalysis, 
+    queueAnalysis, 
+    completeAnalysis, 
+    cancelAnalysesForConversation,
+    getQueueStatus 
+  } = useAnalysisThrottling();
 
   // Analysis configuration
   const REGULAR_INTERVAL = 4; // Regular analysis every 4 messages
@@ -50,15 +63,8 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   });
 
   const stageTimeoutRef = useRef<NodeJS.Timeout>();
-  const analysisTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const {
-    performDiagnosisAnalysis,
-    performSolutionAnalysis,  
-    performMemoryAnalysis
-  } = useAnalysisNotifications(conversationId, patientId);
-
-  // Update message count and calculate next analysis
+  // Update message count and calculate remaining messages
   const updateMessageCount = useCallback((newCount: number) => {
     setAnalysisState(prev => ({
       ...prev,
@@ -67,6 +73,14 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       messagesUntilDeepAnalysis: DEEP_INTERVAL - (newCount % DEEP_INTERVAL)
     }));
   }, []);
+
+  // Analysis notifications
+  const {
+    startAnalysis,
+    performDiagnosisAnalysis,
+    performSolutionAnalysis,
+    performMemoryAnalysis
+  } = useAnalysisNotifications(conversationId, patientId);
 
   // Animate through deep analysis stages
   const animateDeepAnalysisStages = useCallback(() => {
@@ -86,13 +100,24 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     updateStage();
   }, []);
 
-  // Perform unified analysis
+  // Perform unified analysis with throttling
   const performAnalysis = useCallback(async (
     messages: any[], 
     analysisType: 'regular' | 'deep',
     isManual: boolean = false
   ): Promise<void> => {
     if (!conversationId || !patientId || !user) return;
+
+    // Check if analysis can run
+    const { allowed, reason, waitTime } = canRunAnalysis(conversationId, analysisType);
+    if (!allowed) {
+      console.log(`[UnifiedAnalysis] Analysis throttled: ${reason} (wait: ${waitTime}ms)`);
+      if (isManual) {
+        // For manual analysis, queue it
+        queueAnalysis(conversationId, analysisType);
+      }
+      return;
+    }
 
     console.log(`[UnifiedAnalysis] Starting ${analysisType} analysis (${isManual ? 'manual' : 'automatic'})`);
     
@@ -157,10 +182,12 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       };
 
       console.log(`[UnifiedAnalysis] ${analysisType} analysis completed:`, analysisResults);
+      completeAnalysis(`${conversationId}-${analysisType}`, true);
       onAnalysisComplete?.(analysisResults);
 
     } catch (error) {
       console.error(`[UnifiedAnalysis] Error in ${analysisType} analysis:`, error);
+      completeAnalysis(`${conversationId}-${analysisType}`, false);
     } finally {
       // Clear stage timeout
       if (stageTimeoutRef.current) {
@@ -174,59 +201,57 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
         currentStage: ""
       }));
     }
-  }, [
-    conversationId,
-    patientId, 
-    user,
-    animateDeepAnalysisStages,
-    performDiagnosisAnalysis,
-    performSolutionAnalysis,
-    performMemoryAnalysis,
-    getStrategicContext,
-    memories,
-    insights,
-    subscription_tier,
-    onAnalysisComplete
-  ]);
+  }, [conversationId, patientId, user, subscription_tier, memories, insights, getStrategicContext, performDiagnosisAnalysis, performSolutionAnalysis, performMemoryAnalysis, onAnalysisComplete, canRunAnalysis, queueAnalysis, completeAnalysis, animateDeepAnalysisStages]);
 
-  // Check and trigger scheduled analysis
+  // Check for scheduled analysis with throttling
   const checkScheduledAnalysis = useCallback(async (messages: any[]) => {
-    if (analysisState.isAnalyzing || !conversationId || !patientId) return;
-
-    const { messageCount } = analysisState;
-    const shouldAnalyzeRegular = messageCount % REGULAR_INTERVAL === 0;
-    const shouldAnalyzeDeep = messageCount % DEEP_INTERVAL === 0;
-
-    if (shouldAnalyzeDeep) {
-      await performAnalysis(messages, 'deep', false);
-    } else if (shouldAnalyzeRegular) {
-      await performAnalysis(messages, 'regular', false);
-    }
-  }, [analysisState, conversationId, patientId, performAnalysis]);
-
-  // Manual analysis - intelligently choose type
-  const triggerManualAnalysis = useCallback(async (messages: any[]) => {
-    if (analysisState.isAnalyzing) return;
-
-    // Determine analysis type based on when last deep analysis occurred
-    const messagesSinceLastDeep = analysisState.messageCount % DEEP_INTERVAL;
-    const analysisType = messagesSinceLastDeep < 8 ? 'regular' : 'deep';
+    if (!conversationId || !patientId) return;
     
-    await performAnalysis(messages, analysisType, true);
-  }, [analysisState, performAnalysis]);
+    const messageCount = messages.length;
+    
+    // Cancel any pending analyses for conversation when new messages come in
+    cancelAnalysesForConversation(conversationId);
+    
+    // Check if analysis is due
+    const shouldRunRegularAnalysis = messageCount > 0 && messageCount % REGULAR_INTERVAL === 0;
+    const shouldRunDeepAnalysis = messageCount > 0 && messageCount % DEEP_INTERVAL === 0;
+    
+    if (shouldRunDeepAnalysis) {
+      // Queue deep analysis (higher priority)
+      queueAnalysis(conversationId, 'deep');
+    } else if (shouldRunRegularAnalysis) {
+      // Queue regular analysis
+      queueAnalysis(conversationId, 'regular');
+    }
+  }, [conversationId, patientId, cancelAnalysesForConversation, queueAnalysis]);
 
-  // Cleanup timeouts
+  // Trigger manual analysis with throttling
+  const triggerManualAnalysis = useCallback(async (messages: any[]) => {
+    if (!conversationId || !patientId) return;
+    
+    // Determine analysis type based on message count
+    const messageCount = messages.length;
+    const analysisType = messageCount >= DEEP_INTERVAL ? 'deep' : 'regular';
+    
+    // Queue manual analysis (with higher priority)
+    queueAnalysis(conversationId, analysisType);
+  }, [conversationId, patientId, queueAnalysis]);
+
+  // Cleanup function
   const cleanup = useCallback(() => {
     if (stageTimeoutRef.current) {
       clearTimeout(stageTimeoutRef.current);
     }
-    if (analysisTimeoutRef.current) {
-      clearTimeout(analysisTimeoutRef.current);
+    if (conversationId) {
+      cancelAnalysesForConversation(conversationId);
     }
-  }, []);
+  }, [conversationId, cancelAnalysesForConversation]);
 
   return {
-    analysisState,
+    analysisState: {
+      ...analysisState,
+      queueStatus: getQueueStatus()
+    },
     updateMessageCount,
     checkScheduledAnalysis,
     triggerManualAnalysis,

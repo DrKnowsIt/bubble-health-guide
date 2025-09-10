@@ -13,6 +13,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalysisNotifications } from '@/hooks/useAnalysisNotifications';
 import { useUnifiedAnalysis } from '@/hooks/useUnifiedAnalysis';
 import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
+import { useRequestDebounce } from '@/hooks/useRequestDebounce';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from '../UserDropdown';
@@ -21,6 +22,7 @@ import { SubscriptionGate } from '../SubscriptionGate';
 import { ChatMessage } from './ChatMessage';
 import { ChatAnalysisNotification } from '../ChatAnalysisNotification';
 import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmationModal';
+import { RequestCooldownIndicator } from '../ui/request-cooldown-indicator';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,6 +43,17 @@ export const MobileEnhancedChatInterface = ({
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
   const { canChat, currentGems, maxGems, refreshGemStatus, timeUntilReset } = useGemStatus();
+  
+  // Request debouncing and loop prevention
+  const {
+    canMakeRequest,
+    startRequest,
+    completeRequest,
+    getRemainingCooldown,
+    getBlockTimeRemaining,
+    isInCooldown,
+    isBlocked
+  } = useRequestDebounce();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -176,25 +189,33 @@ export const MobileEnhancedChatInterface = ({
 
 
   const handleSendMessage = async () => {
-    if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
-
-    // Check gems before sending
+    const messageContent = inputValue.trim() || pendingImageUrl;
+    if (!messageContent) return;
+    if (!selectedUser) {
+      toast({ title: 'No patient selected', description: 'Please select a patient first.', variant: 'destructive' });
+      return;
+    }
     if (!canChat) {
-      const hours = Math.floor(timeUntilReset / (1000 * 60 * 60));
-      const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+      const hours = Math.floor((timeUntilReset || 0) / (1000 * 60 * 60));
+      const minutes = Math.floor(((timeUntilReset || 0) % (1000 * 60 * 60)) / (1000 * 60));
       toast({ 
-        title: '💎 No gems remaining', 
-        description: `Wait ${hours}h ${minutes}m for your gems to refill.`,
+        title: 'No gems remaining', 
+        description: `Your gems will refill in ${hours}h ${minutes}m.`,
         variant: 'destructive' 
       });
       return;
     }
 
-    const messageContent = inputValue.trim() || (pendingImageUrl ? "I've uploaded an image for you to analyze." : "");
-    const imageUrl = pendingImageUrl || undefined;
+    // Check request debouncing
+    const { allowed, reason } = canMakeRequest();
+    if (!allowed) {
+      toast({ title: 'Please wait', description: reason, variant: 'destructive' });
+      return;
+    }
 
+    const imageUrl = pendingImageUrl || undefined;
     const userMessage: Message = {
-      id: `msg-${Date.now()}-${Math.random()}`,
+      id: `msg-${Date.now()}-user`,
       type: 'user',
       content: messageContent,
       timestamp: new Date(),
@@ -315,6 +336,7 @@ export const MobileEnhancedChatInterface = ({
       }, 200); // Delay background analyses to avoid interfering with typing state
     } catch (error: any) {
       console.error('Error sending message:', error);
+      
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
