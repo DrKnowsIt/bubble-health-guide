@@ -461,8 +461,8 @@
 
   /* Tablet Chat Messages */
   .tablet-messages-container {
-    @apply overflow-y-auto px-4 space-y-6;
-    flex: 0 1 auto;
+    @apply overflow-y-auto px-4 py-6 space-y-6;
+    flex: 1 1 auto;
     max-height: calc(100vh - 240px);
   }
   
