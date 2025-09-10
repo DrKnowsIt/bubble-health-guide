@@ -29,66 +29,18 @@ export const ConversationHistory = ({
   onNewConversation,
   activeConversationId 
 }: ConversationHistoryProps) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const { deleteConversation: hookDeleteConversation } = useConversationsQuery();
-
-  useEffect(() => {
-    if (selectedPatientId && user?.id) {
-      loadConversations();
-      
-      // Set up real-time subscription for conversation changes
-      const channel = supabase
-        .channel('conversation-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'conversations',
-            filter: `user_id=eq.${user.id}`
-          },
-          () => {
-            loadConversations();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setConversations([]);
-    }
-  }, [selectedPatientId, user?.id]);
-
-  const loadConversations = async () => {
-    if (!selectedPatientId || !user?.id) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('patient_id', selectedPatientId)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-      setConversations(data || []);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { 
+    conversations, 
+    loading, 
+    deleteConversation: hookDeleteConversation,
+    isDeletingConversation 
+  } = useConversationsQuery(selectedPatientId ? { id: selectedPatientId } : undefined);
 
   const deleteConversation = async (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await hookDeleteConversation(conversationId);
-      setConversations(prev => prev.filter(c => c.id !== conversationId));
     } catch (error) {
       console.error('Error deleting conversation:', error);
     }
@@ -156,7 +108,7 @@ export const ConversationHistory = ({
                 <div key={i} className="h-16 bg-muted rounded animate-pulse" />
               ))}
             </div>
-          ) : conversations.length === 0 ? (
+          ) : conversations?.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-sm text-muted-foreground mb-3">
                 No chat history yet
@@ -171,7 +123,7 @@ export const ConversationHistory = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {conversations.map((conversation) => (
+              {conversations?.map((conversation) => (
                 <div key={conversation.id} className="relative group">
                   <Button
                     variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
@@ -192,7 +144,8 @@ export const ConversationHistory = ({
                     variant="ghost"
                     size="sm"
                     onClick={(e) => deleteConversation(conversation.id, e)}
-                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                    disabled={isDeletingConversation}
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive disabled:opacity-50"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>

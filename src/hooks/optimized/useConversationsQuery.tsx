@@ -167,6 +167,32 @@ export const useConversationsQuery = (selectedUser?: any) => {
       if (error) throw error;
       return conversationId;
     },
+    onMutate: async (conversationId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
+      
+      // Snapshot the previous value
+      const previousConversations = queryClient.getQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id]);
+      
+      // Optimistically update to remove the conversation
+      queryClient.setQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id], (old: Conversation[] = []) => {
+        return old.filter((conv) => conv.id !== conversationId);
+      });
+      
+      return { previousConversations };
+    },
+    onError: (err, conversationId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousConversations) {
+        queryClient.setQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id], context.previousConversations);
+      }
+      logger.error('Error deleting conversation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Update conversation title mutation
