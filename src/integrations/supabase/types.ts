@@ -74,6 +74,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_tracking: {
+        Row: {
+          created_at: string
+          estimated_cost: number | null
+          function_name: string
+          id: string
+          input_tokens: number | null
+          model_used: string
+          output_tokens: number | null
+          patient_id: string | null
+          request_type: string
+          subscription_tier: string | null
+          total_tokens: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_cost?: number | null
+          function_name: string
+          id?: string
+          input_tokens?: number | null
+          model_used: string
+          output_tokens?: number | null
+          patient_id?: string | null
+          request_type: string
+          subscription_tier?: string | null
+          total_tokens?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estimated_cost?: number | null
+          function_name?: string
+          id?: string
+          input_tokens?: number | null
+          model_used?: string
+          output_tokens?: number | null
+          patient_id?: string | null
+          request_type?: string
+          subscription_tier?: string | null
+          total_tokens?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comprehensive_health_reports: {
         Row: {
           confidence_score: number | null
@@ -362,6 +410,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_usage_limits: {
+        Row: {
+          cost_incurred: number | null
+          created_at: string
+          date: string
+          id: string
+          messages_used: number | null
+          tokens_used: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost_incurred?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          messages_used?: number | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost_incurred?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          messages_used?: number | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       diagnosis_feedback: {
         Row: {

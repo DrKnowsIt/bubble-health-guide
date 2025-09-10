@@ -7,6 +7,99 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limits by subscription tier (messages per day)
+const RATE_LIMITS = {
+  free: 10,
+  basic: 100,
+  pro: 500,
+  enterprise: 1000
+} as const;
+
+// Token costs per 1K tokens (USD)
+const TOKEN_COSTS = {
+  'grok-beta': { input: 0.002, output: 0.010 },
+  'grok-2-1212': { input: 0.002, output: 0.010 }
+} as const;
+
+function calculateTokenCost(model: string, inputTokens: number, outputTokens: number): number {
+  const modelKey = model as keyof typeof TOKEN_COSTS;
+  const costs = TOKEN_COSTS[modelKey] || TOKEN_COSTS['grok-beta'];
+  
+  const inputCost = (inputTokens / 1000) * costs.input;
+  const outputCost = (outputTokens / 1000) * costs.output;
+  
+  return inputCost + outputCost;
+}
+
+async function checkRateLimit(supabaseAdmin: any, userId: string, subscriptionTier: string): Promise<{ allowed: boolean; usage: any }> {
+  const today = new Date().toISOString().split('T')[0];
+  
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('daily_usage_limits')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('date', today)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error checking rate limit:', error);
+      return { allowed: true, usage: { messages_used: 0 } };
+    }
+    
+    const currentUsage = data?.messages_used || 0;
+    const tierKey = subscriptionTier.toLowerCase() as keyof typeof RATE_LIMITS;
+    const limit = RATE_LIMITS[tierKey] || RATE_LIMITS.basic;
+    
+    const usage = {
+      messages_used: currentUsage,
+      tokens_used: data?.tokens_used || 0,
+      cost_incurred: data?.cost_incurred || 0,
+      limit_reached: currentUsage >= limit
+    };
+    
+    return {
+      allowed: currentUsage < limit,
+      usage
+    };
+  } catch (error) {
+    console.error('Error in checkRateLimit:', error);
+    return { allowed: true, usage: { messages_used: 0 } };
+  }
+}
+
+async function trackUsage(supabaseAdmin: any, data: any): Promise<void> {
+  const totalTokens = data.input_tokens + data.output_tokens;
+  const estimatedCost = calculateTokenCost(data.model_used, data.input_tokens, data.output_tokens);
+  
+  try {
+    // Track individual usage
+    await supabaseAdmin
+      .from('ai_usage_tracking')
+      .insert({
+        ...data,
+        total_tokens: totalTokens,
+        estimated_cost: estimatedCost
+      });
+    
+    // Update daily usage limits
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Use the increment function for atomic operations
+    await supabaseAdmin.functions.invoke('increment-daily-usage', {
+      body: {
+        p_user_id: data.user_id,
+        p_date: today,
+        p_messages: 1,
+        p_tokens: totalTokens,
+        p_cost: estimatedCost
+      }
+    });
+  } catch (error) {
+    console.error('Error in trackUsage:', error);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -124,6 +217,27 @@ serve(async (req) => {
 
     const subscriptionTier = subscription?.subscription_tier || 'basic';
     const isSubscribed = subscription?.subscribed === true;
+
+    // Check rate limits first
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    
+    const { allowed, usage } = await checkRateLimit(supabaseAdmin, user_id, subscriptionTier);
+    
+    if (!allowed) {
+      console.log(`Rate limit exceeded for user ${user_id}. Usage: ${usage.messages_used}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Daily message limit reached',
+          usage: usage,
+          subscription_tier: subscriptionTier,
+          message: `You've reached your daily limit of ${usage.messages_used} messages. Please upgrade your plan to continue using AI features.`
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Allow both basic and pro users to access AI chat
     if (!isSubscribed) {
@@ -655,6 +769,21 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       .trim();
 
     console.log('Grok response generated successfully');
+    
+    // Track usage after successful response
+    const inputTokens = data.usage?.prompt_tokens || message.length / 4; // Estimate if not provided
+    const outputTokens = data.usage?.completion_tokens || cleanedResponse.length / 4; // Estimate if not provided
+    
+    await trackUsage(supabaseAdmin, {
+      user_id: user_id,
+      patient_id: patient_id || null,
+      function_name: 'grok-chat',
+      model_used: 'grok-beta',
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      request_type: 'chat',
+      subscription_tier: subscriptionTier
+    });
     
     return new Response(
       JSON.stringify({ 
