@@ -175,6 +175,64 @@
     @apply shadow-card transition-smooth;
   }
 
+  /* Tablet optimizations */
+  .tablet-container {
+    height: calc(100vh - 60px); /* Full height minus compact header */
+    max-height: calc(100vh - 60px);
+  }
+
+  .tablet-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  .tablet-input {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+    line-height: 1.5;
+  }
+
+  .tablet-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .tablet-panel-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @media (min-width: 768px) and (max-width: 900px) {
+    /* Small tablets - more compact layout */
+    .tablet-assessment-panel {
+      width: 280px;
+    }
+    
+    .tablet-header {
+      padding: 0.75rem 1rem;
+    }
+    
+    .tablet-message-spacing {
+      padding: 1rem;
+    }
+  }
+
+  @media (min-width: 901px) and (max-width: 1023px) {
+    /* Large tablets - comfortable layout */
+    .tablet-assessment-panel {
+      width: 320px;
+    }
+    
+    .tablet-header {
+      padding: 1rem 1.5rem;
+    }
+    
+    .tablet-message-spacing {
+      padding: 1.5rem;
+    }
+  }
+
   /* Mobile Chat Optimizations */
   .mobile-chat-container {
     height: calc(100vh - 64px - 80px); /* Full height minus header and bottom tabs */
