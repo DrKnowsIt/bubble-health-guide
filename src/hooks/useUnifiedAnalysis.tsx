@@ -50,8 +50,8 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   } = useAnalysisThrottling();
 
   // Analysis configuration
-  const REGULAR_INTERVAL = 4; // Regular analysis every 4 messages
-  const DEEP_INTERVAL = 16; // Deep analysis every 16 messages
+  const REGULAR_INTERVAL = 2; // Regular analysis every 2 messages (for testing)
+  const DEEP_INTERVAL = 8; // Deep analysis every 8 messages (for testing)
   
   const [analysisState, setAnalysisState] = useState<AnalysisState>({
     isAnalyzing: false,
@@ -139,6 +139,16 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       if (analysisType === 'regular') {
         // Regular analysis - basic health topics and solutions
         analysisPromises.push(
+          supabase.functions.invoke('analyze-health-topics', {
+            body: {
+              patient_id: patientId,
+              conversation_id: conversationId,
+              conversation_context: messages.map(m => m.content).join('\n'),
+              include_solutions: true,
+              subscription_tier: subscription_tier || 'basic',
+              analysis_type: 'basic'
+            }
+          }),
           performDiagnosisAnalysis(conversationId, patientId, messages),
           performSolutionAnalysis(conversationId, patientId, messages)
         );
@@ -205,9 +215,13 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
 
   // Check for scheduled analysis with throttling
   const checkScheduledAnalysis = useCallback(async (messages: any[]) => {
-    if (!conversationId || !patientId) return;
+    if (!conversationId || !patientId) {
+      console.log('🚫 UnifiedAnalysis: Missing conversationId or patientId', { conversationId, patientId });
+      return;
+    }
     
     const messageCount = messages.length;
+    console.log('🔍 UnifiedAnalysis: Checking scheduled analysis', { messageCount, conversationId });
     
     // Cancel any pending analyses for conversation when new messages come in
     cancelAnalysesForConversation(conversationId);
@@ -216,12 +230,24 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     const shouldRunRegularAnalysis = messageCount > 0 && messageCount % REGULAR_INTERVAL === 0;
     const shouldRunDeepAnalysis = messageCount > 0 && messageCount % DEEP_INTERVAL === 0;
     
+    console.log('🔍 Analysis intervals check:', { 
+      shouldRunRegular: shouldRunRegularAnalysis, 
+      shouldRunDeep: shouldRunDeepAnalysis,
+      messageCount,
+      regularInterval: REGULAR_INTERVAL,
+      deepInterval: DEEP_INTERVAL
+    });
+    
     if (shouldRunDeepAnalysis) {
+      console.log('🧠 Queueing deep analysis for conversation:', conversationId);
       // Queue deep analysis (higher priority)
       queueAnalysis(conversationId, 'deep');
     } else if (shouldRunRegularAnalysis) {
+      console.log('🔍 Queueing regular analysis for conversation:', conversationId);
       // Queue regular analysis
       queueAnalysis(conversationId, 'regular');
+    } else {
+      console.log('🚫 No analysis needed at this time', { messageCount });
     }
   }, [conversationId, patientId, cancelAnalysesForConversation, queueAnalysis]);
 

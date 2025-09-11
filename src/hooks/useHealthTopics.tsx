@@ -294,10 +294,16 @@ export const useHealthTopics = ({
     }
   }, [conversationId, user?.id, patientId, includeSolutions]);
 
-  // Debounced analysis trigger - DISABLED for unified system  
+  // Backup analysis trigger if unified system fails
   useEffect(() => {
-    // Disable automatic analysis - unified system handles all timing
-    return;
+    if (!conversationContext) return;
+    
+    const debouncedAnalyze = setTimeout(() => {
+      console.log('🔍 HealthTopics: Auto-triggering analysis as backup');
+      analyzeHealthTopics();
+    }, 3000);
+
+    return () => clearTimeout(debouncedAnalyze);
   }, [conversationContext, analyzeHealthTopics]);
 
   // Load existing feedback and data on mount
@@ -355,8 +361,10 @@ export const useHealthTopics = ({
     };
   }, [conversationId, user?.id, includeSolutions, loadExistingData]);
 
-  // Force refresh function
+  // Force refresh function with better logging
   const refreshAnalysis = useCallback(() => {
+    console.log('🔄 HealthTopics: Manual refresh triggered');
+    setLoading(true);
     analyzeHealthTopics(true);
   }, [analyzeHealthTopics]);
 
