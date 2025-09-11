@@ -45,6 +45,15 @@ const Index = () => {
             <div className="h-full flex flex-col">
               {/* Mobile Header - Properly spaced */}
               <div className="shrink-0 text-center p-4 bg-card border-b border-border space-y-3">
+                <div className="mb-2">
+                  <h2 className="mobile-text-base font-semibold text-primary mb-1">
+                    Try DrKnowsIt Demo
+                  </h2>
+                  <p className="mobile-text-xs text-muted-foreground">
+                    See what a health conversation looks like
+                  </p>
+                </div>
+                
                 <h1 className="mobile-text-lg sm:text-xl font-bold text-foreground leading-tight">
                   Healthcare & pet care feeling rushed?
                 </h1>
@@ -121,6 +130,15 @@ const Index = () => {
               </div>
 
               {/* Desktop Chat Interface with Sidebar */}
+              <div className="mb-6 text-center">
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  See DrKnowsIt in Action
+                </h3>
+                <p className="text-muted-foreground">
+                  This is what a conversation with our AI health assistant looks like
+                </p>
+              </div>
+              
               <div className="flex bg-card rounded-xl border border-border shadow-lg overflow-hidden" style={{
             height: '65vh'
           }}>
