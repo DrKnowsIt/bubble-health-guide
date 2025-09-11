@@ -1,7 +1,5 @@
-import { Bot, User, TrendingUp } from "lucide-react";
+import { Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface DemoMessage {
   id: string;
@@ -55,41 +53,15 @@ const demoMessages: DemoMessage[] = [
   }
 ];
 
-const probableDiagnoses = [
-  {
-    condition: "Tension Headaches",
-    probability: "High",
-    description: "High probability based on stress pattern",
-    severity: "moderate" as const
-  },
-  {
-    condition: "Sleep Deprivation Effects",
-    probability: "High",
-    description: "Likely contributing factor",
-    severity: "moderate" as const
-  },
-  {
-    condition: "Dehydration",
-    probability: "Medium",
-    description: "Possible secondary cause",
-    severity: "mild" as const
-  },
-  {
-    condition: "Stress Management",
-    probability: "High",
-    description: "Recommended focus area",
-    severity: "moderate" as const
-  }
-];
 
 export const DemoConversation = () => {
   return (
     <div className="flex flex-col h-full max-h-full overflow-hidden bg-background">
       {/* Main Content - Mobile-First Responsive Layout */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="flex flex-col lg:flex-row h-full gap-2 lg:gap-4 p-3 lg:p-4 max-w-full overflow-hidden">
+        <div className="flex flex-col h-full gap-2 p-3 max-w-full overflow-hidden">
           {/* Chat Messages - Mobile optimized */}
-          <div className="flex-1 overflow-y-auto overscroll-contain min-h-[50vh] lg:min-h-0 max-w-full">
+          <div className="flex-1 overflow-y-auto overscroll-contain min-h-[50vh] max-w-full">
             <div className="space-y-2 lg:space-y-4 pr-1 lg:pr-2">
               {demoMessages.map((message) => (
                 <div
@@ -133,51 +105,6 @@ export const DemoConversation = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Initial Assessment - Mobile optimized sizing */}
-          <div className="w-full lg:w-80 lg:shrink-0 mt-2 lg:mt-0 max-w-full">
-            <Card className="bg-background border-border">
-              <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
-                <CardTitle className="flex items-center gap-2 text-primary mobile-text-base lg:text-lg">
-                  <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5" />
-                  Initial Assessment
-                </CardTitle>
-                <p className="mobile-text-xs lg:text-sm text-muted-foreground">
-                  Topics to discuss based on conversation:
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-2 lg:space-y-3 p-3 lg:p-6 pt-0">
-                {probableDiagnoses.map((diagnosis, index) => (
-                  <div key={index} className="flex items-start justify-between p-2 lg:p-3 bg-muted/30 rounded-lg border border-border gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start lg:items-center gap-1 lg:gap-2 mb-1 flex-wrap">
-                        <h4 className="font-medium text-foreground mobile-text-xs lg:text-base break-words leading-tight">
-                          {diagnosis.condition}
-                        </h4>
-                        <Badge 
-                          variant={diagnosis.probability === "High" ? "default" : "secondary"} 
-                          className="mobile-text-xs flex-shrink-0"
-                        >
-                          {diagnosis.probability.toLowerCase()} priority
-                        </Badge>
-                      </div>
-                      <p className="mobile-text-xs text-muted-foreground break-words leading-relaxed">
-                        {diagnosis.description}
-                      </p>
-                    </div>
-                    <div className="text-right ml-1 lg:ml-3 flex-shrink-0">
-                      <div className="mobile-text-base lg:text-lg font-bold text-primary">
-                        {diagnosis.probability}
-                      </div>
-                      <div className="mobile-text-xs text-muted-foreground">
-                        probability
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

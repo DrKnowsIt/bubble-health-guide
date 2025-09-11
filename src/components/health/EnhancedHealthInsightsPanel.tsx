@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -35,18 +34,48 @@ interface EnhancedHealthInsightsPanelProps {
   patientName: string;
   patientId: string;
   conversationId?: string;
+  showDemoTopics?: boolean;
 }
 
 const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = ({
   diagnoses, 
   patientName, 
   patientId,
-  conversationId
+  conversationId,
+  showDemoTopics = false
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   const [groupedDiagnoses, setGroupedDiagnoses] = useState<DiagnosisGroup[]>([]);
+  
+  // Demo topics for non-authenticated users
+  const demoTopics = [
+    {
+      condition: "Tension Headaches",
+      probability: "High",
+      description: "High probability based on stress pattern",
+      confidence: 0.8
+    },
+    {
+      condition: "Sleep Deprivation Effects", 
+      probability: "High",
+      description: "Likely contributing factor",
+      confidence: 0.75
+    },
+    {
+      condition: "Dehydration",
+      probability: "Medium", 
+      description: "Possible secondary cause",
+      confidence: 0.6
+    },
+    {
+      condition: "Stress Management",
+      probability: "High",
+      description: "Recommended focus area", 
+      confidence: 0.8
+    }
+  ];
   
   // Use solutions hook
   const { 
@@ -272,7 +301,50 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
               </TabsList>
 
               <TabsContent value="topics" className="mt-6">
-                {isEmpty ? (
+                {showDemoTopics ? (
+                  <>
+                    <div className="space-y-4">
+                      {demoTopics.map((topic, index) => (
+                        <div key={index} className="border rounded-lg overflow-hidden bg-green-900/20 text-green-400 border-green-700">
+                          <div className="p-4">
+                            <div className="flex flex-col md:flex-row gap-4 md:items-start md:justify-between">
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <div className="flex-shrink-0">
+                                  <span className="text-2xl">🎯</span>
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-base leading-tight text-foreground">
+                                    {topic.condition}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                                    {topic.description}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0 md:text-right">
+                                <div className="flex md:flex-col items-center md:items-end gap-1">
+                                  <div className="text-sm font-medium">
+                                    {Math.round(topic.confidence * 100)}%
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {getConfidenceLevel(topic.confidence)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                        <AlertTriangle className="h-3 w-3 inline mr-1" />
+                        This is a sample of what health topic analysis looks like. Sign up to get personalized insights based on your conversations.
+                      </p>
+                    </div>
+                  </>
+                ) : isEmpty ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <AlertTriangle className="h-8 w-8 mx-auto mb-3 opacity-50" />
                     <p>No potential health topics identified yet.</p>
