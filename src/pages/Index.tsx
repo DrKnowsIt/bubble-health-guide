@@ -100,7 +100,7 @@ const Index = () => {
                       <span className="block text-primary">healthcare visits</span>
                     </h1>
                     <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                      <span className="text-teal-400 font-semibold">AI-powered</span> guidance to help you organize thoughts, ask the right questions, and feel confident at appointments.
+                      <span className="text-teal-400 font-semibold">AI-powered</span> health assistant for humans and pets. Get symptom analysis, personalized health insights, appointment preparation, and wellness recommendations. Ask about anything from headaches to pet behavior - we're here 24/7 to help you make informed healthcare decisions.
                     </p>
                     <UserCountBadge variant="hero" className="mb-6" />
                   </div>
