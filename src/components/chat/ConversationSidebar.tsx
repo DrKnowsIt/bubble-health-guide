@@ -59,10 +59,14 @@ export const ConversationSidebar = ({
               <div key={conversation.id} className="relative group mb-2">
                 <Button
                   variant={currentConversation === conversation.id ? "secondary" : "ghost"}
-                  className="w-full justify-start text-left p-3 pr-10"
-                  onClick={() => onSelectConversation(conversation.id)}
+                  className="w-full justify-start text-left p-3 pr-12 hover:bg-accent/50 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSelectConversation(conversation.id);
+                  }}
                 >
-                  <div className="flex items-start space-x-3 w-full min-w-0">
+                  <div className="flex items-start space-x-3 w-full min-w-0 pointer-events-none">
                     <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">
@@ -77,8 +81,9 @@ export const ConversationSidebar = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     onDeleteConversation(conversation.id);
                   }}
