@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { 
   MessageCircle, Mic, FileText, Users, Shield, Zap, CheckCircle,
-  Brain, Filter, ArrowRight, Stethoscope, Heart, Mail, Phone
+  Brain, Filter, ArrowRight, Stethoscope, Heart, Mail
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -473,12 +473,6 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
                    <Mail className="h-4 w-4 text-muted-foreground" />
                    <a href="mailto:support@drknowit.com" className="text-muted-foreground hover:text-primary transition-smooth">
                      support@drknowit.com
-                   </a>
-                 </li>
-                 <li className="flex items-center space-x-2">
-                   <Phone className="h-4 w-4 text-muted-foreground" />
-                   <a href="tel:+19196166125" className="text-muted-foreground hover:text-primary transition-smooth">
-                     919-616-6125
                    </a>
                  </li>
                  <li className="flex items-center space-x-2 text-muted-foreground">
