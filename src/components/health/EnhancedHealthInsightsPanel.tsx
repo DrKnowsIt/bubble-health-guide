@@ -76,6 +76,38 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
       confidence: 0.8
     }
   ];
+
+  // Demo solutions for non-authenticated users
+  const demoSolutions = [
+    {
+      category: 'stress',
+      confidence: 0.85,
+      solution: 'Practice deep breathing exercises for 5-10 minutes when you feel tension building. Try the 4-7-8 technique: inhale for 4, hold for 7, exhale for 8.',
+      reasoning: 'Deep breathing activates the parasympathetic nervous system, helping reduce stress-induced tension headaches.',
+      implementation_difficulty: 'easy'
+    },
+    {
+      category: 'sleep',
+      confidence: 0.8,
+      solution: 'Establish a consistent sleep schedule by going to bed and waking up at the same time daily. Create a relaxing bedtime routine 30 minutes before sleep.',
+      reasoning: 'Regular sleep patterns improve sleep quality and reduce afternoon fatigue that can trigger headaches.',
+      implementation_difficulty: 'moderate'
+    },
+    {
+      category: 'lifestyle',
+      confidence: 0.75,
+      solution: 'Set hourly water reminders and aim for 8 glasses daily. Keep a water bottle visible on your desk as a visual cue.',
+      reasoning: 'Proper hydration prevents dehydration headaches and supports overall brain function.',
+      implementation_difficulty: 'easy'
+    },
+    {
+      category: 'exercise',
+      confidence: 0.7,
+      solution: 'Try gentle neck and shoulder stretches every 2 hours, especially if you work at a desk. Focus on slow, controlled movements.',
+      reasoning: 'Regular stretching relieves muscle tension in the neck and shoulders, common trigger points for tension headaches.',
+      implementation_difficulty: 'easy'
+    }
+  ];
   
   // Use solutions hook
   const { 
@@ -445,7 +477,62 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
               </TabsContent>
 
               <TabsContent value="solutions" className="mt-6">
-                {solutionsLoading ? (
+                {showDemoTopics ? (
+                  <>
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">💡 Comprehensive Wellness Approach</h4>
+                      <p className="text-xs text-blue-700">
+                        These solutions address the headache topics from the conversation, providing a holistic approach to wellness.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {demoSolutions.map((solution, index) => (
+                        <div key={index} className="p-4 border rounded-lg bg-card">
+                          <div className="flex flex-col md:flex-row gap-4 md:items-start md:justify-between mb-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0">
+                                <span className="text-lg">{getSolutionCategoryIcon(solution.category)}</span>
+                              </div>
+                              <div className="flex-1">
+                                <Badge className={`text-xs ${getSolutionCategoryColor(solution.category)}`}>
+                                  {solution.category.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0 md:text-right">
+                              <div className="flex md:flex-col items-center md:items-end gap-1">
+                                <div className="text-sm font-medium">
+                                  {Math.round(solution.confidence * 100)}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {getConfidenceLevel(solution.confidence)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-semibold text-base leading-tight mb-2">
+                            {solution.solution}
+                          </h3>
+                          
+                          <div className="mb-4">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {solution.reasoning}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                        <Target className="h-3 w-3 inline mr-1" />
+                        This is a sample of personalized holistic solutions. Sign up to get customized wellness recommendations based on your conversations.
+                      </p>
+                    </div>
+                  </>
+                ) : solutionsLoading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
                     <p>Analyzing conversation for holistic solutions...</p>
