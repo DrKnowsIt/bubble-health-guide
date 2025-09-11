@@ -137,14 +137,14 @@ ENHANCED CONFIDENCE CALIBRATION:
 
     // Skip caching for comprehensive final analysis to ensure fresh insights
     if (conversation_id && analysis_mode !== 'comprehensive_final') {
-      const { data: recentAnalysis } = await supabase
-        .from('conversation_diagnoses')
-        .select('updated_at, reasoning')
-        .eq('conversation_id', conversation_id)
-        .eq('patient_id', patient_id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        const { data: recentAnalysis } = await supabase
+          .from('health_topics_for_discussion')
+          .select('updated_at, reasoning')
+          .eq('conversation_id', conversation_id)
+          .eq('patient_id', patient_id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
       // Skip analysis if content unchanged and analyzed recently (within 2 minutes)
       if (recentAnalysis && 
@@ -154,11 +154,11 @@ ENHANCED CONFIDENCE CALIBRATION:
         
         // Return existing data
         const { data: existingTopics } = await supabase
-          .from('conversation_diagnoses')
+          .from('health_topics_for_discussion')
           .select('*')
           .eq('conversation_id', conversation_id)
           .eq('patient_id', patient_id)
-          .order('confidence', { ascending: false });
+          .order('relevance_score', { ascending: false });
 
         const { data: existingSolutions } = include_solutions ? await supabase
           .from('conversation_solutions')
@@ -307,7 +307,7 @@ Selected Anatomy: ${selected_anatomy.join(', ') || 'None specified'}`;
     const isComprehensiveAnalysis = analysis_mode === 'comprehensive_final';
     const isEnhancedMode = enhanced_mode && (user_tier === 'basic' || user_tier === 'pro');
     
-    let systemPrompt = `You are a medical AI assistant analyzing a health conversation for ${conversation_type === 'easy_chat' ? 'AI Free Mode' : 'full chat'}. ${patientContext}
+    let systemPrompt = `You are an educational health assistant analyzing a health conversation to generate health topics for discussion with healthcare providers for ${conversation_type === 'easy_chat' ? 'AI Free Mode' : 'full chat'}. ${patientContext}
 
 ${memoryContext}
 
@@ -341,13 +341,15 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS:
 ` : ''}
 
 CRITICAL INSTRUCTIONS:
-- Analyze conversation for health topics only
-- Base confidence on conversation evidence ${isEnhancedMode ? 'AND available health data' : 'only'}
+- Generate EDUCATIONAL health topics for discussion with healthcare providers, NOT medical diagnoses
+- These are discussion topics to bring to doctors, NOT diagnostic conclusions
+- Base relevance scores on conversation evidence ${isEnhancedMode ? 'AND available health data' : 'only'}
 - NO DISCLAIMERS in responses
-- Be specific about symptoms and concerns discussed
-- ${isEnhancedMode ? 'Use comprehensive data to enhance topic identification and confidence' : (isComprehensiveAnalysis ? 'Focus on comprehensive insights for final summary' : 'Standard topic identification')}
+- Be specific about symptoms and concerns discussed for doctor consultation
+- Use language like "topic for discussion," "area for professional evaluation," "concern to address with doctor"
+- ${isEnhancedMode ? 'Use comprehensive data to enhance topic identification and relevance' : (isComprehensiveAnalysis ? 'Focus on comprehensive insights for final summary' : 'Standard topic identification')}
 
-CONFIDENCE CALIBRATION FOR ${user_tier?.toUpperCase()} TIER:
+RELEVANCE SCORE CALIBRATION FOR ${user_tier?.toUpperCase()} TIER (for discussion priority, not diagnostic confidence):
 ${user_tier === 'pro' ? `
 HIGH (60-80%): Strong evidence from multiple data sources, clear clinical patterns, comprehensive health profile support
 MODERATE (40-59%): Solid evidence with supporting data, some clinical indicators present
@@ -582,7 +584,7 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
     if (conversation_id && topics.length > 0 && analysis_mode !== 'comprehensive_final') {
       // Clear existing data for this conversation
       await supabase
-        .from('conversation_diagnoses')
+        .from('health_topics_for_discussion')
         .delete()
         .eq('conversation_id', conversation_id);
 
@@ -593,19 +595,19 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
           .eq('conversation_id', conversation_id);
       }
 
-      // Insert topics
+      // Insert health topics for discussion
       const topicsToInsert = topics.map((topic: any) => ({
         conversation_id,
         patient_id,
         user_id: userData.user.id,
-        diagnosis: topic.topic,
-        confidence: topic.confidence,
+        health_topic: topic.topic,
+        relevance_score: topic.confidence,
         reasoning: topic.reasoning,
         category: topic.category
       }));
 
       await supabase
-        .from('conversation_diagnoses')
+        .from('health_topics_for_discussion')
         .insert(topicsToInsert);
 
       // Insert solutions if requested

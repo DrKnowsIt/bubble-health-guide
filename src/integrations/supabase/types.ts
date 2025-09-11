@@ -978,6 +978,45 @@ export type Database = {
         }
         Relationships: []
       }
+      health_topics_for_discussion: {
+        Row: {
+          category: string
+          conversation_id: string
+          created_at: string
+          health_topic: string
+          id: string
+          patient_id: string
+          reasoning: string | null
+          relevance_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          conversation_id: string
+          created_at?: string
+          health_topic: string
+          id?: string
+          patient_id: string
+          reasoning?: string | null
+          relevance_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          conversation_id?: string
+          created_at?: string
+          health_topic?: string
+          id?: string
+          patient_id?: string
+          reasoning?: string | null
+          relevance_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

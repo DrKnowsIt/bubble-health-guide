@@ -63,7 +63,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  const [healthTopics, setHealthTopics] = useState<HealthTopic[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<{ path: string; signedUrl: string; desc: string } | null>(null);
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, AnalysisResult[]>>({});
@@ -127,9 +127,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   // Load diagnoses when conversation or patient changes
   useEffect(() => {
     if (currentConversation && selectedUser?.id) {
-      loadDiagnosesForConversation();
+      loadHealthTopicsForConversation();
     } else {
-      setDiagnoses([]);
+      setHealthTopics([]);
     }
   }, [currentConversation, selectedUser?.id]);
 
@@ -151,9 +151,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         },
         (payload) => {
           console.log('[ChatInterface] Real-time diagnosis update:', payload);
-          // Reload diagnoses when there's a database change
+          // Reload health topics when there's a database change
           setTimeout(() => {
-            loadDiagnosesForConversation();
+            loadHealthTopicsForConversation();
           }, 1000);
         }
       )
@@ -165,25 +165,44 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     };
   }, [currentConversation, selectedUser?.id]);
 
-  const loadDiagnosesForConversation = async () => {
+  const loadHealthTopicsForConversation = async () => {
     if (!currentConversation || !selectedUser?.id) return;
 
     try {
       const { data, error } = await supabase
-        .from('conversation_diagnoses')
+        .from('health_topics_for_discussion')
         .select('*')
         .eq('conversation_id', currentConversation)
         .eq('patient_id', selectedUser.id)
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error('Error loading diagnoses:', error);
+        console.error('Error loading health topics:', error);
         return;
       }
 
-      setDiagnoses(data || []);
+      // Map to interface format
+      const mappedTopics = (data || []).map((item: any): Diagnosis => ({
+        id: item.id,
+        conversation_id: item.conversation_id,
+        patient_id: item.patient_id,
+        user_id: item.user_id,
+        topic: item.health_topic,
+        health_topic: item.health_topic,
+        diagnosis: item.health_topic, // For backwards compatibility
+        topic: item.health_topic,
+        health_topic: item.health_topic,
+        relevance_score: item.relevance_score || 0,
+        confidence: item.relevance_score || 0, // For backwards compatibility
+        reasoning: item.reasoning || '',
+        category: item.category || 'general',
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      setHealthTopics(mappedTopics);
     } catch (error) {
-      console.error('Error loading diagnoses:', error);
+      console.error('Error loading health topics:', error);
     }
   };
 
@@ -204,8 +223,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         return;
       }
 
-      if (data?.diagnoses) {
-        setDiagnoses(data.diagnoses);
+      if (data?.health_topics) {
+        setHealthTopics(data.health_topics);
       }
     } catch (error) {
       console.error('Error generating diagnoses:', error);
@@ -542,20 +561,23 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             created_at: d.created_at || new Date().toISOString(),
             updated_at: d.updated_at || new Date().toISOString(),
           }));
-          setDiagnoses(mappedDiagnoses);
+          setHealthTopics(mappedDiagnoses);
         } else if (extractedDiagnoses.length > 0) {
           const mappedDiagnoses = extractedDiagnoses.map((d: any): Diagnosis => ({
             id: d.id || `${Date.now()}-${Math.random()}`,
             conversation_id: conversationId || '',
             patient_id: selectedUser.id,
             user_id: user.id,
+            topic: d.health_topic || d.diagnosis || d.name || '',
+            health_topic: d.health_topic || d.diagnosis || d.name || '',
             diagnosis: d.diagnosis || d.name || '',
+            relevance_score: typeof d.relevance_score === 'number' ? d.relevance_score : (typeof d.confidence === 'number' ? d.confidence : 0),
             confidence: typeof d.confidence === 'number' ? d.confidence : (typeof d.confidence_score === 'number' ? d.confidence_score : 0),
             reasoning: d.reasoning || d.explanation || '',
             created_at: d.created_at || new Date().toISOString(),
             updated_at: d.updated_at || new Date().toISOString(),
           }));
-          setDiagnoses(mappedDiagnoses);
+          setHealthTopics(mappedDiagnoses);
         }
 
         // Analysis already done when user sent message - no need to repeat
@@ -611,9 +633,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
     await triggerManualAnalysis(messages);
     
-    // Reload diagnoses after analysis completes  
+    // Reload health topics after analysis completes  
     setTimeout(() => {
-      loadDiagnosesForConversation();
+      loadHealthTopicsForConversation();
     }, 1500);
     
     toast({
@@ -918,8 +940,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       <div className="w-80 border-l border-border bg-background overflow-y-auto">
         <div className="p-4">
           <EnhancedHealthInsightsPanel 
-            diagnoses={selectedUser && diagnoses ? diagnoses.map(d => ({
-              diagnosis: d.diagnosis,
+            diagnoses={selectedUser && healthTopics ? healthTopics.map(d => ({
+              diagnosis: d.health_topic,
               confidence: d.confidence,
               reasoning: d.reasoning || '',
               updated_at: d.updated_at || new Date().toISOString()

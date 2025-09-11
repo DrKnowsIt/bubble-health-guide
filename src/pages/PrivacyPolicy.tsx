@@ -143,9 +143,9 @@ const PrivacyPolicy = () => {
             </CardContent>
           </Card>
 
-          <Card className="medical-card">
+           <Card className="medical-card">
             <CardHeader>
-              <CardTitle>Enterprise Security and Compliance</CardTitle>
+              <CardTitle>Data Security and Breach Notification</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-accent-light p-4 rounded-lg mb-4">
@@ -160,6 +160,16 @@ const PrivacyPolicy = () => {
                 <li>Regular security assessments are conducted</li>
                 <li>Security architecture protects against data breaches</li>
               </ul>
+              
+              <div className="mt-6 p-4 border border-warning/20 bg-warning/10 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">Breach Notification Procedures</h4>
+                <p className="text-muted-foreground text-sm">
+                  In the unlikely event of a data security incident affecting your personal health information, 
+                  we will notify you within 72 hours of discovery. Notification will include details about 
+                  what information may have been involved, steps we are taking to address the incident, 
+                  and recommendations for protecting your information.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

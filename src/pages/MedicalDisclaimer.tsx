@@ -42,10 +42,12 @@ const MedicalDisclaimer = () => {
                   DrKnowItAll is NOT a substitute for professional medical care, diagnosis, or treatment.
                 </p>
                 <ul className="list-disc list-inside text-destructive space-y-2">
-                  <li>DrKnowItAll cannot diagnose medical conditions</li>
+                  <li>DrKnowItAll cannot diagnose medical conditions or diseases</li>
                   <li>DrKnowItAll cannot prescribe medications or treatments</li>
                   <li>DrKnowItAll cannot provide emergency medical care</li>
+                  <li>DrKnowItAll generates health topics for discussion, not medical diagnoses</li>
                   <li>DrKnowItAll responses are for educational purposes only</li>
+                  <li>All health topics require professional medical evaluation</li>
                 </ul>
               </div>
             </CardContent>
@@ -113,6 +115,7 @@ const MedicalDisclaimer = () => {
                 <li><strong>Prescription service:</strong> Cannot recommend or prescribe medications</li>
                 <li><strong>Emergency service:</strong> Cannot provide urgent or emergency medical care</li>
                 <li><strong>Licensed healthcare provider:</strong> Cannot replace visits to doctors or specialists</li>
+                <li><strong>Medical diagnosis tool:</strong> Generates discussion topics, not medical diagnoses</li>
                 <li><strong>Medical advice source:</strong> Cannot provide personalized medical recommendations</li>
                 <li><strong>Therapy service:</strong> Cannot provide mental health counseling or therapy</li>
               </ul>
