@@ -14,59 +14,71 @@ const demoMessages: DemoMessage[] = [
   {
     id: 'welcome',
     type: 'ai',
-    content: "Hello! I'm DrKnowsIt, your AI health assistant. I can help answer questions about health, symptoms, medications, wellness tips, and general medical information. What would you like to know today?",
+    content: "Hello! I'm DrKnowsIt, your AI health assistant. How can I help you today?",
     timestamp: new Date()
   },
   {
     id: 'user1',
     type: 'user',
-    content: "I've been having headaches for the past week, along with fatigue and difficulty concentrating. They get worse in the afternoon.",
+    content: "I've been getting headaches every afternoon for the past week",
     timestamp: new Date()
   },
   {
     id: 'ai1',
     type: 'ai',
-    content: "I understand you're experiencing headaches with fatigue and concentration issues that worsen in the afternoon. To better understand what might be happening, I'd like to ask a few questions:\n\n• Have you noticed any sensitivity to light or sound?\n• How would you rate your stress levels lately?\n• Are you getting enough sleep and staying hydrated?\n• Do you spend long periods looking at screens?\n\nThese details will help me provide more relevant guidance, though I'd always recommend consulting with a healthcare provider for proper evaluation.",
+    content: "I'd like to help you understand what might be causing these headaches. Where exactly does it hurt? Is it on one side of your head, both sides, or more in the front/back?",
     timestamp: new Date()
   },
   {
     id: 'user2',
     type: 'user',
-    content: "Yes, I am sensitive to light. I've been stressed at work and probably not drinking enough water.",
+    content: "It's mostly on both sides, kind of like a band around my head",
     timestamp: new Date()
   },
   {
     id: 'ai2',
     type: 'ai',
-    content: "Thank you for sharing those details. Light sensitivity combined with afternoon headaches could suggest several possibilities, but I'd need more information to provide better guidance:\n\n• When did these symptoms first start?\n• Have you had any vision changes?\n• Do the headaches have a specific pattern or location?\n• Any nausea or other symptoms?\n\nBased on what you've shared, stress and dehydration could certainly be contributing factors. I'd strongly recommend documenting your symptoms and discussing them with a healthcare provider for proper assessment.",
+    content: "That's helpful information. A few more questions: Have you been under more stress than usual? How's your sleep been? And are you drinking enough water throughout the day?",
+    timestamp: new Date()
+  },
+  {
+    id: 'user3',
+    type: 'user',
+    content: "Actually yes, work has been really stressful and I haven't been sleeping well",
+    timestamp: new Date()
+  },
+  {
+    id: 'ai3',
+    type: 'ai',
+    content: "Based on what you're telling me, this sounds like it could be tension headaches, which are often triggered by stress and poor sleep. Here are some things that might help...",
     timestamp: new Date()
   }
 ];
 
 const probableDiagnoses = [
   {
-    condition: "Tension-Type Headache",
-    probability: "?",
-    description: "Possible if stress-related, needs more evaluation",
-    severity: "unknown" as const
+    condition: "Tension Headaches",
+    probability: "High",
+    description: "High probability based on stress pattern",
+    severity: "moderate" as const
   },
   {
-    condition: "Migraine Episode",
-    probability: "?",
-    description: "Light sensitivity suggests this, but requires assessment",
-    severity: "unknown" as const
+    condition: "Sleep Deprivation Effects",
+    probability: "High",
+    description: "Likely contributing factor",
+    severity: "moderate" as const
   },
   {
-    condition: "Dehydration Effects",
-    probability: "?",
-    description: "Could contribute to symptoms, easily addressable",
-    severity: "unknown" as const
+    condition: "Dehydration",
+    probability: "Medium",
+    description: "Possible secondary cause",
+    severity: "mild" as const
   },
   {
-    condition: "Eye Strain",
-    probability: "?",
-    description: "Possible if significant screen time involved",
-    severity: "unknown" as const
+    condition: "Stress Management",
+    probability: "High",
+    description: "Recommended focus area",
+    severity: "moderate" as const
   }
 ];
 
@@ -132,7 +144,7 @@ export const DemoConversation = () => {
                   Initial Assessment
                 </CardTitle>
                 <p className="mobile-text-xs lg:text-sm text-muted-foreground">
-                  Based on limited information, these conditions require further evaluation:
+                  Topics to discuss based on conversation:
                 </p>
               </CardHeader>
               <CardContent className="space-y-2 lg:space-y-3 p-3 lg:p-6 pt-0">
@@ -143,8 +155,11 @@ export const DemoConversation = () => {
                         <h4 className="font-medium text-foreground mobile-text-xs lg:text-base break-words leading-tight">
                           {diagnosis.condition}
                         </h4>
-                        <Badge variant="outline" className="mobile-text-xs flex-shrink-0">
-                          needs evaluation
+                        <Badge 
+                          variant={diagnosis.probability === "High" ? "default" : "secondary"} 
+                          className="mobile-text-xs flex-shrink-0"
+                        >
+                          {diagnosis.probability.toLowerCase()} priority
                         </Badge>
                       </div>
                       <p className="mobile-text-xs text-muted-foreground break-words leading-relaxed">
@@ -156,7 +171,7 @@ export const DemoConversation = () => {
                         {diagnosis.probability}
                       </div>
                       <div className="mobile-text-xs text-muted-foreground">
-                        uncertain
+                        probability
                       </div>
                     </div>
                   </div>

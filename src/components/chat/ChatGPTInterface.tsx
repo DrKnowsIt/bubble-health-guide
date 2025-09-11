@@ -18,6 +18,7 @@ import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
 import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageConfirmationModal";
 import { ToastAction } from "@/components/ui/toast";
+import { DemoConversation } from "@/components/chat/DemoConversation";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -684,7 +685,13 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-4">
             <div className="space-y-4">
-                {messages.length === 0 && (
+                {messages.length === 0 && !user && (
+                  <div className="h-full">
+                    <DemoConversation />
+                  </div>
+                )}
+
+                {messages.length === 0 && user && (
                   <div className="text-center py-8">
                     <div className="flex items-center justify-center mx-auto mb-4">
                       <img 
@@ -698,7 +705,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                     </h2>
                     <p className="text-muted-foreground mb-6">
                       {selectedUser?.is_pet 
-? "I'm here to help with your pet's health questions and symptoms." 
+                        ? "I'm here to help with your pet's health questions and symptoms." 
                         : "I'm here to assist with your health questions and symptoms."
                       }
                     </p>
