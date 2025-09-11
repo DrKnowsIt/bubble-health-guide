@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Clock, Layers, RefreshCw } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Clock, Layers, RefreshCw, ShoppingBag } from 'lucide-react';
+import { ProductCard } from '@/components/ui/product-card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useHealthTopics } from '@/hooks/useHealthTopics';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -390,6 +391,36 @@ export const HealthTopicsPanel: React.FC<HealthTopicsPanelProps> = ({
                                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                                   {solution.reasoning}
                                 </p>
+                                
+                                {/* Product Suggestions */}
+                                {solution.products && solution.products.length > 0 && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <ShoppingBag className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-xs font-medium text-muted-foreground">
+                                        Helpful Products
+                                      </span>
+                                    </div>
+                                    <div className="grid gap-2">
+                                      {solution.products.slice(0, 2).map((product, productIndex) => (
+                                        <ProductCard 
+                                          key={productIndex} 
+                                          product={product}
+                                          showDisclaimer={true}
+                                        />
+                                      ))}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground/80 mt-2 p-2 bg-muted/20 rounded border border-border/30">
+                                      <div className="flex items-center gap-1 mb-1">
+                                        <AlertTriangle className="h-3 w-3" />
+                                        <span className="font-medium">Product Disclaimer</span>
+                                      </div>
+                                      <p className="leading-relaxed">
+                                        These are general product suggestions. Consult healthcare providers before purchasing health-related items. We're not affiliated with Amazon.
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex-shrink-0 text-right">

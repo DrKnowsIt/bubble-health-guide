@@ -12,6 +12,15 @@ interface HealthTopic {
   updated_at?: string;
 }
 
+interface ProductSuggestion {
+  name: string;
+  price: string;
+  rating: number;
+  amazonUrl: string;
+  imageUrl: string;
+  category: string;
+}
+
 interface HealthSolution {
   id?: string;
   solution: string;
@@ -19,6 +28,7 @@ interface HealthSolution {
   reasoning: string;
   category: string;
   updated_at?: string;
+  products?: ProductSuggestion[];
 }
 
 interface UseHealthTopicsOptions {
@@ -189,7 +199,34 @@ export const useHealthTopics = ({
         
         if (includeSolutions && data.solutions) {
           const sortedSolutions = [...data.solutions].sort((a, b) => b.confidence - a.confidence);
-          setSolutions(sortedSolutions);
+          
+          // Fetch product suggestions for high-confidence solutions
+          const solutionsWithProducts = await Promise.all(
+            sortedSolutions.map(async (solution) => {
+              if (solution.confidence >= 0.4) {
+                try {
+                  const { data: productData } = await supabase.functions.invoke('amazon-product-search', {
+                    body: {
+                      solutionCategory: solution.category,
+                      keywords: solution.solution.split(' ').slice(0, 3),
+                      maxResults: 3
+                    }
+                  });
+                  
+                  return {
+                    ...solution,
+                    products: productData?.products || []
+                  };
+                } catch (error) {
+                  console.error('Error fetching products for solution:', error);
+                  return solution;
+                }
+              }
+              return solution;
+            })
+          );
+          
+          setSolutions(solutionsWithProducts);
         }
         setLastAnalyzedHash(contentHash);
       }
