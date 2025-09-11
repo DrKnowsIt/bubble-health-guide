@@ -633,17 +633,41 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const handleManualAnalysis = async () => {
     if (!currentConversation || !selectedUser?.id || !user || analysisState.isAnalyzing) return;
 
-    await triggerManualAnalysis(messages);
-    
-    // Reload health topics after analysis completes  
-    setTimeout(() => {
-      loadHealthTopicsForConversation();
-    }, 1500);
-    
-    toast({
-      title: "Analysis Complete",
-      description: "Health insights have been updated based on your conversation.",
-    });
+    try {
+      console.log('🔍 Manual analysis triggered');
+      
+      // Show loading toast
+      const loadingToast = toast({
+        title: "Analyzing...",
+        description: "Processing your conversation for health insights.",
+      });
+
+      // Wait for analysis to complete
+      await triggerManualAnalysis(messages);
+      
+      // Wait a bit more for database updates
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Reload health topics
+      await loadHealthTopicsForConversation();
+      
+      // Show success toast
+      toast({
+        title: "Analysis Complete",
+        description: "Health insights have been updated based on your conversation.",
+      });
+
+      console.log('✅ Manual analysis completed successfully');
+      
+    } catch (error) {
+      console.error('❌ Manual analysis failed:', error);
+      
+      toast({
+        title: "Analysis Failed",
+        description: "There was an error analyzing your conversation. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

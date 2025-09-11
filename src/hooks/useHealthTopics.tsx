@@ -173,6 +173,14 @@ export const useHealthTopics = ({
 
       console.log(`Analyzing health topics for ${conversationType} (${subscription_tier || 'free'} user)`);
 
+      console.log('🔍 Invoking analyze-health-topics edge function...', {
+        conversation_id: conversationId,
+        patient_id: patientId,
+        conversation_length: conversationContext.length,
+        conversation_type: conversationType,
+        user_tier: subscription_tier || 'free'
+      });
+
       const { data, error } = await supabase.functions.invoke('analyze-health-topics', {
         body: {
           conversation_id: conversationId,
@@ -186,8 +194,33 @@ export const useHealthTopics = ({
       });
 
       if (error) {
-        console.error('Error analyzing health topics:', error);
-        return;
+        console.error('❌ Error from analyze-health-topics edge function:', {
+          error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        // Try to show a user-friendly error
+        throw new Error(`Analysis failed: ${error.message || 'Unknown error'}`);
+      }
+
+      if (!data) {
+        console.error('❌ No data returned from analyze-health-topics');
+        throw new Error('Analysis returned no data');
+      }
+
+      console.log('✅ Health topics analysis response:', {
+        topics: data.topics?.length || 0,
+        solutions: data.solutions?.length || 0,
+        cached: data.cached,
+        hasError: !!data.error
+      });
+
+      if (data.error) {
+        console.error('❌ Analysis returned error:', data.error);
+        throw new Error(`Analysis error: ${data.error}`);
       }
 
       if (data?.topics) {
@@ -232,6 +265,18 @@ export const useHealthTopics = ({
       }
     } catch (error) {
       console.error('Error in health topics analysis:', error);
+      
+      // Fallback: Generate basic keyword-based topics if OpenAI fails
+      if (conversationContext.length > 50) {
+        console.log('🔄 Attempting fallback keyword analysis...');
+        const fallbackTopics = generateFallbackTopics(conversationContext);
+        if (fallbackTopics.length > 0) {
+          setTopics(fallbackTopics);
+          console.log(`✅ Generated ${fallbackTopics.length} fallback topics`);
+        }
+      }
+      
+      throw error; // Re-throw to let caller handle UI feedback
     } finally {
       setLoading(false);
     }
@@ -248,6 +293,25 @@ export const useHealthTopics = ({
     lastAnalyzedHash,
     generateContentHash
   ]);
+
+  // Simple fallback topic generation
+  const generateFallbackTopics = (context: string): HealthTopic[] => {
+    const keywords = ['pain', 'headache', 'fever', 'nausea', 'fatigue', 'cough', 'rash', 'anxiety', 'sleep', 'appetite'];
+    const topics: HealthTopic[] = [];
+    
+    keywords.forEach(keyword => {
+      if (context.toLowerCase().includes(keyword)) {
+        topics.push({
+          topic: `${keyword.charAt(0).toUpperCase() + keyword.slice(1)} concerns`,
+          confidence: 0.3,
+          reasoning: `Keyword "${keyword}" mentioned in conversation - basic analysis available`,
+          category: 'general'
+        });
+      }
+    });
+    
+    return topics.slice(0, 3);
+  };
 
   // Load existing data from database
   const loadExistingData = useCallback(async () => {

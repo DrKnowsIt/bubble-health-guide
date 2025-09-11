@@ -461,31 +461,64 @@ ${responseStructure}
 
 Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics and ${include_solutions ? (isEnhancedMode ? '6-8 solutions' : (isComprehensiveAnalysis ? '6-8 solutions' : '3-5 solutions')) : 'no solutions'}${include_testing_recommendations && (isComprehensiveAnalysis || isEnhancedMode) ? ' and 4-6 testing recommendations' : ''}.`;
 
-    // Make OpenAI API call
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analyze: ${conversation_context}` }
-        ],
-        max_completion_tokens: include_testing_recommendations ? 2000 : (include_solutions ? 1500 : 800),
-        response_format: { type: "json_object" }
-      }),
-    });
+    // Enhanced OpenAI API call with retry logic
+    const makeOpenAICall = async (retryCount = 0): Promise<any> => {
+      try {
+        console.log(`Making OpenAI API call (attempt ${retryCount + 1})`);
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4.1-2025-04-14',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Analyze: ${conversation_context}` }
+            ],
+            max_completion_tokens: include_testing_recommendations ? 2000 : (include_solutions ? 1500 : 800),
+            response_format: { type: "json_object" }
+          }),
+        });
 
-    if (!response.ok) {
-      console.error('OpenAI API error:', response.status);
-      return new Response(
-        JSON.stringify({ error: 'Failed to analyze conversation' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`OpenAI API error (attempt ${retryCount + 1}):`, {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          });
+          
+          // Retry on rate limits or server errors
+          if ((response.status === 429 || response.status >= 500) && retryCount < 2) {
+            const delayMs = Math.pow(2, retryCount) * 1000; // Exponential backoff
+            console.log(`Retrying OpenAI call in ${delayMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            return makeOpenAICall(retryCount + 1);
+          }
+          
+          throw new Error(`OpenAI API failed: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('OpenAI API call successful');
+        return data;
+        
+      } catch (error) {
+        console.error(`OpenAI API call failed (attempt ${retryCount + 1}):`, error);
+        if (retryCount < 2 && error.message.includes('fetch')) {
+          const delayMs = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying OpenAI call due to network error in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          return makeOpenAICall(retryCount + 1);
+        }
+        throw error;
+      }
+    };
+
+    const data = await makeOpenAICall();
 
     const data = await response.json();
     const aiResponse = data.choices?.[0]?.message?.content;

@@ -183,16 +183,39 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
 
       const results = await Promise.allSettled(analysisPromises);
       
-      // Process results
+      // Process results with detailed error tracking
       const analysisResults = {
         type: analysisType,
-        results: results.map(result => 
-          result.status === 'fulfilled' ? result.value : { error: result.reason }
+        results: results.map((result, index) => {
+          if (result.status === 'fulfilled') {
+            const data = result.value?.data || result.value;
+            const error = result.value?.error;
+            
+            if (error) {
+              console.error(`[UnifiedAnalysis] Analysis ${index} failed:`, error);
+              return { error, success: false };
+            }
+            
+            return { data, success: true };
+          } else {
+            console.error(`[UnifiedAnalysis] Analysis ${index} rejected:`, result.reason);
+            return { error: result.reason, success: false };
+          }
+        }),
+        hasErrors: results.some(result => 
+          result.status === 'rejected' || 
+          (result.status === 'fulfilled' && result.value?.error)
         )
       };
 
-      console.log(`[UnifiedAnalysis] ${analysisType} analysis completed:`, analysisResults);
-      completeAnalysis(`${conversationId}-${analysisType}`, true);
+      const success = !analysisResults.hasErrors;
+      console.log(`[UnifiedAnalysis] ${analysisType} analysis completed:`, {
+        success,
+        resultsCount: results.length,
+        errors: analysisResults.results.filter(r => !r.success).map(r => r.error)
+      });
+      
+      completeAnalysis(`${conversationId}-${analysisType}`, success);
       onAnalysisComplete?.(analysisResults);
 
     } catch (error) {
