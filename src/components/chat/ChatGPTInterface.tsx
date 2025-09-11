@@ -27,14 +27,18 @@ interface ChatGPTInterfaceProps {
 
 interface Diagnosis {
   id: string;
-  conversation_id: string;
-  patient_id: string;
-  user_id: string;
+  conversation_id?: string;
+  patient_id?: string;
+  user_id?: string;
+  topic?: string;
+  health_topic?: string;
   diagnosis: string;
+  relevance_score?: number;
   confidence: number;
   reasoning: string;
-  created_at: string;
-  updated_at: string;
+  category?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const humanExamplePrompts = [
@@ -63,7 +67,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [healthTopics, setHealthTopics] = useState<HealthTopic[]>([]);
+  const [healthTopics, setHealthTopics] = useState<Diagnosis[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<{ path: string; signedUrl: string; desc: string } | null>(null);
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, AnalysisResult[]>>({});
@@ -190,8 +194,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         topic: item.health_topic,
         health_topic: item.health_topic,
         diagnosis: item.health_topic, // For backwards compatibility
-        topic: item.health_topic,
-        health_topic: item.health_topic,
         relevance_score: item.relevance_score || 0,
         confidence: item.relevance_score || 0, // For backwards compatibility
         reasoning: item.reasoning || '',
