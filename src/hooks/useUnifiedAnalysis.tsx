@@ -108,14 +108,19 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   ): Promise<void> => {
     if (!conversationId || !patientId || !user) return;
 
-    // Check if analysis can run
-    const { allowed, reason, waitTime } = canRunAnalysis(conversationId, analysisType);
-    if (!allowed) {
+    console.log(`[UnifiedAnalysis] Attempting ${analysisType} analysis (${isManual ? 'manual' : 'automatic'})`);
+
+    // Check if analysis can run (with manual bypass)
+    const { allowed, reason, waitTime } = canRunAnalysis(conversationId, analysisType, isManual);
+    if (!allowed && !isManual) {
       console.log(`[UnifiedAnalysis] Analysis throttled: ${reason} (wait: ${waitTime}ms)`);
-      if (isManual) {
-        // For manual analysis, queue it
-        queueAnalysis(conversationId, analysisType);
-      }
+      return;
+    }
+
+    // For manual analysis that's throttled, queue it with high priority
+    if (!allowed && isManual) {
+      console.log(`[UnifiedAnalysis] Manual analysis throttled, queuing with high priority: ${reason}`);
+      queueAnalysis(conversationId, analysisType, true);
       return;
     }
 
@@ -264,27 +269,37 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     if (shouldRunDeepAnalysis) {
       console.log('🧠 Queueing deep analysis for conversation:', conversationId);
       // Queue deep analysis (higher priority)
-      queueAnalysis(conversationId, 'deep');
+      queueAnalysis(conversationId, 'deep', false);
     } else if (shouldRunRegularAnalysis) {
       console.log('🔍 Queueing regular analysis for conversation:', conversationId);
       // Queue regular analysis
-      queueAnalysis(conversationId, 'regular');
+      queueAnalysis(conversationId, 'regular', false);
     } else {
       console.log('🚫 No analysis needed at this time', { messageCount });
     }
   }, [conversationId, patientId, cancelAnalysesForConversation, queueAnalysis]);
 
-  // Trigger manual analysis with throttling
+  // Trigger manual analysis with throttling bypass
   const triggerManualAnalysis = useCallback(async (messages: any[]) => {
     if (!conversationId || !patientId) return;
+    
+    console.log(`[UnifiedAnalysis] Manual analysis triggered for conversation ${conversationId}`);
     
     // Determine analysis type based on message count
     const messageCount = messages.length;
     const analysisType = messageCount >= DEEP_INTERVAL ? 'deep' : 'regular';
     
-    // Queue manual analysis (with higher priority)
-    queueAnalysis(conversationId, analysisType);
-  }, [conversationId, patientId, queueAnalysis]);
+    console.log(`[UnifiedAnalysis] Selected ${analysisType} analysis (${messageCount} messages)`);
+    
+    // For manual analysis, try to run immediately or queue with high priority
+    try {
+      await performAnalysis(messages, analysisType, true);
+    } catch (error) {
+      console.error(`[UnifiedAnalysis] Manual analysis failed:`, error);
+      // Fallback: queue it
+      queueAnalysis(conversationId, analysisType, true);
+    }
+  }, [conversationId, patientId, performAnalysis, queueAnalysis]);
 
   // Cleanup function
   const cleanup = useCallback(() => {

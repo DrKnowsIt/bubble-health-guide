@@ -25,10 +25,10 @@ export const useAnalysisThrottling = () => {
 
   const processingTimeoutRef = useRef<NodeJS.Timeout>();
   
-  // Configuration
-  const MAX_CONCURRENT_ANALYSES = 2;
-  const MIN_ANALYSIS_INTERVAL = 30000; // 30 seconds between analyses per conversation
-  const MAX_ANALYSES_PER_HOUR = 3; // Per conversation
+  // Configuration - More generous limits for better UX
+  const MAX_CONCURRENT_ANALYSES = 3;
+  const MIN_ANALYSIS_INTERVAL = 10000; // 10 seconds between analyses per conversation  
+  const MAX_ANALYSES_PER_HOUR = 15; // Per conversation (increased for development)
   const ANALYSIS_ATTEMPT_WINDOW = 60 * 60 * 1000; // 1 hour
 
   // Priority levels
@@ -40,12 +40,13 @@ export const useAnalysisThrottling = () => {
     memory: 1
   };
 
-  const canRunAnalysis = useCallback((conversationId: string, type: string): { allowed: boolean; reason?: string; waitTime?: number } => {
+  const canRunAnalysis = useCallback((conversationId: string, type: string, isManual: boolean = false): { allowed: boolean; reason?: string; waitTime?: number } => {
     const now = Date.now();
     
-    // Check if conversation has too many recent attempts
+    // Check if conversation has too many recent attempts (bypass for manual analysis)
     const attempts = state.analysisAttempts.get(conversationId) || 0;
-    if (attempts >= MAX_ANALYSES_PER_HOUR) {
+    if (!isManual && attempts >= MAX_ANALYSES_PER_HOUR) {
+      console.log(`[AnalysisThrottling] Rate limit hit: ${attempts}/${MAX_ANALYSES_PER_HOUR} for conversation ${conversationId}`);
       return {
         allowed: false,
         reason: 'Analysis limit reached for this conversation.',
@@ -53,10 +54,11 @@ export const useAnalysisThrottling = () => {
       };
     }
 
-    // Check minimum interval between analyses for this conversation
+    // Check minimum interval between analyses for this conversation (bypass for manual analysis)
     const lastAnalysis = state.recentAnalyses.get(conversationId) || 0;
     const timeSinceLastAnalysis = now - lastAnalysis;
-    if (timeSinceLastAnalysis < MIN_ANALYSIS_INTERVAL) {
+    if (!isManual && timeSinceLastAnalysis < MIN_ANALYSIS_INTERVAL) {
+      console.log(`[AnalysisThrottling] Interval check: ${timeSinceLastAnalysis}ms < ${MIN_ANALYSIS_INTERVAL}ms for conversation ${conversationId}`);
       return {
         allowed: false,
         reason: 'Analysis too frequent. Please wait.',
@@ -90,7 +92,8 @@ export const useAnalysisThrottling = () => {
 
   const queueAnalysis = useCallback((
     conversationId: string,
-    type: 'regular' | 'deep' | 'diagnosis' | 'solution' | 'memory'
+    type: 'regular' | 'deep' | 'diagnosis' | 'solution' | 'memory',
+    isManual: boolean = false
   ): string => {
     const analysisId = `${conversationId}-${type}-${Date.now()}`;
     const request: AnalysisRequest = {
@@ -98,7 +101,7 @@ export const useAnalysisThrottling = () => {
       conversationId,
       type,
       timestamp: Date.now(),
-      priority: PRIORITY_LEVELS[type] || 1
+      priority: isManual ? 5 : (PRIORITY_LEVELS[type] || 1) // Higher priority for manual requests
     };
 
     setState(prev => {
@@ -149,7 +152,8 @@ export const useAnalysisThrottling = () => {
         let nextAnalysisIndex = -1;
         for (let i = 0; i < prev.queuedAnalyses.length; i++) {
           const analysis = prev.queuedAnalyses[i];
-          const { allowed } = canRunAnalysis(analysis.conversationId, analysis.type);
+          const isManual = analysis.priority === 5; // Manual requests have priority 5
+          const { allowed } = canRunAnalysis(analysis.conversationId, analysis.type, isManual);
           if (allowed) {
             nextAnalysisIndex = i;
             break;

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Image as ImageIcon } from "lucide-react";
+import { Send, Bot, User, Image as ImageIcon, Zap, Loader2, AlertCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConversationsQuery, Message } from "@/hooks/optimized/useConversationsQuery";
 import { useAuth } from "@/hooks/useAuth";
@@ -903,16 +903,24 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   variant="outline"
                   size="sm"
                   onClick={handleManualAnalysis}
-                  disabled={analysisState.isAnalyzing || !selectedUser || !currentConversation}
-                  className="h-6 px-2 text-xs"
+                  disabled={analysisState.isAnalyzing || !selectedUser || !currentConversation || messages.length < 2}
+                  className="h-6 px-2 text-xs flex items-center gap-1"
                 >
                   {analysisState.isAnalyzing ? (
                     <>
-                      <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full mr-1"></div>
+                      <Loader2 className="h-3 w-3 animate-spin" />
                       {analysisState.currentStage || "Analyzing..."}
                     </>
+                  ) : analysisState.queueStatus && analysisState.queueStatus.queuedCount > 0 ? (
+                    <>
+                      <Clock className="h-3 w-3" />
+                      Queued ({analysisState.queueStatus.queuedCount})
+                    </>
                   ) : (
-                    'Analyze Now'
+                    <>
+                      <Zap className="h-3 w-3" />
+                      Analyze Now
+                    </>
                   )}
                 </Button>
               </div>

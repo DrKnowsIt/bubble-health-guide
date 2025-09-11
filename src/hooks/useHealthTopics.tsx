@@ -146,16 +146,22 @@ export const useHealthTopics = ({
     }
   }, [user?.id, patientId]);
 
-  // Debounced analysis function
+  // Debounced analysis function with retry logic
   const analyzeHealthTopics = useCallback(async (force = false) => {
     if (!user?.id || !patientId || conversationContext.length < minContextLength) {
+      console.log('[HealthTopics] Skipping analysis - insufficient data', { 
+        hasUser: !!user?.id, 
+        hasPatient: !!patientId, 
+        contextLength: conversationContext.length, 
+        minRequired: minContextLength 
+      });
       return;
     }
 
-    // Rate limiting - prevent too frequent calls
+    // Rate limiting - prevent too frequent calls (reduced from 30s to 15s)
     const now = new Date();
-    if (!force && now.getTime() - lastAnalysisRef.current.getTime() < 30000) {
-      console.log('Rate limiting analysis - too frequent');
+    if (!force && now.getTime() - lastAnalysisRef.current.getTime() < 15000) {
+      console.log('[HealthTopics] Rate limiting analysis - too frequent (waiting 15s)');
       return;
     }
 
@@ -178,20 +184,54 @@ export const useHealthTopics = ({
         patient_id: patientId,
         conversation_length: conversationContext.length,
         conversation_type: conversationType,
-        user_tier: subscription_tier || 'free'
+        user_tier: subscription_tier || 'free',
+        force
       });
 
-      const { data, error } = await supabase.functions.invoke('analyze-health-topics', {
-        body: {
-          conversation_id: conversationId,
-          patient_id: patientId,
-          conversation_context: conversationContext,
-          conversation_type: conversationType,
-          user_tier: subscription_tier || 'free',
-          selected_anatomy: selectedAnatomy,
-          include_solutions: includeSolutions
+      // Retry logic with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 3;
+      let data, error;
+
+      while (retryCount <= maxRetries) {
+        try {
+          const result = await supabase.functions.invoke('analyze-health-topics', {
+            body: {
+              conversation_id: conversationId,
+              patient_id: patientId,
+              conversation_context: conversationContext,
+              conversation_type: conversationType,
+              user_tier: subscription_tier || 'free',
+              selected_anatomy: selectedAnatomy,
+              include_solutions: includeSolutions,
+              retry_attempt: retryCount
+            }
+          });
+
+          data = result.data;
+          error = result.error;
+
+          // If successful or non-retryable error, break
+          if (!error || !error.message?.includes('rate limit') && !error.message?.includes('timeout')) {
+            break;
+          }
+
+          retryCount++;
+          if (retryCount <= maxRetries) {
+            const waitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff
+            console.log(`[HealthTopics] Retrying in ${waitTime}ms (attempt ${retryCount}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        } catch (retryError) {
+          error = retryError;
+          retryCount++;
+          if (retryCount <= maxRetries) {
+            const waitTime = Math.pow(2, retryCount) * 1000;
+            console.log(`[HealthTopics] Network error, retrying in ${waitTime}ms (attempt ${retryCount}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
         }
-      });
+      }
 
       if (error) {
         console.error('❌ Error from analyze-health-topics edge function:', {
@@ -358,17 +398,20 @@ export const useHealthTopics = ({
     }
   }, [conversationId, user?.id, patientId, includeSolutions]);
 
-  // Backup analysis trigger if unified system fails
+  // Backup analysis trigger if unified system fails  
   useEffect(() => {
-    if (!conversationContext) return;
+    if (!conversationContext || conversationContext.length < minContextLength) return;
     
+    // Only trigger backup analysis if no topics exist and we have sufficient context
     const debouncedAnalyze = setTimeout(() => {
-      console.log('🔍 HealthTopics: Auto-triggering analysis as backup');
-      analyzeHealthTopics();
-    }, 3000);
+      if (topics.length === 0 && !loading) {
+        console.log('🔍 HealthTopics: Auto-triggering analysis as backup (no topics found)');
+        analyzeHealthTopics();
+      }
+    }, 5000);
 
     return () => clearTimeout(debouncedAnalyze);
-  }, [conversationContext, analyzeHealthTopics]);
+  }, [conversationContext, analyzeHealthTopics, topics.length, loading, minContextLength]);
 
   // Load existing feedback and data on mount
   useEffect(() => {
