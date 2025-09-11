@@ -118,13 +118,13 @@ const Index = () => {
                 
                 {/* Right side - AI Doctor Hologram Image */}
                 <div className="flex justify-center lg:justify-end">
-                  <div className="relative max-w-md w-full">
+                  <div className="relative w-full max-w-lg">
                     <img 
                       src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
                       alt="Blue holographic cartoon doctor handing clipboard to real doctor with stethoscope, alongside smiling family with their dog on teal background"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent rounded-2xl"></div>
                   </div>
                 </div>
               </div>
