@@ -18,6 +18,7 @@ import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
 import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageConfirmationModal";
 import { ToastAction } from "@/components/ui/toast";
+import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
 
 interface ChatGPTInterfaceProps {
@@ -923,6 +924,21 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                     </>
                   )}
                 </Button>
+              </div>
+            )}
+            
+            {/* Medical Image Prompt */}
+            {currentPrompt && currentPrompt.isVisible && (
+              <div className="mb-4">
+                <MedicalImagePrompt
+                  searchTerm={currentPrompt.searchTerm}
+                  images={currentPrompt.images}
+                  aiSuggestion={currentPrompt.aiSuggestion}
+                  onImageFeedback={(imageId, matches) => {
+                    handleImageFeedback(imageId, matches, currentPrompt.searchTerm, currentConversation, selectedUser?.id);
+                  }}
+                  onClose={closeImagePrompt}
+                />
               </div>
             )}
             

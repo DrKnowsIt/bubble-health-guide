@@ -25,10 +25,10 @@ export const useAnalysisThrottling = () => {
 
   const processingTimeoutRef = useRef<NodeJS.Timeout>();
   
-  // Configuration - More generous limits for better UX
-  const MAX_CONCURRENT_ANALYSES = 3;
-  const MIN_ANALYSIS_INTERVAL = 10000; // 10 seconds between analyses per conversation  
-  const MAX_ANALYSES_PER_HOUR = 15; // Per conversation (increased for development)
+  // Configuration - Optimized for natural conversation flow
+  const MAX_CONCURRENT_ANALYSES = 5;
+  const MIN_ANALYSIS_INTERVAL = 3000; // 3 seconds between analyses per conversation (natural flow)
+  const MAX_ANALYSES_PER_HOUR = 30; // Per conversation (generous for natural conversation)
   const ANALYSIS_ATTEMPT_WINDOW = 60 * 60 * 1000; // 1 hour
 
   // Priority levels

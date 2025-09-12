@@ -200,7 +200,7 @@ export const useMedicalImagePrompts = () => {
         const searchIntent = await analyzeMessageContext(message, conversationContext);
         console.log('AI analysis result:', searchIntent);
         
-        if (searchIntent.shouldTrigger && searchIntent.confidence >= 80) {
+        if (searchIntent.shouldTrigger && searchIntent.confidence >= 60) {
           console.log('✅ High confidence - AI recommends showing images with confidence:', searchIntent.confidence);
           
           const images = await fetchMedicalImages(searchIntent);

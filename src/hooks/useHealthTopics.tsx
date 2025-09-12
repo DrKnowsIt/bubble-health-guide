@@ -276,7 +276,7 @@ export const useHealthTopics = ({
           // Fetch product suggestions for high-confidence solutions
           const solutionsWithProducts = await Promise.all(
             sortedSolutions.map(async (solution) => {
-              if (solution.confidence >= 0.4) {
+              if (solution.confidence >= 0.3) {
                 try {
                   const { data: productData } = await supabase.functions.invoke('amazon-product-search', {
                     body: {

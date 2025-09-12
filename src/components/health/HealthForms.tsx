@@ -915,6 +915,29 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
       if (error) throw error;
       healthRecordId = recordData?.id;
 
+      // Trigger health topics refresh immediately after form save
+      if (selectedPatient?.id && shouldTriggerAIAnalysis()) {
+        console.log('Triggering immediate health topics refresh due to form changes');
+        try {
+          // Trigger health topics analysis with the changed form data
+          await supabase.functions.invoke('analyze-health-topics', {
+            body: {
+              conversation_id: null, // No specific conversation, just analyze form data
+              patient_id: selectedPatient.id,
+              user_id: user?.id,
+              context_source: 'health_form_update',
+              form_type: selectedForm.id,
+              changed_fields: changedFields,
+              form_data: processedData
+            }
+          });
+          console.log('Health topics refresh triggered successfully');
+        } catch (topicsError) {
+          console.error('Error refreshing health topics:', topicsError);
+          // Don't fail the form submission if topics refresh fails
+        }
+      }
+
       // Conditionally trigger AI analysis for health insights (only if changes detected)
       if (healthRecordId && shouldTriggerAIAnalysis()) {
         console.log(`Triggering AI analysis due to changes in fields: ${changedFields.join(', ')}`);
