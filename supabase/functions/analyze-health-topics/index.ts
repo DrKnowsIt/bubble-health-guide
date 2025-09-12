@@ -519,8 +519,6 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
     };
 
     const data = await makeOpenAICall();
-
-    const data = await response.json();
     const aiResponse = data.choices?.[0]?.message?.content;
     
     if (!aiResponse) {

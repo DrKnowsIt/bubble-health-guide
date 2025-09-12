@@ -358,26 +358,27 @@ export const useHealthTopics = ({
     if (!conversationId || !user?.id) return;
 
     try {
-      // Load existing topics
+      // Load existing topics from health_topics_for_discussion table
       const { data: existingTopics } = await supabase
-        .from('conversation_diagnoses')
+        .from('health_topics_for_discussion')
         .select('*')
         .eq('conversation_id', conversationId)
         .eq('patient_id', patientId)
-        .order('confidence', { ascending: false });
+        .order('relevance_score', { ascending: false });
 
       if (existingTopics && existingTopics.length > 0) {
         const formattedTopics = existingTopics.map(t => ({
           id: t.id,
-          topic: t.diagnosis,
-          confidence: t.confidence,
+          topic: t.health_topic,
+          confidence: t.relevance_score,
           reasoning: t.reasoning,
-          category: 'other', // Default category - database doesn't have this field yet
+          category: t.category || 'other',
           updated_at: t.updated_at
         }))
         .sort((a, b) => b.confidence - a.confidence); // Ensure confidence-based sorting
         
         setTopics(formattedTopics);
+        console.log(`✅ Loaded ${formattedTopics.length} existing health topics`);
       }
 
       // Load existing solutions if requested
@@ -432,7 +433,7 @@ export const useHealthTopics = ({
         {
           event: '*',
           schema: 'public',
-          table: 'conversation_diagnoses',
+          table: 'health_topics_for_discussion',
           filter: `conversation_id=eq.${conversationId}`
         },
         () => {
