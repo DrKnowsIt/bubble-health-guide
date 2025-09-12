@@ -342,6 +342,7 @@ export type Database = {
           created_at: string
           id: string
           patient_id: string
+          products: Json | null
           reasoning: string | null
           solution: string
           updated_at: string
@@ -354,6 +355,7 @@ export type Database = {
           created_at?: string
           id?: string
           patient_id: string
+          products?: Json | null
           reasoning?: string | null
           solution: string
           updated_at?: string
@@ -366,6 +368,7 @@ export type Database = {
           created_at?: string
           id?: string
           patient_id?: string
+          products?: Json | null
           reasoning?: string | null
           solution?: string
           updated_at?: string

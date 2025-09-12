@@ -643,19 +643,66 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
 
       // Insert solutions if requested
       if (include_solutions && solutions.length > 0) {
-        const solutionsToInsert = solutions.map((solution: any) => ({
+        // Fetch Amazon products for high-confidence solutions
+        const solutionsWithProducts = await Promise.all(
+          solutions.map(async (solution: any) => {
+            let products: any[] = [];
+            
+            // Fetch products for solutions with confidence >= 25%
+            if (solution.confidence >= 0.25) {
+              try {
+                console.log(`Fetching Amazon products for solution: ${solution.solution.substring(0, 50)}...`);
+                
+                const productResponse = await fetch(`${supabaseUrl}/functions/v1/amazon-product-search`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    solutionCategory: solution.category,
+                    keywords: solution.solution.split(' ').slice(0, 4), // More keywords for better matching
+                    maxResults: 3
+                  })
+                });
+
+                if (productResponse.ok) {
+                  const productData = await productResponse.json();
+                  products = productData.products || [];
+                  console.log(`✅ Found ${products.length} products for solution: ${solution.category}`);
+                } else {
+                  console.log(`⚠️ Product search failed for solution: ${solution.category} (${productResponse.status})`);
+                }
+              } catch (error) {
+                console.error(`❌ Error fetching products for solution ${solution.category}:`, error);
+              }
+            } else {
+              console.log(`⚠️ Skipping product search for low-confidence solution: ${solution.confidence}`);
+            }
+
+            return {
+              ...solution,
+              products
+            };
+          })
+        );
+
+        const solutionsToInsert = solutionsWithProducts.map((solution: any) => ({
           conversation_id,
           patient_id,
           user_id: userData.user.id,
           solution: solution.solution,
           confidence: solution.confidence,
           reasoning: solution.reasoning,
-          category: solution.category
+          category: solution.category,
+          products: solution.products || []
         }));
 
         await supabase
           .from('conversation_solutions')
           .insert(solutionsToInsert);
+          
+        console.log(`✅ Stored ${solutionsToInsert.length} solutions with Amazon product data`);
       }
     }
 

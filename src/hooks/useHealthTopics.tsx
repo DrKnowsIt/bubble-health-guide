@@ -272,34 +272,7 @@ export const useHealthTopics = ({
         
         if (includeSolutions && data.solutions) {
           const sortedSolutions = [...data.solutions].sort((a, b) => b.confidence - a.confidence);
-          
-          // Fetch product suggestions for high-confidence solutions
-          const solutionsWithProducts = await Promise.all(
-            sortedSolutions.map(async (solution) => {
-              if (solution.confidence >= 0.3) {
-                try {
-                  const { data: productData } = await supabase.functions.invoke('amazon-product-search', {
-                    body: {
-                      solutionCategory: solution.category,
-                      keywords: solution.solution.split(' ').slice(0, 3),
-                      maxResults: 3
-                    }
-                  });
-                  
-                  return {
-                    ...solution,
-                    products: productData?.products || []
-                  };
-                } catch (error) {
-                  console.error('Error fetching products for solution:', error);
-                  return solution;
-                }
-              }
-              return solution;
-            })
-          );
-          
-          setSolutions(solutionsWithProducts);
+          setSolutions(sortedSolutions);
         }
         setLastAnalyzedHash(contentHash);
       }
@@ -390,8 +363,33 @@ export const useHealthTopics = ({
           .order('confidence', { ascending: false });
 
         if (existingSolutions && existingSolutions.length > 0) {
-          const sortedSolutions = existingSolutions.sort((a, b) => b.confidence - a.confidence);
+          const sortedSolutions = existingSolutions.map(solution => {
+            let products: ProductSuggestion[] = [];
+            try {
+              if (Array.isArray(solution.products)) {
+                products = solution.products as unknown as ProductSuggestion[];
+              }
+            } catch (error) {
+              console.error('Error parsing products:', error);
+            }
+            
+            return {
+              id: solution.id,
+              solution: solution.solution,
+              confidence: solution.confidence,
+              reasoning: solution.reasoning,
+              category: solution.category,
+              updated_at: solution.updated_at,
+              products
+            };
+          }).sort((a, b) => b.confidence - a.confidence);
+          
           setSolutions(sortedSolutions);
+          console.log(`✅ Loaded ${sortedSolutions.length} existing solutions with products`);
+          
+          // Debug: Log products info
+          const solutionsWithProducts = sortedSolutions.filter(s => s.products && s.products.length > 0);
+          console.log(`🛍️ Found ${solutionsWithProducts.length} solutions with Amazon product recommendations`);
         }
       }
     } catch (error) {
