@@ -52,7 +52,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     saveMessage,
     startNewConversation,
     updateConversationTitleIfPlaceholder 
-  } = useConversationsQuery();
+  } = useConversationsQuery(selectedUser);
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
