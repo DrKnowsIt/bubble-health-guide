@@ -28,6 +28,7 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
     last_name: '',
     date_of_birth: '',
     gender: '',
+    sex: '',
     relationship: '',
     species: '',
     breed: ''
@@ -42,6 +43,7 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
       last_name: '',
       date_of_birth: '',
       gender: '',
+      sex: '',
       relationship: '',
       species: '',
       breed: ''
@@ -61,6 +63,7 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
       last_name: '',
       date_of_birth: '',
       gender: '',
+      sex: '',
       relationship: '',
       species: '',
       breed: ''
@@ -162,6 +165,18 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
   ];
 
   const petGenderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+    { value: 'unknown', label: 'Unknown' }
+  ];
+
+  const humanSexOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+    { value: 'intersex', label: 'Intersex' }
+  ];
+
+  const petSexOptions = [
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' },
     { value: 'unknown', label: 'Unknown' }
@@ -331,6 +346,26 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sex">Biological Sex</Label>
+                    <Select 
+                      value={formData.sex} 
+                      onValueChange={(value) => handleInputChange('sex', value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select biological sex (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {humanSexOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               ) : (
                 <>
@@ -393,6 +428,26 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
                       </SelectTrigger>
                       <SelectContent>
                         {petGenderOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pet_sex">Biological Sex</Label>
+                    <Select 
+                      value={formData.sex} 
+                      onValueChange={(value) => handleInputChange('sex', value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select biological sex (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {petSexOptions.map(option => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
