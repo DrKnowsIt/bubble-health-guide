@@ -7,100 +7,98 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Gem limits by subscription tier (every 3 hours)
-const GEM_LIMITS = {
-  basic: 50,
-  pro: 200,
-  enterprise: 500
-} as const;
+// Token limit before timeout (300 tokens)
+const TOKEN_LIMIT = 300;
 
-// Token to gem conversion (1000 tokens = 1 gem approximately)
-const TOKENS_PER_GEM = 1000;
+// Timeout duration in milliseconds (30 minutes)
+const TIMEOUT_DURATION = 30 * 60 * 1000;
 
-function calculateGemsFromTokens(inputTokens: number, outputTokens: number): number {
-  const totalTokens = inputTokens + outputTokens;
-  return Math.ceil(totalTokens / TOKENS_PER_GEM);
-}
-
-async function checkGemStatus(supabaseAdmin: any, userId: string): Promise<{ allowed: boolean; current_gems: number; time_until_reset?: number }> {
+async function checkTokenStatus(supabaseAdmin: any, userId: string): Promise<{ allowed: boolean; current_tokens: number; time_until_reset?: number }> {
   try {
     const { data, error } = await supabaseAdmin
-      .from('user_gems')
+      .from('user_token_limits')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
     
     if (error) {
-      console.error('Error checking gem status:', error);
-      return { allowed: false, current_gems: 0 };
+      console.error('Error checking token status:', error);
+      return { allowed: false, current_tokens: 0 };
     }
     
     if (!data) {
-      // Initialize gems for new user
-      const tierKey = 'basic' as keyof typeof GEM_LIMITS;
-      const maxGems = GEM_LIMITS[tierKey];
-      
+      // Initialize tokens for new user
       await supabaseAdmin
-        .from('user_gems')
-        .insert({
+        .from('user_token_limits')
+        .upsert({
           user_id: userId,
-          current_gems: maxGems,
-          max_gems: maxGems,
-          subscription_tier: 'basic',
-          last_reset_at: new Date().toISOString(),
-          next_reset_at: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString()
+          current_tokens: 0,
+          can_chat: true,
+          limit_reached_at: null
+        }, {
+          onConflict: 'user_id'
         });
       
-      return { allowed: true, current_gems: maxGems };
+      return { allowed: true, current_tokens: 0 };
     }
     
-    const now = new Date();
-    const nextReset = new Date(data.next_reset_at);
-    const timeUntilReset = nextReset.getTime() - now.getTime();
-    
-    // Auto-reset if time has passed
-    if (timeUntilReset <= 0) {
-      await supabaseAdmin
-        .from('user_gems')
-        .update({
-          current_gems: data.max_gems,
-          last_reset_at: now.toISOString(),
-          next_reset_at: new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString()
-        })
-        .eq('user_id', userId);
+    // Check if timeout has expired
+    if (data.limit_reached_at) {
+      const now = new Date();
+      const timeoutEnd = new Date(new Date(data.limit_reached_at).getTime() + TIMEOUT_DURATION);
+      const timeUntilReset = timeoutEnd.getTime() - now.getTime();
       
-      return { allowed: true, current_gems: data.max_gems };
+      if (timeUntilReset <= 0) {
+        // Reset the user's tokens
+        await supabaseAdmin
+          .from('user_token_limits')
+          .update({
+            current_tokens: 0,
+            can_chat: true,
+            limit_reached_at: null
+          })
+          .eq('user_id', userId);
+        
+        return { allowed: true, current_tokens: 0 };
+      }
+      
+      return {
+        allowed: false,
+        current_tokens: data.current_tokens,
+        time_until_reset: Math.max(0, timeUntilReset)
+      };
     }
     
     return {
-      allowed: data.current_gems > 0,
-      current_gems: data.current_gems,
-      time_until_reset: Math.max(0, timeUntilReset)
+      allowed: data.can_chat,
+      current_tokens: data.current_tokens,
+      time_until_reset: 0
     };
   } catch (error) {
-    console.error('Error in checkGemStatus:', error);
-    return { allowed: false, current_gems: 0 };
+    console.error('Error in checkTokenStatus:', error);
+    return { allowed: false, current_tokens: 0 };
   }
 }
 
-async function deductGems(supabaseAdmin: any, userId: string, gemsToDeduct: number): Promise<{ success: boolean; remaining_gems: number }> {
+async function addTokens(supabaseAdmin: any, userId: string, tokensToAdd: number): Promise<{ success: boolean; timeout_triggered: boolean }> {
   try {
-    const { data, error } = await supabaseAdmin.functions.invoke('deduct-gems', {
+    // Use edge function to handle token addition atomically
+    const { data, error } = await supabaseAdmin.functions.invoke('track-tokens', {
       body: {
         user_id: userId,
-        gems_to_deduct: gemsToDeduct
+        tokens_to_add: tokensToAdd
       }
     });
     
     if (error) {
-      console.error('Error deducting gems:', error);
-      return { success: false, remaining_gems: 0 };
+      console.error('Error adding tokens:', error);
+      return { success: false, timeout_triggered: false };
     }
     
     return data;
   } catch (error) {
-    console.error('Error in deductGems:', error);
-    return { success: false, remaining_gems: 0 };
+    console.error('Error in addTokens:', error);
+    return { success: false, timeout_triggered: false };
   }
 }
 
@@ -222,26 +220,25 @@ serve(async (req) => {
     const subscriptionTier = subscription?.subscription_tier || 'basic';
     const isSubscribed = subscription?.subscribed === true;
 
-    // Check gem status first
+    // Check token status first
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    const { allowed, current_gems, time_until_reset } = await checkGemStatus(supabaseAdmin, user_id);
+    const { allowed, current_tokens, time_until_reset } = await checkTokenStatus(supabaseAdmin, user_id);
     
     if (!allowed) {
-      console.log(`No gems remaining for user ${user_id}. Current gems: ${current_gems}`);
-      const hours = time_until_reset ? Math.floor(time_until_reset / (1000 * 60 * 60)) : 0;
-      const minutes = time_until_reset ? Math.floor((time_until_reset % (1000 * 60 * 60)) / (1000 * 60)) : 0;
+      console.log(`No tokens remaining for user ${user_id}. Current tokens: ${current_tokens}`);
+      const minutes = time_until_reset ? Math.ceil(time_until_reset / (1000 * 60)) : 0;
       
       return new Response(
         JSON.stringify({ 
-          error: 'No gems remaining',
-          current_gems,
+          error: 'Token limit reached',
+          current_tokens,
           time_until_reset,
           subscription_tier: subscriptionTier,
-          message: `💎 You have no gems remaining. Your gems will refill in ${hours}h ${minutes}m.`
+          message: `🤖 DrKnowsIt needs a break! Please wait ${minutes} minutes before continuing our conversation.`
         }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -778,17 +775,21 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Grok response generated successfully');
     
-    // Deduct gems after successful response
+    // Add tokens after successful response
     const inputTokens = data.usage?.prompt_tokens || message.length / 4; // Estimate if not provided
     const outputTokens = data.usage?.completion_tokens || cleanedResponse.length / 4; // Estimate if not provided
-    const gemsToDeduct = calculateGemsFromTokens(inputTokens, outputTokens);
+    const totalTokens = inputTokens + outputTokens;
     
-    console.log(`Deducting ${gemsToDeduct} gems for user ${user_id} (tokens: ${inputTokens + outputTokens})`);
+    console.log(`Adding ${totalTokens} tokens for user ${user_id}`);
     
-    const { success, remaining_gems } = await deductGems(supabaseAdmin, user_id, gemsToDeduct);
+    const { success, timeout_triggered } = await addTokens(supabaseAdmin, user_id, totalTokens);
     
     if (!success) {
-      console.warn(`Failed to deduct gems for user ${user_id}, but response was generated`);
+      console.warn(`Failed to add tokens for user ${user_id}, but response was generated`);
+    }
+    
+    if (timeout_triggered) {
+      console.log(`User ${user_id} has reached token limit and entered timeout`);
     }
     
     // Still track usage for analytics (but gems are the primary rate limiting mechanism)
@@ -815,7 +816,8 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       JSON.stringify({ 
         message: cleanedResponse,
         usage: data.usage,
-        gems_remaining: remaining_gems
+        tokens_used: totalTokens,
+        timeout_triggered: timeout_triggered
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

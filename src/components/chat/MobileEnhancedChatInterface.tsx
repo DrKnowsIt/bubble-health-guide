@@ -199,8 +199,8 @@ export const MobileEnhancedChatInterface = ({
       const hours = Math.floor((timeUntilReset || 0) / (1000 * 60 * 60));
       const minutes = Math.floor(((timeUntilReset || 0) % (1000 * 60 * 60)) / (1000 * 60));
       toast({ 
-        title: 'No gems remaining', 
-        description: `Your gems will refill in ${hours}h ${minutes}m.`,
+        title: 'Chat timeout active', 
+        description: `Please wait ${Math.ceil((timeUntilReset || 0) / (1000 * 60))} minutes before continuing.`,
         variant: 'destructive' 
       });
       return;
@@ -585,7 +585,7 @@ export const MobileEnhancedChatInterface = ({
                 
                 <div className="relative">
                   <Textarea
-                    placeholder={canChat ? "Describe your symptoms or ask a health question..." : "No gems remaining - wait for refill"}
+                    placeholder={canChat ? "Describe your symptoms or ask a health question..." : "Please wait - chat timeout active"}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
