@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
 import { useClearAllData } from "@/hooks/useClearAllData";
-import { UsageMonitoringPanel } from "@/components/UsageMonitoringPanel";
+import { TokenUsagePanel } from "@/components/TokenUsagePanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -346,7 +346,7 @@ const Settings = () => {
 
             {/* Usage Tab */}
             <TabsContent value="usage" className="space-y-6">
-              <UsageMonitoringPanel />
+              <TokenUsagePanel />
             </TabsContent>
 
             {/* Privacy Tab */}

@@ -26,9 +26,9 @@ import { RequestCooldownIndicator } from '../ui/request-cooldown-indicator';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useGemStatus } from '@/hooks/useGemStatus';
-import { GemStatusIndicator } from '../GemStatusIndicator';
-import { formatTimeUntilReset } from '@/utils/gemTracking';
+import { useTokenLimiting } from '@/hooks/useTokenLimiting';
+import { TokenStatusIndicator } from '../TokenStatusIndicator';
+import { formatTimeUntilReset, addTokens } from '@/utils/tokenLimiting';
 
 interface MobileEnhancedChatInterfaceProps {
   selectedUser?: User | null;
@@ -42,7 +42,7 @@ export const MobileEnhancedChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { canChat, currentGems, maxGems, refreshGemStatus, timeUntilReset } = useGemStatus();
+  const { canChat, currentTokens, refreshTokenStatus, timeUntilReset } = useTokenLimiting();
   
   // Request debouncing and loop prevention
   const {
@@ -279,9 +279,10 @@ export const MobileEnhancedChatInterface = ({
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
 
-      // Refresh gem status after successful response
-      if (data.gems_remaining !== undefined) {
-        refreshGemStatus();
+      // Track tokens after successful response
+      if (data.input_tokens && data.output_tokens) {
+        await addTokens(user.id, data.input_tokens + data.output_tokens);
+        refreshTokenStatus();
       }
 
       // Background operations - run without affecting typing state
@@ -545,16 +546,16 @@ export const MobileEnhancedChatInterface = ({
 
               {/* Enhanced Input Area */}
               <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
-                {/* Gem Status */}
-                <GemStatusIndicator />
+                {/* Token Status */}
+                <TokenStatusIndicator />
                 
-                {/* Chat disabled message when no gems */}
-                {!canChat && (
+                {/* Chat disabled message when timeout active */}
+                {!canChat && timeUntilReset > 0 && (
                   <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                     <div className="flex items-center gap-2 text-destructive text-sm">
-                      <span>💎</span>
+                      <span>🤖</span>
                       <span>
-                        No gems remaining. Wait {formatTimeUntilReset(timeUntilReset)} for refill.
+                        DrKnowsIt is available in {formatTimeUntilReset(timeUntilReset)}
                       </span>
                     </div>
                   </div>

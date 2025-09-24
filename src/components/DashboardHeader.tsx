@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem } from "lucide-react";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { TierStatus } from "@/components/TierStatus";
-import { useGemStatus } from "@/hooks/useGemStatus";
-import { formatTimeUntilReset } from "@/utils/gemTracking";
+import { useTokenLimiting } from "@/hooks/useTokenLimiting";
+import { formatTimeUntilReset } from "@/utils/tokenLimiting";
 interface DashboardHeaderProps {
   className?: string;
 }
@@ -24,7 +24,7 @@ export const DashboardHeader = ({
     subscription_tier,
     subscribed
   } = useSubscription();
-  const { currentGems, maxGems, canChat, timeUntilReset } = useGemStatus();
+  const { currentTokens, canChat, timeUntilReset } = useTokenLimiting();
   const location = useLocation();
   const onDashboard = location.pathname.startsWith('/dashboard');
 
@@ -79,18 +79,13 @@ export const DashboardHeader = ({
 
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Gem Status Indicator */}
-          {subscribed && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full">
-              <Gem className={`h-4 w-4 ${canChat ? 'text-primary' : 'text-destructive'}`} />
-              <span className="text-sm font-medium">
-                {currentGems}/{maxGems}
+          {/* Token Status Indicator */}
+          {!canChat && timeUntilReset > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 rounded-full border border-destructive/20">
+              <Clock className="h-4 w-4 text-destructive" />
+              <span className="text-sm font-medium text-destructive">
+                Available in {formatTimeUntilReset(timeUntilReset)}
               </span>
-              {!canChat && timeUntilReset > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  ({formatTimeUntilReset(timeUntilReset)})
-                </span>
-              )}
             </div>
           )}
           
@@ -139,19 +134,14 @@ export const DashboardHeader = ({
                 <TierStatus showUpgradeButton={true} className="text-xs" />
               </div>
               
-              {/* Mobile Gem Status */}
-              {subscribed && (
+              {/* Mobile Token Status */}
+              {!canChat && timeUntilReset > 0 && (
                 <div className="p-2 md:hidden">
                   <div className="flex items-center gap-2 text-sm">
-                    <Gem className={`h-4 w-4 ${canChat ? 'text-primary' : 'text-destructive'}`} />
-                    <span className="font-medium">
-                      {currentGems}/{maxGems} gems
+                    <Clock className="h-4 w-4 text-destructive" />
+                    <span className="font-medium text-destructive">
+                      Available in {formatTimeUntilReset(timeUntilReset)}
                     </span>
-                    {!canChat && timeUntilReset > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        (refill in {formatTimeUntilReset(timeUntilReset)})
-                      </span>
-                    )}
                   </div>
                 </div>
               )}

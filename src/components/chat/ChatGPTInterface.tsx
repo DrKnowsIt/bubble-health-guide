@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
+import { useTokenLimiting } from '@/hooks/useTokenLimiting';
+import { addTokens } from '@/utils/tokenLimiting';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
@@ -95,6 +97,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     performSolutionAnalysis,
     performMemoryAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
+  
+  // Token limiting
+  const { canChat } = useTokenLimiting();
 
   // Medical image prompts
   const { 
@@ -412,6 +417,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       toast({ title: "Select Patient", description: "Please select a patient before sending a message.", variant: "destructive" });
       return;
     }
+    
+    // Check token limits before making AI request
+    if (!canChat) {
+      toast({ 
+        title: "Chat temporarily unavailable", 
+        description: "Please wait for the timeout to expire before continuing.", 
+        variant: "destructive" 
+      });
+      return;
+    }
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
@@ -518,6 +533,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       // Save AI message
       if (user && conversationId) {
         await saveMessage(conversationId, 'ai', aiMessage.content);
+      }
+      
+      // Track tokens after successful response
+      if (data.input_tokens && data.output_tokens && user?.id) {
+        await addTokens(user.id, data.input_tokens + data.output_tokens);
       }
 
       // Check for AI image suggestion or trigger based on user message

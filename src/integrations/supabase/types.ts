@@ -1283,37 +1283,31 @@ export type Database = {
         }
         Relationships: []
       }
-      user_gems: {
+      user_token_limits: {
         Row: {
+          can_chat: boolean
           created_at: string
-          current_gems: number
+          current_tokens: number
           id: string
-          last_reset_at: string
-          max_gems: number
-          next_reset_at: string
-          subscription_tier: string
+          limit_reached_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          can_chat?: boolean
           created_at?: string
-          current_gems?: number
+          current_tokens?: number
           id?: string
-          last_reset_at?: string
-          max_gems?: number
-          next_reset_at?: string
-          subscription_tier?: string
+          limit_reached_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          can_chat?: boolean
           created_at?: string
-          current_gems?: number
+          current_tokens?: number
           id?: string
-          last_reset_at?: string
-          max_gems?: number
-          next_reset_at?: string
-          subscription_tier?: string
+          limit_reached_at?: string | null
           updated_at?: string
           user_id?: string
         }
