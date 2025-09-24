@@ -417,26 +417,6 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="pet_gender">Gender</Label>
-                    <Select 
-                      value={formData.gender} 
-                      onValueChange={(value) => handleInputChange('gender', value)}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {petGenderOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="pet_sex">Biological Sex</Label>
                     <Select 
                       value={formData.sex} 
