@@ -1095,6 +1095,7 @@ export type Database = {
           last_name: string
           probable_diagnoses: Json | null
           relationship: string
+          sex: string | null
           species: string | null
           updated_at: string
           user_id: string
@@ -1111,6 +1112,7 @@ export type Database = {
           last_name: string
           probable_diagnoses?: Json | null
           relationship?: string
+          sex?: string | null
           species?: string | null
           updated_at?: string
           user_id: string
@@ -1127,6 +1129,7 @@ export type Database = {
           last_name?: string
           probable_diagnoses?: Json | null
           relationship?: string
+          sex?: string | null
           species?: string | null
           updated_at?: string
           user_id?: string

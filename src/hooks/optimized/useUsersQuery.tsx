@@ -19,6 +19,7 @@ export interface User {
   last_name: string;
   date_of_birth?: string;
   gender?: string;
+  sex?: string;
   relationship: string;
   is_primary: boolean;
   is_pet?: boolean;
@@ -34,6 +35,7 @@ export interface CreateUserData {
   last_name: string;
   date_of_birth?: string;
   gender?: string;
+  sex?: string;
   relationship: string;
   is_primary?: boolean;
   is_pet?: boolean;

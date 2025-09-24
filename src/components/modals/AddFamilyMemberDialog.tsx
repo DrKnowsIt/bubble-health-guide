@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useUsersQuery } from '@/hooks/optimized/useUsersQuery';
+import { useUsersQuery, CreateUserData } from '@/hooks/optimized/useUsersQuery';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Dog, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,11 +110,12 @@ export const AddFamilyMemberDialog = ({ open, onOpenChange }: AddFamilyMemberDia
     setIsSubmitting(true);
 
     try {
-      const userData = {
+      const userData: CreateUserData = {
         first_name: formData.first_name,
         last_name: memberType === 'pet' ? '' : formData.last_name,
         date_of_birth: formData.date_of_birth && formData.date_of_birth.trim() !== '' ? formData.date_of_birth : null,
         gender: formData.gender || null,
+        sex: formData.sex || null,
         relationship: memberType === 'pet' ? 'pet' : formData.relationship,
         is_primary: false,
         is_pet: memberType === 'pet',
