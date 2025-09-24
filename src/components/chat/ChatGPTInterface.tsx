@@ -898,54 +898,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
           <div className="max-w-4xl mx-auto p-4">
-            {/* Unified Analysis progress indicator */}
-            {selectedUser && currentConversation && (
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
-                <div className="flex items-center gap-2">
-                  {analysisState.isAnalyzing ? (
-                    <>
-                      <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full"></div>
-                      <span>{analysisState.currentStage || "Analyzing conversation..."}</span>
-                    </>
-                  ) : analysisState.messagesUntilAnalysis === 0 ? (
-                    <span>⚡ Next analysis: now</span>
-                  ) : analysisState.messagesUntilDeepAnalysis === 0 ? (
-                    <span>🔬 Deep analysis: now</span>
-                  ) : (
-                    <span>
-                      🔍 Next analysis in {analysisState.messagesUntilAnalysis} message{analysisState.messagesUntilAnalysis !== 1 ? 's' : ''}
-                      {analysisState.messagesUntilDeepAnalysis <= 4 && (
-                        <span className="ml-2">🔬 Deep in {analysisState.messagesUntilDeepAnalysis}</span>
-                      )}
-                    </span>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleManualAnalysis}
-                  disabled={analysisState.isAnalyzing || !selectedUser || !currentConversation || messages.length < 2}
-                  className="h-6 px-2 text-xs flex items-center gap-1"
-                >
-                  {analysisState.isAnalyzing ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      {analysisState.currentStage || "Analyzing..."}
-                    </>
-                  ) : analysisState.queueStatus && analysisState.queueStatus.queuedCount > 0 ? (
-                    <>
-                      <Clock className="h-3 w-3" />
-                      Queued ({analysisState.queueStatus.queuedCount})
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-3 w-3" />
-                      Analyze Now
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
             
             {/* Medical Image Prompt */}
             {currentPrompt && currentPrompt.isVisible && (
