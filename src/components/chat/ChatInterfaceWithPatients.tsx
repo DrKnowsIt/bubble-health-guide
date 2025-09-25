@@ -157,11 +157,17 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   // Critical: Force clear messages when switching to users with no conversations
   useEffect(() => {
     if (selectedUser && conversations !== undefined) {
+      console.log('[ChatInterface] User switch detected:', { 
+        userId: selectedUser.id, 
+        conversationCount: conversations.length,
+        currentConv: currentConversation 
+      });
+      
       // If user has no conversations, force clear all state
       if (conversations.length === 0) {
         console.log('[ChatInterface] User has no conversations, force clearing all state');
         setMessages([]);
-        startNewConversation();
+        startNewConversation(); // This clears currentConversation
         setMessageAnalysis({});
         setInputValue('');
         setPendingImageUrl(null);
@@ -174,7 +180,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
         if (!belongsToUser) {
           console.log('[ChatInterface] Current conversation does not belong to selected user, clearing');
           setMessages([]);
-          startNewConversation();
+          startNewConversation(); // This clears currentConversation
           setMessageAnalysis({});
         }
       }
