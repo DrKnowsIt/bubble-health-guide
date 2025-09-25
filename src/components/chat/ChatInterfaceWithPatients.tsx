@@ -170,6 +170,20 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       if (!currentConv) {
         console.log('[ChatInterface] Current conversation not found in conversations list, forcing new conversation');
         startNewConversation();
+      } else {
+        // Additional validation: ensure conversation belongs to current selected user
+        const belongsToCurrentUser = currentConv.patient_id === selectedUser.id;
+        if (!belongsToCurrentUser) {
+          console.error('[ChatInterface] SECURITY ISSUE: Current conversation belongs to different user! Clearing conversation.');
+          console.error('[ChatInterface] Conversation patient_id:', currentConv.patient_id, 'Selected user id:', selectedUser.id);
+          startNewConversation();
+          toast({
+            title: "Session Reset",
+            description: "Your chat session has been reset for security reasons.",
+            variant: "default"
+          });
+          return;
+        }
       }
     }
 
@@ -379,10 +393,24 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   const handleUserSelect = (user: User | null) => {
     console.log('[ChatInterface] User selection changed:', user ? `${user.first_name} ${user.last_name} (${user.id})` : 'null');
     
+    // Validate current conversation belongs to new user before switching
+    if (currentConversation && user) {
+      const currentConv = conversations.find(c => c.id === currentConversation);
+      if (currentConv) {
+        // Check if conversation belongs to the new user
+        const belongsToNewUser = !user || currentConv.patient_id === user.id;
+        if (!belongsToNewUser) {
+          console.log('[ChatInterface] Current conversation does not belong to new user, clearing it');
+          startNewConversation();
+        }
+      }
+    }
+    
     // Immediately clear all conversation-related state to prevent cross-user contamination
     setMessages([]);
     setInputValue('');
     setPendingImageUrl(null);
+    setMessageAnalysis({});
     
     // Force conversation reset when switching users to avoid context mixing
     startNewConversation();
@@ -398,7 +426,8 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     console.log('[ChatInterface] Complete state reset for user switch:', {
       newUser: user ? `${user.first_name} ${user.last_name}` : 'none',
       messagesCleared: true,
-      conversationReset: true
+      conversationReset: true,
+      analysisCleared: true
     });
   };
 

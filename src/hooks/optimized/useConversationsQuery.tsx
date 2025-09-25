@@ -18,6 +18,7 @@ export interface Conversation {
   title: string;
   created_at: string;
   updated_at: string;
+  patient_id?: string | null;
 }
 
 const CONVERSATIONS_QUERY_KEY = 'conversations';
@@ -29,6 +30,34 @@ export const useConversationsQuery = (selectedUser?: any) => {
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
 
+  // Clear conversation state when user changes to prevent cross-contamination
+  useEffect(() => {
+    console.log('🔄 User changed in useConversationsQuery:', selectedUser?.id);
+    
+    // Clear current conversation if it doesn't belong to the new user
+    if (currentConversation && selectedUser?.id) {
+      const currentConv = conversations.find(c => c.id === currentConversation);
+      if (currentConv && !conversations.some(c => c.id === currentConversation)) {
+        console.log('🚫 Clearing conversation that doesn\'t belong to current user');
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+    } else if (currentConversation && !selectedUser?.id) {
+      // If no user selected, clear conversation
+      console.log('🚫 Clearing conversation - no user selected');
+      setCurrentConversation(null);
+      setMessages([]);
+    }
+    
+    // Invalidate all conversation-related cache for clean state
+    queryClient.invalidateQueries({ 
+      queryKey: [CONVERSATIONS_QUERY_KEY] 
+    });
+    queryClient.invalidateQueries({ 
+      queryKey: [MESSAGES_QUERY_KEY] 
+    });
+  }, [selectedUser?.id]);
+
   // Fetch conversations with caching
   const {
     data: conversations = [],
@@ -37,7 +66,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
   } = useQuery({
     queryKey: [CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id],
     queryFn: async (): Promise<Conversation[]> => {
-      if (!user) return [];
+      if (!user) {
+        console.log('🚫 No user available for conversations query');
+        return [];
+      }
+      
+      console.log('🔍 Fetching conversations for user:', user.id, 'patient:', selectedUser?.id);
       
       let query = supabase
         .from('conversations')
@@ -51,8 +85,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
       }
       
       const { data, error } = await query.order('updated_at', { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching conversations:', error);
+        throw error;
+      }
       
+      console.log('✅ Fetched conversations:', data?.length || 0, 'conversations');
       return data || [];
     },
     enabled: !!user,
@@ -302,8 +340,16 @@ export const useConversationsQuery = (selectedUser?: any) => {
   }, [currentConversation]);
 
   const selectConversation = useCallback((conversationId: string) => {
+    // Validate that the conversation belongs to the current user/patient combination
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) {
+      console.warn('🚫 Cannot select conversation - not found in current conversations list:', conversationId);
+      return;
+    }
+    
+    console.log('✅ Selecting conversation:', conversationId, 'for user:', user?.id, 'patient:', selectedUser?.id);
     setCurrentConversation(conversationId);
-  }, []);
+  }, [conversations, user?.id, selectedUser?.id]);
 
   const startNewConversation = useCallback(() => {
     setCurrentConversation(null);
@@ -316,7 +362,14 @@ export const useConversationsQuery = (selectedUser?: any) => {
       return;
     }
 
-    console.log('🔄 Setting up real-time conversation subscription');
+    console.log('🔄 Setting up real-time conversation subscription for user:', user.id, 'selectedUser:', selectedUser?.id);
+    
+    let filter = `user_id=eq.${user.id}`;
+    if (selectedUser?.id) {
+      filter += `&patient_id=eq.${selectedUser.id}`;
+    } else {
+      filter += `&patient_id=is.null`;
+    }
     
     const channel = supabase
       .channel('conversations_changes')
@@ -326,12 +379,14 @@ export const useConversationsQuery = (selectedUser?: any) => {
           event: '*',
           schema: 'public',
           table: 'conversations',
-          filter: `user_id=eq.${user.id}`
+          filter: filter
         },
         (payload) => {
-          console.log('📡 Conversation change:', payload);
+          console.log('📡 Conversation change for user/patient:', { user: user.id, patient: selectedUser?.id }, payload);
+          
+          // Only invalidate queries for the current user/patient combination
           queryClient.invalidateQueries({ 
-            queryKey: ['conversations', user.id, selectedUser] 
+            queryKey: [CONVERSATIONS_QUERY_KEY, user.id, selectedUser?.id] 
           });
         }
       )
@@ -341,7 +396,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       console.log('🔌 Cleaning up conversation subscription');
       supabase.removeChannel(channel);
     };
-  }, [user?.id, selectedUser, queryClient]);
+  }, [user?.id, selectedUser?.id, queryClient]);
 
   // Real-time subscription for messages
   useEffect(() => {
