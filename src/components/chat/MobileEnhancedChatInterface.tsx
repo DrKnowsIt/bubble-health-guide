@@ -341,6 +341,15 @@ export const MobileEnhancedChatInterface = ({
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+
+      // Handle token limit timeout (429 status)
+      if (error?.status === 429) {
+        // Refresh token status to update UI
+        refreshTokenStatus();
+        // Don't show an error toast - the UI will show the timeout notification
+        return;
+      }
+
       const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
         ? 'This feature requires a Pro subscription. Please upgrade to continue.'
         : 'Failed to send message. Please try again.';

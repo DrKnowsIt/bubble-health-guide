@@ -18,6 +18,7 @@ import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmationModal';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useTokenLimiting } from '@/hooks/useTokenLimiting';
 
 interface TabletChatInterfaceProps {
   selectedUser?: User | null;
@@ -31,6 +32,7 @@ export const TabletChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
+  const { canChat, refreshTokenStatus } = useTokenLimiting();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -238,6 +240,15 @@ export const TabletChatInterface = ({
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+
+      // Handle token limit timeout (429 status)
+      if (error?.status === 429) {
+        // Refresh token status to update UI
+        refreshTokenStatus();
+        // Don't show an error toast - the UI will show the timeout notification
+        return;
+      }
+
       const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
         ? 'This feature requires a Pro subscription. Please upgrade to continue.'
         : 'Failed to send message. Please try again.';

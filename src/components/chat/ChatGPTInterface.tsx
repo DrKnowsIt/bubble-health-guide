@@ -22,6 +22,7 @@ import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageC
 import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
+import { TokenTimeoutNotification } from "@/components/chat/TokenTimeoutNotification";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -99,7 +100,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
   
   // Token limiting
-  const { canChat } = useTokenLimiting();
+  const { canChat, refreshTokenStatus } = useTokenLimiting();
 
   // Medical image prompts
   const { 
@@ -613,7 +614,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
 
-      if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
+      // Handle token limit timeout (429 status)
+      if (error?.status === 429) {
+        // Refresh token status to update UI
+        if (refreshTokenStatus) {
+          refreshTokenStatus();
+        }
+        
+        // Don't add an error message for token limits - the UI will show the timeout notification
+        return;
+      } else if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
         errorContent = 'AI Chat is a Pro feature. Upgrade to continue.';
         toast({
           title: 'Pro plan required',
@@ -797,6 +807,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   </div>
                 )}
 
+                {/* Token Timeout Notification - Show prominently in chat */}
+                {!canChat && (
+                  <TokenTimeoutNotification />
+                )}
+
                 {messages.map((message) => (
                   <div key={message.id}>
                     <div
@@ -930,12 +945,18 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
-                  placeholder={subscribed ? "Message DrKnowsIt..." : "Subscribe to start chatting..."}
+                  placeholder={
+                    !subscribed 
+                      ? "Subscribe to start chatting..." 
+                      : !canChat 
+                        ? "Chat unavailable - DrKnowsIt is taking a break..." 
+                        : "Message DrKnowsIt..."
+                  }
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="text-base border-2 border-border bg-background focus:border-primary rounded-xl px-4 py-3 h-auto"
-                  disabled={!subscribed}
+                  disabled={!subscribed || !canChat}
                 />
               </div>
 
@@ -943,7 +964,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
               <Button 
                 onClick={() => handleSendMessage()}
-                disabled={(!inputValue.trim() && !pendingAttachment) || !subscribed}
+                disabled={(!inputValue.trim() && !pendingAttachment) || !subscribed || !canChat}
                 size="lg"
                 className="rounded-xl px-4"
               >
