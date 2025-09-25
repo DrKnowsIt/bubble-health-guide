@@ -22,7 +22,6 @@ import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
 import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
-import { TokenUsageIndicator } from "@/components/TokenUsageIndicator";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -907,8 +906,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           </div>
         </div>
 
-        {/* Token Usage and Timeout Notifications - Show at bottom */}
-        <TokenUsageIndicator />
+        {/* Token Timeout Notification */}
         <SimpleTokenTimeoutNotification />
 
         {/* Input Area - Fixed at bottom */}
