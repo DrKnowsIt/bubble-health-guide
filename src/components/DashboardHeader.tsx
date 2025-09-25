@@ -79,15 +79,6 @@ export const DashboardHeader = ({
 
         {/* Actions Section */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Token Status Indicator */}
-          {!canChat && timeUntilReset > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 rounded-full border border-destructive/20">
-              <Clock className="h-4 w-4 text-destructive" />
-              <span className="text-sm font-medium text-destructive">
-                Available in {formatTimeUntilReset(timeUntilReset)}
-              </span>
-            </div>
-          )}
           
           {/* Enhanced Tier Status */}
           <TierStatus showUpgradeButton={true} className="hidden md:flex" />
@@ -134,17 +125,6 @@ export const DashboardHeader = ({
                 <TierStatus showUpgradeButton={true} className="text-xs" />
               </div>
               
-              {/* Mobile Token Status */}
-              {!canChat && timeUntilReset > 0 && (
-                <div className="p-2 md:hidden">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-destructive" />
-                    <span className="font-medium text-destructive">
-                      Available in {formatTimeUntilReset(timeUntilReset)}
-                    </span>
-                  </div>
-                </div>
-              )}
               <DropdownMenuSeparator className="md:hidden" />
               {!onDashboard && (
                 <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
