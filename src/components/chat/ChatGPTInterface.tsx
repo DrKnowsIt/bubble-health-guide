@@ -100,7 +100,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
   
   // Token limiting
-  const { canChat, refreshTokenStatus } = useTokenLimiting();
+  const { canChat, refreshTokenStatus, timeUntilReset, loading: tokenLoading } = useTokenLimiting();
 
   // Medical image prompts
   const { 
@@ -808,9 +808,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 )}
 
                 {/* Token Timeout Notification - Show prominently in chat */}
-                {!canChat && (
-                  <TokenTimeoutNotification />
-                )}
+                <TokenTimeoutNotification />
 
                 {messages.map((message) => (
                   <div key={message.id}>
