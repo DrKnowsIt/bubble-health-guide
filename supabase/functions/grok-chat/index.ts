@@ -426,18 +426,38 @@ PATIENT PROFILE:
 - Relationship: ${patient.relationship}
 - Primary User: ${patient.is_primary ? 'Yes' : 'No'}`;
 
-      // Build health records context using filtered records (token-optimized)
+      // Build health records context using filtered records (optimized but not overly limited)
       let healthRecordsText = '\n\nHEALTH RECORDS:';
       if (filteredHealthRecords?.length) {
         healthRecordsText += `\n- ${filteredHealthRecords.length} records available`;
-        // Only include essential summaries for top 3 most recent records to reduce tokens
-        filteredHealthRecords.slice(0, 3).forEach(record => {
-          healthRecordsText += `\n- ${record.title} (${new Date(record.created_at).toLocaleDateString()})`;
-          // Limit data to 50 chars to drastically reduce token usage
-          if (record.data) {
-            const dataStr = JSON.stringify(record.data).substring(0, 50);
-            healthRecordsText += ` - ${dataStr}${dataStr.length >= 50 ? '...' : ''}`;
-          }
+        
+        // Balanced context for health records - not too limited but not overwhelming
+        const contextHealthRecords = filteredHealthRecords
+          .slice(0, 8) // Increased from 3 to 8 for better context
+          .map(record => {
+            const dataString = typeof record.data === 'string' 
+              ? record.data 
+              : JSON.stringify(record.data);
+            
+            // Smart summarization: keep important details, reduce repetitive content
+            let summary = dataString;
+            if (dataString.length > 200) {
+              // Extract key information patterns
+              const keyPatterns = /(?:symptoms?|diagnosis|medication|test|result|finding|concern|pain|issue|problem|treatment)[^.]*\./gi;
+              const keyInfo = dataString.match(keyPatterns)?.slice(0, 3).join(' ') || '';
+              summary = keyInfo || dataString.substring(0, 200) + '...';
+            }
+            
+            return {
+              type: record.record_type,
+              title: record.title,
+              summary,
+              date: new Date(record.created_at).toLocaleDateString()
+            };
+          });
+
+        contextHealthRecords.forEach(record => {
+          healthRecordsText += `\n- ${record.title} (${record.date}) - ${record.summary}`;
         });
         
         if (filteredHealthRecords.length > 3) {

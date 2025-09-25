@@ -30,14 +30,21 @@ export const ComprehensiveHealthReport: React.FC<ComprehensiveHealthReportProps>
     isReportOutdated
   } = useComprehensiveHealthReport(selectedUser);
 
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = async (forceRegeneration = false) => {
     try {
-      await generateReport();
-      toast.success('Comprehensive health report generated successfully');
+      const result = await generateReport(forceRegeneration);
+      if (result?.cached) {
+        toast.success('Health report is up to date - using cached version');
+      } else {
+        toast.success('Comprehensive health report generated successfully');
+      }
     } catch (error) {
       toast.error('Failed to generate health report');
     }
   };
+
+  const handleSmartUpdate = () => handleGenerateReport(false);
+  const handleForceRefresh = () => handleGenerateReport(true);
 
   if (loading) {
     return (
@@ -67,7 +74,7 @@ export const ComprehensiveHealthReport: React.FC<ComprehensiveHealthReportProps>
               No comprehensive health report available yet.
             </p>
             <Button 
-              onClick={handleGenerateReport} 
+              onClick={() => handleGenerateReport(false)} 
               disabled={generating}
               className="gap-2"
             >
@@ -102,7 +109,7 @@ export const ComprehensiveHealthReport: React.FC<ComprehensiveHealthReportProps>
             <Button
               variant="outline"
               size="sm"
-              onClick={handleGenerateReport}
+              onClick={handleSmartUpdate}
               disabled={generating}
               className="gap-2"
             >

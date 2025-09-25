@@ -44,6 +44,60 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
 
+  const checkIfReportNeedsRegeneration = useCallback(async (existingReport: ComprehensiveHealthReport) => {
+    if (!user) return true;
+    
+    const reportDate = new Date(existingReport.updated_at);
+    
+    try {
+      // Check for newer health records
+      const { data: newHealthRecords } = await supabase
+        .from('health_records')
+        .select('updated_at')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedUser?.id || null)
+        .gte('updated_at', reportDate.toISOString())
+        .limit(1);
+
+      if (newHealthRecords && newHealthRecords.length > 0) {
+        console.log('Found newer health records since last report');
+        return true;
+      }
+
+      // Check for new conversations/messages
+      const { data: newMessages } = await supabase
+        .from('messages')
+        .select('created_at')
+        .gte('created_at', reportDate.toISOString())
+        .limit(1);
+
+      if (newMessages && newMessages.length > 0) {
+        console.log('Found newer messages since last report');
+        return true;
+      }
+
+      // Check for updated conversation memory
+      const { data: newMemory } = await supabase
+        .from('conversation_memory')
+        .select('updated_at')
+        .eq('user_id', user.id)
+        .eq('patient_id', selectedUser?.id || null)
+        .gte('updated_at', reportDate.toISOString())
+        .limit(1);
+
+      if (newMemory && newMemory.length > 0) {
+        console.log('Found newer conversation memory since last report');
+        return true;
+      }
+
+      console.log('No new data found, existing report is current');
+      return false;
+    } catch (error) {
+      console.error('Error checking report freshness:', error);
+      return true; // Err on the side of regeneration
+    }
+  }, [user?.id, selectedUser?.id]);
+
   const fetchReport = useCallback(async () => {
     if (!user) {
       setReport(null);
@@ -78,11 +132,21 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
     }
   }, [user?.id, selectedUser?.id]);
 
-  const generateReport = async () => {
+  const generateReport = async (forceRegeneration = false) => {
     if (!user || generating) return;
+
+    // Check if we have an existing report and whether it needs regeneration
+    if (!forceRegeneration && report) {
+      const needsRegeneration = await checkIfReportNeedsRegeneration(report);
+      if (!needsRegeneration) {
+        console.log('Report is current, skipping regeneration');
+        return { report, cached: true };
+      }
+    }
 
     setGenerating(true);
     try {
+      console.log('Generating new comprehensive health report...');
       const { data, error } = await supabase.functions.invoke('generate-comprehensive-health-report', {
         body: {
           patient_id: selectedUser?.id || null
@@ -97,7 +161,7 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
       // Refresh the report after generation
       await fetchReport();
       
-      return data;
+      return { data, cached: false };
     } catch (error) {
       console.error('Error in generateReport:', error);
       throw error;
@@ -137,16 +201,21 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
     }
   }, []);
 
-  const isReportOutdated = () => {
+  const isReportOutdated = useCallback(async () => {
     if (!report) return true;
     
+    // First check age-based staleness (7 days)
     const reportDate = new Date(report.updated_at);
     const now = new Date();
     const daysDiff = (now.getTime() - reportDate.getTime()) / (1000 * 3600 * 24);
     
-    // Consider report outdated if it's more than 7 days old
-    return daysDiff > 7;
-  };
+    if (daysDiff > 7) {
+      return true; // Report is too old
+    }
+    
+    // Then check if source data has changed
+    return await checkIfReportNeedsRegeneration(report);
+  }, [report, checkIfReportNeedsRegeneration]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -169,6 +238,7 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
     refetch: fetchReport,
     getStatusColor,
     getPriorityColor,
-    isReportOutdated
+    isReportOutdated,
+    checkIfReportNeedsRegeneration
   };
 };
