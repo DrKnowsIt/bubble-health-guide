@@ -807,9 +807,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   </div>
                 )}
 
-                {/* Token Timeout Notification - Show prominently in chat */}
-                <TokenTimeoutNotification />
-
                 {messages.map((message) => (
                   <div key={message.id}>
                     <div
@@ -907,6 +904,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             </div>
           </div>
         </div>
+
+        {/* Token Timeout Notification - Show at bottom */}
+        <TokenTimeoutNotification />
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">

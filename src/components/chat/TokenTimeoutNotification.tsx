@@ -14,33 +14,19 @@ export const TokenTimeoutNotification = () => {
 
   return (
     <div className={cn(
-      "flex items-start gap-3 p-4 mx-4 mb-4 rounded-lg",
-      "bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200",
-      "dark:from-orange-950/20 dark:to-red-950/20 dark:border-orange-800/30"
+      "flex items-center gap-2 p-3 mx-4 mb-2 rounded-lg",
+      "bg-muted/50 border border-border",
     )}>
-      <div className="flex-shrink-0 mt-1">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30">
-          <Bot className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+      <div className="flex-shrink-0">
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted">
+          <Clock className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-          <h3 className="font-medium text-orange-900 dark:text-orange-100">
-            🤖 DrKnowsIt is available to chat in {formatTimeUntilReset(timeUntilReset)}
-          </h3>
-        </div>
-        
-        <p className="text-sm text-orange-700 dark:text-orange-200 leading-relaxed">
-          I've processed {TOKEN_LIMIT} tokens and need a 30-minute break to recharge. 
-          This helps ensure I can provide quality responses for all users. 
-          Your conversation will be saved and I'll be ready to continue soon!
+        <p className="text-xs text-muted-foreground">
+          DrKnowsIt needs {formatTimeUntilReset(timeUntilReset)} to recharge. Your conversation is saved.
         </p>
-        
-        <div className="mt-3 text-xs text-orange-600 dark:text-orange-300">
-          💡 <strong>Tip:</strong> Use this time to review our previous conversation or explore your health insights in the sidebar.
-        </div>
       </div>
     </div>
   );
