@@ -169,11 +169,17 @@ export const useTokenTimeout = () => {
       localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
       setTimeoutState({ isInTimeout: false, timeUntilReset: 0, timeoutEndTimestamp: null });
       
-      console.log('✅ [useTokenTimeout] Timeout cleared successfully');
+      console.log('✅ [useTokenTimeout] Timeout cleared successfully, forcing immediate re-check');
+      
+      // Force immediate re-check of database state to ensure sync
+      setTimeout(() => {
+        checkDatabaseTimeout();
+      }, 100);
+      
     } catch (error) {
       console.error('❌ [useTokenTimeout] Error clearing timeout:', error);
     }
-  }, [user?.id]);
+  }, [user?.id, checkDatabaseTimeout]);
 
   // Check stored timeout on load and user change
   useEffect(() => {

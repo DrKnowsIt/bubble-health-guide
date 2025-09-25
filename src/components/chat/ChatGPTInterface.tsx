@@ -421,7 +421,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
     
     // Check if in timeout before making AI request
+    console.log('🔍 [ChatGPTInterface] Pre-send timeout check:', { isInTimeout, timeUntilReset });
     if (isInTimeout) {
+      console.log('❌ [ChatGPTInterface] Message blocked due to timeout');
       toast({ 
         title: "Chat temporarily unavailable", 
         description: "Please wait for the timeout to expire before continuing.", 
@@ -429,6 +431,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       });
       return;
     }
+    console.log('✅ [ChatGPTInterface] Timeout check passed, proceeding with message');
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
