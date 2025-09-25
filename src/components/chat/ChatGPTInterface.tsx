@@ -614,8 +614,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
 
-      // Handle token limit timeout (429 status)
-      if (error?.status === 429) {
+      // Handle token limit timeout (429 status or token limit message)
+      if (error?.status === 429 || error?.message?.includes('tokens remaining') || error?.message?.includes('token limit')) {
         // Refresh token status to update UI
         if (refreshTokenStatus) {
           refreshTokenStatus();

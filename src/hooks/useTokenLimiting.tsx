@@ -47,16 +47,8 @@ export const useTokenLimiting = () => {
     return () => clearInterval(interval);
   }, [user?.id, refreshTokenStatus]);
 
-  // Show toast when timeout is triggered
-  useEffect(() => {
-    if (tokenStatus && !tokenStatus.can_chat && tokenStatus.time_until_reset) {
-      const minutes = Math.ceil(tokenStatus.time_until_reset / (1000 * 60));
-      toast.error('🤖 DrKnowsIt needs a break!', {
-        description: `Please wait ${minutes} minutes before continuing our conversation.`,
-        duration: 8000,
-      });
-    }
-  }, [tokenStatus?.can_chat]);
+  // Token status changes are handled by individual chat interfaces
+  // No global toast notifications needed
 
   return {
     tokenStatus,

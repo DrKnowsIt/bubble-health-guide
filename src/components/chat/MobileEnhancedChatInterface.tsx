@@ -342,8 +342,8 @@ export const MobileEnhancedChatInterface = ({
         return;
       }
 
-      // Handle token limit timeout (429 status)
-      if (error?.status === 429) {
+      // Handle token limit timeout (429 status or token limit message)
+      if (error?.status === 429 || error?.message?.includes('tokens remaining') || error?.message?.includes('token limit')) {
         // Refresh token status to update UI
         refreshTokenStatus();
         // Don't show an error toast - the UI will show the timeout notification
