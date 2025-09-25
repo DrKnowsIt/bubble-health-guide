@@ -347,22 +347,27 @@ export default function UserDashboard() {
            {selectedUser && hasAccess('basic') && !isMobile && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                 <Button
-                   onClick={exportToPDF}
-                   size="sm"
-                   variant="outline"
+                  <Button
+                    onClick={exportToPDF}
+                    size="sm"
+                    variant="outline"
                     className={cn(
-                      "h-8 bg-teal-500 border-teal-500 text-white hover:bg-teal-600 hover:border-teal-600 rounded-full transition-all duration-300",
-                      // Shimmer when there's enough data from active unresolved session (high confidence diagnoses + substantial conversation)
+                      "h-8 relative overflow-hidden rounded-full transition-all duration-300",
+                      "bg-gradient-to-r from-teal-600 via-teal-500 to-teal-600 bg-[length:200%_100%]",
+                      "border-teal-400 text-white shadow-lg",
+                      "hover:from-teal-700 hover:via-teal-600 hover:to-teal-700 hover:shadow-xl",
+                      "animate-shimmer",
+                      "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer",
+                      // Enhanced shimmer when there's enough data
                       (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
                        messages.length >= 10 && 
                        !analysisLoading && hasHealthData)
-                        ? "animate-shimmer border-green-500 bg-gradient-to-r from-green-500 via-green-400 to-green-500 bg-[length:200%_100%] hover:from-green-600 hover:via-green-500 hover:to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)] ring-2 ring-green-400/30"
-                        : ""
+                        ? "shadow-[0_0_20px_rgba(20,184,166,0.6)] ring-2 ring-teal-400/50"
+                        : "shadow-[0_0_10px_rgba(20,184,166,0.3)]"
                     )}
-                   aria-label="Export medical report"
-                   disabled={analysisLoading || !hasHealthData}
-                 >
+                    aria-label="Export medical report"
+                    disabled={analysisLoading || !hasHealthData}
+                  >
                    {analysisLoading ? (
                      <>
                        <Loader2 className="h-3 w-3 animate-spin mr-2" />
