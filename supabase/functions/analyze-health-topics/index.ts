@@ -190,7 +190,7 @@ ENHANCED CONFIDENCE CALIBRATION:
       // Use provided memory data
       if (memory_data?.memories && memory_data.memories.length > 0) {
         memoryContext = '\n\nPATIENT CONVERSATION MEMORY:\n' + 
-          memory_data.memories.map(m => {
+          memory_data.memories.map((m: any) => {
             const summary = m.summary || '';
             const memory = typeof m.memory === 'object' ? JSON.stringify(m.memory) : m.memory || '';
             return `${summary}\nDetails: ${memory.substring(0, 300)}`;
@@ -200,7 +200,7 @@ ENHANCED CONFIDENCE CALIBRATION:
       // Use provided insights
       if (memory_data?.insights && memory_data.insights.length > 0) {
         memoryContext += '\n\nEXTRACTED INSIGHTS:\n' + 
-          memory_data.insights.map(insight => {
+          memory_data.insights.map((insight: any) => {
             return `${insight.category || 'General'}: ${insight.key} = ${insight.value}`;
           }).join('\n');
       }
@@ -211,17 +211,17 @@ ENHANCED CONFIDENCE CALIBRATION:
         
         if (strategic_context.priorities && strategic_context.priorities.length > 0) {
           strategicContextText += 'Health Data Priorities:\n' +
-            strategic_context.priorities.map(p => `- ${p.data_type}: ${p.priority_level} priority`).join('\n');
+            strategic_context.priorities.map((p: any) => `- ${p.data_type}: ${p.priority_level} priority`).join('\n');
         }
 
         if (strategic_context.doctorNotes && strategic_context.doctorNotes.length > 0) {
           strategicContextText += '\n\nDoctor Notes:\n' +
-            strategic_context.doctorNotes.map(note => `${note.note_type}: ${note.title}\n${note.content.substring(0, 200)}`).join('\n\n');
+            strategic_context.doctorNotes.map((note: any) => `${note.note_type}: ${note.title}\n${note.content.substring(0, 200)}`).join('\n\n');
         }
 
         if (strategic_context.summaries && strategic_context.summaries.length > 0) {
           strategicContextText += '\n\nHealth Record Summaries:\n' +
-            strategic_context.summaries.map(summary => `${summary.priority_level} Priority: ${summary.summary_text.substring(0, 150)}`).join('\n');
+            strategic_context.summaries.map((summary: any) => `${summary.priority_level} Priority: ${summary.summary_text.substring(0, 150)}`).join('\n');
         }
       }
     }
@@ -508,7 +508,7 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
         
       } catch (error) {
         console.error(`OpenAI API call failed (attempt ${retryCount + 1}):`, error);
-        if (retryCount < 2 && error.message.includes('fetch')) {
+        if (retryCount < 2 && error instanceof Error && error.message.includes('fetch')) {
           const delayMs = Math.pow(2, retryCount) * 1000;
           console.log(`Retrying OpenAI call due to network error in ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
@@ -723,7 +723,7 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
     console.error('Error in analyze-health-topics:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         topics: [],
         solutions: [],
         testing_recommendations: []

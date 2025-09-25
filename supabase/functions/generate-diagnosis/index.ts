@@ -66,7 +66,7 @@ serve(async (req) => {
         diagnoses = await generateAIDiagnoses(conversationText);
         logStep("AI diagnosis generation completed", { count: diagnoses.length });
       } catch (error) {
-        logStep("AI diagnosis failed, using fallback", error.message);
+        logStep("AI diagnosis failed, using fallback", error instanceof Error ? error.message : 'Unknown error');
         diagnoses = generateFallbackDiagnoses(conversationText);
       }
     }
@@ -80,7 +80,7 @@ serve(async (req) => {
 
     // Insert new diagnoses
     if (diagnoses.length > 0) {
-      const diagnosisRecords = diagnoses.map(diagnosis => ({
+      const diagnosisRecords = diagnoses.map((diagnosis: any) => ({
         conversation_id,
         patient_id,
         user_id: user.id,

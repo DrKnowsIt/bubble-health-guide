@@ -26,7 +26,7 @@ serve(async (req) => {
 
     // Create context from previous responses and extract previous questions for deduplication
     console.log('Building context from conversation path:', conversationPath?.length || 0, 'responses');
-    const previousQuestions = [];
+    const previousQuestions: any[] = [];
     const context = conversationPath?.map((item: any, index: number) => {
       const questionText = item.question?.question_text || 'Previous question';
       previousQuestions.push(questionText.toLowerCase());
@@ -119,30 +119,9 @@ Based on this conversation history, what should the next logical question be? Ge
       if (data.choices?.[0]?.finish_reason === 'length') {
         console.error('Response was truncated due to length limit');
         
-        // Retry with fallback - don't retry with same model
+        // Use fallback due to length issue
         console.log('Using fallback due to length issue...');
         throw new Error('Response truncated - using fallback');
-        
-        if (retryResponse.ok) {
-          const retryData = await retryResponse.json();
-          const retryContent = retryData.choices?.[0]?.message?.content;
-          
-          if (retryContent && retryContent.trim() !== '') {
-            console.log('Retry successful with content:', retryContent);
-            try {
-              const retryQuestionData = JSON.parse(retryContent);
-              if (retryQuestionData.question && Array.isArray(retryQuestionData.options)) {
-                return new Response(JSON.stringify(retryQuestionData), {
-                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                });
-              }
-            } catch (retryParseError) {
-              console.error('Failed to parse retry response:', retryContent);
-            }
-          }
-        }
-        
-        throw new Error('Response truncated even after retry - using fallback');
       }
       
       throw new Error('No content received from OpenAI');
@@ -220,7 +199,7 @@ Based on this conversation history, what should the next logical question be? Ge
         if (primaryArea.includes('head') || primaryArea.includes('brain')) {
           // Find first question not already asked
           for (const q of headQuestions) {
-            const isAsked = previousQuestions.some(prev => 
+            const isAsked = previousQuestions.some((prev: any) =>
               q.keywords.some(keyword => prev.includes(keyword))
             );
             if (!isAsked) {
@@ -247,7 +226,7 @@ Based on this conversation history, what should the next logical question be? Ge
           ];
           
           for (const q of chestQuestions) {
-            const isAsked = previousQuestions.some(prev => 
+            const isAsked = previousQuestions.some((prev: any) => 
               q.keywords.some(keyword => prev.includes(keyword))
             );
             if (!isAsked) {
@@ -274,7 +253,7 @@ Based on this conversation history, what should the next logical question be? Ge
           ];
           
           for (const q of abdominalQuestions) {
-            const isAsked = previousQuestions.some(prev => 
+            const isAsked = previousQuestions.some((prev: any) => 
               q.keywords.some(keyword => prev.includes(keyword))
             );
             if (!isAsked) {
@@ -301,7 +280,7 @@ Based on this conversation history, what should the next logical question be? Ge
           ];
           
           for (const q of genericAreaQuestions) {
-            const isAsked = previousQuestions.some(prev => 
+            const isAsked = previousQuestions.some((prev: any) => 
               q.keywords.some(keyword => prev.includes(keyword))
             );
             if (!isAsked) {
@@ -330,7 +309,7 @@ Based on this conversation history, what should the next logical question be? Ge
         ];
         
         for (const q of generalQuestions) {
-          const isAsked = previousQuestions.some(prev => 
+          const isAsked = previousQuestions.some((prev: any) => 
             q.keywords.some(keyword => prev.includes(keyword))
           );
           if (!isAsked) {
@@ -364,7 +343,7 @@ Based on this conversation history, what should the next logical question be? Ge
       ];
       
       for (const q of genericQuestions) {
-        const isAsked = previousQuestions.some(prev => 
+        const isAsked = previousQuestions.some((prev: any) => 
           q.keywords.some(keyword => prev.includes(keyword))
         );
         if (!isAsked) {

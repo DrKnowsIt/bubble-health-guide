@@ -128,8 +128,8 @@ serve(async (req) => {
     const healthSummary = Object.entries(recordsByType).map(([type, records]) => {
       return {
         category: type,
-        count: records.length,
-        recentEntries: records.slice(0, 3).map(record => ({
+        count: (records as any[]).length,
+        recentEntries: (records as any[]).slice(0, 3).map((record: any) => ({
           title: record.title,
           data: record.data,
           date: record.created_at
@@ -310,7 +310,7 @@ Please analyze this health information comprehensively and provide the requested
 
   } catch (error) {
     console.error('Error in generate-comprehensive-health-report:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error occurred' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

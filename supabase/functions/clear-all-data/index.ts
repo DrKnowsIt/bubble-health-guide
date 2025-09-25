@@ -125,7 +125,9 @@ serve(async (req) => {
         
         logStep(`Deleted from ${step.table}`, { count: deletedCounts[step.table] })
       } catch (error) {
-        logStep(`Error deleting from ${step.table}`, { error: error.message })
+        logStep(`Error deleting from ${step.table}`, { 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        })
         // Continue with other deletions even if one fails
       }
     }
@@ -151,13 +153,15 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    logStep('Error during data cleanup', { error: error.message })
+    logStep('Error during data cleanup', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    })
     console.error('Clear all data error:', error)
     
     return new Response(
       JSON.stringify({ 
         error: 'Failed to clear data',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error occurred' 
       }),
       { 
         status: 500, 

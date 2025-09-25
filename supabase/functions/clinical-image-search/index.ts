@@ -94,23 +94,8 @@ serve(async (req) => {
             searchResults = await searchNIHImages(term, 2);
           }
           
-          // Filter out previously shown images AND excluded terms
+          // Filter out previously shown images
           let filteredImages = searchResults.filter(img => !IMAGE_CACHE[cacheKey].includes(img.imageUrl));
-          
-          // Apply intelligent filtering based on AI analysis
-          filteredImages = filteredImages.filter(img => {
-            const titleLower = img.title.toLowerCase();
-            const descLower = img.description.toLowerCase();
-            
-            // Check if image matches excluded terms
-            for (const excludeTerm of searchTermData.excludeTerms) {
-              if (titleLower.includes(excludeTerm.toLowerCase()) || descLower.includes(excludeTerm.toLowerCase())) {
-                console.log(`🚫 Filtering out image with excluded term "${excludeTerm}": ${img.title}`);
-                return false;
-              }
-            }
-            return true;
-          });
           
           console.log(`✅ Got ${searchResults.length} total, ${filteredImages.length} new filtered results for "${term}"`);
           images.push(...filteredImages);
@@ -200,7 +185,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message,
+        details: error instanceof Error ? error.message : 'Unknown error occurred',
         images: []
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

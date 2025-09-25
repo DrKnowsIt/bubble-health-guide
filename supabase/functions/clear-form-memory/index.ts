@@ -191,7 +191,7 @@ serve(async (req) => {
   } catch (error) {
     logStep('Error in clear-form-memory function', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
       success: false
     }), {
       status: 500,

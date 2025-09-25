@@ -254,7 +254,7 @@ Provide your comprehensive final analysis focusing on clinical accuracy and acti
     console.error('Error in generate-final-medical-analysis:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Internal server error',
+        error: error instanceof Error ? error.message : 'Internal server error',
         details: 'Failed to generate comprehensive medical analysis'
       }),
       { 

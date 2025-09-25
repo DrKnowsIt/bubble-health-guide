@@ -252,11 +252,13 @@ Only return the JSON object. If no new memory-worthy information is found, retur
     logStep('OpenAI memory analysis response', { content: memoryContent });
 
     // Parse memory updates
-    let memoryUpdates = {};
+    let memoryUpdates: Record<string, any> = {};
     try {
       memoryUpdates = JSON.parse(memoryContent);
     } catch (parseError) {
-      logStep('Failed to parse memory JSON, trying to extract', { error: parseError.message });
+      logStep('Failed to parse memory JSON, trying to extract', { 
+        error: parseError instanceof Error ? parseError.message : 'Parse error' 
+      });
       // Try to extract JSON from response if it's wrapped in text
       const jsonMatch = memoryContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -341,8 +343,12 @@ Only return the JSON object. If no new memory-worthy information is found, retur
     });
 
   } catch (error) {
-    logStep('Error in memory analysis', { error: error.message });
-    return new Response(JSON.stringify({ error: error.message }), {
+    logStep('Error in memory analysis', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

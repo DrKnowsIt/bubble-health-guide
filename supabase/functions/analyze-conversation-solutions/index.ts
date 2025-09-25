@@ -60,7 +60,7 @@ serve(async (req) => {
       throw new Error('Patient not found or access denied');
     }
 
-    console.log("Analyzing conversation for holistic solutions:", recent_messages?.slice(0, 3).map(m => m.content).join(' '));
+    console.log("Analyzing conversation for holistic solutions:", recent_messages?.slice(0, 3).map((m: any) => m.content).join(' '));
 
     // Get existing solutions to avoid duplicates
     const { data: existingSolutions } = await supabase
@@ -298,7 +298,7 @@ Return JSON array with this structure:
   } catch (error) {
     console.error('Error in analyze-conversation-solutions:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
       solutions: []
     }), {
       status: 500,

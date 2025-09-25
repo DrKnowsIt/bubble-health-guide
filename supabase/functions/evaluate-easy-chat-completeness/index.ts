@@ -168,7 +168,7 @@ ${conversation_context}`;
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message,
+        details: error instanceof Error ? error.message : 'Unknown error occurred',
         should_complete: true // Fallback to complete on error
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
