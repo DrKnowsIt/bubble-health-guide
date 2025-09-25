@@ -368,12 +368,12 @@ export default function UserDashboard() {
                        <Loader2 className="h-3 w-3 animate-spin mr-2" />
                        Analyzing...
                      </>
-                   ) : (
-                     <>
-                       <FileText className="h-3 w-3 mr-2" />
-                        Compile Health Report for Doctor
-                     </>
-                   )}
+                    ) : (
+                      <>
+                        <FileText className="h-3 w-3 mr-2" />
+                        Export Report
+                      </>
+                    )}
                  </Button>
                </TooltipTrigger>
                <TooltipContent>
