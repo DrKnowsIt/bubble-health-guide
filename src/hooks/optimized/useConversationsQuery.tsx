@@ -211,11 +211,16 @@ export const useConversationsQuery = (selectedUser?: any) => {
       return conversationId;
     },
     onMutate: async ({ conversationId }: { conversationId: string; confirmed?: boolean }) => {
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for both conversations and messages
       await queryClient.cancelQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
+      await queryClient.cancelQueries({ queryKey: [MESSAGES_QUERY_KEY] });
       
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousConversations = queryClient.getQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id]);
+      const previousMessages = queryClient.getQueryData([MESSAGES_QUERY_KEY, conversationId]);
+      
+      // Clear messages cache immediately for the deleted conversation
+      queryClient.removeQueries({ queryKey: [MESSAGES_QUERY_KEY, conversationId] });
       
       // Optimistically update to remove the conversation
       queryClient.setQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id], (old: Conversation[] = []) => {
@@ -224,11 +229,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
       
       // Clear current conversation and messages immediately if it matches the deleted one
       if (currentConversation === conversationId) {
+        console.log('🗑️ [useConversationsQuery] Clearing current conversation and messages for deletion');
         setCurrentConversation(null);
         setMessages([]);
       }
       
-      return { previousConversations };
+      return { previousConversations, previousMessages };
     },
     onError: (err, { conversationId }, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back

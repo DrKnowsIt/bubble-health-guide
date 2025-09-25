@@ -28,6 +28,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokenTimeout } from '@/hooks/useTokenTimeout';
 import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ChatInterfaceWithUsersProps {
   onSendMessage?: (message: string) => void;
@@ -171,12 +172,11 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       }
     }, [user]);
 
-  // Critical: Force clear messages when switching users - simplified approach
+  // Simplified: Clear all chat state immediately when user changes
   useEffect(() => {
-    console.log('🔄 [ChatInterface] User or conversations changed:', { 
-      userId: selectedUser?.id,
-      conversationCount: conversations?.length,
-      currentConv: currentConversation 
+    console.log('🔄 [ChatInterface] User changed:', { 
+      userId: selectedUser?.id, 
+      prevMessages: messages?.length || 0 
     });
     
     if (!selectedUser) {
@@ -186,48 +186,20 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       setMessageAnalysis({});
       setInputValue('');
       setPendingImageUrl(null);
-      return;
     }
-    
-    // If conversations are loaded but user has none, clear everything
-    if (conversations !== undefined && conversations.length === 0) {
-      console.log('✅ [ChatInterface] User has no conversations, clearing state');
-      setMessages([]);
-      startNewConversation();
-      setMessageAnalysis({});
-      setInputValue('');
-      setPendingImageUrl(null);
-      return;
-    }
-    
-    // If we have a current conversation, validate it belongs to the selected user
-    if (currentConversation && conversations && conversations.length > 0) {
-      const belongsToUser = conversations.some(conv => 
-        conv.id === currentConversation && conv.patient_id === selectedUser.id
-      );
-      
-      if (!belongsToUser) {
-        console.log('🚫 [ChatInterface] Current conversation does not belong to user, clearing');
-        setMessages([]);
-        startNewConversation();
-        setMessageAnalysis({});
-        setInputValue('');
-        setPendingImageUrl(null);
-      }
-    }
-  }, [selectedUser?.id, conversations, currentConversation, startNewConversation, setMessages]);
+  }, [selectedUser?.id]); // Only depend on user ID change
 
-  // Safety guard to prevent displaying messages from wrong user - simplified
+  // Clear state when conversations change and user has no conversations
   useEffect(() => {
-    if (messages.length > 0 && selectedUser && conversations !== undefined && conversations.length === 0) {
-      console.warn('⚠️ [ChatInterface] Safety guard: User has no conversations but messages exist, clearing');
+    if (selectedUser && conversations !== undefined && conversations.length === 0 && messages.length > 0) {
+      console.log('✅ [ChatInterface] User has no conversations but messages exist, clearing');
       setMessages([]);
       startNewConversation();
       setMessageAnalysis({});
       setInputValue('');
       setPendingImageUrl(null);
     }
-  }, [messages, selectedUser, conversations, startNewConversation, setMessages]);
+  }, [conversations, selectedUser, messages.length]);
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {
@@ -475,44 +447,25 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   };
 
   const handleUserSelect = (user: User | null) => {
-    console.log('[ChatInterface] User selection changed:', user ? `${user.first_name} ${user.last_name} (${user.id})` : 'null');
-    
-    // Validate current conversation belongs to new user before switching
-    if (currentConversation && user) {
-      const currentConv = conversations.find(c => c.id === currentConversation);
-      if (currentConv) {
-        // Check if conversation belongs to the new user
-        const belongsToNewUser = !user || currentConv.patient_id === user.id;
-        if (!belongsToNewUser) {
-          console.log('[ChatInterface] Current conversation does not belong to new user, clearing it');
-          startNewConversation();
-        }
-      }
-    }
-    
-    // Immediately clear all conversation-related state to prevent cross-user contamination
-    setMessages([]);
-    setInputValue('');
-    setPendingImageUrl(null);
-    setMessageAnalysis({});
-    
-    // Force conversation reset when switching users to avoid context mixing
-    startNewConversation();
-    
-    // Clear any pending requests to prevent stale responses
-    requestSeqRef.current += 1;
-    convAtRef.current = null;
-    setIsTyping(false);
-    
-    // Set the new user which will trigger useConversations to fetch new data
-    setSelectedUser(user);
-    
-    console.log('[ChatInterface] Complete state reset for user switch:', {
-      newUser: user ? `${user.first_name} ${user.last_name}` : 'none',
-      messagesCleared: true,
-      conversationReset: true,
-      analysisCleared: true
+    console.log('🔄 [ChatInterface] handleUserSelect called:', { 
+      newUser: user?.id, 
+      previousUser: selectedUser?.id 
     });
+    
+    if (user?.id !== selectedUser?.id) {
+      console.log('🚫 [ChatInterface] User changed, clearing all state immediately');
+      
+      // Clear all state immediately and synchronously before user change
+      setMessages([]);
+      setMessageAnalysis({});
+      setInputValue('');
+      setPendingImageUrl(null);
+      startNewConversation();
+      clearPendingAnalysis();
+      
+      // Then select the new user
+      setSelectedUser(user);
+    }
   };
 
   if (usersLoading) {
@@ -662,6 +615,30 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
 
             {/* Token timeout notification */}
             <SimpleTokenTimeoutNotification />
+
+            {/* Debug controls for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="border-t p-2 bg-muted/50">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="xs" 
+                    onClick={testTokenTimeout}
+                    className="text-xs"
+                  >
+                    Test Timeout (5min)
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="xs" 
+                    onClick={clearTimeout}
+                    className="text-xs"
+                  >
+                    Clear Timeout
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="border-t p-4">
               <div className="flex space-x-2">
