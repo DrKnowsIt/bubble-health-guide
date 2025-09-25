@@ -7,13 +7,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Conversation } from "@/hooks/optimized/useConversationsQuery";
 import { format } from "date-fns";
+import { useState } from "react";
+import { ConfirmDeleteConversationDialog } from "@/components/modals/ConfirmDeleteConversationDialog";
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
   currentConversation: string | null;
   onSelectConversation: (id: string) => void;
   onStartNewConversation: () => void;
-  onDeleteConversation: (id: string) => void;
+  onDeleteConversation: (id: string, confirmed: boolean) => void;
   isAuthenticated: boolean;
 }
 
@@ -25,6 +27,27 @@ export const ConversationSidebar = ({
   onDeleteConversation,
   isAuthenticated 
 }: ConversationSidebarProps) => {
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; conversationId: string | null; title: string }>({
+    open: false,
+    conversationId: null,
+    title: ''
+  });
+
+  const handleDeleteClick = (conversationId: string, title: string) => {
+    setDeleteDialog({
+      open: true,
+      conversationId,
+      title
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteDialog.conversationId) {
+      onDeleteConversation(deleteDialog.conversationId, true);
+      setDeleteDialog({ open: false, conversationId: null, title: '' });
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -85,7 +108,7 @@ export const ConversationSidebar = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onDeleteConversation(conversation.id);
+                    handleDeleteClick(conversation.id, conversation.title);
                   }}
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
@@ -95,6 +118,13 @@ export const ConversationSidebar = ({
           )}
         </div>
       </ScrollArea>
+      
+      <ConfirmDeleteConversationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={handleConfirmDelete}
+        conversationTitle={deleteDialog.title}
+      />
     </div>
   );
 };

@@ -59,8 +59,16 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus | null
       const timeoutEnd = new Date(new Date(data.limit_reached_at).getTime() + TIMEOUT_DURATION);
       const timeUntilReset = timeoutEnd.getTime() - now.getTime();
       
+      console.log('⏰ Token timeout check:', {
+        timeoutEnd: timeoutEnd.toISOString(),
+        now: now.toISOString(),
+        timeUntilReset,
+        expired: timeUntilReset <= 0
+      });
+      
       if (timeUntilReset <= 0) {
         // Reset the user's tokens
+        console.log('✅ Token timeout expired, resetting tokens for user:', userId);
         await resetUserTokens(userId);
         return getTokenStatus(userId);
       }
@@ -108,6 +116,7 @@ export async function addTokens(userId: string, tokensToAdd: number): Promise<{ 
 
 export async function resetUserTokens(userId: string): Promise<void> {
   try {
+    console.log('🔄 Resetting tokens for user:', userId);
     const { error } = await supabase
       .from('user_token_limits')
       .update({
@@ -119,6 +128,8 @@ export async function resetUserTokens(userId: string): Promise<void> {
     
     if (error) {
       console.error('Error resetting user tokens:', error);
+    } else {
+      console.log('✅ Successfully reset tokens for user:', userId);
     }
   } catch (error) {
     console.error('Error in resetUserTokens:', error);

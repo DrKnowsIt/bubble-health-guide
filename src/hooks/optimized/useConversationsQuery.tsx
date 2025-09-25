@@ -184,10 +184,14 @@ export const useConversationsQuery = (selectedUser?: any) => {
     },
   });
 
-  // Delete conversation mutation
+  // Delete conversation mutation with confirmation
   const deleteConversationMutation = useMutation({
-    mutationFn: async (conversationId: string) => {
+    mutationFn: async ({ conversationId, confirmed }: { conversationId: string; confirmed?: boolean }) => {
       if (!user) throw new Error('No user found');
+      
+      if (!confirmed) {
+        throw new Error('Deletion not confirmed');
+      }
 
       // Delete messages first
       await supabase
@@ -205,7 +209,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       if (error) throw error;
       return conversationId;
     },
-    onMutate: async (conversationId: string) => {
+    onMutate: async ({ conversationId }: { conversationId: string; confirmed?: boolean }) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
       
@@ -225,17 +229,21 @@ export const useConversationsQuery = (selectedUser?: any) => {
       
       return { previousConversations };
     },
-    onError: (err, conversationId, context) => {
+    onError: (err, { conversationId }, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousConversations) {
         queryClient.setQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id], context.previousConversations);
       }
       logger.error('Error deleting conversation:', err);
-      toast({
-        title: "Error",
-        description: "Failed to delete conversation. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Only show error toast if it's not a confirmation error
+      if (!err.message.includes('not confirmed')) {
+        toast({
+          title: "Error",
+          description: "Failed to delete conversation. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -306,10 +314,8 @@ export const useConversationsQuery = (selectedUser?: any) => {
         setMessages([]);
       }
 
-      toast({
-        title: "Conversation deleted",
-        description: "The conversation has been successfully deleted.",
-      });
+      // Only show success toast for confirmed deletions
+      // No automatic toast to avoid confusion
     }
     
     if (deleteConversationMutation.error) {
@@ -452,7 +458,8 @@ export const useConversationsQuery = (selectedUser?: any) => {
     startNewConversation,
     selectConversation,
     fetchConversations: refetchConversations,
-    deleteConversation: deleteConversationMutation.mutate,
+    deleteConversation: (conversationId: string, confirmed: boolean = false) => 
+      deleteConversationMutation.mutate({ conversationId, confirmed }),
     updateConversationTitleIfPlaceholder: async (conversationId: string, newTitle: string): Promise<void> => {
       return new Promise((resolve, reject) => {
         updateTitleMutation.mutate({ conversationId, newTitle, onlyIfPlaceholder: true }, {

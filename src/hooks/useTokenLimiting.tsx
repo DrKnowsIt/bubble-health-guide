@@ -10,10 +10,16 @@ export const useTokenLimiting = () => {
   const [loading, setLoading] = useState(true);
 
   const refreshTokenStatus = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setTokenStatus(null);
+      setLoading(false);
+      return;
+    }
     
     try {
+      console.log('🔄 Refreshing token status for user:', user.id);
       const status = await getTokenStatus(user.id);
+      console.log('📊 Current token status:', status);
       setTokenStatus(status);
     } catch (error) {
       console.error('Error refreshing token status:', error);
@@ -22,24 +28,32 @@ export const useTokenLimiting = () => {
     }
   }, [user?.id]);
 
-  // Initialize tokens for new users
+  // Initialize tokens for new users and ensure proper state on app load
   useEffect(() => {
     if (user?.id) {
+      console.log('🚀 Initializing tokens for user:', user.id);
       initializeUserTokens(user.id);
+      // Immediately check status on user login/app load
+      refreshTokenStatus();
     }
-  }, [user?.id]);
+  }, [user?.id, refreshTokenStatus]);
 
   // Load token status immediately and more frequently
   useEffect(() => {
     if (user?.id) {
+      // Check immediately on load
       refreshTokenStatus();
       
-      // Check every 30 seconds for more responsive updates
+      // Check every 10 seconds for more responsive updates when in timeout
       const interval = setInterval(() => {
         refreshTokenStatus();
-      }, 30000);
+      }, 10000);
       
       return () => clearInterval(interval);
+    } else {
+      // Clear token status when no user
+      setTokenStatus(null);
+      setLoading(false);
     }
   }, [user?.id, refreshTokenStatus]);
 

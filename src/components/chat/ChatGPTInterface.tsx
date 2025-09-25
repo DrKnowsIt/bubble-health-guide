@@ -1030,7 +1030,7 @@ export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser
         currentConversation={conv.currentConversation}
         onSelectConversation={conv.selectConversation}
         onStartNewConversation={handleStartNewConversation}
-        onDeleteConversation={conv.deleteConversation}
+        onDeleteConversation={(conversationId: string, confirmed: boolean) => conv.deleteConversation(conversationId, confirmed)}
         isAuthenticated={!!user}
       />
       <main className="flex-1 h-full min-h-0 overflow-hidden">
