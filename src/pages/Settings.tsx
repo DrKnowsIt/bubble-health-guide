@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code, Database, BarChart3 } from "lucide-react";
+import { User, Shield, CreditCard, Bell, Settings as SettingsIcon, Lock, AlertTriangle, Trash2, ArrowLeft, Code, Database, BarChart3, Palette } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAlphaTester } from "@/hooks/useAlphaTester";
@@ -20,6 +20,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Settings = () => {
   const {
@@ -142,10 +143,14 @@ const Settings = () => {
             </div>}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
+              </TabsTrigger>
+              <TabsTrigger value="appearance" className="flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                Appearance
               </TabsTrigger>
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
@@ -296,6 +301,45 @@ const Settings = () => {
                          </div>
                       </div>
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Appearance Tab */}
+            <TabsContent value="appearance" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Theme Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <ThemeToggle />
+                  
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-base font-medium">Theme Preview</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Your theme changes will be applied immediately
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-lg border bg-card">
+                        <div className="space-y-2">
+                          <div className="h-2 bg-primary rounded w-3/4"></div>
+                          <div className="h-2 bg-muted rounded w-1/2"></div>
+                          <div className="h-2 bg-muted rounded w-2/3"></div>
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-lg border bg-muted/30">
+                        <div className="space-y-2">
+                          <div className="h-2 bg-foreground/20 rounded w-3/4"></div>
+                          <div className="h-2 bg-foreground/10 rounded w-1/2"></div>
+                          <div className="h-2 bg-foreground/10 rounded w-2/3"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

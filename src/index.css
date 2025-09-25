@@ -6,7 +6,86 @@
 
 @layer base {
   :root {
-    /* Clean Theme - Crisp Teal, Orange, and Dark Grey */
+    /* Light Theme - Modern White and Teal */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+
+    /* Primary - Modern Teal */
+    --primary: 188 95% 38%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 188 95% 42%;
+    --primary-light: 188 95% 85%;
+
+    /* Secondary - Light Grey */
+    --secondary: 220 15% 96%;
+    --secondary-foreground: 220 15% 25%;
+    --secondary-light: 220 15% 98%;
+
+    /* Accent - Vibrant Orange */
+    --accent: 20 95% 55%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 20 95% 95%;
+
+    /* Muted Tones */
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 15% 45%;
+    --muted-dark: 220 15% 92%;
+
+    /* Interface Elements */
+    --border: 220 15% 90%;
+    --input: 0 0% 100%;
+    --ring: 188 95% 38%;
+
+    /* Chat Interface */
+    --chat-bg: 220 15% 98%;
+    --chat-user: 188 95% 38%;
+    --chat-ai: 0 0% 100%;
+    --chat-bubble-shadow: 220 15% 85%;
+
+    /* Status Colors */
+    --success: 142 75% 45%;
+    --warning: 20 95% 55%;
+    --destructive: 0 65% 50%;
+    --destructive-soft: 0 65% 55%;
+    --info: 188 95% 38%;
+
+    /* Solid Backgrounds */
+    --solid-primary: 188 95% 38%;
+    --solid-accent: 20 95% 55%;
+    --solid-hero: 220 15% 98%;
+
+    /* Shadows */
+    --shadow-bubble: 0 4px 16px -2px hsl(188 95% 38% / 0.15);
+    --shadow-card: 0 2px 8px -1px hsl(220 15% 60% / 0.12);
+    --shadow-elevated: 0 8px 24px -4px hsl(220 15% 60% / 0.15);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 20%;
+    --sidebar-primary: 188 95% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 96%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 188 95% 38%;
+
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+  }
+
+  .dark {
+    /* Dark Theme - Current styling preserved */
     --background: 220 15% 8%;
     --foreground: 0 0% 98%;
 
@@ -67,8 +146,6 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    --radius: 0.75rem;
-
     /* Sidebar */
     --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 0 0% 95%;
@@ -83,7 +160,6 @@
     --popover: 220 15% 13%;
     --popover-foreground: 0 0% 98%;
   }
-
 }
 
 @layer base {
