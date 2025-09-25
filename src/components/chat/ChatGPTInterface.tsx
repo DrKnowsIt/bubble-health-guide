@@ -99,7 +99,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
   
   // Token timeout handling
-  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
+  const { isInTimeout, timeUntilReset, handleTokenLimitError, clearTimeout } = useTokenTimeout();
+  
+  console.log('🔍 [ChatGPTInterface] Timeout state:', { isInTimeout, timeUntilReset });
 
   // Medical image prompts
   const { 

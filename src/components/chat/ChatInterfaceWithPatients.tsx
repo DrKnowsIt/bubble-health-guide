@@ -30,6 +30,18 @@ import { useTokenTimeout } from '@/hooks/useTokenTimeout';
 import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 import { useQueryClient } from '@tanstack/react-query';
 
+console.log('🔍 [DEBUG] ChatInterfaceWithPatients loaded');
+
+// Debug controls for development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).debugTimeout = {
+    trigger: () => {
+      const event = new CustomEvent('debugTimeout');
+      window.dispatchEvent(event);
+    }
+  };
+}
+
 interface ChatInterfaceWithUsersProps {
   onSendMessage?: (message: string) => void;
   isMobile?: boolean;
@@ -89,7 +101,20 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   } = useConversationStateGuard();
 
   // Token timeout handling
-  const { isInTimeout, handleTokenLimitError, clearTimeout } = useTokenTimeout();
+  const { isInTimeout, timeUntilReset, handleTokenLimitError, clearTimeout } = useTokenTimeout();
+  
+  console.log('🔍 [ChatInterfaceWithPatients] Timeout state:', { isInTimeout, timeUntilReset });
+  
+  // Debug event listener for testing timeout
+  useEffect(() => {
+    const handleDebugTimeout = () => {
+      console.log('🧪 [DEBUG] Forcing timeout state');
+      handleTokenLimitError({ timeout_end: Date.now() + 5 * 60 * 1000 });
+    };
+    
+    window.addEventListener('debugTimeout', handleDebugTimeout);
+    return () => window.removeEventListener('debugTimeout', handleDebugTimeout);
+  }, [handleTokenLimitError]);
 
   // Debug function to test token timeout (only in development)
   const testTokenTimeout = () => {
