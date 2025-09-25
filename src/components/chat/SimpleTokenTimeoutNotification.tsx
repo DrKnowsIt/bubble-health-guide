@@ -2,6 +2,8 @@ import { useTokenTimeout } from '@/hooks/useTokenTimeout';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Force HMR refresh
+
 const formatTimeUntilReset = (milliseconds: number): string => {
   const minutes = Math.ceil(milliseconds / (1000 * 60));
   return minutes === 1 ? '1 minute' : `${minutes} minutes`;
