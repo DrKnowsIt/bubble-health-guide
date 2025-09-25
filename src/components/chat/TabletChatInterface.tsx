@@ -19,6 +19,7 @@ import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmatio
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokenLimiting } from '@/hooks/useTokenLimiting';
+import { TokenTimeoutNotification } from './TokenTimeoutNotification';
 
 interface TabletChatInterfaceProps {
   selectedUser?: User | null;
@@ -367,6 +368,9 @@ export const TabletChatInterface = ({
             <>
               {/* Messages Area */}
               <div className="tablet-messages-container">
+                {/* Token Timeout Notification - Show prominently in chat */}
+                <TokenTimeoutNotification />
+                
                 {messages.map((message) => (
                     <div
                       key={message.id}
@@ -432,9 +436,15 @@ export const TabletChatInterface = ({
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      placeholder="Describe your symptoms or ask health questions..."
+                      placeholder={
+                        !selectedUser 
+                          ? "Select a patient to start chatting..." 
+                          : !canChat 
+                            ? "🤖 DrKnowsIt is taking a 30-minute break..." 
+                            : "Describe your symptoms or ask health questions..."
+                      }
                       className="min-h-[64px] max-h-32 resize-none border-0 bg-transparent pr-20 text-base placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
-                      disabled={isTyping || !selectedUser}
+                      disabled={isTyping || !selectedUser || !canChat}
                     />
                     
                     {pendingImageUrl && (
@@ -464,7 +474,7 @@ export const TabletChatInterface = ({
                           variant={isRecording ? "destructive" : "ghost"}
                           size="lg"
                           onClick={toggleRecording}
-                          disabled={isTyping || !selectedUser}
+                          disabled={isTyping || !selectedUser || !canChat}
                           className="h-12 w-12 p-0 rounded-full transition-all duration-200 touch-manipulation"
                         >
                           {isProcessing ? (
@@ -483,7 +493,7 @@ export const TabletChatInterface = ({
                       <Button
                         type="button"
                         onClick={handleSendMessage}
-                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser}
+                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !canChat}
                         size="lg"
                         className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 disabled:opacity-50 shadow-lg touch-manipulation"
                       >

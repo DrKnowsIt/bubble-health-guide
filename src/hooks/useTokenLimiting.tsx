@@ -29,26 +29,19 @@ export const useTokenLimiting = () => {
     }
   }, [user?.id]);
 
-  // Load token status
+  // Load token status immediately and more frequently
   useEffect(() => {
     if (user?.id) {
       refreshTokenStatus();
+      
+      // Check every 30 seconds for more responsive updates
+      const interval = setInterval(() => {
+        refreshTokenStatus();
+      }, 30000);
+      
+      return () => clearInterval(interval);
     }
   }, [user?.id, refreshTokenStatus]);
-
-  // Auto-refresh token status every minute to check for resets
-  useEffect(() => {
-    if (!user?.id) return;
-    
-    const interval = setInterval(() => {
-      refreshTokenStatus();
-    }, 60000); // Check every minute
-    
-    return () => clearInterval(interval);
-  }, [user?.id, refreshTokenStatus]);
-
-  // Token status changes are handled by individual chat interfaces
-  // No global toast notifications needed
 
   return {
     tokenStatus,

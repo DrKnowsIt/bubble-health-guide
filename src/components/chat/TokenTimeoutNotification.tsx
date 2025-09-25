@@ -6,26 +6,9 @@ import { cn } from '@/lib/utils';
 
 export const TokenTimeoutNotification = () => {
   const { tokenStatus, canChat, timeUntilReset } = useTokenLimiting();
-  const [timeLeft, setTimeLeft] = useState(timeUntilReset);
-
-  // Update countdown every minute
-  useEffect(() => {
-    setTimeLeft(timeUntilReset);
-    
-    if (timeUntilReset > 0) {
-      const interval = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = Math.max(0, prev - 60000); // Update every minute
-          return newTime;
-        });
-      }, 60000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [timeUntilReset]);
 
   // Don't show if chat is available or no timeout
-  if (canChat || !tokenStatus || timeLeft <= 0) {
+  if (canChat || !tokenStatus || timeUntilReset <= 0) {
     return null;
   }
 
@@ -45,7 +28,7 @@ export const TokenTimeoutNotification = () => {
         <div className="flex items-center gap-2 mb-1">
           <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           <h3 className="font-medium text-orange-900 dark:text-orange-100">
-            🤖 DrKnowsIt is available to chat in {formatTimeUntilReset(timeLeft)}
+            🤖 DrKnowsIt is available to chat in {formatTimeUntilReset(timeUntilReset)}
           </h3>
         </div>
         

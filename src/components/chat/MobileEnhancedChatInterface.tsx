@@ -27,7 +27,7 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTokenLimiting } from '@/hooks/useTokenLimiting';
-import { TokenStatusIndicator } from '../TokenStatusIndicator';
+import { TokenTimeoutNotification } from './TokenTimeoutNotification';
 import { formatTimeUntilReset, addTokens } from '@/utils/tokenLimiting';
 
 interface MobileEnhancedChatInterfaceProps {
@@ -512,27 +512,30 @@ export const MobileEnhancedChatInterface = ({
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className="mb-4">
-                  <ChatMessage
-                    message={message}
-                  />
-                  
-                  {/* Show analysis notifications after AI messages */}
-                  {message.type === 'ai' && messageAnalysis[message.id] && (
-                    <ChatAnalysisNotification
-                      results={messageAnalysis[message.id].results || {}}
-                      onResultsProcessed={() => {
-                        setMessageAnalysis(prev => {
-                          const { [message.id]: removed, ...rest } = prev;
-                          return rest;
-                        });
-                      }}
-                      className="mt-2"
+                {/* Token Timeout Notification - Show prominently in chat */}
+                <TokenTimeoutNotification />
+                
+                {messages.map((message) => (
+                  <div key={message.id} className="mb-4">
+                    <ChatMessage
+                      message={message}
                     />
-                  )}
-                </div>
-              ))}
+                    
+                    {/* Show analysis notifications after AI messages */}
+                    {message.type === 'ai' && messageAnalysis[message.id] && (
+                      <ChatAnalysisNotification
+                        results={messageAnalysis[message.id].results || {}}
+                        onResultsProcessed={() => {
+                          setMessageAnalysis(prev => {
+                            const { [message.id]: removed, ...rest } = prev;
+                            return rest;
+                          });
+                        }}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                ))}
 
                 {isTyping && (
                   <div className="flex justify-start">
@@ -555,20 +558,6 @@ export const MobileEnhancedChatInterface = ({
 
               {/* Enhanced Input Area */}
               <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
-                {/* Token Status */}
-                <TokenStatusIndicator />
-                
-                {/* Chat disabled message when timeout active */}
-                {!canChat && timeUntilReset > 0 && (
-                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <div className="flex items-center gap-2 text-destructive text-sm">
-                      <span>🤖</span>
-                      <span>
-                        DrKnowsIt is available in {formatTimeUntilReset(timeUntilReset)}
-                      </span>
-                    </div>
-                  </div>
-                )}
 
                 {pendingImageUrl && (
                   <div className="mb-3 p-2 border rounded-lg bg-muted/50">
@@ -594,7 +583,13 @@ export const MobileEnhancedChatInterface = ({
                 
                 <div className="relative">
                   <Textarea
-                    placeholder={canChat ? "Describe your symptoms or ask a health question..." : "Please wait - chat timeout active"}
+                    placeholder={
+                      !selectedUser 
+                        ? "Select a patient to start chatting..." 
+                        : !canChat 
+                          ? "🤖 DrKnowsIt is taking a 30-minute break..." 
+                          : "Describe your symptoms or ask a health question..."
+                    }
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
