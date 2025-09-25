@@ -154,6 +154,46 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       }
     }, [user]);
 
+  // Critical: Force clear messages when switching to users with no conversations
+  useEffect(() => {
+    if (selectedUser && conversations !== undefined) {
+      // If user has no conversations, force clear all state
+      if (conversations.length === 0) {
+        console.log('[ChatInterface] User has no conversations, force clearing all state');
+        setMessages([]);
+        startNewConversation();
+        setMessageAnalysis({});
+        setInputValue('');
+        setPendingImageUrl(null);
+        return;
+      }
+      
+      // If current conversation doesn't belong to selected user, clear it
+      if (currentConversation) {
+        const belongsToUser = conversations.some(conv => conv.id === currentConversation);
+        if (!belongsToUser) {
+          console.log('[ChatInterface] Current conversation does not belong to selected user, clearing');
+          setMessages([]);
+          startNewConversation();
+          setMessageAnalysis({});
+        }
+      }
+    }
+  }, [selectedUser?.id, conversations, currentConversation, startNewConversation, setMessages]);
+
+  // Safety guard to prevent displaying messages from wrong user
+  useEffect(() => {
+    if (messages.length > 0 && selectedUser && conversations !== undefined) {
+      // If user has no conversations but we have messages, something is wrong - clear them
+      if (conversations.length === 0) {
+        console.warn('[ChatInterface] Safety guard: User has no conversations but messages exist, clearing');
+        setMessages([]);
+        startNewConversation();
+        setMessageAnalysis({});
+      }
+    }
+  }, [messages, selectedUser, conversations, startNewConversation, setMessages]);
+
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {
     convAtRef.current = currentConversation;
