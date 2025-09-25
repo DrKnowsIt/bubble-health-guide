@@ -179,6 +179,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
         return old.filter((conv) => conv.id !== conversationId);
       });
       
+      // Clear current conversation and messages immediately if it matches the deleted one
+      if (currentConversation === conversationId) {
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+      
       return { previousConversations };
     },
     onError: (err, conversationId, context) => {
