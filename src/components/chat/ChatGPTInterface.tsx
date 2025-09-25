@@ -22,6 +22,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
 import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
+import { TokenUsageIndicator } from "@/components/TokenUsageIndicator";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -420,18 +421,20 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       return;
     }
     
-    // Check if in timeout before making AI request
-    console.log('🔍 [ChatGPTInterface] Pre-send timeout check:', { isInTimeout, timeUntilReset });
+    // Unified timeout and rate limit check
+    console.log('🔍 [ChatGPTInterface] Pre-send checks:', { isInTimeout, timeUntilReset });
+    
     if (isInTimeout) {
-      console.log('❌ [ChatGPTInterface] Message blocked due to timeout');
+      console.log('❌ [ChatGPTInterface] Message blocked due to token timeout');
       toast({ 
         title: "Chat temporarily unavailable", 
-        description: "Please wait for the timeout to expire before continuing.", 
+        description: "Token limit reached. Please wait for tokens to recharge.", 
         variant: "destructive" 
       });
       return;
     }
-    console.log('✅ [ChatGPTInterface] Timeout check passed, proceeding with message');
+    
+    console.log('✅ [ChatGPTInterface] All pre-send checks passed, proceeding with message');
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
@@ -904,7 +907,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           </div>
         </div>
 
-        {/* Token Timeout Notification - Show at bottom */}
+        {/* Token Usage and Timeout Notifications - Show at bottom */}
+        <TokenUsageIndicator />
         <SimpleTokenTimeoutNotification />
 
         {/* Input Area - Fixed at bottom */}

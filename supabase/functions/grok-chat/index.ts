@@ -342,23 +342,11 @@ serve(async (req) => {
         .maybeSingle();
 
       if (healthReport) {
-        comprehensiveHealthReport = `\n\nCOMPREHENSIVE HEALTH REPORT (Latest Analysis):
-Overall Status: ${healthReport.overall_health_status}
-Priority Level: ${healthReport.priority_level}
-
-Key Health Concerns:
-${(healthReport.key_concerns || []).map(c => `- ${c}`).join('\n')}
-
-Recommendations:
-${(healthReport.recommendations || []).map(r => `- ${r}`).join('\n')}
-
-Report Summary:
-${healthReport.report_summary}
-
-Confidence Score: ${healthReport.confidence_score ? Math.round(healthReport.confidence_score * 100) : 0}%
-Last Updated: ${new Date(healthReport.updated_at).toLocaleDateString()}
-
-Note: This comprehensive report analyzes all health data together and provides holistic insights.`;
+        // DRASTICALLY reduced comprehensive report to save tokens
+        comprehensiveHealthReport = `\n\nHEALTH REPORT SUMMARY:
+Status: ${healthReport.overall_health_status} (${healthReport.priority_level} priority)
+Key Concerns: ${(healthReport.key_concerns || []).slice(0, 3).join(', ')}${(healthReport.key_concerns?.length || 0) > 3 ? '...' : ''}
+Confidence: ${healthReport.confidence_score ? Math.round(healthReport.confidence_score * 100) : 0}%`;
       }
 
       // Get health records filtered by subscription tier
@@ -438,45 +426,46 @@ PATIENT PROFILE:
 - Relationship: ${patient.relationship}
 - Primary User: ${patient.is_primary ? 'Yes' : 'No'}`;
 
-      // Build health records context using filtered records
+      // Build health records context using filtered records (token-optimized)
       let healthRecordsText = '\n\nHEALTH RECORDS:';
       if (filteredHealthRecords?.length) {
-        healthRecordsText += '\n\nRECENT HEALTH RECORDS:';
-        filteredHealthRecords.slice(0, 5).forEach(record => {
-          healthRecordsText += `\n- ${record.title} (${record.record_type}) - ${new Date(record.created_at).toLocaleDateString()}`;
+        healthRecordsText += `\n- ${filteredHealthRecords.length} records available`;
+        // Only include essential summaries for top 3 most recent records to reduce tokens
+        filteredHealthRecords.slice(0, 3).forEach(record => {
+          healthRecordsText += `\n- ${record.title} (${new Date(record.created_at).toLocaleDateString()})`;
+          // Limit data to 50 chars to drastically reduce token usage
           if (record.data) {
-            const dataStr = JSON.stringify(record.data).substring(0, 100);
-            healthRecordsText += `\n  Brief: ${dataStr}${dataStr.length >= 100 ? '...' : ''}`;
+            const dataStr = JSON.stringify(record.data).substring(0, 50);
+            healthRecordsText += ` - ${dataStr}${dataStr.length >= 50 ? '...' : ''}`;
           }
         });
         
-        if (filteredHealthRecords.length > 5) {
-          healthRecordsText += `\n  ... and ${filteredHealthRecords.length - 5} more records available`;
+        if (filteredHealthRecords.length > 3) {
+          healthRecordsText += `\n[${filteredHealthRecords.length - 3} more records omitted for brevity]`;
         }
       } else {
-        healthRecordsText += '\n\nNo health records available';
+        healthRecordsText += '\nNone available';
       }
 
       patientContext += healthRecordsText;
 
-      // Build health forms context - Use filtered health records for subscription tier compliance
+      // Build health forms context - OPTIMIZED for token usage
       const healthForms = filteredHealthRecords || [];
       
       if (healthForms.length > 0) {
-        healthFormsContext = '\n\nHEALTH FORMS & RECORDS DATA:';
-        healthForms.slice(0, 10).forEach(form => {
-          healthFormsContext += `\n- ${form.title} (${form.record_type}): `;
+        healthFormsContext = `\n\nHEALTH DATA SUMMARY: ${healthForms.length} forms available`;
+        // Only include very brief summaries to save massive tokens
+        healthForms.slice(0, 5).forEach(form => {
+          healthFormsContext += `\n- ${form.title}`;
+          // Extremely limited data to prevent token explosion
           if (form.data && typeof form.data === 'object') {
             const dataStr = JSON.stringify(form.data);
-            healthFormsContext += dataStr.length > 300 ? `${dataStr.substring(0, 300)}...` : dataStr;
-          } else {
-            healthFormsContext += 'No detailed data';
+            healthFormsContext += dataStr.length > 100 ? ` (${dataStr.substring(0, 100)}...)` : ` (${dataStr})`;
           }
-          healthFormsContext += ` [Updated: ${new Date(form.updated_at).toLocaleDateString()}]`;
         });
         
-        if (healthForms.length > 10) {
-          healthFormsContext += `\n  ... and ${healthForms.length - 10} more health records available`;
+        if (healthForms.length > 5) {
+          healthFormsContext += `\n[${healthForms.length - 5} more forms available]`;
         }
       }
     }

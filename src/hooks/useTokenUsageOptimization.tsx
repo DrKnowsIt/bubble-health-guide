@@ -4,14 +4,17 @@ import { useSubscription } from './useSubscription';
 import { checkRateLimit, getUserUsageStats, type DailyUsage } from '@/utils/usageTracking';
 import { toast } from 'sonner';
 
-interface UsageStats {
-  totalMessages: number;
-  totalTokens: number;
-  totalCost: number;
-  records: any[];
+interface TokenUsageStats {
+  dailyUsage: DailyUsage;
+  usageStats: any;
+  loading: boolean;
+  tokenWarningThreshold: number;
+  isApproachingLimit: boolean;
+  canMakeRequest: () => Promise<boolean>;
+  refreshUsage: () => Promise<void>;
 }
 
-export const useUsageMonitoring = () => {
+export const useTokenUsageOptimization = (): TokenUsageStats => {
   const { user } = useAuth();
   const { subscription_tier, subscribed } = useSubscription();
   
@@ -22,11 +25,26 @@ export const useUsageMonitoring = () => {
     limit_reached: false
   });
   
-  const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [usageStats, setUsageStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user can make another AI request
-  const checkCanMakeRequest = useCallback(async (): Promise<boolean> => {
+  // Dynamic warning thresholds based on subscription tier
+  const getWarningThreshold = useCallback(() => {
+    const tier = subscription_tier || 'basic';
+    const thresholds = { 
+      free: 8, 
+      basic: 80, 
+      pro: 400, 
+      enterprise: 800 
+    };
+    return thresholds[tier as keyof typeof thresholds] || 80;
+  }, [subscription_tier]);
+
+  const tokenWarningThreshold = getWarningThreshold();
+  const isApproachingLimit = dailyUsage.messages_used >= tokenWarningThreshold * 0.8;
+
+  // Check if user can make another request
+  const canMakeRequest = useCallback(async (): Promise<boolean> => {
     if (!user?.id) return false;
     
     const tier = subscription_tier || 'basic';
@@ -40,23 +58,29 @@ export const useUsageMonitoring = () => {
         description: `You've used ${usage.messages_used} messages today. Upgrade to increase your limit.`,
         duration: 5000
       });
+      return false;
     }
     
-    return allowed;
-  }, [user?.id, subscription_tier]);
+    // Warning for approaching limit
+    if (usage.messages_used >= tokenWarningThreshold * 0.9 && usage.messages_used < tokenWarningThreshold) {
+      toast.warning('Approaching daily limit', {
+        description: `You have ${Math.max(0, tokenWarningThreshold - usage.messages_used)} messages remaining today.`,
+        duration: 4000
+      });
+    }
+    
+    return true;
+  }, [user?.id, subscription_tier, tokenWarningThreshold]);
 
   // Load usage statistics
   const loadUsageStats = useCallback(async () => {
     if (!user?.id) return;
     
-    setLoading(true);
     try {
       const stats = await getUserUsageStats(user.id, 30);
       setUsageStats(stats);
     } catch (error) {
       console.error('Error loading usage stats:', error);
-    } finally {
-      setLoading(false);
     }
   }, [user?.id]);
 
@@ -72,45 +96,19 @@ export const useUsageMonitoring = () => {
   // Load initial data
   useEffect(() => {
     if (user?.id) {
-      loadUsageStats();
-      refreshUsage();
+      setLoading(true);
+      Promise.all([loadUsageStats(), refreshUsage()])
+        .finally(() => setLoading(false));
     }
   }, [user?.id, loadUsageStats, refreshUsage]);
-
-  // Improved warning system - more intelligent thresholds
-  useEffect(() => {
-    if (dailyUsage.messages_used > 0) {
-      const tier = subscription_tier || 'basic';
-      const warningThresholds = { free: 8, basic: 80, pro: 400, enterprise: 800 };
-      const threshold = warningThresholds[tier as keyof typeof warningThresholds] || 80;
-      
-      // Warning at 80% usage
-      const warningPoint = Math.floor(threshold * 0.8);
-      
-      if (dailyUsage.messages_used === warningPoint) {
-        toast.warning('Approaching daily limit', {
-          description: `You've used ${dailyUsage.messages_used} of ${threshold} daily messages (${Math.round((dailyUsage.messages_used/threshold)*100)}%).`,
-          duration: 5000
-        });
-      }
-      
-      // Critical warning at 95% usage
-      const criticalPoint = Math.floor(threshold * 0.95);
-      if (dailyUsage.messages_used === criticalPoint) {
-        toast.error('Almost at daily limit', {
-          description: `Only ${threshold - dailyUsage.messages_used} messages remaining today. Consider upgrading for more usage.`,
-          duration: 6000
-        });
-      }
-    }
-  }, [dailyUsage.messages_used, subscription_tier]);
 
   return {
     dailyUsage,
     usageStats,
     loading,
-    checkCanMakeRequest,
-    refreshUsage,
-    loadUsageStats
+    tokenWarningThreshold,
+    isApproachingLimit,
+    canMakeRequest,
+    refreshUsage
   };
 };

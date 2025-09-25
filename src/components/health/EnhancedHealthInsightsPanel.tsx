@@ -123,11 +123,12 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
     }
   }, [diagnoses]);
 
+  // Load feedback only when user/patient changes, NOT on every diagnosis change
   useEffect(() => {
     if (user && patientId) {
       loadExistingFeedback();
     }
-  }, [user, patientId, diagnoses]);
+  }, [user, patientId]); // Removed diagnoses from dependencies to prevent query storm
 
   const groupDiagnoses = (diagnosisList: Diagnosis[]) => {
     const sorted = [...diagnosisList].sort((a, b) => b.confidence - a.confidence);
