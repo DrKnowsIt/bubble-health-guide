@@ -18,8 +18,8 @@ import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmationModal';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useTokenLimiting } from '@/hooks/useTokenLimiting';
-import { TokenTimeoutNotification } from './TokenTimeoutNotification';
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 
 interface TabletChatInterfaceProps {
   selectedUser?: User | null;
@@ -33,7 +33,7 @@ export const TabletChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { canChat, refreshTokenStatus } = useTokenLimiting();
+  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -243,9 +243,9 @@ export const TabletChatInterface = ({
       }
 
       // Handle token limit timeout (429 status or token limit message)
-      if (error?.status === 429 || error?.message?.includes('tokens remaining') || error?.message?.includes('token limit')) {
-        // Refresh token status to update UI
-        refreshTokenStatus();
+      if (error?.status === 429 || error?.message?.includes('token limit')) {
+        // Handle server-side token timeout
+        handleTokenLimitError(error);
         // Don't show an error toast - the UI will show the timeout notification
         return;
       }
@@ -369,7 +369,7 @@ export const TabletChatInterface = ({
               {/* Messages Area */}
               <div className="tablet-messages-container">
                 {/* Token Timeout Notification - Show prominently in chat */}
-                <TokenTimeoutNotification />
+                <SimpleTokenTimeoutNotification />
                 
                 {messages.map((message) => (
                     <div
@@ -439,12 +439,12 @@ export const TabletChatInterface = ({
                       placeholder={
                         !selectedUser 
                           ? "Select a patient to start chatting..." 
-                          : !canChat 
-                            ? "🤖 DrKnowsIt is taking a 30-minute break..." 
-                            : "Describe your symptoms or ask health questions..."
+                        : isInTimeout 
+                          ? "🤖 DrKnowsIt is taking a 30-minute break..." 
+                          : "Describe your symptoms or ask health questions..."
                       }
                       className="min-h-[64px] max-h-32 resize-none border-0 bg-transparent pr-20 text-base placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
-                      disabled={isTyping || !selectedUser || !canChat}
+                      disabled={isTyping || !selectedUser || isInTimeout}
                     />
                     
                     {pendingImageUrl && (
@@ -474,7 +474,7 @@ export const TabletChatInterface = ({
                           variant={isRecording ? "destructive" : "ghost"}
                           size="lg"
                           onClick={toggleRecording}
-                          disabled={isTyping || !selectedUser || !canChat}
+                          disabled={isTyping || !selectedUser || isInTimeout}
                           className="h-12 w-12 p-0 rounded-full transition-all duration-200 touch-manipulation"
                         >
                           {isProcessing ? (
@@ -493,7 +493,7 @@ export const TabletChatInterface = ({
                       <Button
                         type="button"
                         onClick={handleSendMessage}
-                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !canChat}
+                        disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
                         size="lg"
                         className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 disabled:opacity-50 shadow-lg touch-manipulation"
                       >

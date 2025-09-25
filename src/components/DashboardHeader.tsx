@@ -8,8 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { TierStatus } from "@/components/TierStatus";
-import { useTokenLimiting } from "@/hooks/useTokenLimiting";
-import { formatTimeUntilReset } from "@/utils/tokenLimiting";
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
 interface DashboardHeaderProps {
   className?: string;
 }
@@ -24,7 +23,7 @@ export const DashboardHeader = ({
     subscription_tier,
     subscribed
   } = useSubscription();
-  const { currentTokens, canChat, timeUntilReset } = useTokenLimiting();
+  const { isInTimeout } = useTokenTimeout();
   const location = useLocation();
   const onDashboard = location.pathname.startsWith('/dashboard');
 

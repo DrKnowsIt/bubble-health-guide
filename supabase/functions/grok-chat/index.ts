@@ -230,17 +230,22 @@ serve(async (req) => {
     
     if (!allowed) {
       console.log(`No tokens remaining for user ${user_id}. Current tokens: ${current_tokens}`);
-      const minutes = time_until_reset ? Math.ceil(time_until_reset / (1000 * 60)) : 0;
+      const retryAfterSeconds = time_until_reset ? Math.ceil(time_until_reset / 1000) : 1800; // Default 30 min
       
       return new Response(
         JSON.stringify({ 
-          error: 'Token limit reached',
-          current_tokens,
-          time_until_reset,
-          subscription_tier: subscriptionTier,
-          message: `🤖 DrKnowsIt needs a break! Please wait ${minutes} minutes before continuing our conversation.`
+          error: 'Token limit reached. Please wait before continuing.',
+          timeout_end: Date.now() + (time_until_reset || TIMEOUT_DURATION),
+          retry_after_seconds: retryAfterSeconds
         }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': retryAfterSeconds.toString()
+          } 
+        }
       );
     }
 

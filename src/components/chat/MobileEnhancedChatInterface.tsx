@@ -26,9 +26,8 @@ import { RequestCooldownIndicator } from '../ui/request-cooldown-indicator';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useTokenLimiting } from '@/hooks/useTokenLimiting';
-import { TokenTimeoutNotification } from './TokenTimeoutNotification';
-import { formatTimeUntilReset, addTokens } from '@/utils/tokenLimiting';
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 
 interface MobileEnhancedChatInterfaceProps {
   selectedUser?: User | null;
@@ -42,7 +41,7 @@ export const MobileEnhancedChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { canChat, currentTokens, refreshTokenStatus, timeUntilReset } = useTokenLimiting();
+  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
   
   // Request debouncing and loop prevention
   const {
@@ -195,12 +194,10 @@ export const MobileEnhancedChatInterface = ({
       toast({ title: 'No patient selected', description: 'Please select a patient first.', variant: 'destructive' });
       return;
     }
-    if (!canChat) {
-      const hours = Math.floor((timeUntilReset || 0) / (1000 * 60 * 60));
-      const minutes = Math.floor(((timeUntilReset || 0) % (1000 * 60 * 60)) / (1000 * 60));
+    if (isInTimeout) {
       toast({ 
         title: 'Chat timeout active', 
-        description: `Please wait ${Math.ceil((timeUntilReset || 0) / (1000 * 60))} minutes before continuing.`,
+        description: 'Please wait for the timeout to expire before continuing.',
         variant: 'destructive' 
       });
       return;
@@ -279,11 +276,7 @@ export const MobileEnhancedChatInterface = ({
       setMessages(prev => [...prev, aiMessage]);
       await saveMessage(conversationId, 'ai', aiMessage.content);
 
-      // Track tokens after successful response
-      if (data.input_tokens && data.output_tokens) {
-        await addTokens(user.id, data.input_tokens + data.output_tokens);
-        refreshTokenStatus();
-      }
+      // Track tokens after successful response - handled by server now
 
       // Background operations - run without affecting typing state
       setTimeout(async () => {
@@ -343,9 +336,9 @@ export const MobileEnhancedChatInterface = ({
       }
 
       // Handle token limit timeout (429 status or token limit message)
-      if (error?.status === 429 || error?.message?.includes('tokens remaining') || error?.message?.includes('token limit')) {
-        // Refresh token status to update UI
-        refreshTokenStatus();
+      if (error?.status === 429 || error?.message?.includes('token limit')) {
+        // Handle server-side token timeout
+        handleTokenLimitError(error);
         // Don't show an error toast - the UI will show the timeout notification
         return;
       }
@@ -513,7 +506,7 @@ export const MobileEnhancedChatInterface = ({
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* Token Timeout Notification - Show prominently in chat */}
-                <TokenTimeoutNotification />
+                <SimpleTokenTimeoutNotification />
                 
                 {messages.map((message) => (
                   <div key={message.id} className="mb-4">
@@ -586,7 +579,7 @@ export const MobileEnhancedChatInterface = ({
                     placeholder={
                       !selectedUser 
                         ? "Select a patient to start chatting..." 
-                        : !canChat 
+                        : isInTimeout 
                           ? "🤖 DrKnowsIt is taking a 30-minute break..." 
                           : "Describe your symptoms or ask a health question..."
                     }
@@ -594,7 +587,7 @@ export const MobileEnhancedChatInterface = ({
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
-                    disabled={!selectedUser || !canChat}
+                    disabled={!selectedUser || isInTimeout}
                   />
                   
                   {/* Buttons positioned inside the textarea */}
@@ -604,7 +597,7 @@ export const MobileEnhancedChatInterface = ({
                       variant={isRecording ? "destructive" : "ghost"}
                       size="sm"
                       onClick={toggleRecording}
-                      disabled={!selectedUser || isProcessing || !canChat}
+                      disabled={!selectedUser || isProcessing || isInTimeout}
                       className="h-8 w-8 p-0 hover:bg-muted"
                     >
                       {isRecording ? (
@@ -615,7 +608,7 @@ export const MobileEnhancedChatInterface = ({
                     </Button>
                     <Button 
                       onClick={handleSendMessage}
-                      disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !canChat}
+                      disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
                       size="sm"
                       className="h-8 w-8 p-0"
                     >

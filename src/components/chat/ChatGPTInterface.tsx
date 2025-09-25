@@ -12,8 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
-import { useTokenLimiting } from '@/hooks/useTokenLimiting';
-import { addTokens } from '@/utils/tokenLimiting';
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
@@ -22,7 +21,7 @@ import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageC
 import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
-import { TokenTimeoutNotification } from "@/components/chat/TokenTimeoutNotification";
+import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -99,8 +98,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     performMemoryAnalysis
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
   
-  // Token limiting
-  const { canChat, refreshTokenStatus, timeUntilReset, loading: tokenLoading } = useTokenLimiting();
+  // Token timeout handling
+  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
 
   // Medical image prompts
   const { 
@@ -419,8 +418,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       return;
     }
     
-    // Check token limits before making AI request
-    if (!canChat) {
+    // Check if in timeout before making AI request
+    if (isInTimeout) {
       toast({ 
         title: "Chat temporarily unavailable", 
         description: "Please wait for the timeout to expire before continuing.", 
@@ -536,10 +535,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         await saveMessage(conversationId, 'ai', aiMessage.content);
       }
       
-      // Track tokens after successful response
-      if (data.input_tokens && data.output_tokens && user?.id) {
-        await addTokens(user.id, data.input_tokens + data.output_tokens);
-      }
+      // Track tokens after successful response - handled by server now
+      // Token tracking is now fully server-side
 
       // Check for AI image suggestion or trigger based on user message
       console.log('🖼️ ChatGPTInterface: About to trigger image prompt with message:', textToSend);
@@ -615,12 +612,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       let errorContent = 'I apologize, but I encountered an error while processing your request.';
 
       // Handle token limit timeout (429 status or token limit message)
-      if (error?.status === 429 || error?.message?.includes('tokens remaining') || error?.message?.includes('token limit')) {
-        // Refresh token status to update UI
-        if (refreshTokenStatus) {
-          refreshTokenStatus();
-        }
-        
+      if (error?.status === 429 || error?.message?.includes('token limit')) {
+        // Handle server-side token timeout
+        handleTokenLimitError(error);
         // Don't add an error message for token limits - the UI will show the timeout notification
         return;
       } else if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
@@ -906,7 +900,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
 
         {/* Token Timeout Notification - Show at bottom */}
-        <TokenTimeoutNotification />
+        <SimpleTokenTimeoutNotification />
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
@@ -946,7 +940,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   placeholder={
                     !subscribed 
                       ? "Subscribe to start chatting..." 
-                      : !canChat 
+                      : isInTimeout 
                         ? "Chat unavailable - DrKnowsIt is taking a break..." 
                         : "Message DrKnowsIt..."
                   }
@@ -954,7 +948,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="text-base border-2 border-border bg-background focus:border-primary rounded-xl px-4 py-3 h-auto"
-                  disabled={!subscribed || !canChat}
+                  disabled={!subscribed || isInTimeout}
                 />
               </div>
 
@@ -962,7 +956,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
               <Button 
                 onClick={() => handleSendMessage()}
-                disabled={(!inputValue.trim() && !pendingAttachment) || !subscribed || !canChat}
+                disabled={(!inputValue.trim() && !pendingAttachment) || !subscribed || isInTimeout}
                 size="lg"
                 className="rounded-xl px-4"
               >

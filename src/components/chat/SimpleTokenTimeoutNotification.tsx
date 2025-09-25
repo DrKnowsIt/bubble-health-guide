@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useTokenLimiting } from '@/hooks/useTokenLimiting';
-import { formatTimeUntilReset, TOKEN_LIMIT } from '@/utils/tokenLimiting';
-import { Clock, Bot } from 'lucide-react';
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const TokenTimeoutNotification = () => {
-  const { tokenStatus, canChat, timeUntilReset } = useTokenLimiting();
+const formatTimeUntilReset = (milliseconds: number): string => {
+  const minutes = Math.ceil(milliseconds / (1000 * 60));
+  return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+};
 
-  // Don't show if chat is available or no timeout
-  if (canChat || !tokenStatus || timeUntilReset <= 0) {
+export const SimpleTokenTimeoutNotification = () => {
+  const { isInTimeout, timeUntilReset } = useTokenTimeout();
+
+  if (!isInTimeout || timeUntilReset <= 0) {
     return null;
   }
 
