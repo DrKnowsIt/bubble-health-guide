@@ -32,19 +32,18 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
   // Clear conversation state when user changes to prevent cross-contamination
   useEffect(() => {
-    console.log('🔄 User changed in useConversationsQuery:', selectedUser?.id);
+    console.log('🔄 [useConversationsQuery] User changed:', {
+      userId: selectedUser?.id,
+      previousConversation: currentConversation
+    });
     
     // Clear current conversation if it doesn't belong to the new user
     if (currentConversation && selectedUser?.id) {
-      const currentConv = conversations.find(c => c.id === currentConversation);
-      if (currentConv && !conversations.some(c => c.id === currentConversation)) {
-        console.log('🚫 Clearing conversation that doesn\'t belong to current user');
-        setCurrentConversation(null);
-        setMessages([]);
-      }
-    } else if (currentConversation && !selectedUser?.id) {
-      // If no user selected, clear conversation
-      console.log('🚫 Clearing conversation - no user selected');
+      // Note: We can't check conversations here yet as they may not be loaded
+      console.log('🔍 [useConversationsQuery] Will validate conversation ownership after conversations load');
+    } else if (!selectedUser?.id) {
+      // If no user selected, clear conversation immediately
+      console.log('🚫 [useConversationsQuery] No user selected, clearing conversation state');
       setCurrentConversation(null);
       setMessages([]);
     }
@@ -56,7 +55,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     queryClient.invalidateQueries({ 
       queryKey: [MESSAGES_QUERY_KEY] 
     });
-  }, [selectedUser?.id]);
+  }, [selectedUser?.id, queryClient]);
 
   // Fetch conversations with caching
   const {
@@ -90,7 +89,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
         throw error;
       }
       
-      console.log('✅ Fetched conversations:', data?.length || 0, 'conversations');
+      console.log('✅ Fetched conversations:', data?.length || 0, 'conversations for user:', selectedUser?.id);
       return data || [];
     },
     enabled: !!user,
@@ -122,6 +121,8 @@ export const useConversationsQuery = (selectedUser?: any) => {
         timestamp: new Date(msg.created_at),
         image_url: msg.image_url
       }));
+      
+      console.log('✅ [useConversationsQuery] Loaded', formattedMessages.length, 'messages for conversation:', currentConversation);
       
       // Update local messages state when data changes
       setMessages(formattedMessages);
@@ -285,6 +286,18 @@ export const useConversationsQuery = (selectedUser?: any) => {
       logger.error('Error creating conversation:', createConversationMutation.error);
     }
   }, [createConversationMutation.isSuccess, createConversationMutation.data, createConversationMutation.error, queryClient]);
+
+  // Validate current conversation belongs to user when conversations load
+  useEffect(() => {
+    if (conversations && conversations.length >= 0 && currentConversation) {
+      const belongsToUser = conversations.some(conv => conv.id === currentConversation);
+      if (!belongsToUser) {
+        console.log('🚫 [useConversationsQuery] Current conversation does not belong to user, clearing');
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+    }
+  }, [conversations, currentConversation]);
 
   useEffect(() => {
     if (saveMessageMutation.isSuccess) {

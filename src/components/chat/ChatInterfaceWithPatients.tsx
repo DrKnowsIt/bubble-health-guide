@@ -26,6 +26,8 @@ import { ChatMessage } from './ChatMessage';
 import { ChatAnalysisNotification, AnalysisResult } from '../ChatAnalysisNotification';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 
 interface ChatInterfaceWithUsersProps {
   onSendMessage?: (message: string) => void;
@@ -84,6 +86,21 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
     handleConversationError,
     restoreConversationState 
   } = useConversationStateGuard();
+
+  // Token timeout handling
+  const { isInTimeout, handleTokenLimitError, clearTimeout } = useTokenTimeout();
+
+  // Debug function to test token timeout (only in development)
+  const testTokenTimeout = () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧪 [DEBUG] Simulating token timeout');
+      handleTokenLimitError({
+        status: 429,
+        message: 'Token limit exceeded',
+        timeout_end: Date.now() + 5 * 60 * 1000 // 5 minutes from now
+      });
+    }
+  };
 
 
   const {
@@ -154,49 +171,61 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       }
     }, [user]);
 
-  // Critical: Force clear messages when switching to users with no conversations
+  // Critical: Force clear messages when switching users - simplified approach
   useEffect(() => {
-    if (selectedUser && conversations !== undefined) {
-      console.log('[ChatInterface] User switch detected:', { 
-        userId: selectedUser.id, 
-        conversationCount: conversations.length,
-        currentConv: currentConversation 
-      });
+    console.log('🔄 [ChatInterface] User or conversations changed:', { 
+      userId: selectedUser?.id,
+      conversationCount: conversations?.length,
+      currentConv: currentConversation 
+    });
+    
+    if (!selectedUser) {
+      console.log('🚫 [ChatInterface] No user selected, clearing all state');
+      setMessages([]);
+      startNewConversation();
+      setMessageAnalysis({});
+      setInputValue('');
+      setPendingImageUrl(null);
+      return;
+    }
+    
+    // If conversations are loaded but user has none, clear everything
+    if (conversations !== undefined && conversations.length === 0) {
+      console.log('✅ [ChatInterface] User has no conversations, clearing state');
+      setMessages([]);
+      startNewConversation();
+      setMessageAnalysis({});
+      setInputValue('');
+      setPendingImageUrl(null);
+      return;
+    }
+    
+    // If we have a current conversation, validate it belongs to the selected user
+    if (currentConversation && conversations && conversations.length > 0) {
+      const belongsToUser = conversations.some(conv => 
+        conv.id === currentConversation && conv.patient_id === selectedUser.id
+      );
       
-      // If user has no conversations, force clear all state
-      if (conversations.length === 0) {
-        console.log('[ChatInterface] User has no conversations, force clearing all state');
+      if (!belongsToUser) {
+        console.log('🚫 [ChatInterface] Current conversation does not belong to user, clearing');
         setMessages([]);
-        startNewConversation(); // This clears currentConversation
+        startNewConversation();
         setMessageAnalysis({});
         setInputValue('');
         setPendingImageUrl(null);
-        return;
-      }
-      
-      // If current conversation doesn't belong to selected user, clear it
-      if (currentConversation) {
-        const belongsToUser = conversations.some(conv => conv.id === currentConversation);
-        if (!belongsToUser) {
-          console.log('[ChatInterface] Current conversation does not belong to selected user, clearing');
-          setMessages([]);
-          startNewConversation(); // This clears currentConversation
-          setMessageAnalysis({});
-        }
       }
     }
   }, [selectedUser?.id, conversations, currentConversation, startNewConversation, setMessages]);
 
-  // Safety guard to prevent displaying messages from wrong user
+  // Safety guard to prevent displaying messages from wrong user - simplified
   useEffect(() => {
-    if (messages.length > 0 && selectedUser && conversations !== undefined) {
-      // If user has no conversations but we have messages, something is wrong - clear them
-      if (conversations.length === 0) {
-        console.warn('[ChatInterface] Safety guard: User has no conversations but messages exist, clearing');
-        setMessages([]);
-        startNewConversation();
-        setMessageAnalysis({});
-      }
+    if (messages.length > 0 && selectedUser && conversations !== undefined && conversations.length === 0) {
+      console.warn('⚠️ [ChatInterface] Safety guard: User has no conversations but messages exist, clearing');
+      setMessages([]);
+      startNewConversation();
+      setMessageAnalysis({});
+      setInputValue('');
+      setPendingImageUrl(null);
     }
   }, [messages, selectedUser, conversations, startNewConversation, setMessages]);
 
@@ -399,6 +428,15 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
       if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
         return;
       }
+      
+      // Handle token limit timeout (429 status or token limit message)
+      if (error?.status === 429 || error?.message?.includes('token limit')) {
+        console.log('🔒 [ChatInterface] Token limit reached, activating timeout');
+        handleTokenLimitError(error);
+        // Don't show an error toast - the UI will show the timeout notification
+        return;
+      }
+      
       const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
         ? 'This feature requires a Pro subscription. Please upgrade to continue.'
         : 'Failed to send message. Please try again.';
@@ -528,6 +566,34 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
               activeConversationId={currentConversation}
             />
           </div>
+
+          {/* Debug controls in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+              <h4 className="font-medium text-sm">Debug Controls</h4>
+              <div className="space-y-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={testTokenTimeout}
+                  className="w-full text-xs"
+                >
+                  Test Timeout (5min)
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearTimeout}
+                  className="w-full text-xs"
+                >
+                  Clear Timeout
+                </Button>
+                <div className="text-xs text-muted-foreground">
+                  Timeout: {isInTimeout ? '✅ Active' : '❌ Inactive'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Chat Area */}
@@ -594,16 +660,19 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
               )}
             </CardContent>
 
+            {/* Token timeout notification */}
+            <SimpleTokenTimeoutNotification />
+
             <div className="border-t p-4">
               <div className="flex space-x-2">
                 <div className="flex-1 relative">
-                  <Textarea
+                   <Textarea
                     placeholder="Describe your symptoms..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="min-h-[50px] max-h-[120px] resize-none pr-20"
-                    disabled={!selectedUser || !subscribed}
+                    disabled={!selectedUser || !subscribed || isInTimeout}
                   />
                   {/* Buttons positioned inside the textarea */}
                   <div className="absolute bottom-2 right-2 flex gap-1">
@@ -625,7 +694,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
                 </div>
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !subscribed}
+                  disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || !subscribed || isInTimeout}
                   className="h-[50px] px-6"
                 >
                   <Send className="h-4 w-4" />
