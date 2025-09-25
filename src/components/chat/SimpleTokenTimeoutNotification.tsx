@@ -1,4 +1,4 @@
-import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { Clock, RefreshCw, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ const formatTimeUntilReset = (milliseconds: number): string => {
 };
 
 export const SimpleTokenTimeoutNotification = () => {
-  const { isInTimeout, timeUntilReset, clearTimeout } = useTokenTimeout();
+  const { isInTimeout, timeUntilReset, clearTimeout } = useSimpleTokenTimeout();
 
   console.log('🔍 [SimpleTokenTimeoutNotification] Render:', { isInTimeout, timeUntilReset });
 

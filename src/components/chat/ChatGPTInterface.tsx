@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalysisNotifications } from "@/hooks/useAnalysisNotifications";
 import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
-import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
@@ -100,7 +100,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   } = useAnalysisNotifications(currentConversation, selectedUser?.id || null);
   
   // Token timeout handling
-  const { isInTimeout, timeUntilReset, handleTokenLimitError, clearTimeout } = useTokenTimeout();
+  const { isInTimeout, timeUntilReset, handleTokenLimitError, clearTimeout } = useSimpleTokenTimeout();
   
   console.log('🔍 [ChatGPTInterface] Timeout state:', { isInTimeout, timeUntilReset });
 

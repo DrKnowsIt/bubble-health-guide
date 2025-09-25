@@ -26,7 +26,7 @@ import { RequestCooldownIndicator } from '../ui/request-cooldown-indicator';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 
 interface MobileEnhancedChatInterfaceProps {
@@ -41,7 +41,7 @@ export const MobileEnhancedChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
+  const { isInTimeout, handleTokenLimitError } = useSimpleTokenTimeout();
   
   // Request debouncing and loop prevention
   const {
