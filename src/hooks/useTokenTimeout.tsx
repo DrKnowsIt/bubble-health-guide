@@ -144,11 +144,35 @@ export const useTokenTimeout = () => {
   }, [user?.id]);
 
   // Clear timeout (for manual clearing if needed)
-  const clearTimeout = useCallback(() => {
+  const clearTimeout = useCallback(async () => {
     if (!user?.id) return;
     
-    localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
-    setTimeoutState({ isInTimeout: false, timeUntilReset: 0, timeoutEndTimestamp: null });
+    try {
+      console.log('🧹 [useTokenTimeout] Clearing timeout for user:', user.id);
+      
+      // Clear database state
+      const { error } = await supabase
+        .from('user_token_limits')
+        .update({
+          can_chat: true,
+          limit_reached_at: null,
+          current_tokens: 0
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('❌ [useTokenTimeout] Failed to clear database timeout:', error);
+        return;
+      }
+
+      // Clear localStorage and local state
+      localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
+      setTimeoutState({ isInTimeout: false, timeUntilReset: 0, timeoutEndTimestamp: null });
+      
+      console.log('✅ [useTokenTimeout] Timeout cleared successfully');
+    } catch (error) {
+      console.error('❌ [useTokenTimeout] Error clearing timeout:', error);
+    }
   }, [user?.id]);
 
   // Check stored timeout on load and user change
