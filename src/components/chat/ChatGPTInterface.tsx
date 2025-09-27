@@ -22,7 +22,6 @@ import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
 import { AnalysisStatusIndicator } from "@/components/ui/AnalysisStatusIndicator";
-import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -961,7 +960,23 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
 
         {/* Token Timeout Notification */}
-        <SimpleTokenTimeoutNotification />
+        {isInTimeout && timeUntilReset > 0 && (
+          <div className="flex flex-col gap-3 p-4 mx-4 mb-4 rounded-lg bg-amber-50 border-2 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800">
+                <Clock className="w-4 h-4 text-amber-700 dark:text-amber-200" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  DrKnowsIt needs {Math.ceil(timeUntilReset / (1000 * 60))} minutes to recharge
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Your conversation is saved and will continue automatically when ready.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
