@@ -18,7 +18,7 @@ const UserAgreement = () => {
           
           <div className="flex items-center space-x-3 mb-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-bubble">
-              <Users className="h-6 w-6 text-white" />
+              <Users className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">User Agreement</h1>

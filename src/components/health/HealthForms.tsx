@@ -1449,7 +1449,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
                       <CardContent className="pt-6">
                         <div className="flex items-start gap-3">
                           <div className={`${form.id === 'general_health_notes' ? form.color : ''} ${form.id === 'general_health_notes' ? 'p-2 rounded-lg' : ''}`}>
-                            <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-white' : 'text-primary'}`} />
+                            <form.icon className={`h-6 w-6 mt-1 ${form.id === 'general_health_notes' ? 'text-primary-foreground' : 'text-primary'}`} />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">

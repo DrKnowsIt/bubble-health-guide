@@ -83,7 +83,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-bubble">
-              <Stethoscope className="h-7 w-7 text-white" />
+              <Stethoscope className="h-7 w-7 text-primary-foreground" />
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold text-foreground">
@@ -210,7 +210,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onToggleMode }: AuthModalProp
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
-                <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                <div className="h-4 w-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin"></div>
                 <span>{mode === 'signin' ? 'Signing In...' : 'Creating Account...'}</span>
               </div>
             ) : (

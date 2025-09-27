@@ -151,7 +151,7 @@ export const SubscriptionManagement = () => {
         <Card className={`medical-card transition-all hover:scale-[1.02] ${subscription_tier === 'basic' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted-dark text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted-dark text-foreground">
                 <Zap className="h-6 w-6" />
               </div>
             </div>
@@ -198,7 +198,7 @@ export const SubscriptionManagement = () => {
           </div>
           <CardHeader className="text-center pt-12">
             <div className="flex justify-center mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-bubble text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-bubble text-primary-foreground">
                 <Crown className="h-6 w-6" />
               </div>
             </div>

@@ -895,7 +895,7 @@ Patient: ${userName} | Provider Copy | Confidential Medical Information`;
         <Button 
           onClick={exportComprehensivePDF}
           disabled={!selectedUser}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full bg-primary hover:bg-primary-hover text-primary-foreground"
         >
           <FileDown className="h-4 w-4 mr-2" />
           Export Clinical Report

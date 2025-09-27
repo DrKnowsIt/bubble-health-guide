@@ -82,7 +82,7 @@ export const DemoConversation = () => {
                         "flex h-6 w-6 lg:h-8 lg:w-8 items-center justify-center rounded-full flex-shrink-0 mt-1",
                         message.type === 'user' 
                           ? "bg-primary text-primary-foreground" 
-                          : "bg-primary text-white"
+                          : "bg-primary text-primary-foreground"
                       )}
                     >
                       {message.type === 'user' ? (

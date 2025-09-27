@@ -160,7 +160,7 @@ export const Features = () => {
               <CardContent className="p-8">
                 {/* Icon and Badge */}
                 <div className="flex items-start justify-between mb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl gradient-bubble text-white group-hover:scale-110 transition-transform duration-300">
+                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl gradient-bubble text-primary-foreground group-hover:scale-110 transition-transform duration-300">
                     <feature.icon className="h-7 w-7" />
                   </div>
                   <Badge variant="secondary" className="text-xs font-medium">
@@ -299,7 +299,7 @@ export const HowItWorks = () => {
                       <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg gradient-bubble text-white group-hover:shadow-elevated transition-shadow">
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg gradient-bubble text-primary-foreground group-hover:shadow-elevated transition-shadow">
                         <step.icon className="h-6 w-6" />
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
             <div className="md:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-bubble">
-                  <Stethoscope className="h-6 w-6 text-white" />
+                  <Stethoscope className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div>
                   <div className="text-lg font-bold text-foreground">DrKnowsIt</div>

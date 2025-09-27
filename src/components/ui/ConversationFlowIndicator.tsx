@@ -93,7 +93,7 @@ export const ConversationFlowIndicator: React.FC<ConversationFlowIndicatorProps>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`${getModeColor()} text-white px-3 py-1 rounded-full text-sm font-medium`}>
+            <div className={`${getModeColor()} text-primary-foreground px-3 py-1 rounded-full text-sm font-medium`}>
               {mode.toUpperCase()} Mode
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

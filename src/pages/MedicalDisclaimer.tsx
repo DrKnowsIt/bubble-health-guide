@@ -18,7 +18,7 @@ const MedicalDisclaimer = () => {
           
           <div className="flex items-center space-x-3 mb-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning">
-              <AlertTriangle className="h-6 w-6 text-white" />
+              <AlertTriangle className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Medical Disclaimer</h1>

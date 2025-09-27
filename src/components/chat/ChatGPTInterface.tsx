@@ -817,7 +817,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                       )}
                     >
                       {message.type === 'ai' && (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white flex-shrink-0 mt-1">
+                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                           <Bot className="h-4 w-4" />
                         </div>
                       )}
@@ -888,7 +888,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 {/* Typing Indicator */}
                 {isTyping && (
                   <div className="flex gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white flex-shrink-0 mt-1">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                       <Bot className="h-4 w-4" />
                     </div>
                     <div className="bg-muted text-foreground rounded-2xl rounded-bl-md px-4 py-3">

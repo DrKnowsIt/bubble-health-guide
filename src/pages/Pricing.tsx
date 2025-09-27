@@ -196,7 +196,7 @@ const Pricing = () => {
               <CardHeader className={`text-center ${plan.popular ? 'pt-12' : ''}`}>
                 <div className="flex justify-center mb-4">
                   <div className={`
-                    flex h-12 w-12 items-center justify-center rounded-xl text-white
+                    flex h-12 w-12 items-center justify-center rounded-xl text-primary-foreground
                     ${plan.popular ? 'gradient-bubble' : 'bg-muted-dark'}
                   `}>
                     <plan.icon className="h-6 w-6" />

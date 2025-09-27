@@ -61,7 +61,7 @@ export const MedicalImagePrompt: React.FC<MedicalImagePromptProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
           {images.slice(0, 6).map((image) => (
             <div key={image.id} className="space-y-2">
-              <div className="aspect-square rounded-lg overflow-hidden bg-white dark:bg-gray-800 border border-border/50">
+              <div className="aspect-square rounded-lg overflow-hidden bg-card border border-border/50">
                 <img
                   src={image.imageUrl}
                   alt={image.title}
