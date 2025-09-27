@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
@@ -31,32 +31,53 @@ export const useConversationsQuery = (selectedUser?: any) => {
   const { cancelAnalysesForConversation } = useAnalysisThrottling();
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // State recovery and stability refs
+  const lastValidConversationRef = useRef<string | null>(null);
+  const lastValidUserRef = useRef<string | null>(null);
+  const isInitialLoadRef = useRef(true);
+  const conversationClearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clear conversation state when user changes to prevent cross-contamination
   useEffect(() => {
-    console.log('🔄 [useConversationsQuery] User changed:', {
-      userId: selectedUser?.id,
-      previousConversation: currentConversation
+    const currentUserId = selectedUser?.id || null;
+    const previousUserId = lastValidUserRef.current;
+    
+    console.log('🔄 [useConversationsQuery] User change detected:', {
+      previousUserId,
+      currentUserId,
+      currentConversation,
+      isInitialLoad: isInitialLoadRef.current
     });
     
-    // Clear current conversation if it doesn't belong to the new user
-    if (currentConversation && selectedUser?.id) {
-      // Note: We can't check conversations here yet as they may not be loaded
-      console.log('🔍 [useConversationsQuery] Will validate conversation ownership after conversations load');
-    } else if (!selectedUser?.id) {
-      // If no user selected, clear conversation immediately
-      console.log('🚫 [useConversationsQuery] No user selected, clearing conversation state');
+    // Only clear state if we're actually switching to a different user (not initial load or same user)
+    if (!isInitialLoadRef.current && previousUserId !== currentUserId) {
+      console.log('👤 [useConversationsQuery] User actually changed, clearing conversation state');
+      
+      // Clear any pending timeout
+      if (conversationClearTimeoutRef.current) {
+        clearTimeout(conversationClearTimeoutRef.current);
+        conversationClearTimeoutRef.current = null;
+      }
+      
       setCurrentConversation(null);
       setMessages([]);
+      lastValidConversationRef.current = null;
+      
+      // Invalidate queries for clean state
+      queryClient.invalidateQueries({ 
+        queryKey: [CONVERSATIONS_QUERY_KEY] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [MESSAGES_QUERY_KEY] 
+      });
+    } else {
+      console.log('🔍 [useConversationsQuery] User change was initial load or same user, preserving state');
     }
     
-    // Invalidate all conversation-related cache for clean state
-    queryClient.invalidateQueries({ 
-      queryKey: [CONVERSATIONS_QUERY_KEY] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: [MESSAGES_QUERY_KEY] 
-    });
+    // Update refs
+    lastValidUserRef.current = currentUserId;
+    isInitialLoadRef.current = false;
   }, [selectedUser?.id, queryClient]);
 
   // Fetch conversations with caching
@@ -316,17 +337,43 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
   }, [createConversationMutation.isSuccess, createConversationMutation.data, createConversationMutation.error, queryClient]);
 
-  // Validate current conversation belongs to user when conversations load
+  // Validate current conversation belongs to user when conversations load - but only if not loading
   useEffect(() => {
-    if (conversations && conversations.length >= 0 && currentConversation) {
+    // Only validate ownership if conversations are loaded and we have a current conversation
+    if (!conversationsLoading && conversations && currentConversation) {
       const belongsToUser = conversations.some(conv => conv.id === currentConversation);
+      
+      console.log('🔍 [useConversationsQuery] Ownership validation:', {
+        currentConversation,
+        conversationsCount: conversations.length,
+        belongsToUser,
+        conversationsLoading
+      });
+      
       if (!belongsToUser) {
-        console.log('🚫 [useConversationsQuery] Current conversation does not belong to user, clearing');
-        setCurrentConversation(null);
-        setMessages([]);
+        console.log('🚫 [useConversationsQuery] Current conversation does not belong to user, clearing with delay');
+        
+        // Add a small delay to prevent race conditions during rapid state changes
+        conversationClearTimeoutRef.current = setTimeout(() => {
+          console.log('⏰ [useConversationsQuery] Executing delayed conversation clear');
+          setCurrentConversation(null);
+          setMessages([]);
+          lastValidConversationRef.current = null;
+        }, 100);
+      } else {
+        // Conversation is valid, update our ref
+        lastValidConversationRef.current = currentConversation;
+        
+        // Clear any pending timeout since conversation is valid
+        if (conversationClearTimeoutRef.current) {
+          clearTimeout(conversationClearTimeoutRef.current);
+          conversationClearTimeoutRef.current = null;
+        }
       }
+    } else if (conversationsLoading && currentConversation) {
+      console.log('⏳ [useConversationsQuery] Conversations still loading, preserving current conversation:', currentConversation);
     }
-  }, [conversations, currentConversation]);
+  }, [conversations, currentConversation, conversationsLoading]);
 
   useEffect(() => {
     if (saveMessageMutation.isSuccess) {
@@ -389,20 +436,68 @@ export const useConversationsQuery = (selectedUser?: any) => {
   }, [currentConversation]);
 
   const selectConversation = useCallback((conversationId: string) => {
-    // Validate that the conversation belongs to the current user/patient combination
-    const conversation = conversations.find(c => c.id === conversationId);
-    if (!conversation) {
-      console.warn('🚫 Cannot select conversation - not found in current conversations list:', conversationId);
+    // Enhanced debug logging
+    console.log('🎯 [selectConversation] Attempting to select conversation:', {
+      conversationId,
+      currentConversation,
+      conversationsCount: conversations.length,
+      conversationsLoading,
+      userId: user?.id,
+      patientId: selectedUser?.id
+    });
+    
+    // If conversations are still loading, store the conversation ID for later recovery
+    if (conversationsLoading) {
+      console.log('⏳ [selectConversation] Conversations loading, storing for recovery:', conversationId);
+      lastValidConversationRef.current = conversationId;
+      setCurrentConversation(conversationId);
       return;
     }
     
-    console.log('✅ Selecting conversation:', conversationId, 'for user:', user?.id, 'patient:', selectedUser?.id);
+    // Validate that the conversation belongs to the current user/patient combination
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) {
+      console.warn('🚫 [selectConversation] Cannot select conversation - not found in current conversations list:', {
+        conversationId,
+        availableConversations: conversations.map(c => c.id)
+      });
+      
+      // Try to recover from last valid conversation if available
+      if (lastValidConversationRef.current && lastValidConversationRef.current !== conversationId) {
+        console.log('🔄 [selectConversation] Attempting recovery with last valid conversation:', lastValidConversationRef.current);
+        const recoveryConversation = conversations.find(c => c.id === lastValidConversationRef.current);
+        if (recoveryConversation) {
+          setCurrentConversation(lastValidConversationRef.current);
+          return;
+        }
+      }
+      
+      return;
+    }
+    
+    console.log('✅ [selectConversation] Successfully selecting conversation:', conversationId);
     setCurrentConversation(conversationId);
-  }, [conversations, user?.id, selectedUser?.id]);
+    lastValidConversationRef.current = conversationId;
+    
+    // Clear any pending conversation clear timeouts
+    if (conversationClearTimeoutRef.current) {
+      clearTimeout(conversationClearTimeoutRef.current);
+      conversationClearTimeoutRef.current = null;
+    }
+  }, [conversations, conversationsLoading, user?.id, selectedUser?.id]);
 
   const startNewConversation = useCallback(() => {
+    console.log('📝 [startNewConversation] Starting new conversation');
+    
+    // Clear any pending timeouts
+    if (conversationClearTimeoutRef.current) {
+      clearTimeout(conversationClearTimeoutRef.current);
+      conversationClearTimeoutRef.current = null;
+    }
+    
     setCurrentConversation(null);
     setMessages([]);
+    lastValidConversationRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -475,6 +570,18 @@ export const useConversationsQuery = (selectedUser?: any) => {
       supabase.removeChannel(channel);
     };
   }, [currentConversation, queryClient]);
+
+  // Cleanup effect for timeout refs
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeout on unmount
+      if (conversationClearTimeoutRef.current) {
+        console.log('🧹 [useConversationsQuery] Cleaning up conversation clear timeout on unmount');
+        clearTimeout(conversationClearTimeoutRef.current);
+        conversationClearTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     conversations,
