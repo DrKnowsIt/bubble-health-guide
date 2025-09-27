@@ -50,7 +50,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   } = useAnalysisThrottling();
 
   // Analysis configuration - Natural conversation flow
-  const REGULAR_INTERVAL = 0; // Disabled automatic regular analysis 
+  const REGULAR_INTERVAL = 2; // Auto-analysis every 2 AI responses
   const DEEP_INTERVAL = 0; // Disabled automatic deep analysis
   
   const [analysisState, setAnalysisState] = useState<AnalysisState>({
@@ -64,13 +64,13 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
 
   const stageTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Update message count and calculate remaining messages
-  const updateMessageCount = useCallback((newCount: number) => {
+  // Update AI message count and calculate remaining messages until analysis
+  const updateMessageCount = useCallback((aiMessageCount: number) => {
     setAnalysisState(prev => ({
       ...prev,
-      messageCount: newCount,
-      messagesUntilAnalysis: REGULAR_INTERVAL - (newCount % REGULAR_INTERVAL),
-      messagesUntilDeepAnalysis: DEEP_INTERVAL - (newCount % DEEP_INTERVAL)
+      messageCount: aiMessageCount,
+      messagesUntilAnalysis: REGULAR_INTERVAL > 0 ? REGULAR_INTERVAL - (aiMessageCount % REGULAR_INTERVAL) : 0,
+      messagesUntilDeepAnalysis: DEEP_INTERVAL > 0 ? DEEP_INTERVAL - (aiMessageCount % DEEP_INTERVAL) : 0
     }));
   }, []);
 
@@ -243,27 +243,29 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     }
   }, [conversationId, patientId, user, subscription_tier, memories, insights, getStrategicContext, performDiagnosisAnalysis, performSolutionAnalysis, performMemoryAnalysis, onAnalysisComplete, canRunAnalysis, queueAnalysis, completeAnalysis, animateDeepAnalysisStages]);
 
-  // Check for scheduled analysis with throttling
+  // Check for scheduled analysis with throttling - only count AI responses
   const checkScheduledAnalysis = useCallback(async (messages: any[]) => {
     if (!conversationId || !patientId) {
       console.log('🚫 UnifiedAnalysis: Missing conversationId or patientId', { conversationId, patientId });
       return;
     }
     
-    const messageCount = messages.length;
-    console.log('🔍 UnifiedAnalysis: Checking scheduled analysis', { messageCount, conversationId });
+    // Count only AI responses (messages with role 'assistant')
+    const aiMessageCount = messages.filter((msg: any) => msg.role === 'assistant').length;
+    console.log('🔍 UnifiedAnalysis: Checking scheduled analysis', { aiMessageCount, totalMessages: messages.length, conversationId });
     
     // Cancel any pending analyses for conversation when new messages come in
     cancelAnalysesForConversation(conversationId);
     
-    // Check if analysis is due
-    const shouldRunRegularAnalysis = messageCount > 0 && messageCount % REGULAR_INTERVAL === 0;
-    const shouldRunDeepAnalysis = messageCount > 0 && messageCount % DEEP_INTERVAL === 0;
+    // Check if analysis is due based on AI message count
+    const shouldRunRegularAnalysis = REGULAR_INTERVAL > 0 && aiMessageCount > 0 && aiMessageCount % REGULAR_INTERVAL === 0;
+    const shouldRunDeepAnalysis = DEEP_INTERVAL > 0 && aiMessageCount > 0 && aiMessageCount % DEEP_INTERVAL === 0;
     
     console.log('🔍 Analysis intervals check:', { 
       shouldRunRegular: shouldRunRegularAnalysis, 
       shouldRunDeep: shouldRunDeepAnalysis,
-      messageCount,
+      aiMessageCount,
+      totalMessageCount: messages.length,
       regularInterval: REGULAR_INTERVAL,
       deepInterval: DEEP_INTERVAL
     });
@@ -277,7 +279,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       // Queue regular analysis
       queueAnalysis(conversationId, 'regular', false);
     } else {
-      console.log('🚫 No analysis needed at this time', { messageCount });
+      console.log('🚫 No analysis needed at this time', { aiMessageCount, totalMessages: messages.length });
     }
   }, [conversationId, patientId, cancelAnalysesForConversation, queueAnalysis]);
 

@@ -21,6 +21,7 @@ import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageC
 import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
+import { AnalysisStatusIndicator } from "@/components/ui/AnalysisStatusIndicator";
 import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
 
 interface ChatGPTInterfaceProps {
@@ -601,14 +602,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         }
       }
 
-      // Update message count and trigger unified analysis
-      const newMessageCount = analysisState.messageCount + 1;
+      // Update analysis message count for AI responses only
+      const allMessages = [...messages, userMessage, aiMessage];
+      const aiMessageCount = allMessages.filter(msg => msg.type === 'ai').length;
       if (updateMessageCount) {
-        updateMessageCount(newMessageCount);
+        updateMessageCount(aiMessageCount);
       }
       
-      // Check for scheduled analysis (regular every 4, deep every 16)
-      const allMessages = [...messages, userMessage, aiMessage];
+      // Check for scheduled analysis (regular every 2 AI responses)
       await checkScheduledAnalysis(allMessages);
 
       // Background diagnosis analysis (preserve advanced features)
@@ -994,6 +995,31 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 </Button>
               </div>
             )}
+            
+            {/* Analysis Status and Deep Analysis Button */}
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex-1">
+                <AnalysisStatusIndicator
+                  isAnalyzing={analysisState.isAnalyzing}
+                  currentStage={analysisState.currentStage}
+                  messagesUntilAnalysis={analysisState.messagesUntilAnalysis}
+                  messagesUntilDeepAnalysis={analysisState.messagesUntilDeepAnalysis}
+                  queueStatus={analysisState.queueStatus}
+                />
+              </div>
+              {!analysisState.isAnalyzing && messages.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => triggerManualAnalysis(messages)}
+                  className="ml-3 text-xs"
+                  disabled={!subscribed}
+                >
+                  🔬 Deep Analysis
+                </Button>
+              )}
+            </div>
+            
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
