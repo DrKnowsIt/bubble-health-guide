@@ -47,18 +47,12 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
             <Button 
               onClick={() => {
                 const targetPath = '/dashboard?tab=chat';
-                // Only navigate if not already on the target path
-                if (currentPath !== targetPath) {
-                  console.log('FreeUsersOnlyGate: Navigating to AI Chat from:', currentPath);
-                  debouncedNavigate(targetPath, { replace: true });
-                } else {
-                  console.log('FreeUsersOnlyGate: Already on AI Chat tab');
-                }
+                console.log('FreeUsersOnlyGate: Navigating to AI Chat');
+                debouncedNavigate(targetPath, { replace: true });
               }} 
-              disabled={currentPath === '/dashboard?tab=chat'}
               className="w-full"
             >
-              {currentPath === '/dashboard?tab=chat' ? 'You are here' : 'Go to AI Chat'}
+              Go to AI Chat
             </Button>
           </CardContent>
         </Card>
