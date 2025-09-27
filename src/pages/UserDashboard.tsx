@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { exportComprehensivePDFForUser } from '@/utils/pdfExport';
@@ -69,6 +69,7 @@ export default function UserDashboard() {
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [showMobileReportConfirm, setShowMobileReportConfirm] = useState(false);
+  const isInitialLoad = useRef(true);
   
   console.log('UserDashboard: State initialized', {
     user: !!user,
@@ -81,23 +82,22 @@ export default function UserDashboard() {
     currentPath: location.pathname
   });
   
-  // Update active tab when URL parameters change (with debouncing)
+  // Read URL parameters only on initial load
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const tabParam = urlParams.get('tab');
-    
-    if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
-      // Only update if different from current tab to prevent navigation loops
-      if (tabParam !== activeTab) {
-        console.log('UserDashboard: Tab change via URL:', tabParam);
+    if (isInitialLoad.current) {
+      const urlParams = new URLSearchParams(location.search);
+      const tabParam = urlParams.get('tab');
+      
+      if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
+        console.log('UserDashboard: Initial tab from URL:', tabParam);
         setActiveTab(tabParam);
+      } else {
+        console.log('UserDashboard: Setting default tab to easy-chat');
+        setActiveTab("easy-chat");
       }
-    } else if (!tabParam && activeTab !== "easy-chat") {
-      // Default to easy-chat if no specific tab is selected
-      console.log('UserDashboard: Setting default tab to easy-chat');
-      setActiveTab("easy-chat");
+      isInitialLoad.current = false;
     }
-  }, [location.search, activeTab]);
+  }, [location.search]);
   
   // Safety check: Ensure there's always a user selected when users exist
   // This helps prevent issues when switching between modes or tabs
@@ -400,7 +400,8 @@ export default function UserDashboard() {
         <Tabs value={activeTab} onValueChange={(newTab) => {
           console.log('UserDashboard: Manual tab change:', newTab);
           setActiveTab(newTab);
-          navigate(`/dashboard?tab=${newTab}`, { replace: true });
+          // Update URL without navigation to preserve state
+          window.history.replaceState(null, '', `/dashboard?tab=${newTab}`);
         }} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
