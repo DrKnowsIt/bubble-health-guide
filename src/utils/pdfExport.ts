@@ -616,51 +616,185 @@ export const exportComprehensivePDFForUser = async (
       }
     }
 
-    // Add holistic solutions/recommendations
-    if (solutionsData && solutionsData.length > 0) {
-      // Deduplicate and improve solution variety
-      const deduplicatedSolutions = deduplicateSolutions(solutionsData);
-      
-      if (deduplicatedSolutions.length > 0) {
-        if (currentY > 250) {
+    // Enhanced Health Topics Section
+    const { data: enhancedTopics } = await supabase
+      .from('health_topics_enhanced')
+      .select('*')
+      .eq('user_id', selectedUser.id)
+      .eq('patient_id', selectedUser.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (enhancedTopics?.length) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Enhanced Health Topics Analysis', 20, currentY);
+      currentY += SPACING.MEDIUM;
+
+      enhancedTopics.forEach((topic: any) => {
+        if (currentY > 270) {
           doc.addPage();
           currentY = 20;
         }
 
-        doc.setFontSize(14);
+        // Topic title with confidence
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.text('Holistic Health Recommendations', 20, currentY);
-        currentY += SPACING.MEDIUM;
-        
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
-        doc.text('AI-Generated Patient Guidance', 20, currentY);
-        currentY += SPACING.LARGE;
+        const confidenceText = topic.confidence_score ? ` (${Math.round(topic.confidence_score * 100)}% confidence)` : '';
+        doc.text(`${sanitizeText(topic.title)}${confidenceText}`, 25, currentY);
+        currentY += SPACING.LINE;
 
-        deduplicatedSolutions.forEach((solution, index) => {
+        // Category and priority
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(`Category: ${topic.category || 'General'} | Priority: ${topic.priority || 'Medium'}`, 25, currentY);
+        currentY += SPACING.LINE;
+
+        // Reasoning
+        if (topic.reasoning) {
+          const reasoningText = doc.splitTextToSize(sanitizeText(topic.reasoning), 160);
+          doc.text(reasoningText, 30, currentY);
+          currentY += reasoningText.length * 7 + SPACING.SMALL;
+        }
+        currentY += SPACING.SMALL;
+      });
+      currentY += SPACING.MEDIUM;
+    }
+
+    // Enhanced Solutions Section
+    const { data: enhancedSolutions } = await supabase
+      .from('health_solutions_enhanced')
+      .select('*')
+      .eq('user_id', selectedUser.id)
+      .eq('patient_id', selectedUser.id)
+      .order('created_at', { ascending: false })
+      .limit(15);
+
+    if (enhancedSolutions?.length) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Holistic Health Solutions', 20, currentY);
+      currentY += SPACING.MEDIUM;
+
+      const groupedSolutions = enhancedSolutions.reduce((acc: any, solution: any) => {
+        const category = solution.category || 'General';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(solution);
+        return acc;
+      }, {});
+
+      Object.entries(groupedSolutions).forEach(([category, solutions]: [string, any]) => {
+        if (currentY > 270) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        // Category header
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(category, 25, currentY);
+        currentY += SPACING.LINE;
+
+        solutions.forEach((solution: any) => {
           if (currentY > 270) {
             doc.addPage();
             currentY = 20;
           }
 
-          doc.setFontSize(11);
+          // Solution title with confidence
+          doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
-          const categoryText = solution.category || 'General Wellness';
-          doc.text(`${index + 1}. ${categoryText}`, 25, currentY);
+          const confidenceText = solution.confidence_score ? ` (${Math.round(solution.confidence_score * 100)}% confidence)` : '';
+          doc.text(`• ${sanitizeText(solution.title)}${confidenceText}`, 30, currentY);
           currentY += SPACING.LINE;
 
-          doc.setFont('helvetica', 'normal');
-          if (solution.confidence) {
-            doc.text(`Confidence: ${Math.round(solution.confidence * 100)}%`, 30, currentY);
-            currentY += SPACING.SMALL;
+          // Description
+          if (solution.description) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            const descText = doc.splitTextToSize(sanitizeText(solution.description), 150);
+            doc.text(descText, 35, currentY);
+            currentY += descText.length * 6;
           }
 
-          const solutionText = doc.splitTextToSize(sanitizeText(solution.solution), 160);
-          doc.text(solutionText, 30, currentY);
-          currentY += solutionText.length * 7 + SPACING.SMALL;
+          // Recommended products
+          if (solution.amazon_products?.length) {
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8);
+            doc.text('Recommended Products:', 35, currentY);
+            currentY += SPACING.SMALL;
+            
+            solution.amazon_products.slice(0, 3).forEach((product: any) => {
+              if (currentY > 270) {
+                doc.addPage();
+                currentY = 20;
+              }
+              const productText = `  - ${sanitizeText(product.title)} ($${product.price})`;
+              const productLines = doc.splitTextToSize(productText, 140);
+              doc.text(productLines, 40, currentY);
+              currentY += productLines.length * 5;
+            });
+          }
+          currentY += SPACING.SMALL;
         });
-        currentY += SPACING.MEDIUM;
+        currentY += SPACING.SMALL;
+      });
+      currentY += SPACING.MEDIUM;
+    }
+
+    // Recommended diagnostic tests
+    const { data: testRecommendations } = await supabase
+      .from('test_recommendations')
+      .select('*')
+      .eq('user_id', selectedUser.id)
+      .eq('patient_id', selectedUser.id)
+      .order('priority', { ascending: false })
+      .limit(10);
+
+    if (testRecommendations?.length) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
       }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Recommended Diagnostic Tests', 20, currentY);
+      currentY += SPACING.MEDIUM;
+
+      testRecommendations.forEach((test: any) => {
+        if (currentY > 270) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        // Test name and priority
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${sanitizeTest.test_name} (Priority: ${test.priority || 'Medium'})`, 25, currentY);
+        currentY += SPACING.LINE;
+
+        // Reason
+        if (test.reason) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          const reasonText = doc.splitTextToSize(sanitizeText(test.reason), 160);
+          doc.text(reasonText, 30, currentY);
+          currentY += reasonText.length * 7;
+        }
+        currentY += SPACING.SMALL;
+      });
+      currentY += SPACING.MEDIUM;
     }
 
     // Add memory insights if available

@@ -146,6 +146,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
         analysisPromises.push(
           supabase.functions.invoke('analyze-health-topics', {
             body: {
+              mode: 'standard',
               patient_id: patientId,
               conversation_id: conversationId,
               conversation_context: messages.map(m => m.content).join('\n'),
@@ -169,6 +170,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
         analysisPromises.push(
           supabase.functions.invoke('analyze-health-topics', {
             body: {
+              mode: 'enhanced',
               patient_id: patientId,
               conversation_id: conversationId,
               conversation_context: messages.map(m => m.content).join('\n'),
