@@ -37,7 +37,7 @@ export const useSimpleTokenTimeout = () => {
       // If database says can't chat and we have a limit_reached_at timestamp
       if (!data.can_chat && data.limit_reached_at) {
         const limitReachedTime = new Date(data.limit_reached_at).getTime();
-        const timeoutEndTimestamp = limitReachedTime + (30 * 60 * 1000); // 30 minutes
+        const timeoutEndTimestamp = limitReachedTime + (3 * 60 * 60 * 1000); // 3 hours
         const now = Date.now();
         const timeUntilReset = Math.max(0, timeoutEndTimestamp - now);
 
@@ -102,7 +102,7 @@ export const useSimpleTokenTimeout = () => {
     if (!user?.id) return;
 
     try {
-      const timeoutEnd = errorResponse.timeout_end || (Date.now() + 30 * 60 * 1000);
+      const timeoutEnd = errorResponse.timeout_end || (Date.now() + 3 * 60 * 60 * 1000);
       
       localStorage.setItem(`${STORAGE_KEY}_${user.id}`, timeoutEnd.toString());
       

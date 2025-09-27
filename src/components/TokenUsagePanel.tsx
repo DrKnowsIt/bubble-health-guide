@@ -70,12 +70,12 @@ export const TokenUsagePanel = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span>• Recharge duration:</span>
-                  <Badge variant="secondary">30 minutes</Badge>
+                  <Badge variant="secondary">3 hours</Badge>
                 </div>
                 <div>• Tokens reset automatically after timeout</div>
                 <div>• Simple questions use ~10-50 tokens</div>
                 <div>• Complex analysis uses ~100-200 tokens</div>
-                <div>• Clean and simple - no daily limits</div>
+                <div>• Generous limit allows extended conversations</div>
               </div>
             </div>
 
@@ -83,7 +83,7 @@ export const TokenUsagePanel = () => {
               <div className="text-sm">
                 <strong>🔋 Simple Token System</strong>
                 <div className="text-muted-foreground mt-1">
-                  When you reach the token limit, just wait 30 minutes for a full recharge. No complex daily limits or subscription restrictions for basic chat.
+                  When you reach the token limit, just wait 3 hours for a full recharge. No complex daily limits or subscription restrictions for basic chat.
                 </div>
               </div>
             </div>
