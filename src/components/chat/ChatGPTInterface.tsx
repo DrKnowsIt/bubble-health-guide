@@ -516,10 +516,18 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       const responseContent = data.message || 'I apologize, but I am unable to process your request at the moment.';
 
+      console.log('🔍 DEBUG: Raw response content:', responseContent);
+
       // Extract and clean diagnoses (preserve advanced features)
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
+      console.log('🔍 DEBUG: After extractDiagnoses - cleanResponse:', cleanResponse);
+      console.log('🔍 DEBUG: Extracted diagnoses:', extractedDiagnoses);
+      
       let sanitized = sanitizeVisibleText(cleanResponse);
+      console.log('🔍 DEBUG: After sanitizeVisibleText:', sanitized);
+      
       if (!sanitized) {
+        console.log('🔍 DEBUG: Sanitized was empty, using cleanResponse');
         sanitized = cleanResponse;
       }
 
