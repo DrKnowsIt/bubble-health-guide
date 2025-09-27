@@ -127,6 +127,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       console.log('✅ [useConversationsQuery] Loaded', formattedMessages.length, 'messages for conversation:', currentConversation);
       
       // Update local messages state when data changes
+      console.log('📝 [useConversationsQuery] Setting messages from query:', formattedMessages.length, 'messages');
       setMessages(formattedMessages);
       return formattedMessages;
     },
@@ -382,6 +383,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
   // Clear messages when currentConversation becomes null
   useEffect(() => {
     if (currentConversation === null) {
+      console.log('🧹 [useConversationsQuery] Clearing messages - no current conversation');
       setMessages([]);
     }
   }, [currentConversation]);

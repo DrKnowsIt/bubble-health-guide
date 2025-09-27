@@ -803,6 +803,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  console.log('🎯 [ChatGPTInterface] Component state - messages.length:', messages.length, 'user:', !!user, 'currentConversation:', currentConversation);
+
   return (
     <div className="flex h-full">
       {/* Main Chat Area */}
