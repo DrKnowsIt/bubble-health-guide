@@ -410,10 +410,10 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                                   <div className="flex items-center gap-2 mb-2">
                                     <h4 className="font-medium text-sm leading-tight">{solution.solution}</h4>
                                     <Badge variant={getTimelineColor(solution.timeline)} className="text-xs">
-                                      {solution.timeline.replace('_', ' ')}
+                                      {(solution.timeline || 'unknown').replace('_', ' ')}
                                     </Badge>
                                     <Badge variant={getEvidenceColor(solution.evidence_strength)} className="text-xs">
-                                      {solution.evidence_strength} evidence
+                                      {(solution.evidence_strength || 'unknown')} evidence
                                     </Badge>
                                     {solution.monitoring_required && (
                                       <Badge variant="outline" className="text-xs">
