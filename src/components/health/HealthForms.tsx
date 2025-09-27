@@ -1409,7 +1409,7 @@ export const HealthForms = ({ onFormSubmit, selectedPatient: propSelectedPatient
               </span>
             )}
           </CardDescription>
-          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-4">
+          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mt-4">
             <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
               <p className="font-medium text-blue-800">Voluntary Participation</p>
