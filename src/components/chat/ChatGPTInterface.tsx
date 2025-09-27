@@ -15,13 +15,15 @@ import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
+import { EnhancedHealthTopicsPanel } from "@/components/EnhancedHealthTopicsPanel";
+import { useEnhancedHealthTopics } from "@/hooks/useEnhancedHealthTopics";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
 import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageConfirmationModal";
 import { ToastAction } from "@/components/ui/toast";
 import { MedicalImagePrompt } from '@/components/ui/MedicalImagePrompt';
 import { DemoConversation } from "@/components/chat/DemoConversation";
-import { SimpleTokenTimeoutNotification } from "@/components/chat/SimpleTokenTimeoutNotification";
+import { AnalysisStatusIndicator } from "@/components/ui/AnalysisStatusIndicator";
 
 interface ChatGPTInterfaceProps {
   onSendMessage?: (message: string) => void;
@@ -76,6 +78,44 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, AnalysisResult[]>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Conversation creation protection
+  const isCreatingConversationRef = useRef(false);
+  const pendingConversationCreationRef = useRef<Promise<string | null> | null>(null);
+  
+  // Enhanced health topics integration
+  const enhancedTopicsRefreshRef = useRef<(() => void) | null>(null);
+  
+  // Get conversation context for health topics
+  const conversationContext = messages.map(msg => 
+    `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+  ).join('\n');
+  
+  // Enhanced health topics hook
+  const {
+    topics: enhancedTopics,
+    solutions: enhancedSolutions,
+    loading: enhancedLoading,
+    feedback: enhancedFeedback,
+    handleTopicFeedback,
+    handleSolutionFeedback,
+    refreshAnalysis,
+    highPriorityTopics,
+    followUpRequired,
+    immediateActions,
+    totalDataSources
+  } = useEnhancedHealthTopics({
+    conversationId: currentConversation,
+    patientId: selectedUser?.id || null,
+    conversationContext: conversationContext,
+    includeSolutions: true,
+    realTimeUpdates: true
+  });
+  
+  // Register refresh function
+  useEffect(() => {
+    enhancedTopicsRefreshRef.current = refreshAnalysis;
+  }, [refreshAnalysis]);
+  
   // Unified analysis system
   const { 
     analysisState, 
@@ -88,6 +128,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     patientId: selectedUser?.id || null,
     onAnalysisComplete: (results) => {
       console.log('[ChatGPTInterface] Analysis completed:', results);
+      // Trigger health topics refresh when unified analysis completes
+      if (enhancedTopicsRefreshRef.current) {
+        console.log('[ChatGPTInterface] Refreshing enhanced health topics after analysis');
+        enhancedTopicsRefreshRef.current();
+      }
     }
   });
   
@@ -434,6 +479,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
     
     console.log('✅ [ChatGPTInterface] All pre-send checks passed, proceeding with message');
+    console.log('🔍 [ChatGPTInterface] Current conversation state:', { currentConversation, selectedUserId: selectedUser.id });
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
@@ -470,16 +516,48 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     setInputValue('');
     if (pendingAttachment) setPendingAttachment(null);
 
-    // Ensure conversation exists
+    // Ensure conversation exists with debouncing protection
     let conversationId = currentConversation;
+    console.log('🔍 [ChatGPTInterface] Before conversation creation:', { 
+      conversationId, 
+      currentConversation,
+      isCreating: isCreatingConversationRef.current,
+      hasPending: !!pendingConversationCreationRef.current
+    });
+    
     if (!conversationId) {
-      const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
-      conversationId = await createConversation(title, selectedUser.id);
+      // Check if conversation creation is already in progress
+      if (isCreatingConversationRef.current && pendingConversationCreationRef.current) {
+        console.log('⏳ [ChatGPTInterface] Conversation creation already in progress, waiting...');
+        conversationId = await pendingConversationCreationRef.current;
+        console.log('✅ [ChatGPTInterface] Used existing conversation creation result:', conversationId);
+      } else {
+        console.log('🚀 [ChatGPTInterface] Starting new conversation creation');
+        isCreatingConversationRef.current = true;
+        
+        const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
+        const creationPromise = createConversation(title, selectedUser.id);
+        pendingConversationCreationRef.current = creationPromise;
+        
+        try {
+          conversationId = await creationPromise;
+          console.log('🔍 [ChatGPTInterface] Created new conversation:', conversationId);
+        } finally {
+          isCreatingConversationRef.current = false;
+          pendingConversationCreationRef.current = null;
+        }
+      }
+      
       if (!conversationId) {
         toast({ title: "Error", description: "Failed to create conversation", variant: "destructive" });
         return;
       }
+      
+      // Update conversation reference immediately for this request
+      convAtRef.current = conversationId;
     }
+    
+    console.log('🔍 [ChatGPTInterface] Final conversation ID for request:', conversationId);
 
     // Save user message
     if (user) {
@@ -491,6 +569,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     const reqId = ++requestSeqRef.current;
     const convoAtSend = conversationId || null;
     
+    console.log('🔄 [ChatGPTInterface] Starting typing animation and API request:', { reqId, convoAtSend });
     setIsTyping(true);
 
     // Call onSendMessage callback
@@ -518,15 +597,34 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       // Extract and clean diagnoses (preserve advanced features)
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
+      
       let sanitized = sanitizeVisibleText(cleanResponse);
+      
       if (!sanitized) {
         sanitized = cleanResponse;
       }
 
-      // Guard against stale responses
-      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+      // Guard against stale responses - be more lenient with new conversations
+      const currentConvoRef = convAtRef.current;
+      console.log('🔍 [ChatGPTInterface] Stale guard check:', { 
+        reqId, 
+        currentReqId: requestSeqRef.current, 
+        convoAtSend, 
+        currentConvoRef 
+      });
+      
+      if (reqId !== requestSeqRef.current) {
+        console.log('❌ [ChatGPTInterface] Request stale due to sequence mismatch');
         return;
       }
+      
+      // Allow response if conversation matches OR if we just created a new conversation
+      if (currentConvoRef !== convoAtSend && currentConvoRef !== null && convoAtSend !== null) {
+        console.log('❌ [ChatGPTInterface] Request stale due to conversation mismatch');
+        return;
+      }
+      
+      console.log('✅ [ChatGPTInterface] Response allowed, adding AI message');
 
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
@@ -535,7 +633,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      console.log('✅ [ChatGPTInterface] Creating AI message:', aiMessage);
+      console.log('✅ [ChatGPTInterface] Current messages before adding AI response:', messages.length);
+
+      setMessages(prev => {
+        const newMessages = [...prev, aiMessage];
+        console.log('✅ [ChatGPTInterface] Updated messages array:', newMessages.length);
+        return newMessages;
+      });
 
       // Save AI message
       if (user && conversationId) {
@@ -564,14 +669,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         }
       }
 
-      // Update message count and trigger unified analysis
-      const newMessageCount = analysisState.messageCount + 1;
+      // Update analysis message count for AI responses only
+      const allMessages = [...messages, userMessage, aiMessage];
+      const aiMessageCount = allMessages.filter(msg => msg.type === 'ai').length;
       if (updateMessageCount) {
-        updateMessageCount(newMessageCount);
+        updateMessageCount(aiMessageCount);
       }
       
-      // Check for scheduled analysis (regular every 4, deep every 16)
-      const allMessages = [...messages, userMessage, aiMessage];
+      // Check for scheduled analysis (regular every 2 AI responses)
       await checkScheduledAnalysis(allMessages);
 
       // Background diagnosis analysis (preserve advanced features)
@@ -612,7 +717,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       }
     } catch (error: any) {
       console.error('Grok chat failed:', error);
-      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+      
+      // Guard against stale responses for error handling too
+      const currentConvoRef = convAtRef.current;
+      if (reqId !== requestSeqRef.current) {
+        console.log('❌ [ChatGPTInterface] Error response stale due to sequence mismatch');
+        return;
+      }
+      
+      if (currentConvoRef !== convoAtSend && currentConvoRef !== null && convoAtSend !== null) {
+        console.log('❌ [ChatGPTInterface] Error response stale due to conversation mismatch');
         return;
       }
 
@@ -658,6 +772,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       }
     } finally {
       // Always clear typing state regardless of success or error
+      console.log('🔄 [ChatGPTInterface] Stopping typing animation');
       setIsTyping(false);
     }
   };
@@ -756,6 +871,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  console.log('🎯 [ChatGPTInterface] Component state - messages.length:', messages.length, 'user:', !!user, 'currentConversation:', currentConversation);
+
   return (
     <div className="flex h-full">
       {/* Main Chat Area */}
@@ -808,14 +925,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   </div>
                 )}
 
-                {messages.map((message) => (
-                  <div key={message.id}>
-                    <div
-                      className={cn(
-                        "flex gap-3",
-                        message.type === 'user' ? "justify-end" : "justify-start"
-                      )}
-                    >
+                {messages.map((message) => {
+                  console.log('🔄 [ChatGPTInterface] Rendering message:', message.id, message.type, message.content.substring(0, 50));
+                  return (
+                    <div key={message.id}>
+                      <div
+                        className={cn(
+                          "flex gap-3",
+                          message.type === 'user' ? "justify-end" : "justify-start"
+                        )}
+                      >
                       {message.type === 'ai' && (
                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                           <Bot className="h-4 w-4" />
@@ -858,11 +977,12 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                            />
                          </div>
                        </div>
-                     )}
-                   </div>
-                 ))}
+                      )}
+                    </div>
+                  );
+                })}
 
-                 {/* Manual analysis results - show separately */}
+                  {/* Manual analysis results - show separately */}
                  {Object.entries(messageAnalysis).map(([id, results]) => {
                    if (!id.startsWith('manual-')) return null;
                    return (
@@ -885,9 +1005,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                    );
                  })}
 
-                {/* Typing Indicator */}
-                {isTyping && (
-                  <div className="flex gap-3">
+                 {/* Typing Indicator */}
+                 {isTyping && (() => {
+                   console.log('🔄 [ChatGPTInterface] Showing typing indicator');
+                   return (
+                     <div className="flex gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                       <Bot className="h-4 w-4" />
                     </div>
@@ -898,8 +1020,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                         <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
-                  </div>
-                )}
+                     </div>
+                   );
+                 })()}
                 
               <div ref={messagesEndRef} />
             </div>
@@ -907,7 +1030,23 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
 
         {/* Token Timeout Notification */}
-        <SimpleTokenTimeoutNotification />
+        {isInTimeout && timeUntilReset > 0 && (
+          <div className="flex flex-col gap-3 p-4 mx-4 mb-4 rounded-lg bg-amber-50 border-2 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800">
+                <Clock className="w-4 h-4 text-amber-700 dark:text-amber-200" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  DrKnowsIt needs {Math.ceil(timeUntilReset / (1000 * 60))} minutes to recharge
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Your conversation is saved and will continue automatically when ready.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t border-border bg-background">
@@ -941,6 +1080,31 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 </Button>
               </div>
             )}
+            
+            {/* Analysis Status and Deep Analysis Button */}
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex-1">
+                <AnalysisStatusIndicator
+                  isAnalyzing={analysisState.isAnalyzing}
+                  currentStage={analysisState.currentStage}
+                  messagesUntilAnalysis={analysisState.messagesUntilAnalysis}
+                  messagesUntilDeepAnalysis={analysisState.messagesUntilDeepAnalysis}
+                  queueStatus={analysisState.queueStatus}
+                />
+              </div>
+              {!analysisState.isAnalyzing && messages.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => triggerManualAnalysis(messages)}
+                  className="ml-3 text-xs"
+                  disabled={!subscribed}
+                >
+                  🔬 Deep Analysis
+                </Button>
+              )}
+            </div>
+            
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
@@ -978,9 +1142,26 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
       </div>
 
-      {/* Diagnoses Sidebar - Always visible */}
+      {/* Health Topics & Diagnoses Sidebar - Always visible */}
       <div className="w-80 border-l border-border bg-background overflow-y-auto">
-        <div className="p-4">
+        <div className="p-4 space-y-4">
+          {/* Enhanced Health Topics */}
+          <EnhancedHealthTopicsPanel
+            topics={enhancedTopics}
+            solutions={enhancedSolutions}
+            loading={enhancedLoading}
+            feedback={enhancedFeedback}
+            highPriorityTopics={highPriorityTopics}
+            followUpRequired={followUpRequired}
+            immediateActions={immediateActions}
+            totalDataSources={totalDataSources || 0}
+            onTopicFeedback={handleTopicFeedback}
+            onSolutionFeedback={handleSolutionFeedback}
+            onRefresh={refreshAnalysis}
+            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
+          />
+          
+          {/* Legacy Health Insights */}
           <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser && healthTopics ? healthTopics.map(d => ({
               diagnosis: d.health_topic,
@@ -992,6 +1173,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             patientId={selectedUser?.id || ''}
             conversationId={currentConversation}
             showDemoTopics={!user}
+            onRefreshCallback={(refreshFn) => {
+              enhancedTopicsRefreshRef.current = refreshFn;
+            }}
           />
         </div>
       </div>

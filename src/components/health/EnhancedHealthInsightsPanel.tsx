@@ -8,6 +8,7 @@ import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Tar
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationSolutions } from '@/hooks/useConversationSolutions';
+import { useEnhancedHealthTopics } from '@/hooks/useEnhancedHealthTopics';
 
 interface Diagnosis {
   id?: string;
@@ -35,6 +36,7 @@ interface EnhancedHealthInsightsPanelProps {
   patientId: string;
   conversationId?: string;
   showDemoTopics?: boolean;
+  onRefreshCallback?: (refreshFn: () => void) => void;
 }
 
 const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = ({
@@ -42,12 +44,29 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
   patientName, 
   patientId,
   conversationId,
-  showDemoTopics = false
+  showDemoTopics = false,
+  onRefreshCallback
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   const [groupedDiagnoses, setGroupedDiagnoses] = useState<DiagnosisGroup[]>([]);
+  
+  // Enhanced health topics integration
+  const { refreshAnalysis } = useEnhancedHealthTopics({
+    conversationId: conversationId,
+    patientId: patientId,
+    conversationContext: '', // Empty context - only used for refresh
+    includeSolutions: true,
+    realTimeUpdates: true
+  });
+  
+  // Register refresh callback with parent
+  useEffect(() => {
+    if (onRefreshCallback && refreshAnalysis) {
+      onRefreshCallback(refreshAnalysis);
+    }
+  }, [onRefreshCallback, refreshAnalysis]);
   
   // Demo topics for non-authenticated users
   const demoTopics = [

@@ -7,100 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Token limit before timeout (300 tokens)
-const TOKEN_LIMIT = 300;
-
-// Timeout duration in milliseconds (30 minutes)
-const TIMEOUT_DURATION = 30 * 60 * 1000;
-
-async function checkTokenStatus(supabaseAdmin: any, userId: string): Promise<{ allowed: boolean; current_tokens: number; time_until_reset?: number }> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('user_token_limits')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error checking token status:', error);
-      return { allowed: false, current_tokens: 0 };
-    }
-    
-    if (!data) {
-      // Initialize tokens for new user
-      await supabaseAdmin
-        .from('user_token_limits')
-        .upsert({
-          user_id: userId,
-          current_tokens: 0,
-          can_chat: true,
-          limit_reached_at: null
-        }, {
-          onConflict: 'user_id'
-        });
-      
-      return { allowed: true, current_tokens: 0 };
-    }
-    
-    // Check if timeout has expired
-    if (data.limit_reached_at) {
-      const now = new Date();
-      const timeoutEnd = new Date(new Date(data.limit_reached_at).getTime() + TIMEOUT_DURATION);
-      const timeUntilReset = timeoutEnd.getTime() - now.getTime();
-      
-      if (timeUntilReset <= 0) {
-        // Reset the user's tokens
-        await supabaseAdmin
-          .from('user_token_limits')
-          .update({
-            current_tokens: 0,
-            can_chat: true,
-            limit_reached_at: null
-          })
-          .eq('user_id', userId);
-        
-        return { allowed: true, current_tokens: 0 };
-      }
-      
-      return {
-        allowed: false,
-        current_tokens: data.current_tokens,
-        time_until_reset: Math.max(0, timeUntilReset)
-      };
-    }
-    
-    return {
-      allowed: data.can_chat,
-      current_tokens: data.current_tokens,
-      time_until_reset: 0
-    };
-  } catch (error) {
-    console.error('Error in checkTokenStatus:', error);
-    return { allowed: false, current_tokens: 0 };
-  }
-}
-
-async function addTokens(supabaseAdmin: any, userId: string, tokensToAdd: number): Promise<{ success: boolean; timeout_triggered: boolean }> {
-  try {
-    // Use edge function to handle token addition atomically
-    const { data, error } = await supabaseAdmin.functions.invoke('track-tokens', {
-      body: {
-        user_id: userId,
-        tokens_to_add: tokensToAdd
-      }
-    });
-    
-    if (error) {
-      console.error('Error adding tokens:', error);
-      return { success: false, timeout_triggered: false };
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error in addTokens:', error);
-    return { success: false, timeout_triggered: false };
-  }
-}
+// Token tracking disabled for analysis functions - no limits applied
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -220,34 +127,11 @@ serve(async (req) => {
     const subscriptionTier = subscription?.subscription_tier || 'basic';
     const isSubscribed = subscription?.subscribed === true;
 
-    // Check token status first
+    // Token limits disabled for analysis functions - create admin client for usage tracking only
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-    
-    const { allowed, current_tokens, time_until_reset } = await checkTokenStatus(supabaseAdmin, user_id);
-    
-    if (!allowed) {
-      console.log(`No tokens remaining for user ${user_id}. Current tokens: ${current_tokens}`);
-      const retryAfterSeconds = time_until_reset ? Math.ceil(time_until_reset / 1000) : 1800; // Default 30 min
-      
-      return new Response(
-        JSON.stringify({ 
-          error: 'Token limit reached. Please wait before continuing.',
-          timeout_end: Date.now() + (time_until_reset || TIMEOUT_DURATION),
-          retry_after_seconds: retryAfterSeconds
-        }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json',
-            'Retry-After': retryAfterSeconds.toString()
-          } 
-        }
-      );
-    }
 
     // Allow both basic and pro users to access AI chat
     if (!isSubscribed) {
@@ -789,22 +673,15 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Grok response generated successfully');
     
-    // Add tokens after successful response
+    // Token tracking disabled for analysis functions - calculate tokens for analytics only
     const inputTokens = data.usage?.prompt_tokens || message.length / 4; // Estimate if not provided
     const outputTokens = data.usage?.completion_tokens || cleanedResponse.length / 4; // Estimate if not provided
     const totalTokens = inputTokens + outputTokens;
     
-    console.log(`Adding ${totalTokens} tokens for user ${user_id}`);
+    console.log(`Generated response using ${totalTokens} tokens for user ${user_id} (no limits applied)`);
     
-    const { success, timeout_triggered } = await addTokens(supabaseAdmin, user_id, totalTokens);
-    
-    if (!success) {
-      console.warn(`Failed to add tokens for user ${user_id}, but response was generated`);
-    }
-    
-    if (timeout_triggered) {
-      console.log(`User ${user_id} has reached token limit and entered timeout`);
-    }
+    // No token limiting - analysis functions run without restrictions
+    const timeout_triggered = false;
     
     // Still track usage for analytics (but gems are the primary rate limiting mechanism)
     try {
