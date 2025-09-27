@@ -55,9 +55,10 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
                   console.log('FreeUsersOnlyGate: Already on AI Chat tab');
                 }
               }} 
+              disabled={currentPath === '/dashboard?tab=chat'}
               className="w-full"
             >
-              Go to AI Chat
+              {currentPath === '/dashboard?tab=chat' ? 'You are here' : 'Go to AI Chat'}
             </Button>
           </CardContent>
         </Card>
