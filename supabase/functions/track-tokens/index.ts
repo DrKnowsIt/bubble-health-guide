@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TOKEN_LIMIT = 4000;
+const TOKEN_LIMIT = 30000;
 const TIMEOUT_DURATION = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 
 serve(async (req) => {

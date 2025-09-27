@@ -50,8 +50,8 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
   } = useAnalysisThrottling();
 
   // Analysis configuration - Natural conversation flow
-  const REGULAR_INTERVAL = 1; // Regular analysis every 1 message (natural conversation)
-  const DEEP_INTERVAL = 6; // Deep analysis every 6 messages (frequent insights)
+  const REGULAR_INTERVAL = 0; // Disabled automatic regular analysis 
+  const DEEP_INTERVAL = 0; // Disabled automatic deep analysis
   
   const [analysisState, setAnalysisState] = useState<AnalysisState>({
     isAnalyzing: false,

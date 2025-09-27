@@ -1,5 +1,5 @@
 // Simplified token utilities for server communication only
-export const TOKEN_LIMIT = 4000;
+export const TOKEN_LIMIT = 30000;
 export const TIMEOUT_DURATION = 3 * 60 * 60 * 1000; // 3 hours
 
 export const formatTimeUntilReset = (milliseconds: number): string => {
