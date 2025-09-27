@@ -6,13 +6,13 @@
 
 @layer base {
   :root {
-    /* Light Theme - Fall-Inspired with Warm Tones */
-    --background: 45 20% 98%;
-    --foreground: 30 8% 20%;
+    /* Light Theme - Peach & Yellow Inspired with Teal Accents */
+    --background: 35 45% 96%;
+    --foreground: 25 15% 25%;
 
     /* Cards & Surfaces */
-    --card: 45 15% 96%;
-    --card-foreground: 30 8% 20%;
+    --card: 30 40% 94%;
+    --card-foreground: 25 15% 25%;
 
     /* Primary - Modern Teal (kept for logo harmony) */
     --primary: 188 95% 38%;
@@ -20,48 +20,48 @@
     --primary-hover: 188 95% 42%;
     --primary-light: 188 95% 85%;
 
-    /* Secondary - Warm Beige */
-    --secondary: 35 12% 94%;
-    --secondary-foreground: 30 8% 25%;
-    --secondary-light: 35 15% 97%;
+    /* Secondary - Soft Peach */
+    --secondary: 25 35% 92%;
+    --secondary-foreground: 25 15% 30%;
+    --secondary-light: 25 40% 95%;
 
-    /* Accent - Warm Amber */
-    --accent: 25 85% 55%;
+    /* Accent - Warm Coral */
+    --accent: 15 75% 65%;
     --accent-foreground: 0 0% 100%;
-    --accent-light: 25 85% 92%;
+    --accent-light: 15 75% 90%;
 
-    /* Muted Tones - Warm Neutrals */
-    --muted: 35 12% 94%;
-    --muted-foreground: 30 6% 50%;
-    --muted-dark: 35 10% 90%;
+    /* Muted Tones - Peachy Neutrals */
+    --muted: 30 30% 90%;
+    --muted-foreground: 25 12% 55%;
+    --muted-dark: 30 25% 86%;
 
     /* Interface Elements */
-    --border: 35 8% 88%;
-    --input: 45 15% 96%;
+    --border: 30 20% 82%;
+    --input: 30 35% 92%;
     --ring: 188 95% 38%;
 
     /* Chat Interface */
-    --chat-bg: 40 15% 96%;
+    --chat-bg: 32 38% 94%;
     --chat-user: 188 95% 38%;
-    --chat-ai: 45 15% 96%;
-    --chat-bubble-shadow: 35 8% 82%;
+    --chat-ai: 28 35% 92%;
+    --chat-bubble-shadow: 30 20% 75%;
 
-    /* Status Colors - Warm Fall Palette */
-    --success: 142 75% 45%;
-    --warning: 25 85% 55%;
-    --destructive: 0 65% 50%;
-    --destructive-soft: 0 65% 55%;
+    /* Status Colors - Peach-Complementary Palette */
+    --success: 142 65% 50%;
+    --warning: 35 85% 60%;
+    --destructive: 0 70% 55%;
+    --destructive-soft: 0 60% 65%;
     --info: 188 95% 38%;
 
     /* Solid Backgrounds */
     --solid-primary: 188 95% 38%;
-    --solid-accent: 25 85% 55%;
-    --solid-hero: 40 15% 96%;
+    --solid-accent: 15 75% 65%;
+    --solid-hero: 32 40% 95%;
 
-    /* Shadows - Warm Undertones */
+    /* Shadows - Peachy Undertones */
     --shadow-bubble: 0 4px 16px -2px hsl(188 95% 38% / 0.15);
-    --shadow-card: 0 2px 8px -1px hsl(35 8% 70% / 0.12);
-    --shadow-elevated: 0 8px 24px -4px hsl(35 8% 70% / 0.15);
+    --shadow-card: 0 2px 8px -1px hsl(30 20% 70% / 0.15);
+    --shadow-elevated: 0 8px 24px -4px hsl(30 20% 70% / 0.18);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,19 +69,19 @@
 
     --radius: 0.75rem;
 
-    /* Sidebar - Warm Tones */
-    --sidebar-background: 45 15% 96%;
-    --sidebar-foreground: 30 8% 25%;
+    /* Sidebar - Peachy Tones */
+    --sidebar-background: 30 35% 93%;
+    --sidebar-foreground: 25 15% 30%;
     --sidebar-primary: 188 95% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 12% 94%;
-    --sidebar-accent-foreground: 30 8% 25%;
-    --sidebar-border: 35 8% 88%;
+    --sidebar-accent: 25 30% 90%;
+    --sidebar-accent-foreground: 25 15% 30%;
+    --sidebar-border: 30 20% 82%;
     --sidebar-ring: 188 95% 38%;
 
     /* Popovers */
-    --popover: 45 15% 96%;
-    --popover-foreground: 30 8% 20%;
+    --popover: 30 35% 92%;
+    --popover-foreground: 25 15% 25%;
   }
 
   .dark {
