@@ -303,11 +303,26 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
     analyzeHealthTopics(true);
   }, [analyzeHealthTopics]);
 
-  // Debounced analysis trigger - DISABLED for unified system
-  // Analysis is now handled by the unified analysis system in the main chat components
+  // Debounced analysis trigger - re-enabled for real-time health topics
   useEffect(() => {
-    // Disable automatic analysis - unified system handles all timing
-    return;
+    if (!options.conversationContext?.trim()) return;
+    
+    // Clear any existing timeout
+    if (analysisTimeoutRef.current) {
+      clearTimeout(analysisTimeoutRef.current);
+    }
+    
+    // Debounce analysis for 2 seconds after conversation context changes
+    analysisTimeoutRef.current = setTimeout(() => {
+      console.log('[useEnhancedHealthTopics] Auto-triggering analysis due to context change');
+      analyzeHealthTopics(false);
+    }, 2000);
+    
+    return () => {
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
+      }
+    };
   }, [options.conversationContext, analyzeHealthTopics]);
 
   // Initial data loading
@@ -318,9 +333,11 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
     }
   }, [user?.id, options.patientId, loadFeedback, loadExistingData]);
 
-  // Real-time subscriptions
+  // Real-time subscriptions with enhanced reload logic
   useEffect(() => {
     if (!options.realTimeUpdates || !user?.id || !options.conversationId) return;
+
+    console.log('[useEnhancedHealthTopics] Setting up real-time subscriptions for:', options.conversationId);
 
     const topicsChannel = supabase
       .channel(`enhanced-topics-${options.conversationId}`)
@@ -332,8 +349,12 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
           table: 'conversation_diagnoses',
           filter: `conversation_id=eq.${options.conversationId}`
         },
-        () => {
-          loadExistingData();
+        (payload) => {
+          console.log('[useEnhancedHealthTopics] Topics change detected:', payload);
+          // Small delay to ensure data is committed
+          setTimeout(() => {
+            loadExistingData();
+          }, 100);
         }
       )
       .subscribe();
@@ -350,14 +371,19 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
             table: 'conversation_solutions',
             filter: `conversation_id=eq.${options.conversationId}`
           },
-          () => {
-            loadExistingData();
+          (payload) => {
+            console.log('[useEnhancedHealthTopics] Solutions change detected:', payload);
+            // Small delay to ensure data is committed
+            setTimeout(() => {
+              loadExistingData();
+            }, 100);
           }
         )
         .subscribe();
     }
 
     return () => {
+      console.log('[useEnhancedHealthTopics] Cleaning up real-time subscriptions');
       supabase.removeChannel(topicsChannel);
       if (solutionsChannel) {
         supabase.removeChannel(solutionsChannel);
@@ -392,6 +418,7 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
     handleTopicFeedback,
     handleSolutionFeedback,
     refreshAnalysis,
+    analyzeHealthTopics, // Expose for external triggers
     ...computedValues
   };
 };
