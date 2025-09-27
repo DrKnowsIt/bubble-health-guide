@@ -434,6 +434,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
     
     console.log('✅ [ChatGPTInterface] All pre-send checks passed, proceeding with message');
+    console.log('🔍 [ChatGPTInterface] Current conversation state:', { currentConversation, selectedUserId: selectedUser.id });
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
@@ -472,14 +473,23 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
     // Ensure conversation exists
     let conversationId = currentConversation;
+    console.log('🔍 [ChatGPTInterface] Before conversation creation:', { conversationId, currentConversation });
+    
     if (!conversationId) {
       const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
       conversationId = await createConversation(title, selectedUser.id);
+      console.log('🔍 [ChatGPTInterface] Created new conversation:', conversationId);
+      
       if (!conversationId) {
         toast({ title: "Error", description: "Failed to create conversation", variant: "destructive" });
         return;
       }
+      
+      // Update conversation reference immediately for this request
+      convAtRef.current = conversationId;
     }
+    
+    console.log('🔍 [ChatGPTInterface] Final conversation ID for request:', conversationId);
 
     // Save user message
     if (user) {
@@ -516,25 +526,36 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       const responseContent = data.message || 'I apologize, but I am unable to process your request at the moment.';
 
-      console.log('🔍 DEBUG: Raw response content:', responseContent);
-
       // Extract and clean diagnoses (preserve advanced features)
       const { cleanResponse, extractedDiagnoses } = extractDiagnosesFromResponse(responseContent);
-      console.log('🔍 DEBUG: After extractDiagnoses - cleanResponse:', cleanResponse);
-      console.log('🔍 DEBUG: Extracted diagnoses:', extractedDiagnoses);
       
       let sanitized = sanitizeVisibleText(cleanResponse);
-      console.log('🔍 DEBUG: After sanitizeVisibleText:', sanitized);
       
       if (!sanitized) {
-        console.log('🔍 DEBUG: Sanitized was empty, using cleanResponse');
         sanitized = cleanResponse;
       }
 
-      // Guard against stale responses
-      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+      // Guard against stale responses - be more lenient with new conversations
+      const currentConvoRef = convAtRef.current;
+      console.log('🔍 [ChatGPTInterface] Stale guard check:', { 
+        reqId, 
+        currentReqId: requestSeqRef.current, 
+        convoAtSend, 
+        currentConvoRef 
+      });
+      
+      if (reqId !== requestSeqRef.current) {
+        console.log('❌ [ChatGPTInterface] Request stale due to sequence mismatch');
         return;
       }
+      
+      // Allow response if conversation matches OR if we just created a new conversation
+      if (currentConvoRef !== convoAtSend && currentConvoRef !== null && convoAtSend !== null) {
+        console.log('❌ [ChatGPTInterface] Request stale due to conversation mismatch');
+        return;
+      }
+      
+      console.log('✅ [ChatGPTInterface] Response allowed, adding AI message');
 
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
@@ -620,7 +641,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       }
     } catch (error: any) {
       console.error('Grok chat failed:', error);
-      if (reqId !== requestSeqRef.current || convAtRef.current !== convoAtSend) {
+      
+      // Guard against stale responses for error handling too
+      const currentConvoRef = convAtRef.current;
+      if (reqId !== requestSeqRef.current) {
+        console.log('❌ [ChatGPTInterface] Error response stale due to sequence mismatch');
+        return;
+      }
+      
+      if (currentConvoRef !== convoAtSend && currentConvoRef !== null && convoAtSend !== null) {
+        console.log('❌ [ChatGPTInterface] Error response stale due to conversation mismatch');
         return;
       }
 
