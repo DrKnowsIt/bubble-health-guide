@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { useAnalysisThrottling } from '../useAnalysisThrottling';
 
 export interface Message {
   id: string;
@@ -27,6 +28,7 @@ const MESSAGES_QUERY_KEY = 'messages';
 export const useConversationsQuery = (selectedUser?: any) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { cancelAnalysesForConversation } = useAnalysisThrottling();
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -214,6 +216,10 @@ export const useConversationsQuery = (selectedUser?: any) => {
       // Cancel any outgoing refetches for both conversations and messages
       await queryClient.cancelQueries({ queryKey: [CONVERSATIONS_QUERY_KEY] });
       await queryClient.cancelQueries({ queryKey: [MESSAGES_QUERY_KEY] });
+      
+      // Cancel all analyses for this conversation immediately
+      console.log('🛑 [useConversationsQuery] Cancelling analyses for conversation:', conversationId);
+      cancelAnalysesForConversation(conversationId);
       
       // Snapshot the previous values
       const previousConversations = queryClient.getQueryData([CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id]);
