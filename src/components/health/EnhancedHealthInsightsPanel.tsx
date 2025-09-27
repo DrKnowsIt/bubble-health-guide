@@ -244,13 +244,13 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'high_confidence':
-        return 'bg-green-900/20 text-green-400 border-green-700';
+        return 'bg-primary/10 text-primary border-primary/30';
       case 'moderate_confidence':
-        return 'bg-teal-900/20 text-teal-400 border-teal-700';
+        return 'bg-accent/10 text-accent border-accent/30';
       case 'low_confidence':
-        return 'bg-teal-900/20 text-teal-400 border-teal-700';
+        return 'bg-secondary/50 text-secondary-foreground border-border';
       default:
-        return 'bg-teal-900/20 text-teal-400 border-teal-700';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -338,7 +338,7 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
                   <>
                     <div className="space-y-4">
                       {demoTopics.map((topic, index) => (
-                        <div key={index} className="border rounded-lg overflow-hidden bg-green-900/20 text-green-400 border-green-700">
+                        <div key={index} className="border rounded-lg overflow-hidden bg-primary/10 text-primary border-primary/30">
                           <div className="p-4">
                             <div className="flex flex-col md:flex-row gap-4 md:items-start md:justify-between">
                               <div className="flex items-start gap-3 flex-1 min-w-0">
