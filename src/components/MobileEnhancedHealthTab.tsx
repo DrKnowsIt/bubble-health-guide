@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +13,85 @@ import { UserDropdown } from './UserDropdown';
 import { SubscriptionGate } from './SubscriptionGate';
 import { ImportantHealthInfo } from './health/ImportantHealthInfo';
 import { ComprehensiveHealthReport } from './health/ComprehensiveHealthReport';
+import { EnhancedHealthTopicsPanel } from './EnhancedHealthTopicsPanel';
+import { useEnhancedHealthTopics } from '@/hooks/useEnhancedHealthTopics';
+import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+
+// Mobile Health Topics Tab Component
+const MobileHealthTopicsTab = ({ selectedUser }: { selectedUser: any }) => {
+  const { conversations } = useConversationsQuery(selectedUser?.id);
+  
+  // Get conversation context from messages
+  const [conversationContext, setConversationContext] = useState('');
+  
+  useEffect(() => {
+    const getLatestMessages = async () => {
+      if (conversations.length > 0) {
+        const latestConversation = conversations[0];
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('content')
+          .eq('conversation_id', latestConversation.id)
+          .order('created_at', { ascending: true });
+        
+        if (messages) {
+          setConversationContext(messages.map(msg => msg.content).join(' '));
+        }
+      }
+    };
+    
+    getLatestMessages();
+  }, [conversations]);
+
+  const {
+    topics,
+    solutions,
+    loading,
+    feedback,
+    handleTopicFeedback,
+    handleSolutionFeedback,
+    refreshAnalysis,
+    isEmpty,
+    solutionsEmpty,
+    highPriorityTopics,
+    followUpRequired,
+    immediateActions,
+    totalDataSources
+  } = useEnhancedHealthTopics({
+    conversationId: conversations[0]?.id || null,
+    patientId: selectedUser?.id || null,
+    conversationContext: conversationContext,
+    includeSolutions: true,
+    realTimeUpdates: true
+  });
+
+  return (
+    <div className="h-full">
+      <SubscriptionGate 
+        requiredTier="basic" 
+        feature="Health Topics & Solutions" 
+        description="AI-powered health insights and holistic solutions based on your conversations."
+      >
+        <EnhancedHealthTopicsPanel
+          topics={topics}
+          solutions={solutions}
+          loading={loading}
+          feedback={feedback}
+          highPriorityTopics={highPriorityTopics}
+          followUpRequired={followUpRequired}
+          immediateActions={immediateActions}
+          totalDataSources={totalDataSources}
+          onTopicFeedback={handleTopicFeedback}
+          onSolutionFeedback={handleSolutionFeedback}
+          onRefresh={refreshAnalysis}
+          patientName={selectedUser?.first_name || 'Patient'}
+        />
+      </SubscriptionGate>
+    </div>
+  );
+};
 
 interface MobileEnhancedHealthTabProps {
   onTabChange?: (tab: string) => void;
@@ -203,6 +281,10 @@ export const MobileEnhancedHealthTab = ({ onTabChange }: MobileEnhancedHealthTab
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="topics" className="mt-0 h-full p-4">
+                <MobileHealthTopicsTab selectedUser={selectedUser} />
               </TabsContent>
 
               <TabsContent value="records" className="mt-0 h-full">
