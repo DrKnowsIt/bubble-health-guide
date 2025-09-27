@@ -356,14 +356,14 @@ export default function UserDashboard() {
                       "bg-gradient-to-r from-teal-600 via-teal-500 to-teal-600",
                       "border-teal-400 text-primary-foreground shadow-lg",
                       "hover:from-teal-700 hover:via-teal-600 hover:to-teal-700 hover:shadow-xl hover:scale-105",
-                       "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:to-transparent",
+                       "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary-foreground/36 before:to-transparent",
                        "before:w-full before:h-full before:animate-shimmer-line before:skew-x-12",
                        // Enhanced shimmer when there's enough data
                        (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
                         messages.length >= 10 && 
                         !analysisLoading && hasHealthData)
                          ? "shadow-[0_0_20px_rgba(20,184,166,0.6)] ring-2 ring-teal-400/50 before:via-primary-foreground/48"
-                         : "shadow-[0_0_10px_rgba(20,184,166,0.3)] before:via-primary-foreground/36"
+                         : "shadow-[0_0_10px_rgba(20,184,166,0.3)]"
                     )}
                     aria-label="Export medical report"
                     disabled={analysisLoading || !hasHealthData}
