@@ -76,6 +76,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, AnalysisResult[]>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Conversation creation protection
+  const isCreatingConversationRef = useRef(false);
+  const pendingConversationCreationRef = useRef<Promise<string | null> | null>(null);
+  
   // Unified analysis system
   const { 
     analysisState, 
@@ -471,14 +475,37 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     setInputValue('');
     if (pendingAttachment) setPendingAttachment(null);
 
-    // Ensure conversation exists
+    // Ensure conversation exists with debouncing protection
     let conversationId = currentConversation;
-    console.log('🔍 [ChatGPTInterface] Before conversation creation:', { conversationId, currentConversation });
+    console.log('🔍 [ChatGPTInterface] Before conversation creation:', { 
+      conversationId, 
+      currentConversation,
+      isCreating: isCreatingConversationRef.current,
+      hasPending: !!pendingConversationCreationRef.current
+    });
     
     if (!conversationId) {
-      const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
-      conversationId = await createConversation(title, selectedUser.id);
-      console.log('🔍 [ChatGPTInterface] Created new conversation:', conversationId);
+      // Check if conversation creation is already in progress
+      if (isCreatingConversationRef.current && pendingConversationCreationRef.current) {
+        console.log('⏳ [ChatGPTInterface] Conversation creation already in progress, waiting...');
+        conversationId = await pendingConversationCreationRef.current;
+        console.log('✅ [ChatGPTInterface] Used existing conversation creation result:', conversationId);
+      } else {
+        console.log('🚀 [ChatGPTInterface] Starting new conversation creation');
+        isCreatingConversationRef.current = true;
+        
+        const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
+        const creationPromise = createConversation(title, selectedUser.id);
+        pendingConversationCreationRef.current = creationPromise;
+        
+        try {
+          conversationId = await creationPromise;
+          console.log('🔍 [ChatGPTInterface] Created new conversation:', conversationId);
+        } finally {
+          isCreatingConversationRef.current = false;
+          pendingConversationCreationRef.current = null;
+        }
+      }
       
       if (!conversationId) {
         toast({ title: "Error", description: "Failed to create conversation", variant: "destructive" });
