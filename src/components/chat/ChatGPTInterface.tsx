@@ -501,6 +501,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     const reqId = ++requestSeqRef.current;
     const convoAtSend = conversationId || null;
     
+    console.log('🔄 [ChatGPTInterface] Starting typing animation and API request:', { reqId, convoAtSend });
     setIsTyping(true);
 
     // Call onSendMessage callback
@@ -564,7 +565,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      console.log('✅ [ChatGPTInterface] Creating AI message:', aiMessage);
+      console.log('✅ [ChatGPTInterface] Current messages before adding AI response:', messages.length);
+
+      setMessages(prev => {
+        const newMessages = [...prev, aiMessage];
+        console.log('✅ [ChatGPTInterface] Updated messages array:', newMessages.length);
+        return newMessages;
+      });
 
       // Save AI message
       if (user && conversationId) {
@@ -696,6 +704,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       }
     } finally {
       // Always clear typing state regardless of success or error
+      console.log('🔄 [ChatGPTInterface] Stopping typing animation');
       setIsTyping(false);
     }
   };
@@ -846,14 +855,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                   </div>
                 )}
 
-                {messages.map((message) => (
-                  <div key={message.id}>
-                    <div
-                      className={cn(
-                        "flex gap-3",
-                        message.type === 'user' ? "justify-end" : "justify-start"
-                      )}
-                    >
+                {messages.map((message) => {
+                  console.log('🔄 [ChatGPTInterface] Rendering message:', message.id, message.type, message.content.substring(0, 50));
+                  return (
+                    <div key={message.id}>
+                      <div
+                        className={cn(
+                          "flex gap-3",
+                          message.type === 'user' ? "justify-end" : "justify-start"
+                        )}
+                      >
                       {message.type === 'ai' && (
                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                           <Bot className="h-4 w-4" />
@@ -896,11 +907,12 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                            />
                          </div>
                        </div>
-                     )}
-                   </div>
-                 ))}
+                      )}
+                    </div>
+                  );
+                })}
 
-                 {/* Manual analysis results - show separately */}
+                  {/* Manual analysis results - show separately */}
                  {Object.entries(messageAnalysis).map(([id, results]) => {
                    if (!id.startsWith('manual-')) return null;
                    return (
@@ -923,9 +935,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                    );
                  })}
 
-                {/* Typing Indicator */}
-                {isTyping && (
-                  <div className="flex gap-3">
+                 {/* Typing Indicator */}
+                 {isTyping && (() => {
+                   console.log('🔄 [ChatGPTInterface] Showing typing indicator');
+                   return (
+                     <div className="flex gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0 mt-1">
                       <Bot className="h-4 w-4" />
                     </div>
@@ -936,8 +950,9 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                         <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
-                  </div>
-                )}
+                     </div>
+                   );
+                 })()}
                 
               <div ref={messagesEndRef} />
             </div>

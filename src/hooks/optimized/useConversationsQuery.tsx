@@ -265,9 +265,25 @@ export const useConversationsQuery = (selectedUser?: any) => {
       newTitle: string; 
       onlyIfPlaceholder?: boolean; 
     }) => {
-      const target = conversations.find(c => c.id === conversationId);
-      if (!target) throw new Error('Conversation not found');
-      if (onlyIfPlaceholder && target.title && target.title !== 'New Visit') return;
+      // First check if conversation exists in database
+      const { data: existingConversation, error: fetchError } = await supabase
+        .from('conversations')
+        .select('title')
+        .eq('id', conversationId)
+        .single();
+
+      if (fetchError || !existingConversation) {
+        console.log('⚠️ [updateTitleMutation] Conversation not found in database, skipping update');
+        return; // Don't throw error, just skip the update
+      }
+
+      // Check if we should only update placeholder titles
+      if (onlyIfPlaceholder && existingConversation.title && existingConversation.title !== 'New Visit') {
+        console.log('⚠️ [updateTitleMutation] Skipping update - not a placeholder title');
+        return;
+      }
+
+      console.log('🔄 [updateTitleMutation] Updating conversation title:', { conversationId, newTitle });
 
       const { error } = await supabase
         .from('conversations')
