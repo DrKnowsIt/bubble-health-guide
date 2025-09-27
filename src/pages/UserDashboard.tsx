@@ -408,24 +408,24 @@ export default function UserDashboard() {
                    ? (selectedUser && hasAccess('basic') ? "grid-cols-4" : "grid-cols-3")
                    : (selectedUser && hasAccess('basic') ? "grid-cols-5" : "grid-cols-4")
                )}>
-                 {(!subscribed || !subscription_tier) && (
-                   <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-1 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                     <MessageSquare className="h-5 w-5" />
-                     <span className="text-xs font-medium">Easy</span>
-                   </TabsTrigger>
-                 )}
-                 <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                   <MessageSquare className="h-5 w-5" />
-                   <span className="text-xs font-medium">Chat</span>
-                 </TabsTrigger>
-                 <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                   <Heart className="h-5 w-5" />
-                   <span className="text-xs font-medium">Health</span>
-                 </TabsTrigger>
-                 <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                   <Activity className="h-5 w-5" />
-                   <span className="text-xs font-medium">Overview</span>
-                 </TabsTrigger>
+                  {(!subscribed || !subscription_tier) && (
+                    <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-1 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <MessageSquare className="h-5 w-5 text-teal-500" fill="currentColor" />
+                      <span className="text-xs font-medium">Easy</span>
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <MessageSquare className="h-5 w-5 text-teal-500" fill="currentColor" />
+                    <span className="text-xs font-medium">Chat</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <Heart className="h-5 w-5 text-teal-500" fill="currentColor" />
+                    <span className="text-xs font-medium">Health</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <Activity className="h-5 w-5 text-teal-500" fill="currentColor" />
+                    <span className="text-xs font-medium">Overview</span>
+                  </TabsTrigger>
                   {selectedUser && hasAccess('basic') && (
                     <Button
                       onClick={handleMobileReportClick}
@@ -444,9 +444,9 @@ export default function UserDashboard() {
                     >
                       {analysisLoading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <FileText className="h-5 w-5" />
-                      )}
+                       ) : (
+                         <FileText className="h-5 w-5 text-teal-500" fill="currentColor" />
+                       )}
                       <span className="text-xs font-medium">Report</span>
                     </Button>
                   )}
@@ -456,48 +456,48 @@ export default function UserDashboard() {
             // Tablet: Enhanced bottom navigation with larger touch targets
             <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-auto">
               <TabsList className={cn("w-full grid h-20 bg-muted/50", subscribed && subscription_tier ? "grid-cols-3" : "grid-cols-4")}>
-                {(!subscribed || !subscription_tier) && (
-                  <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-2 py-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <MessageSquare className="h-6 w-6" />
-                    <span className="text-sm font-medium">AI Free Mode</span>
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                  <MessageSquare className="h-6 w-6" />
-                  <span className="text-sm font-medium">AI Chat</span>
-                </TabsTrigger>
-                <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                  <Heart className="h-6 w-6" />
-                  <span className="text-sm font-medium">Health</span>
-                </TabsTrigger>
-                <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                  <Activity className="h-6 w-6" />
-                  <span className="text-sm font-medium">Overview</span>
-                </TabsTrigger>
+                 {(!subscribed || !subscription_tier) && (
+                   <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-2 py-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                     <MessageSquare className="h-6 w-6 text-teal-500" fill="currentColor" />
+                     <span className="text-sm font-medium">AI Free Mode</span>
+                   </TabsTrigger>
+                 )}
+                 <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                   <MessageSquare className="h-6 w-6 text-teal-500" fill="currentColor" />
+                   <span className="text-sm font-medium">AI Chat</span>
+                 </TabsTrigger>
+                 <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                   <Heart className="h-6 w-6 text-teal-500" fill="currentColor" />
+                   <span className="text-sm font-medium">Health</span>
+                 </TabsTrigger>
+                 <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-2 py-4 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                   <Activity className="h-6 w-6 text-teal-500" fill="currentColor" />
+                   <span className="text-sm font-medium">Overview</span>
+                 </TabsTrigger>
               </TabsList>
             </div>
           ) : (
             // Desktop: Top navigation
             <div className="px-4 pt-6">
               <TabsList className={cn("grid w-full", subscribed && subscription_tier ? "grid-cols-3" : "grid-cols-4")}>
-                {(!subscribed || !subscription_tier) && (
-                  <TabsTrigger value="easy-chat" className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    AI Free Mode
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="chat" className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  AI Chat
-                </TabsTrigger>
-                <TabsTrigger value="health" className="flex items-center gap-2">
-                  <Heart className="h-4 w-4" />
-                  Health
-                </TabsTrigger>
-                <TabsTrigger value="overview" className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
-                  Overview
-                </TabsTrigger>
+                 {(!subscribed || !subscription_tier) && (
+                   <TabsTrigger value="easy-chat" className="flex items-center gap-2">
+                     <MessageSquare className="h-4 w-4 text-teal-500" fill="currentColor" />
+                     AI Free Mode
+                   </TabsTrigger>
+                 )}
+                 <TabsTrigger value="chat" className="flex items-center gap-2">
+                   <MessageSquare className="h-4 w-4 text-teal-500" fill="currentColor" />
+                   AI Chat
+                 </TabsTrigger>
+                 <TabsTrigger value="health" className="flex items-center gap-2">
+                   <Heart className="h-4 w-4 text-teal-500" fill="currentColor" />
+                   Health
+                 </TabsTrigger>
+                 <TabsTrigger value="overview" className="flex items-center gap-2">
+                   <Activity className="h-4 w-4 text-teal-500" fill="currentColor" />
+                   Overview
+                 </TabsTrigger>
               </TabsList>
             </div>
           )}
