@@ -72,14 +72,14 @@ interface EnhancedHealthTopicsPanelProps {
 }
 
 export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps> = ({
-  topics,
-  solutions,
+  topics = [],
+  solutions = [],
   loading,
-  feedback,
-  highPriorityTopics,
-  followUpRequired,
-  immediateActions,
-  totalDataSources,
+  feedback = { topics: {}, solutions: {} },
+  highPriorityTopics = [],
+  followUpRequired = [],
+  immediateActions = [],
+  totalDataSources = 0,
   onTopicFeedback,
   onSolutionFeedback,
   onRefresh,
@@ -309,7 +309,7 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                                   </div>
 
                                   <div className="flex flex-wrap gap-1 mb-2">
-                                    {topic.data_sources.map((source, idx) => (
+                                    {(topic.data_sources || []).map((source, idx) => (
                                       <Badge key={idx} variant="secondary" className="text-xs">
                                         {source}
                                       </Badge>
