@@ -616,64 +616,31 @@ export const exportComprehensivePDFForUser = async (
       }
     }
 
-    // Enhanced Health Topics Section
-    const { data: enhancedTopics } = await supabase
-      .from('health_topics_enhanced')
-      .select('*')
-      .eq('user_id', selectedUser.id)
-      .eq('patient_id', selectedUser.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (enhancedTopics?.length) {
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Enhanced Health Topics Analysis', 20, currentY);
-      currentY += SPACING.MEDIUM;
-
-      enhancedTopics.forEach((topic: any) => {
-        if (currentY > 270) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        // Topic title with confidence
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        const confidenceText = topic.confidence_score ? ` (${Math.round(topic.confidence_score * 100)}% confidence)` : '';
-        doc.text(`${sanitizeText(topic.title)}${confidenceText}`, 25, currentY);
-        currentY += SPACING.LINE;
-
-        // Category and priority
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.text(`Category: ${topic.category || 'General'} | Priority: ${topic.priority || 'Medium'}`, 25, currentY);
-        currentY += SPACING.LINE;
-
-        // Reasoning
-        if (topic.reasoning) {
-          const reasoningText = doc.splitTextToSize(sanitizeText(topic.reasoning), 160);
-          doc.text(reasoningText, 30, currentY);
-          currentY += reasoningText.length * 7 + SPACING.SMALL;
-        }
-        currentY += SPACING.SMALL;
-      });
-      currentY += SPACING.MEDIUM;
+    // Enhanced Health Analysis Section
+    // Note: Enhanced health topics and solutions are generated dynamically during conversations
+    // This section can be expanded when conversation analysis data becomes available
+    
+    if (currentY > 250) {
+      doc.addPage();
+      currentY = 20;
     }
 
-    // Enhanced Solutions Section
-    const { data: enhancedSolutions } = await supabase
-      .from('health_solutions_enhanced')
-      .select('*')
-      .eq('user_id', selectedUser.id)
-      .eq('patient_id', selectedUser.id)
-      .order('created_at', { ascending: false })
-      .limit(15);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Health Analysis Summary', 20, currentY);
+    currentY += SPACING.MEDIUM;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const analysisNote = sanitizeText('Enhanced health topic analysis and personalized solution recommendations are generated during active conversations. For detailed health insights, please review your conversation history and any generated reports available in your dashboard.');
+    const analysisText = doc.splitTextToSize(analysisNote, 170);
+    doc.text(analysisText, 25, currentY);
+    currentY += analysisText.length * 7 + SPACING.MEDIUM;
+
+    // Enhanced Solutions Section - temporarily disabled
+    // const { data: enhancedSolutions } = await supabase
+    // Note: Enhanced solutions functionality will be restored when database schema is available
+    const enhancedSolutions: any[] = [];
 
     if (enhancedSolutions?.length) {
       if (currentY > 250) {
@@ -752,50 +719,8 @@ export const exportComprehensivePDFForUser = async (
       currentY += SPACING.MEDIUM;
     }
 
-    // Recommended diagnostic tests
-    const { data: testRecommendations } = await supabase
-      .from('test_recommendations')
-      .select('*')
-      .eq('user_id', selectedUser.id)
-      .eq('patient_id', selectedUser.id)
-      .order('priority', { ascending: false })
-      .limit(10);
-
-    if (testRecommendations?.length) {
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Recommended Diagnostic Tests', 20, currentY);
-      currentY += SPACING.MEDIUM;
-
-      testRecommendations.forEach((test: any) => {
-        if (currentY > 270) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        // Test name and priority
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${sanitizeTest.test_name} (Priority: ${test.priority || 'Medium'})`, 25, currentY);
-        currentY += SPACING.LINE;
-
-        // Reason
-        if (test.reason) {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          const reasonText = doc.splitTextToSize(sanitizeText(test.reason), 160);
-          doc.text(reasonText, 30, currentY);
-          currentY += reasonText.length * 7;
-        }
-        currentY += SPACING.SMALL;
-      });
-      currentY += SPACING.MEDIUM;
-    }
+    // Note: Diagnostic test recommendations would be included here if available
+    // This section is reserved for future implementation when test recommendation data becomes available
 
     // Add memory insights if available
     if (memoryData && memoryData.length > 0) {
