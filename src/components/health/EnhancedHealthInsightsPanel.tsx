@@ -36,7 +36,6 @@ interface EnhancedHealthInsightsPanelProps {
   patientId: string;
   conversationId?: string;
   showDemoTopics?: boolean;
-  onRefreshCallback?: (refreshFn: () => void) => void;
 }
 
 const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = ({
@@ -44,8 +43,7 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
   patientName, 
   patientId,
   conversationId,
-  showDemoTopics = false,
-  onRefreshCallback
+  showDemoTopics = false
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
@@ -60,13 +58,6 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
     includeSolutions: true,
     realTimeUpdates: true
   });
-  
-  // Register refresh callback with parent
-  useEffect(() => {
-    if (onRefreshCallback && refreshAnalysis) {
-      onRefreshCallback(refreshAnalysis);
-    }
-  }, [onRefreshCallback, refreshAnalysis]);
   
   // Demo topics for non-authenticated users
   const demoTopics = [
