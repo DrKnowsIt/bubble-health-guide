@@ -59,8 +59,8 @@ interface EnhancedHealthSolution {
     name: string;
     price: string;
     rating: number;
-    url: string;
-    image_url: string;
+    amazonUrl: string;
+    imageUrl: string;
   }>;
 }
 
@@ -484,8 +484,8 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                                                   name: product.name,
                                                   price: product.price,
                                                   rating: product.rating,
-                                                  amazonUrl: product.url,
-                                                  imageUrl: product.image_url,
+                                                  amazonUrl: product.amazonUrl,
+                                                  imageUrl: product.imageUrl,
                                                   category: solution.category
                                                 }}
                                                 showDisclaimer={false}
