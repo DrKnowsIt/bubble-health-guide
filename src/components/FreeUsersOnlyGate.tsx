@@ -14,7 +14,7 @@ interface FreeUsersOnlyGateProps {
 export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
   const { subscribed, subscription_tier, loading } = useSubscription();
   const location = useLocation();
-  const { debouncedNavigate, currentPath } = useNavigationDebounce();
+  const { debouncedNavigate, currentPath } = useNavigationDebounce(0); // No delay for immediate navigation
 
   // Show loading state while checking subscription
   if (loading) {
