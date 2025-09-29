@@ -3,8 +3,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import { useNavigationDebounce } from "@/hooks/useNavigationDebounce";
+import { useNavigate } from "react-router-dom";
 import { AIFreeModeInterface } from './AIFreeModeInterface';
 
 interface FreeUsersOnlyGateProps {
@@ -13,8 +12,7 @@ interface FreeUsersOnlyGateProps {
 
 export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
   const { subscribed, subscription_tier, loading } = useSubscription();
-  const location = useLocation();
-  const { debouncedNavigate, currentPath } = useNavigationDebounce(0); // No delay for immediate navigation
+  const navigate = useNavigate();
 
   // Show loading state while checking subscription
   if (loading) {
@@ -46,9 +44,8 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
             </p>
             <Button 
               onClick={() => {
-                const targetPath = '/dashboard?tab=chat';
-                console.log('FreeUsersOnlyGate: Navigating to AI Chat');
-                debouncedNavigate(targetPath, { replace: true });
+                console.log('FreeUsersOnlyGate: Navigating to AI Chat tab');
+                navigate('/dashboard?tab=chat', { replace: true });
               }} 
               className="w-full"
             >
