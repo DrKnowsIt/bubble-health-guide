@@ -192,7 +192,7 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                  <span className="font-semibold">Health Analysis</span>
+                  <span className="text-sm font-semibold">Health Analysis</span>
                   {patientName && (
                     <span className="text-sm text-muted-foreground">for {patientName}</span>
                   )}
