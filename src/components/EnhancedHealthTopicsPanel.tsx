@@ -189,9 +189,9 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer">
             <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Comprehensive Health Analysis
+              <div className="flex items-center gap-1 min-w-0">
+                <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm font-semibold truncate">Health Analysis</span>
                 {patientName && (
                   <span className="text-sm text-muted-foreground">for {patientName}</span>
                 )}
