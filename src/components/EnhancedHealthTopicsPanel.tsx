@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 import { Progress } from '@/components/ui/progress';
 import { 
   Brain, 
@@ -85,7 +85,6 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
   onRefresh,
   patientName
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(new Set());
 
@@ -184,28 +183,21 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
   }
 
   return (
-    <Collapsible open={!isCollapsed} onOpenChange={setIsCollapsed}>
-      <Card className="w-full">
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer">
+    <Card className="w-full">
+      <CardHeader>
             <CardTitle className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                  <span className="text-sm font-semibold">Health Analysis</span>
-                  {patientName && (
-                    <span className="text-sm text-muted-foreground">for {patientName}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {loading && <Sparkles className="h-4 w-4 animate-spin" />}
-                  {isCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="text-sm font-semibold">Health Analysis</span>
+                {patientName && (
+                  <span className="text-sm text-muted-foreground">for {patientName}</span>
+                )}
               </div>
+              <div className="flex items-center gap-2">
+                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
+              </div>
+            </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">
                   <Brain className="h-3 w-3 mr-1" />
@@ -219,11 +211,9 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                 )}
               </div>
             </CardTitle>
-          </CardHeader>
-        </CollapsibleTrigger>
+        </CardHeader>
 
-        <CollapsibleContent>
-          <CardContent>
+        <CardContent>
             {/* Summary Stats */}
             {(highPriorityTopics.length > 0 || followUpRequired.length > 0 || immediateActions.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -512,9 +502,7 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                 Refresh Analysis
               </Button>
             </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+        </CardContent>
+    </Card>
   );
 };
