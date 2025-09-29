@@ -1,5 +1,6 @@
 import { Bot, UserIcon } from 'lucide-react';
 import { Message } from '@/hooks/optimized/useConversationsQuery';
+import { ProductCard } from '@/components/ui/product-card';
 
 interface ChatMessageProps {
   message: Message;
@@ -45,6 +46,31 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
           <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
             {message.content}
           </p>
+          
+          {/* Product recommendations */}
+          {message.products && message.products.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-muted-foreground mb-2">
+                Recommended products:
+              </p>
+              <div className="grid gap-2">
+                {message.products.map((product, idx) => (
+                  <ProductCard
+                    key={idx}
+                    product={{
+                      name: product.name,
+                      price: product.price,
+                      rating: product.rating,
+                      amazonUrl: (product as any).url || (product as any).amazonUrl,
+                      imageUrl: (product as any).image || (product as any).imageUrl,
+                      category: product.category
+                    }}
+                    showDisclaimer={idx === 0}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

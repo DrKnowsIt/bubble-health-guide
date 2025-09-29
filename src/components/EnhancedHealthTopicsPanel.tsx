@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ProductCard } from '@/components/ui/product-card';
 
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -24,10 +26,12 @@ import {
   Sparkles,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Eye,
   Zap,
   Shield,
-  Activity
+  Activity,
+  ShoppingBag
 } from 'lucide-react';
 
 interface EnhancedHealthTopic {
@@ -51,6 +55,13 @@ interface EnhancedHealthSolution {
   evidence_strength: 'strong' | 'moderate' | 'weak';
   contraindications?: string[];
   monitoring_required?: boolean;
+  products?: Array<{
+    name: string;
+    price: string;
+    rating: number;
+    amazonUrl: string;
+    imageUrl: string;
+  }>;
 }
 
 interface EnhancedHealthTopicsPanelProps {
@@ -87,6 +98,7 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(new Set());
+  const [isOpen, setIsOpen] = useState(true);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -184,37 +196,39 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
 
   return (
     <Card className="w-full">
-      <CardHeader>
-            <CardTitle className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
+            <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold">Health Analysis</span>
                   {patientName && (
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground">for</span>
-                      <span className="text-sm text-muted-foreground">{patientName}</span>
-                    </div>
+                    <span className="text-xs text-muted-foreground">{patientName}</span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
-              </div>
-            </div>
-              <div className="flex items-center gap-2">
                 {totalDataSources > 0 && (
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="text-xs">
                     <Database className="h-3 w-3 mr-1" />
-                    {totalDataSources} Data Sources
+                    {totalDataSources}
                   </Badge>
+                )}
+                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
             </CardTitle>
-        </CardHeader>
+          </CardHeader>
+        </CollapsibleTrigger>
 
-        <CardContent>
+        <CollapsibleContent>
+          <CardContent>
             {/* Summary Stats */}
             {(highPriorityTopics.length > 0 || followUpRequired.length > 0 || immediateActions.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -452,6 +466,43 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                                           </ul>
                                         </div>
                                       )}
+
+                                      {/* Product Recommendations */}
+                                      {solution.products && solution.products.length > 0 && (
+                                        <div className="space-y-2">
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <ShoppingBag className="h-3 w-3 text-muted-foreground" />
+                                            <span className="text-xs font-medium text-muted-foreground">
+                                              Helpful Products
+                                            </span>
+                                          </div>
+                                          <div className="grid gap-2">
+                                            {solution.products.slice(0, 2).map((product, productIndex) => (
+                                              <ProductCard 
+                                                key={productIndex} 
+                                                product={{
+                                                  name: product.name,
+                                                  price: product.price,
+                                                  rating: product.rating,
+                                                  amazonUrl: product.amazonUrl,
+                                                  imageUrl: product.imageUrl,
+                                                  category: solution.category
+                                                }}
+                                                showDisclaimer={false}
+                                              />
+                                            ))}
+                                          </div>
+                                          <div className="text-xs text-muted-foreground/80 mt-2 p-2 bg-muted/20 rounded border border-border/30">
+                                            <div className="flex items-center gap-1 mb-1">
+                                              <AlertTriangle className="h-3 w-3" />
+                                              <span className="font-medium">Product Disclaimer</span>
+                                            </div>
+                                            <p className="leading-relaxed">
+                                              These are general product suggestions. Consult healthcare providers before purchasing health-related items. We're not affiliated with Amazon.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -503,7 +554,9 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                 Refresh Analysis
               </Button>
             </div>
-        </CardContent>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 };

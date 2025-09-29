@@ -201,7 +201,8 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
           category: item.category || 'other',
           timeline: 'short_term' as const,
           evidence_strength: 'moderate' as const,
-          monitoring_required: item.confidence && item.confidence > 0.6
+          monitoring_required: item.confidence && item.confidence > 0.6,
+          products: item.products || []
         }));
         setSolutions(enhancedSolutions);
       }

@@ -15,8 +15,6 @@ import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
-import { EnhancedHealthTopicsPanel } from "@/components/EnhancedHealthTopicsPanel";
-import { useEnhancedHealthTopics } from "@/hooks/useEnhancedHealthTopics";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
 import { MedicalImageConfirmationModal } from "@/components/modals/MedicalImageConfirmationModal";
@@ -82,40 +80,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   const isCreatingConversationRef = useRef(false);
   const pendingConversationCreationRef = useRef<Promise<string | null> | null>(null);
   
-  // Enhanced health topics integration
-  const enhancedTopicsRefreshRef = useRef<(() => void) | null>(null);
-  
-  // Get conversation context for health topics
-  const conversationContext = messages.map(msg => 
-    `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
-  ).join('\n');
-  
-  // Enhanced health topics hook
-  const {
-    topics: enhancedTopics,
-    solutions: enhancedSolutions,
-    loading: enhancedLoading,
-    feedback: enhancedFeedback,
-    handleTopicFeedback,
-    handleSolutionFeedback,
-    refreshAnalysis,
-    highPriorityTopics,
-    followUpRequired,
-    immediateActions,
-    totalDataSources
-  } = useEnhancedHealthTopics({
-    conversationId: currentConversation,
-    patientId: selectedUser?.id || null,
-    conversationContext: conversationContext,
-    includeSolutions: true,
-    realTimeUpdates: true
-  });
-  
-  // Register refresh function
-  useEffect(() => {
-    enhancedTopicsRefreshRef.current = refreshAnalysis;
-  }, [refreshAnalysis]);
-  
   // Unified analysis system
   const { 
     analysisState, 
@@ -128,11 +92,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     patientId: selectedUser?.id || null,
     onAnalysisComplete: (results) => {
       console.log('[ChatGPTInterface] Analysis completed:', results);
-      // Trigger health topics refresh when unified analysis completes
-      if (enhancedTopicsRefreshRef.current) {
-        console.log('[ChatGPTInterface] Refreshing enhanced health topics after analysis');
-        enhancedTopicsRefreshRef.current();
-      }
     }
   });
   
@@ -1142,26 +1101,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
       </div>
 
-      {/* Health Topics & Diagnoses Sidebar - Always visible */}
+      {/* Health Insights Sidebar */}
       <div className="w-80 border-l border-border bg-background overflow-y-auto">
         <div className="p-4 space-y-4">
-          {/* Enhanced Health Topics */}
-          <EnhancedHealthTopicsPanel
-            topics={enhancedTopics}
-            solutions={enhancedSolutions}
-            loading={enhancedLoading}
-            feedback={enhancedFeedback}
-            highPriorityTopics={highPriorityTopics}
-            followUpRequired={followUpRequired}
-            immediateActions={immediateActions}
-            totalDataSources={totalDataSources || 0}
-            onTopicFeedback={handleTopicFeedback}
-            onSolutionFeedback={handleSolutionFeedback}
-            onRefresh={refreshAnalysis}
-            patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
-          />
-          
-          {/* Legacy Health Insights */}
+          {/* Enhanced Health Insights (Diagnoses) */}
           <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser && healthTopics ? healthTopics.map(d => ({
               diagnosis: d.health_topic,
@@ -1173,9 +1116,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             patientId={selectedUser?.id || ''}
             conversationId={currentConversation}
             showDemoTopics={!user}
-            onRefreshCallback={(refreshFn) => {
-              enhancedTopicsRefreshRef.current = refreshFn;
-            }}
           />
         </div>
       </div>
