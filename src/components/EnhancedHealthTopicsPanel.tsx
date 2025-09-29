@@ -204,10 +204,6 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
               </div>
             </div>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  <Brain className="h-3 w-3 mr-1" />
-                  AI Enhanced
-                </Badge>
                 {totalDataSources > 0 && (
                   <Badge variant="secondary">
                     <Database className="h-3 w-3 mr-1" />
