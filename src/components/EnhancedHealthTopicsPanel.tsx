@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 import { Progress } from '@/components/ui/progress';
 import { 
   Brain, 
@@ -85,7 +85,6 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
   onRefresh,
   patientName
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [expandedSolutions, setExpandedSolutions] = useState<Set<string>>(new Set());
 
@@ -184,22 +183,26 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
   }
 
   return (
-    <Collapsible open={!isCollapsed} onOpenChange={setIsCollapsed}>
-      <Card className="w-full">
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer">
-            <CardTitle className="flex items-center justify-between">
+    <Card className="w-full">
+      <CardHeader>
+            <CardTitle className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Comprehensive Health Analysis
-                {patientName && (
-                  <span className="text-sm text-muted-foreground">for {patientName}</span>
-                )}
-                <Badge variant="outline" className="ml-2">
-                  <Brain className="h-3 w-3 mr-1" />
-                  AI Enhanced
-                </Badge>
+                <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">Health Analysis</span>
+                  {patientName && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground">for</span>
+                      <span className="text-sm text-muted-foreground">{patientName}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+              <div className="flex items-center gap-2">
+                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
+              </div>
+            </div>
               <div className="flex items-center gap-2">
                 {totalDataSources > 0 && (
                   <Badge variant="secondary">
@@ -207,19 +210,11 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                     {totalDataSources} Data Sources
                   </Badge>
                 )}
-                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
-                {isCollapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
               </div>
             </CardTitle>
-          </CardHeader>
-        </CollapsibleTrigger>
+        </CardHeader>
 
-        <CollapsibleContent>
-          <CardContent>
+        <CardContent>
             {/* Summary Stats */}
             {(highPriorityTopics.length > 0 || followUpRequired.length > 0 || immediateActions.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -257,13 +252,13 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
 
             <Tabs defaultValue="topics" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="topics" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Health Topics ({topics.length})
+                <TabsTrigger value="topics" className="flex items-center gap-1 px-2 py-2 min-w-0">
+                  <Target className="h-3 w-3 flex-shrink-0" />
+                  <span className="text-xs">Health Topics ({topics.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Solutions ({solutions.length})
+                <TabsTrigger value="solutions" className="flex items-center gap-1 px-2 py-2 min-w-0">
+                  <TrendingUp className="h-3 w-3 flex-shrink-0" />
+                  <span className="text-xs">Solutions ({solutions.length})</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -508,9 +503,7 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
                 Refresh Analysis
               </Button>
             </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+        </CardContent>
+    </Card>
   );
 };

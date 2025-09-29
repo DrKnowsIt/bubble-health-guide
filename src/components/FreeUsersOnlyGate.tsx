@@ -3,8 +3,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import { useNavigationDebounce } from "@/hooks/useNavigationDebounce";
+import { useNavigate } from "react-router-dom";
 import { AIFreeModeInterface } from './AIFreeModeInterface';
 
 interface FreeUsersOnlyGateProps {
@@ -13,8 +12,7 @@ interface FreeUsersOnlyGateProps {
 
 export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
   const { subscribed, subscription_tier, loading } = useSubscription();
-  const location = useLocation();
-  const { debouncedNavigate, currentPath } = useNavigationDebounce();
+  const navigate = useNavigate();
 
   // Show loading state while checking subscription
   if (loading) {
@@ -46,19 +44,12 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
             </p>
             <Button 
               onClick={() => {
-                const targetPath = '/dashboard?tab=chat';
-                // Only navigate if not already on the target path
-                if (currentPath !== targetPath) {
-                  console.log('FreeUsersOnlyGate: Navigating to AI Chat from:', currentPath);
-                  debouncedNavigate(targetPath, { replace: true });
-                } else {
-                  console.log('FreeUsersOnlyGate: Already on AI Chat tab');
-                }
+                console.log('FreeUsersOnlyGate: Navigating to AI Chat tab');
+                navigate('/dashboard?tab=chat', { replace: true });
               }} 
-              disabled={currentPath === '/dashboard?tab=chat'}
               className="w-full"
             >
-              {currentPath === '/dashboard?tab=chat' ? 'You are here' : 'Go to AI Chat'}
+              Go to AI Chat
             </Button>
           </CardContent>
         </Card>
