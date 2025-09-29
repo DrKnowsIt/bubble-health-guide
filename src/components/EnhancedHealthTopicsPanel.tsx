@@ -189,10 +189,15 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                <span className="text-sm font-semibold">Health Analysis</span>
-                {patientName && (
-                  <span className="text-sm text-muted-foreground">for {patientName}</span>
-                )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">Health Analysis</span>
+                  {patientName && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground">for</span>
+                      <span className="text-sm text-muted-foreground">{patientName}</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {loading && <Sparkles className="h-4 w-4 animate-spin" />}
