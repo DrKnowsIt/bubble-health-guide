@@ -257,13 +257,13 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
 
             <Tabs defaultValue="topics" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="topics" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Health Topics ({topics.length})
+                <TabsTrigger value="topics" className="flex items-center gap-2 px-3 py-2 min-w-0">
+                  <Target className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Health Topics ({topics.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Solutions ({solutions.length})
+                <TabsTrigger value="solutions" className="flex items-center gap-2 px-3 py-2 min-w-0">
+                  <TrendingUp className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Solutions ({solutions.length})</span>
                 </TabsTrigger>
               </TabsList>
 
