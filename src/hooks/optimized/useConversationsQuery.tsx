@@ -12,6 +12,14 @@ export interface Message {
   content: string;
   timestamp: Date;
   image_url?: string;
+  products?: Array<{
+    name: string;
+    price: string;
+    rating: number;
+    image: string;
+    url: string;
+    category: string;
+  }>;
 }
 
 export interface Conversation {
@@ -148,7 +156,8 @@ export const useConversationsQuery = (selectedUser?: any) => {
         type: msg.type as 'user' | 'ai',
         content: msg.content,
         timestamp: new Date(msg.created_at),
-        image_url: msg.image_url
+        image_url: msg.image_url,
+        products: msg.products && Array.isArray(msg.products) ? msg.products as any[] : undefined
       }));
       
       console.log('✅ [useConversationsQuery] Loaded', formattedMessages.length, 'messages for conversation:', currentConversation);
@@ -201,24 +210,27 @@ export const useConversationsQuery = (selectedUser?: any) => {
       conversationId, 
       type, 
       content, 
-      imageUrl 
+      imageUrl,
+      products 
     }: { 
       conversationId: string; 
       type: 'user' | 'ai'; 
       content: string; 
-      imageUrl?: string; 
+      imageUrl?: string;
+      products?: any[];
     }) => {
       console.log('💬 [saveMessageMutation] Starting message save for conversation:', conversationId);
       isSavingMessageRef.current = true;
 
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          type,
-          content,
-          image_url: imageUrl
-        });
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        type,
+        content,
+        image_url: imageUrl,
+        products: products
+      });
 
       if (error) throw error;
 
@@ -674,9 +686,9 @@ export const useConversationsQuery = (selectedUser?: any) => {
         });
       });
     },
-    saveMessage: async (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string): Promise<void> => {
+    saveMessage: async (conversationId: string, type: 'user' | 'ai', content: string, imageUrl?: string, products?: any[]): Promise<void> => {
       return new Promise((resolve, reject) => {
-        saveMessageMutation.mutate({ conversationId, type, content, imageUrl }, {
+        saveMessageMutation.mutate({ conversationId, type, content, imageUrl, products }, {
           onSuccess: () => resolve(),
           onError: (error) => reject(error)
         });

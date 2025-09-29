@@ -329,11 +329,12 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
         id: `msg-${Date.now()}-${Math.random()}`,
         type: 'ai',
         content: cleanResponse,
-        timestamp: new Date()
+        timestamp: new Date(),
+        products: data.products || undefined
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      await saveMessage(conversationId, 'ai', aiMessage.content);
+      await saveMessage(conversationId, 'ai', aiMessage.content, undefined, aiMessage.products);
       onSendMessage?.(currentInput);
 
         // Background analysis - run separately without affecting main chat flow

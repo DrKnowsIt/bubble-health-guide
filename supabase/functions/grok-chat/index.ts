@@ -529,6 +529,15 @@ You: "When did this start, and what does the vomit look like?"
 User: "My pet is limping on their back leg"
 You: "Can you see any swelling or cuts on the paw? Is your pet putting any weight on it?"
 
+**PRODUCT RECOMMENDATIONS:**
+- You have access to Amazon product search via the search_amazon_products function
+- When discussing treatments, solutions, or pet health recommendations, you MAY suggest relevant products
+- Focus on: pet vitamins, supplements, natural remedies, wellness products, holistic items
+- Only call the function when products would genuinely help (e.g., joint supplements, digestive aids, stress relief)
+- Available categories: vitamins, supplements, pain-relief, sleep-aid, digestive-health, immune-support, stress-relief, fitness, nutrition
+- Be helpful but not pushy - only recommend when it adds clear value to the conversation
+- When you call the function, I'll provide product cards that the user can view on Amazon
+
 Remember: Just have a natural conversation to understand their pet's situation better.`;
     } else {
       const rulesText = communicationRules
@@ -558,6 +567,15 @@ You: "That sounds uncomfortable. What kind of pain is it - sharp, dull, or achin
 
 User: "I have a headache"  
 You: "How long have you had it?"
+
+**PRODUCT RECOMMENDATIONS:**
+- You have access to Amazon product search via the search_amazon_products function
+- When discussing solutions, treatments, or health recommendations, you MAY suggest relevant products
+- Focus on: vitamins, supplements, natural remedies, wellness products, holistic items
+- Only call the function when products would genuinely help (e.g., vitamin deficiency, supplement needs, wellness support)
+- Available categories: vitamins, supplements, pain-relief, sleep-aid, digestive-health, immune-support, stress-relief, fitness, nutrition
+- Be helpful but not pushy - only recommend when it adds clear value to the conversation
+- When you call the function, I'll provide product cards that the user can view on Amazon
 
 Remember:
 - You are a helpful medical AI assistant designed to support users with health-related questions
@@ -615,6 +633,29 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Sending request to Grok API with', messages.length, 'messages');
 
+    // Define tool for Amazon product search
+    const tools = [{
+      type: "function",
+      function: {
+        name: "search_amazon_products",
+        description: "Search for relevant health products on Amazon (vitamins, supplements, holistic items, wellness products). Use when discussing treatments, solutions, or recommendations that could benefit from product suggestions. Only suggest when genuinely relevant.",
+        parameters: {
+          type: "object",
+          properties: {
+            category: {
+              type: "string",
+              description: "Product category: vitamins, supplements, pain-relief, sleep-aid, digestive-health, immune-support, stress-relief, fitness, nutrition"
+            },
+            keywords: {
+              type: "string",
+              description: "Specific product keywords based on the health concern (e.g., 'vitamin D3', 'probiotic', 'magnesium glycinate')"
+            }
+          },
+          required: ["category", "keywords"]
+        }
+      }
+    }];
+
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -626,7 +667,9 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
-        stream: false
+        stream: false,
+        tools: tools,
+        tool_choice: "auto"
       }),
     });
 
@@ -661,8 +704,49 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
     const data = await response.json();
     console.log('Grok API response received');
 
-    // Process the AI response and return to client
-    const responseText = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+    // Process the AI response and handle tool calls
+    const responseMessage = data.choices[0]?.message;
+    let responseText = responseMessage?.content || "I'm sorry, I couldn't generate a response.";
+    let products = [];
+
+    // Check if AI wants to call the product search tool
+    if (responseMessage?.tool_calls && responseMessage.tool_calls.length > 0) {
+      const toolCall = responseMessage.tool_calls[0];
+      
+      if (toolCall.function.name === 'search_amazon_products') {
+        try {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log('🛍️ AI requesting product search:', args);
+          
+          // Call amazon-product-search function
+          const productResponse = await fetch(`${supabaseUrl}/functions/v1/amazon-product-search`, {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              solutionCategory: args.category,
+              keywords: args.keywords.split(',').map((k: string) => k.trim())
+            }),
+          });
+
+          if (productResponse.ok) {
+            const productData = await productResponse.json();
+            products = productData?.products || [];
+            console.log('✅ Found products:', products.length);
+            
+            // If no content in response, add a default message
+            if (!responseText || responseText.trim() === '') {
+              responseText = "Here are some product recommendations that might help:";
+            }
+          }
+        } catch (productError) {
+          console.error('Error fetching products:', productError);
+          // Continue without products if search fails
+        }
+      }
+    }
     
     // Clean the response text and remove any image suggestions
     const cleanedResponse = responseText
@@ -706,6 +790,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
     return new Response(
       JSON.stringify({ 
         message: cleanedResponse,
+        products: products.length > 0 ? products : undefined,
         usage: data.usage,
         tokens_used: totalTokens,
         timeout_triggered: timeout_triggered

@@ -1027,6 +1027,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          products: Json | null
           type: string
         }
         Insert: {
@@ -1035,6 +1036,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          products?: Json | null
           type: string
         }
         Update: {
@@ -1043,6 +1045,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          products?: Json | null
           type?: string
         }
         Relationships: [
