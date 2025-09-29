@@ -188,30 +188,34 @@ export const EnhancedHealthTopicsPanel: React.FC<EnhancedHealthTopicsPanelProps>
       <Card className="w-full">
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer">
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                <span className="font-semibold truncate">Health Analysis</span>
-                {patientName && (
-                  <span className="text-sm text-muted-foreground ml-1">for {patientName}</span>
-                )}
-                <Badge variant="outline" className="ml-2">
+            <CardTitle className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span className="font-semibold">Health Analysis</span>
+                  {patientName && (
+                    <span className="text-sm text-muted-foreground">for {patientName}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {loading && <Sparkles className="h-4 w-4 animate-spin" />}
+                  {isCollapsed ? (
+                    <ChevronRight className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
                   <Brain className="h-3 w-3 mr-1" />
                   AI Enhanced
                 </Badge>
-              </div>
-              <div className="flex items-center gap-2">
                 {totalDataSources > 0 && (
                   <Badge variant="secondary">
                     <Database className="h-3 w-3 mr-1" />
                     {totalDataSources} Data Sources
                   </Badge>
-                )}
-                {loading && <Sparkles className="h-4 w-4 animate-spin" />}
-                {isCollapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
                 )}
               </div>
             </CardTitle>
