@@ -510,13 +510,16 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
   }, [updateTitleMutation.isSuccess, updateTitleMutation.error, queryClient]);
 
-  // Clear messages when currentConversation becomes null
+  // Sync messages state with fetched messages from React Query
   useEffect(() => {
     if (currentConversation === null) {
       console.log('🧹 [useConversationsQuery] Clearing messages - no current conversation');
       setMessages([]);
+    } else if (fetchedMessages && fetchedMessages.length >= 0) {
+      console.log('🔄 [useConversationsQuery] Syncing messages state with query data:', fetchedMessages.length, 'messages');
+      setMessages(fetchedMessages);
     }
-  }, [currentConversation]);
+  }, [currentConversation, fetchedMessages]);
 
   const selectConversation = useCallback((conversationId: string) => {
     // Enhanced debug logging
