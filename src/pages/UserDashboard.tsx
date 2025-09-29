@@ -82,21 +82,19 @@ export default function UserDashboard() {
     currentPath: location.pathname
   });
   
-  // Read URL parameters only on initial load
+  // Read URL parameters and update tab
   useEffect(() => {
-    if (isInitialLoad.current) {
-      const urlParams = new URLSearchParams(location.search);
-      const tabParam = urlParams.get('tab');
-      
-      if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
-        console.log('UserDashboard: Initial tab from URL:', tabParam);
-        setActiveTab(tabParam);
-      } else {
-        console.log('UserDashboard: Setting default tab to easy-chat');
-        setActiveTab("easy-chat");
-      }
-      isInitialLoad.current = false;
+    const urlParams = new URLSearchParams(location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
+      console.log('UserDashboard: Tab from URL:', tabParam);
+      setActiveTab(tabParam);
+    } else if (isInitialLoad.current) {
+      console.log('UserDashboard: Setting default tab to easy-chat');
+      setActiveTab("easy-chat");
     }
+    isInitialLoad.current = false;
   }, [location.search]);
   
   // Safety check: Ensure there's always a user selected when users exist
