@@ -96,8 +96,10 @@ export const TabletChatInterface = ({
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {

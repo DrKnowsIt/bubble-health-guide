@@ -136,8 +136,10 @@ export const MobileEnhancedChatInterface = ({
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -127,8 +127,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    if (messages.length > 0 || isTyping) {
+      scrollToBottom();
+    }
+  }, [messages.length, isTyping]);
 
   // Invalidate in-flight requests when conversation changes
   useEffect(() => {
