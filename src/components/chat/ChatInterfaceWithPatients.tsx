@@ -151,7 +151,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   // Auto-save conversation state before navigation or when important changes happen
