@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -29,6 +29,14 @@ const Index = () => {
     startNewConversation,
     deleteConversation
   } = useConversationsQuery(null);
+  // Prevent automatic scroll to hash sections on page load
+  useEffect(() => {
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   const openAuth = (mode: 'signin' | 'signup') => {
     navigate('/auth', {
       state: {
