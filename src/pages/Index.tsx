@@ -48,40 +48,27 @@ const Index = () => {
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
         {isMobile ?
-      // Mobile: Clean, simple chat interface with better spacing
-      <section className="h-[calc(100vh-4rem)]">
+      // Mobile: Clean, simple chat interface optimized for small screens
+      <section className="h-[100dvh]" style={{ height: '100dvh' }}>
             <div className="h-full flex flex-col">
-              {/* Mobile Header - Properly spaced */}
-              <div className="shrink-0 text-center p-4 bg-card border-b border-border space-y-3">
-                <div className="mb-2">
-                  <h2 className="mobile-text-base font-semibold text-primary mb-1">
-                    Try DrKnowsIt Demo
-                  </h2>
-                  <p className="mobile-text-xs text-muted-foreground">
-                    See what a health conversation looks like
-                  </p>
-                </div>
-                
-                <h1 className="mobile-text-lg sm:text-xl font-bold text-foreground leading-tight">
-                  Healthcare & pet care feeling rushed?
+              {/* Mobile Header - Compact & Essential */}
+              <div className="shrink-0 text-center p-3 bg-card border-b border-border">
+                <h1 className="text-lg font-bold text-foreground mb-1">
+                  Healthcare feeling rushed?
                 </h1>
-                <p className="mobile-text-sm text-muted-foreground leading-relaxed">
-                  Come prepared with{" "}
-                  <span className="text-primary font-semibold">DrKnowsIt</span> - for you and your pets
-                </p>
-                <p className="mobile-text-xs text-muted-foreground/70">
-                  Powered by Grok • Medical images via ISIC Archive
+                <p className="text-sm text-muted-foreground mb-2">
+                  Come prepared with <span className="text-primary font-semibold">DrKnowsIt</span>
                 </p>
                 
-                {/* Compact Disclaimer - Better mobile formatting */}
-                <div className="rounded-md bg-warning/10 border border-warning/20 p-3 mx-2">
-                  <p className="mobile-text-xs text-warning font-medium leading-relaxed">
-                    ⚠️ General information only. Consult healthcare professionals for medical decisions.
+                {/* Ultra-compact Disclaimer */}
+                <div className="rounded-md bg-warning/10 border border-warning/20 px-3 py-2">
+                  <p className="text-xs text-warning font-medium">
+                    ⚠️ For information only. Always consult professionals.
                   </p>
                 </div>
               </div>
 
-              {/* Mobile Chat - Properly contained with spacing */}
+              {/* Mobile Chat - Maximum space for conversation */}
               <div className="flex-1 min-h-0 overflow-hidden">
                 {showHistory && user ? <div className="h-full flex">
                     <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />

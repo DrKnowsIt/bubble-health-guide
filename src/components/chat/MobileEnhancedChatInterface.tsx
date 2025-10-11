@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus, Brain } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
@@ -411,69 +411,60 @@ export const MobileEnhancedChatInterface = ({
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex flex-col bg-background">
-        {/* Collapsible Patient Selector */}
-        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">
-          <div className="p-3">
-            <button
-              onClick={() => setPatientSelectorCollapsed(!patientSelectorCollapsed)}
-              className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg transition-all hover:bg-muted/70"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium text-sm">
-                    {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedUser ? 'Currently chatting with' : 'Choose who to chat with'}
-                  </div>
-                </div>
+        {/* Simplified Patient Header with History Access */}
+        <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-20">
+          <div className="p-3 flex items-center justify-between gap-3">
+            {/* Patient Info */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="h-9 w-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary" />
               </div>
-              <div className="flex items-center gap-2">
-                <Sheet open={showHistory} onOpenChange={setShowHistory}>
+              <div className="min-w-0 flex-1">
+                <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <History className="h-4 w-4" />
+                    <Button variant="ghost" className="h-auto p-0 hover:bg-transparent text-left w-full justify-start">
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">
+                          {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          Tap to change
+                        </div>
+                      </div>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-80">
+                  <SheetContent side="bottom" className="h-[40vh]">
                     <SheetHeader>
-                      <SheetTitle>Conversation History</SheetTitle>
+                      <SheetTitle>Select Patient</SheetTitle>
                     </SheetHeader>
-                    <div className="mt-4 h-full overflow-hidden">
-                      <ConversationHistory
-                        selectedPatientId={selectedUser?.id}
-                        onConversationSelect={handleConversationSelect}
-                        onNewConversation={handleNewConversation}
-                        activeConversationId={currentConversation}
+                    <div className="mt-4">
+                      <UserDropdown
+                        users={users}
+                        selectedUser={selectedUser}
+                        onUserSelect={handleUserSelect}
+                        open={false}
+                        onOpenChange={() => {}}
                       />
                     </div>
                   </SheetContent>
                 </Sheet>
-                
-                {patientSelectorCollapsed ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                )}
               </div>
-            </button>
+            </div>
             
-            {!patientSelectorCollapsed && (
-              <div className="mt-3 space-y-3 animate-in slide-in-from-top-2">
-                <UserDropdown
-                  users={users}
-                  selectedUser={selectedUser}
-                  onUserSelect={handleUserSelect}
-                  open={false}
-                  onOpenChange={() => {}}
-                />
-                
-                {/* Topics to Discuss - Always visible */}
-                <div className="w-full">
-                  <div className="p-3 bg-background border rounded-lg">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Health Topics Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                    <Brain className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[60vh]">
+                  <SheetHeader>
+                    <SheetTitle>Health Topics</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4 overflow-auto h-[calc(60vh-80px)]">
                     <EnhancedHealthInsightsPanel 
                       diagnoses={diagnoses.map(d => ({
                         diagnosis: d.diagnosis,
@@ -486,9 +477,31 @@ export const MobileEnhancedChatInterface = ({
                       conversationId={currentConversation}
                     />
                   </div>
-                </div>
-              </div>
-            )}
+                </SheetContent>
+              </Sheet>
+              
+              {/* History Button */}
+              <Sheet open={showHistory} onOpenChange={setShowHistory}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                    <History className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-full sm:w-80">
+                  <SheetHeader>
+                    <SheetTitle>Conversation History</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4 h-full overflow-hidden">
+                    <ConversationHistory
+                      selectedPatientId={selectedUser?.id}
+                      onConversationSelect={handleConversationSelect}
+                      onNewConversation={handleNewConversation}
+                      activeConversationId={currentConversation}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
 
@@ -505,8 +518,8 @@ export const MobileEnhancedChatInterface = ({
             </div>
           ) : (
             <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Messages - Improved spacing */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {/* Token Timeout Notification - Show prominently in chat */}
                 <SimpleTokenTimeoutNotification />
                 
@@ -551,8 +564,8 @@ export const MobileEnhancedChatInterface = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Enhanced Input Area */}
-              <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
+              {/* Enhanced Input Area - Better touch targets */}
+              <div className="border-t bg-background/95 backdrop-blur p-3 space-y-2">
 
                 {pendingImageUrl && (
                   <div className="mb-3 p-2 border rounded-lg bg-muted/50">
@@ -588,33 +601,33 @@ export const MobileEnhancedChatInterface = ({
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
+                    className="min-h-[3.5rem] max-h-32 resize-none text-base border-2 focus:border-primary/50 transition-colors pr-24 py-3"
+                    style={{ fontSize: '16px' }}
                     disabled={!selectedUser || isInTimeout}
                   />
                   
-                  {/* Buttons positioned inside the textarea */}
+                  {/* Buttons positioned inside the textarea - Larger touch targets */}
                   <div className="absolute right-2 bottom-2 flex gap-1">
-                    {/* Image upload temporarily disabled */}
                     <Button
                       variant={isRecording ? "destructive" : "ghost"}
                       size="sm"
                       onClick={toggleRecording}
                       disabled={!selectedUser || isProcessing || isInTimeout}
-                      className="h-8 w-8 p-0 hover:bg-muted"
+                      className="h-10 w-10 p-0 hover:bg-muted"
                     >
                       {isRecording ? (
-                        <MicOff className="h-4 w-4" />
+                        <MicOff className="h-5 w-5" />
                       ) : (
-                        <Mic className="h-4 w-4" />
+                        <Mic className="h-5 w-5" />
                       )}
                     </Button>
                     <Button 
                       onClick={handleSendMessage}
                       disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-10 w-10 p-0"
                     >
-                      <Send className="h-4 w-4" />
+                      <Send className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

@@ -409,11 +409,12 @@
     height: 100%;
   }
 
-  /* Mobile responsive text utilities */
-  .mobile-text-xs { font-size: 0.75rem; line-height: 1rem; }
-  .mobile-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-  .mobile-text-base { font-size: 1rem; line-height: 1.5rem; }
-  .mobile-text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+  /* Mobile responsive text utilities - Meeting WCAG minimum sizes */
+  .mobile-text-xs { font-size: 0.8125rem; line-height: 1.125rem; } /* 13px - minimum readable */
+  .mobile-text-sm { font-size: 0.875rem; line-height: 1.25rem; } /* 14px */
+  .mobile-text-base { font-size: 1rem; line-height: 1.5rem; } /* 16px */
+  .mobile-text-lg { font-size: 1.125rem; line-height: 1.75rem; } /* 18px */
+  .mobile-text-xl { font-size: 1.25rem; line-height: 1.875rem; } /* 20px */
 
   /* Mobile spacing utilities */
   .mobile-space-tight > * + * { margin-top: 0.5rem; }
