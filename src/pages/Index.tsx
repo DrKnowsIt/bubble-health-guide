@@ -47,29 +47,64 @@ const Index = () => {
   return <div className="min-h-screen bg-background">
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
-        {isMobile ?
-      // Mobile: Clean, simple chat interface optimized for small screens
+      {isMobile ?
+      // Mobile: Beautiful, professional landing page optimized for small screens
       <section className="h-[100dvh]" style={{ height: '100dvh' }}>
-            <div className="h-full flex flex-col">
-              {/* Mobile Header - Compact & Essential */}
-              <div className="shrink-0 text-center p-3 bg-card border-b border-border">
-                <h1 className="text-lg font-bold text-foreground mb-1">
-                  Healthcare feeling rushed?
-                </h1>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Come prepared with <span className="text-primary font-semibold">DrKnowsIt</span>
-                </p>
-                
-                {/* Ultra-compact Disclaimer */}
-                <div className="rounded-md bg-warning/10 border border-warning/20 px-3 py-2">
-                  <p className="text-xs text-warning font-medium">
-                    ⚠️ For information only. Always consult professionals.
+            <div className="h-full flex flex-col overflow-y-auto">
+              {/* Mobile Hero Section */}
+              <div className="shrink-0 bg-gradient-to-b from-card to-background">
+                {/* Hero Image */}
+                <div className="relative w-full aspect-[4/3] overflow-hidden">
+                  <img 
+                    src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
+                    alt="Blue holographic cartoon doctor with family and pet"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
+                </div>
+
+                {/* Hero Text */}
+                <div className="px-5 pt-4 pb-5 text-center space-y-3">
+                  <h1 className="text-2xl font-bold text-foreground leading-tight">
+                    Get prepared for your
+                    <span className="block text-primary mt-1">healthcare visits</span>
+                  </h1>
+                  <p className="text-base text-muted-foreground leading-relaxed">
+                    AI-powered health assistant for humans and pets. Available 24/7 to help you make informed decisions.
+                  </p>
+                  
+                  {/* Social Proof */}
+                  <div className="pt-2">
+                    <UserCountBadge variant="hero" className="text-xs" />
+                  </div>
+
+                  {/* Powered By */}
+                  <p className="text-xs text-muted-foreground/80 pt-1">
+                    Powered by GPT-5, Grok & more
+                  </p>
+
+                  {/* Disclaimer - Single line */}
+                  <div className="flex items-center justify-center gap-2 pt-2 text-xs text-warning">
+                    <span>⚠️</span>
+                    <span className="font-medium">Information only · Consult professionals</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* "Try It Now" Section Header */}
+              <div className="shrink-0 px-5 py-4 border-t border-border bg-card/50">
+                <div className="text-center space-y-1">
+                  <h2 className="text-lg font-bold text-foreground">
+                    Try DrKnowsIt Now
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Start a conversation with our AI health assistant
                   </p>
                 </div>
               </div>
 
-              {/* Mobile Chat - Maximum space for conversation */}
-              <div className="flex-1 min-h-0 overflow-hidden">
+              {/* Mobile Chat Interface */}
+              <div className="flex-1 min-h-0 bg-background">
                 {showHistory && user ? <div className="h-full flex">
                     <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                     <div className="flex-1 min-h-0 overflow-hidden">
