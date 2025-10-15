@@ -411,97 +411,98 @@ export const MobileEnhancedChatInterface = ({
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex flex-col bg-background">
-        {/* Simplified Patient Header with History Access */}
+        {/* Stacked Patient Header */}
         <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-20">
-          <div className="p-3 flex items-center justify-between gap-3">
-            {/* Patient Info */}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="h-9 w-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" className="h-auto p-0 hover:bg-transparent text-left w-full justify-start">
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm truncate">
-                          {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
-                        </div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          Tap to change
-                        </div>
-                      </div>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[40vh]">
-                    <SheetHeader>
-                      <SheetTitle>Select Patient</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-4">
-                      <UserDropdown
-                        users={users}
-                        selectedUser={selectedUser}
-                        onUserSelect={handleUserSelect}
-                        open={false}
-                        onOpenChange={() => {}}
-                      />
+          {/* Row 1: Patient Selector */}
+          <div className="p-3 border-b border-border/50">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full h-auto p-3 hover:bg-muted/50 justify-start">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
                     </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-            </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="font-medium text-base truncate">
+                        {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Tap to change patient
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </div>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[40vh]">
+                <SheetHeader>
+                  <SheetTitle>Select Patient</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <UserDropdown
+                    users={users}
+                    selectedUser={selectedUser}
+                    onUserSelect={handleUserSelect}
+                    open={false}
+                    onOpenChange={() => {}}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+          
+          {/* Row 2: Action Buttons */}
+          <div className="p-2 flex items-center gap-2">
+            {/* History Button */}
+            <Sheet open={showHistory} onOpenChange={setShowHistory}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="flex-1 h-10 gap-2">
+                  <History className="h-4 w-4" />
+                  <span className="text-sm">History</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full sm:w-80">
+                <SheetHeader>
+                  <SheetTitle>Conversation History</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 h-full overflow-hidden">
+                  <ConversationHistory
+                    selectedPatientId={selectedUser?.id}
+                    onConversationSelect={handleConversationSelect}
+                    onNewConversation={handleNewConversation}
+                    activeConversationId={currentConversation}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
             
-            {/* Action Buttons */}
-            <div className="flex items-center gap-1 shrink-0">
-              {/* Health Topics Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                    <Brain className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[60vh]">
-                  <SheetHeader>
-                    <SheetTitle>Health Topics</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 overflow-auto h-[calc(60vh-80px)]">
-                    <EnhancedHealthInsightsPanel 
-                      diagnoses={diagnoses.map(d => ({
-                        diagnosis: d.diagnosis,
-                        confidence: d.confidence || 0,
-                        reasoning: d.reasoning || '',
-                        updated_at: d.updated_at || new Date().toISOString()
-                      }))}
-                      patientName={selectedUser?.first_name || 'You'}
-                      patientId={selectedUser?.id || ''}
-                      conversationId={currentConversation}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-              
-              {/* History Button */}
-              <Sheet open={showHistory} onOpenChange={setShowHistory}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                    <History className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-full sm:w-80">
-                  <SheetHeader>
-                    <SheetTitle>Conversation History</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 h-full overflow-hidden">
-                    <ConversationHistory
-                      selectedPatientId={selectedUser?.id}
-                      onConversationSelect={handleConversationSelect}
-                      onNewConversation={handleNewConversation}
-                      activeConversationId={currentConversation}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
+            {/* Health Topics Button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="flex-1 h-10 gap-2">
+                  <Brain className="h-4 w-4" />
+                  <span className="text-sm">Topics</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[60vh]">
+                <SheetHeader>
+                  <SheetTitle>Health Topics</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 overflow-auto h-[calc(60vh-80px)]">
+                  <EnhancedHealthInsightsPanel 
+                    diagnoses={diagnoses.map(d => ({
+                      diagnosis: d.diagnosis,
+                      confidence: d.confidence || 0,
+                      reasoning: d.reasoning || '',
+                      updated_at: d.updated_at || new Date().toISOString()
+                    }))}
+                    patientName={selectedUser?.first_name || 'You'}
+                    patientId={selectedUser?.id || ''}
+                    conversationId={currentConversation}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
@@ -564,19 +565,18 @@ export const MobileEnhancedChatInterface = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Enhanced Input Area - Better touch targets */}
-              <div className="border-t bg-background/95 backdrop-blur p-3 space-y-2">
-
+              {/* Stacked Input Area */}
+              <div className="border-t bg-background p-4 space-y-3">
+                {/* Pending Image Preview */}
                 {pendingImageUrl && (
-                  <div className="mb-3 p-2 border rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ImagePlus className="h-4 w-4" />
-                      <span className="text-sm font-medium">Image attached</span>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Image attached</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPendingImageUrl(null)}
-                        className="h-6 w-6 p-0 ml-auto"
+                        className="h-6 w-6 p-0"
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -589,49 +589,68 @@ export const MobileEnhancedChatInterface = ({
                   </div>
                 )}
                 
-                <div className="relative">
-                  <Textarea
-                    placeholder={
-                      !selectedUser 
-                        ? "Select a patient to start chatting..." 
-                        : isInTimeout 
-                          ? "🤖 DrKnowsIt is taking a 30-minute break..." 
-                          : "Describe your symptoms or ask a health question..."
-                    }
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="min-h-[3.5rem] max-h-32 resize-none text-base border-2 focus:border-primary/50 transition-colors pr-24 py-3"
-                    style={{ fontSize: '16px' }}
-                    disabled={!selectedUser || isInTimeout}
-                  />
+                {/* Textarea - Full Width */}
+                <Textarea
+                  placeholder={
+                    !selectedUser 
+                      ? "Select a patient to start chatting..." 
+                      : isInTimeout 
+                        ? "🤖 DrKnowsIt is taking a 30-minute break..." 
+                        : "Describe your symptoms or ask a health question..."
+                  }
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="min-h-[4rem] max-h-32 resize-none text-base border-2 focus:border-primary/50 transition-colors"
+                  style={{ fontSize: '16px' }}
+                  disabled={!selectedUser || isInTimeout}
+                />
+                
+                {/* Action Buttons Row */}
+                <div className="flex items-center gap-2">
+                  {/* Image Upload Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    disabled={!selectedUser || isUploading || isInTimeout}
+                    className="h-11 w-11 p-0"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5" />
+                    )}
+                  </Button>
                   
-                  {/* Buttons positioned inside the textarea - Larger touch targets */}
-                  <div className="absolute right-2 bottom-2 flex gap-1">
-                    <Button
-                      variant={isRecording ? "destructive" : "ghost"}
-                      size="sm"
-                      onClick={toggleRecording}
-                      disabled={!selectedUser || isProcessing || isInTimeout}
-                      className="h-10 w-10 p-0 hover:bg-muted"
-                    >
-                      {isRecording ? (
-                        <MicOff className="h-5 w-5" />
-                      ) : (
-                        <Mic className="h-5 w-5" />
-                      )}
-                    </Button>
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
-                      size="sm"
-                      className="h-10 w-10 p-0"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
-                  </div>
+                  {/* Microphone Button */}
+                  <Button
+                    variant={isRecording ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleRecording}
+                    disabled={!selectedUser || isProcessing || isInTimeout}
+                    className="h-11 w-11 p-0"
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-5 w-5" />
+                    ) : (
+                      <Mic className="h-5 w-5" />
+                    )}
+                  </Button>
+                  
+                  {/* Send Button - Primary and Larger */}
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
+                    size="default"
+                    className="flex-1 h-11 gap-2"
+                  >
+                    <Send className="h-5 w-5" />
+                    <span className="font-medium">Send</span>
+                  </Button>
                 </div>
-                  
+                
+                {/* Processing Indicator */}
                 {isProcessing && (
                   <div className="flex items-center justify-center text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
