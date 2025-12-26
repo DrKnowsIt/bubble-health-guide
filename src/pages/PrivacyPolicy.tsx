@@ -22,7 +22,7 @@ const PrivacyPolicy = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
-              <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+              <p className="text-muted-foreground">Last updated: December 26, 2024</p>
             </div>
           </div>
         </div>
@@ -219,6 +219,7 @@ const PrivacyPolicy = () => {
                 <li><strong>Portability:</strong> Export your health data in a machine-readable format</li>
                 <li><strong>Opt-out:</strong> Unsubscribe from non-essential communications</li>
                 <li><strong>Restriction:</strong> Limit how we process certain types of your information</li>
+                <li><strong>Research Opt-out:</strong> You may opt out of having your anonymized data used for research purposes by contacting us at privacy@drknowit.com</li>
               </ul>
             </CardContent>
           </Card>

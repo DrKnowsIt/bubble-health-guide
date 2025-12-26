@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { signInSchema, signUpSchema, validateForm } from '@/lib/validation';
 
 export default function Auth() {
   const { user, session, loading: authLoading, signIn, signUp } = useAuth();
@@ -25,6 +26,7 @@ export default function Auth() {
     accessCode: '',
   });
   const [showAccessCode, setShowAccessCode] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -54,24 +56,29 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationErrors({});
+    
+    // Validate form data
+    const schema = isSignUp ? signUpSchema : signInSchema;
+    const validation = validateForm(schema, isSignUp ? formData : { email: formData.email, password: formData.password });
+    
+    if (!validation.success && validation.errors) {
+      setValidationErrors(validation.errors);
+      return;
+    }
+    
     setLoading(true);
-    console.log('Auth - Form submission started:', { isSignUp, email: formData.email });
 
     try {
       const result = isSignUp 
         ? await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.accessCode)
         : await signIn(formData.email, formData.password);
       
-      console.log('Auth - Form submission result:', { 
-        success: !result?.error, 
-        error: result?.error?.message 
-      });
-      
       if (result?.error) {
-        console.error('Auth - Authentication failed:', result.error);
+        // Don't log sensitive auth details
       }
     } catch (error) {
-      console.error('Auth - Unexpected error during authentication:', error);
+      // Error handled by auth hook
     } finally {
       setLoading(false);
     }
@@ -92,6 +99,17 @@ export default function Auth() {
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     resetForm();
+    setValidationErrors({});
+  };
+
+  const renderFieldError = (field: string) => {
+    if (!validationErrors[field]) return null;
+    return (
+      <div className="flex items-center gap-1 text-destructive text-xs mt-1">
+        <AlertCircle size={12} />
+        <span>{validationErrors[field]}</span>
+      </div>
+    );
   };
 
   return (
@@ -125,8 +143,9 @@ export default function Auth() {
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    required={isSignUp}
+                    className={validationErrors.firstName ? 'border-destructive' : ''}
                   />
+                  {renderFieldError('firstName')}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
@@ -135,8 +154,9 @@ export default function Auth() {
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    required={isSignUp}
+                    className={validationErrors.lastName ? 'border-destructive' : ''}
                   />
+                  {renderFieldError('lastName')}
                 </div>
               </div>
             )}
@@ -149,8 +169,9 @@ export default function Auth() {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                className={validationErrors.email ? 'border-destructive' : ''}
               />
+              {renderFieldError('email')}
             </div>
 
             <div className="space-y-2">
@@ -162,7 +183,7 @@ export default function Auth() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
+                  className={validationErrors.password ? 'border-destructive' : ''}
                 />
                 <Button
                   type="button"
@@ -174,6 +195,12 @@ export default function Auth() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </Button>
               </div>
+              {renderFieldError('password')}
+              {isSignUp && (
+                <p className="text-xs text-muted-foreground">
+                  Password must be 8+ characters with uppercase, lowercase, and number
+                </p>
+              )}
             </div>
 
             {isSignUp && (

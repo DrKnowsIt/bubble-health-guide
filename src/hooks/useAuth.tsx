@@ -267,8 +267,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      // Check if access code is the alpha tester code
-      const isValidTesterCode = accessCode === 'DRKNOWSIT_ALPHA_2024';
+      // Validate access code against server-side secret
+      let isValidTesterCode = false;
+      if (accessCode) {
+        try {
+          const { data } = await supabase.functions.invoke('validate-alpha-code', {
+            body: { code: accessCode }
+          });
+          isValidTesterCode = data?.valid === true;
+        } catch {
+          isValidTesterCode = false;
+        }
+      }
       
       const { error } = await supabase.auth.signUp({
         email,
