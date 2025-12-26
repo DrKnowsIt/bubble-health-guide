@@ -1321,14 +1321,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_total_user_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      is_alpha_tester: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
+      get_total_user_count: { Args: never; Returns: number }
+      is_alpha_tester: { Args: { user_email: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
