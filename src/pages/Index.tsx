@@ -179,11 +179,11 @@ const Index = () => {
             </div>
           </section>}
 
-        {/* Info Sections - Hidden on mobile to keep it simple */}
-        {!isMobile && <div className="mt-12">
-            <HowItWorks />
-            <Features />
-          </div>}
+        {/* Info Sections - Now shown on mobile too */}
+        <div className={isMobile ? "mt-4 px-4 pb-20" : "mt-12"}>
+          <HowItWorks />
+          <Features />
+        </div>
       </main>
       <Footer onSignUp={() => openAuth('signup')} />
     </div>;
