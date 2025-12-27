@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { signInSchema, signUpSchema, validateForm } from '@/lib/validation';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function Auth() {
   const { user, session, loading: authLoading, signIn, signUp, resetPassword } = useAuth();
@@ -17,11 +19,13 @@ export default function Auth() {
   
   const [isSignUp, setIsSignUp] = useState(location.state?.mode === 'signup' || false);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [isSetNewPassword, setIsSetNewPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
     accessCode: '',
@@ -31,6 +35,31 @@ export default function Auth() {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  // Check URL params for password reset mode
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const mode = searchParams.get('mode');
+    const hash = location.hash;
+    
+    // Check if this is a password reset callback (has mode=reset and recovery token in hash)
+    if (mode === 'reset' && hash) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      if (type === 'recovery' && accessToken) {
+        console.log('Password reset: Recovery token detected, showing set new password form');
+        setIsSetNewPassword(true);
+        setIsResetMode(false);
+        setIsSignUp(false);
+      }
+    } else if (mode === 'reset') {
+      // Just mode=reset without token - show reset request form
+      setIsResetMode(true);
+      setIsSignUp(false);
+    }
+  }, [location.search, location.hash]);
+
   // Debug logging for authentication state
   useEffect(() => {
     console.log('Auth component - Current state:', {
@@ -38,22 +67,63 @@ export default function Auth() {
       session: session?.access_token ? 'exists' : 'null',
       authLoading,
       currentPath: location.pathname,
+      isSetNewPassword,
       redirectTo: from
     });
-  }, [user, session, authLoading, location.pathname, from]);
+  }, [user, session, authLoading, location.pathname, from, isSetNewPassword]);
 
+  // Redirect authenticated users (but NOT when setting new password)
   useEffect(() => {
-    if (!authLoading && user && session) {
+    if (!authLoading && user && session && !isSetNewPassword) {
       console.log('Auth - Redirecting authenticated user to:', from);
       try {
         navigate(from, { replace: true });
       } catch (error) {
         console.error('Auth - Navigation error:', error);
-        // Fallback navigation
         navigate('/dashboard', { replace: true });
       }
     }
-  }, [user, session, authLoading, navigate, from]);
+  }, [user, session, authLoading, navigate, from, isSetNewPassword]);
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationErrors({});
+    
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setValidationErrors({ confirmPassword: 'Passwords do not match' });
+      return;
+    }
+    
+    // Validate password strength
+    if (formData.password.length < 8) {
+      setValidationErrors({ password: 'Password must be at least 8 characters' });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: formData.password
+      });
+      
+      if (error) {
+        console.error('Password update error:', error);
+        toast.error(error.message || 'Failed to update password');
+      } else {
+        toast.success('Password updated successfully!');
+        setIsSetNewPassword(false);
+        // Clear the URL params
+        navigate('/auth', { replace: true });
+      }
+    } catch (error) {
+      console.error('Password update error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +173,7 @@ export default function Auth() {
     setFormData({
       email: '',
       password: '',
+      confirmPassword: '',
       firstName: '',
       lastName: '',
       accessCode: '',
@@ -113,6 +184,7 @@ export default function Auth() {
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setIsResetMode(false);
+    setIsSetNewPassword(false);
     resetForm();
     setValidationErrors({});
   };
@@ -120,11 +192,13 @@ export default function Auth() {
   const enterResetMode = () => {
     setIsResetMode(true);
     setIsSignUp(false);
+    setIsSetNewPassword(false);
     setValidationErrors({});
   };
 
   const exitResetMode = () => {
     setIsResetMode(false);
+    setIsSetNewPassword(false);
     setValidationErrors({});
   };
 
@@ -137,6 +211,80 @@ export default function Auth() {
       </div>
     );
   };
+
+  // Render Set New Password form
+  if (isSetNewPassword) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-4">
+              <CheckCircle className="h-12 w-12 text-primary" />
+            </div>
+            <CardTitle className="text-2xl text-center">
+              Set New Password
+            </CardTitle>
+            <CardDescription className="text-center">
+              Enter your new password below
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSetNewPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter new password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className={validationErrors.password ? 'border-destructive' : ''}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </Button>
+                </div>
+                {renderFieldError('password')}
+                <p className="text-xs text-muted-foreground">
+                  Password must be 8+ characters with uppercase, lowercase, and number
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Confirm new password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className={validationErrors.confirmPassword ? 'border-destructive' : ''}
+                />
+                {renderFieldError('confirmPassword')}
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Updating...' : 'Update Password'}
+              </Button>
+            </form>
+
+            <div className="text-center">
+              <Button variant="link" onClick={exitResetMode} className="text-sm">
+                Back to Sign In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
