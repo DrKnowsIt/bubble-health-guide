@@ -1,10 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useSubscription } from './useSubscription';
 import { useAnalysisNotifications } from './useAnalysisNotifications';
-import { useConversationMemory } from './useConversationMemory';
-import { useStrategicReferencing } from './useStrategicReferencing';
 import { useAnalysisThrottling } from './useAnalysisThrottling';
 
 export interface UnifiedAnalysisOptions {
@@ -38,9 +35,6 @@ const DEEP_ANALYSIS_STAGES = [
 
 export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComplete }: UnifiedAnalysisOptions) => {
   const { user } = useAuth();
-  const { subscription_tier } = useSubscription();
-  const { memories, insights } = useConversationMemory(patientId || undefined);
-  const { getStrategicContext } = useStrategicReferencing(patientId);
   const { 
     canRunAnalysis, 
     queueAnalysis, 
@@ -142,48 +136,30 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       const analysisPromises: Promise<any>[] = [];
       
       if (analysisType === 'regular') {
-        // Regular analysis - basic health topics and solutions
+        // Regular/shallow analysis - runs automatically every 2 AI responses
+        // Analyzes current conversation and updates health topics + solutions
+        console.log('[UnifiedAnalysis] Running shallow analysis with diagnosis and solution extraction');
         analysisPromises.push(
-          supabase.functions.invoke('analyze-health-topics', {
-            body: {
-              mode: 'standard',
-              patient_id: patientId,
-              conversation_id: conversationId,
-              conversation_context: messages.map(m => m.content).join('\n'),
-              include_solutions: true,
-              subscription_tier: subscription_tier || 'basic',
-              analysis_type: 'basic'
-            }
-          }),
           performDiagnosisAnalysis(conversationId, patientId, messages),
           performSolutionAnalysis(conversationId, patientId, messages)
         );
       } else {
-        // Deep analysis - comprehensive analysis with memory and strategic context
-        const strategicContext = await getStrategicContext();
-        const memoryData = {
-          memories: memories || [],
-          insights: insights || []
-        };
-
-        // Enhanced analysis with comprehensive data
+        // Deep analysis - comprehensive analysis using ALL patient data
+        // Fetches: health records, conversation memories, previous diagnoses, 
+        // solutions, insights, easy chat sessions, comprehensive reports
+        console.log('[UnifiedAnalysis] Running DEEP analysis with comprehensive data fetching');
+        
+        // Call the comprehensive final medical analysis function
+        // This fetches ALL patient data and generates thorough analysis
         analysisPromises.push(
-          supabase.functions.invoke('analyze-health-topics', {
+          supabase.functions.invoke('generate-final-medical-analysis', {
             body: {
-              mode: 'enhanced',
               patient_id: patientId,
-              conversation_id: conversationId,
-              conversation_context: messages.map(m => m.content).join('\n'),
-              include_solutions: true,
-              enhanced_mode: true,
-              memory_data: memoryData,
-              strategic_context: strategicContext,
-              subscription_tier: subscription_tier || 'basic',
-              analysis_type: 'comprehensive'
+              user_id: user.id,
+              conversation_id: conversationId // Pass conversation_id for UI updates
             }
           }),
-          performDiagnosisAnalysis(conversationId, patientId, messages),
-          performSolutionAnalysis(conversationId, patientId, messages),
+          // Also run memory analysis for deep analysis
           performMemoryAnalysis(conversationId, patientId)
         );
       }
@@ -241,7 +217,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
         currentStage: ""
       }));
     }
-  }, [conversationId, patientId, user, subscription_tier, memories, insights, getStrategicContext, performDiagnosisAnalysis, performSolutionAnalysis, performMemoryAnalysis, onAnalysisComplete, canRunAnalysis, queueAnalysis, completeAnalysis, animateDeepAnalysisStages]);
+  }, [conversationId, patientId, user, performDiagnosisAnalysis, performSolutionAnalysis, performMemoryAnalysis, onAnalysisComplete, canRunAnalysis, queueAnalysis, completeAnalysis, animateDeepAnalysisStages]);
 
   // Check for scheduled analysis with throttling - only count AI responses
   const checkScheduledAnalysis = useCallback(async (messages: any[]) => {
