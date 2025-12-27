@@ -13,6 +13,11 @@ export const useAuthRedirect = () => {
     // Don't redirect while loading
     if (loading) return;
 
+    // Check if user is in password reset flow - don't redirect in this case
+    const searchParams = new URLSearchParams(location.search);
+    const mode = searchParams.get('mode');
+    const isPasswordResetFlow = mode === 'reset' || location.hash.includes('type=recovery');
+    
     // Simple, reliable redirects for authenticated users
     if (user && location.pathname === '/' && lastRedirectRef.current !== 'dashboard') {
       console.log('Auth redirect: User authenticated, redirecting from home to dashboard');
@@ -20,8 +25,8 @@ export const useAuthRedirect = () => {
       debouncedNavigate('/dashboard', { replace: true });
     }
     
-    // Always redirect from auth page if authenticated
-    if (user && location.pathname === '/auth' && lastRedirectRef.current !== 'dashboard') {
+    // Redirect from auth page if authenticated, BUT NOT during password reset flow
+    if (user && location.pathname === '/auth' && lastRedirectRef.current !== 'dashboard' && !isPasswordResetFlow) {
       console.log('Auth redirect: User authenticated, redirecting from auth to dashboard');
       lastRedirectRef.current = 'dashboard';
       debouncedNavigate('/dashboard', { replace: true });
@@ -31,5 +36,5 @@ export const useAuthRedirect = () => {
     if (!user) {
       lastRedirectRef.current = '';
     }
-  }, [user, loading, debouncedNavigate, location.pathname]);
+  }, [user, loading, debouncedNavigate, location.pathname, location.search, location.hash]);
 };
