@@ -247,17 +247,17 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     });
     
     if (shouldRunDeepAnalysis) {
-      console.log('🧠 Queueing deep analysis for conversation:', conversationId);
-      // Queue deep analysis (higher priority)
-      queueAnalysis(conversationId, 'deep', false);
+      console.log('🧠 Running deep analysis for conversation:', conversationId);
+      // Run deep analysis directly instead of just queueing
+      performAnalysis(messages, 'deep', false);
     } else if (shouldRunRegularAnalysis) {
-      console.log('🔍 Queueing regular analysis for conversation:', conversationId);
-      // Queue regular analysis
-      queueAnalysis(conversationId, 'regular', false);
+      console.log('🔍 Running regular analysis for conversation:', conversationId);
+      // Run regular analysis directly instead of just queueing
+      performAnalysis(messages, 'regular', false);
     } else {
       console.log('🚫 No analysis needed at this time', { aiMessageCount, totalMessages: messages.length });
     }
-  }, [conversationId, patientId, cancelAnalysesForConversation, queueAnalysis]);
+  }, [conversationId, patientId, cancelAnalysesForConversation, performAnalysis]);
 
   // Trigger manual analysis with throttling bypass
   const triggerManualAnalysis = useCallback(async (messages: any[]) => {
