@@ -1026,7 +1026,7 @@ options: [
             const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-health-topics', {
               body: {
                 conversation_context: conversationSummary,
-                patient_id: patientId || '',
+                patient_id: patientId || 'ai_free_mode_user',
                 anatomy_context: selectedAnatomy && selectedAnatomy.length > 0 
                   ? `Body areas of interest: ${selectedAnatomy.join(', ')}`
                   : 'General health inquiry',
