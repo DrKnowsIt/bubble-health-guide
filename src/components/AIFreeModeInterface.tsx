@@ -225,9 +225,15 @@ export const AIFreeModeInterface = ({
   if (loading && !currentQuestion) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <RefreshCw className="h-4 w-4 animate-spin" />
-          <span>Starting AI Free Mode...</span>
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="relative">
+            <Brain className="h-10 w-10 text-primary animate-pulse" />
+            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
+          </div>
+          <div className="text-center space-y-1">
+            <span className="font-medium">Starting AI Free Mode...</span>
+            <p className="text-xs text-muted-foreground/70">Preparing your personalized health assessment</p>
+          </div>
         </div>
       </div>
     );
@@ -475,14 +481,16 @@ export const AIFreeModeInterface = ({
 
                   {/* Action Buttons */}
                   <div className="pt-4 border-t border-border space-y-2">
-                    {onFinish && conversationPath.length > 2 && (
+                    {/* Always show Finish button after 3+ responses */}
+                    {conversationPath.length >= 3 && (
                       <Button 
-                        onClick={onFinish}
+                        onClick={handleFinishChat}
                         className="w-full"
                         disabled={loading}
+                        variant="default"
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        Finish & Export Results
+                        Finish & View Results
                       </Button>
                     )}
                     
