@@ -86,16 +86,23 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
         `Q: ${item.question?.question_text || 'Question'}\nA: ${item.response}`
       ).join('\n\n');
 
+      // Skip if conversation context is too short or empty
+      if (!conversationContext || conversationContext.trim().length < 10) {
+        console.log('Skipping topic generation - conversation context too short');
+        setLoading(false);
+        return;
+      }
+
       console.log('Conversation context:', conversationContext.substring(0, 200) + '...');
 
       // Get current user as fallback for patient_id - never pass empty string
-      const { data: { user } } = await supabase.auth.getUser();
-      const effectivePatientId = patientId || user?.id || 'ai_free_mode_user';
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const effectivePatientId = patientId || authUser?.id || 'ai_free_mode_user';
       
       console.log('Calling analyze-health-topics with:', {
         contextLength: conversationContext.length,
         patientId: effectivePatientId,
-        hasUser: !!user
+        hasUser: !!authUser
       });
 
       const { data, error } = await supabase.functions.invoke('analyze-health-topics', {

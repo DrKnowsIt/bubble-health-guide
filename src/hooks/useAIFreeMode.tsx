@@ -1103,21 +1103,26 @@ options: [
           try {
             const conversationSummary = newPath.map(p => `${p.question?.question_text || 'Question'}: ${p.response}`).join('\n');
             
-            const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-health-topics', {
-              body: {
-                conversation_context: conversationSummary,
-                patient_id: patientId || 'ai_free_mode_user',
-                anatomy_context: selectedAnatomy && selectedAnatomy.length > 0 
-                  ? `Body areas of interest: ${selectedAnatomy.join(', ')}`
-                  : 'General health inquiry',
-                mode: 'free'
-              }
-            });
+            // Skip if conversation summary is empty or too short
+            if (!conversationSummary || conversationSummary.trim().length < 10) {
+              console.log('Skipping health topics - conversation summary too short');
+            } else {
+              const { data: topicsData, error: topicsError } = await supabase.functions.invoke('analyze-health-topics', {
+                body: {
+                  conversation_context: conversationSummary,
+                  patient_id: patientId || 'ai_free_mode_user',
+                  anatomy_context: selectedAnatomy && selectedAnatomy.length > 0 
+                    ? `Body areas of interest: ${selectedAnatomy.join(', ')}`
+                    : 'General health inquiry',
+                  mode: 'free'
+                }
+              });
 
-            if (!topicsError && topicsData && (topicsData.topics || topicsData.diagnoses)) {
-              const topics = topicsData.topics || topicsData.diagnoses || [];
-              console.log('Real-time health topics generated:', topics);
-              setHealthTopics(topics);
+              if (!topicsError && topicsData && (topicsData.topics || topicsData.diagnoses)) {
+                const topics = topicsData.topics || topicsData.diagnoses || [];
+                console.log('Real-time health topics generated:', topics);
+                setHealthTopics(topics);
+              }
             }
           } catch (error) {
             console.error('Error generating real-time health topics:', error);
