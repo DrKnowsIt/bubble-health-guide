@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Layers } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ThumbsUp, ThumbsDown, AlertTriangle, ChevronDown, ChevronUp, Heart, Target, Layers, Loader2, Sparkles } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationSolutions } from '@/hooks/useConversationSolutions';
@@ -36,6 +37,8 @@ interface EnhancedHealthInsightsPanelProps {
   patientId: string;
   conversationId?: string;
   showDemoTopics?: boolean;
+  isAnalyzing?: boolean;
+  analysisStage?: string;
 }
 
 const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = ({
@@ -43,7 +46,9 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
   patientName, 
   patientId,
   conversationId,
-  showDemoTopics = false
+  showDemoTopics = false,
+  isAnalyzing = false,
+  analysisStage = ''
 }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
@@ -301,15 +306,30 @@ const EnhancedHealthInsightsPanel: React.FC<EnhancedHealthInsightsPanelProps> = 
           <CardHeader className="cursor-pointer hover:bg-accent transition-colors">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" />
+                {isAnalyzing ? (
+                  <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                ) : (
+                  <Heart className="h-5 w-5 text-primary" />
+                )}
                 Health Insights for {patientName}
               </CardTitle>
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+              <div className="flex items-center gap-2">
+                {isAnalyzing && (
+                  <Badge variant="secondary" className="text-xs animate-pulse flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    {analysisStage || 'Analyzing...'}
+                  </Badge>
+                )}
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </div>
             </div>
+            {isAnalyzing && (
+              <Progress value={undefined} className="h-1 mt-2 animate-pulse" />
+            )}
           </CardHeader>
         </CollapsibleTrigger>
         

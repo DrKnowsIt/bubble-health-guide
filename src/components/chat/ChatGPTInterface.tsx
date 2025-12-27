@@ -1105,6 +1105,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
             patientId={selectedUser?.id || ''}
             conversationId={currentConversation}
             showDemoTopics={!user}
+            isAnalyzing={analysisState.isAnalyzing}
+            analysisStage={analysisState.currentStage}
           />
         </div>
       </div>

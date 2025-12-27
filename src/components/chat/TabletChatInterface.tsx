@@ -8,6 +8,7 @@ import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUnifiedAnalysis } from '@/hooks/useUnifiedAnalysis';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from '../UserDropdown';
@@ -62,6 +63,14 @@ export const TabletChatInterface = ({
   // Stale reply guard
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
+
+  // Unified analysis system
+  const { 
+    analysisState
+  } = useUnifiedAnalysis({
+    conversationId: currentConversation,
+    patientId: selectedUser?.id || null
+  });
 
   const {
     isRecording,
@@ -623,6 +632,8 @@ export const TabletChatInterface = ({
                 patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
                 patientId={selectedUser?.id || ''}
                 conversationId={currentConversation}
+                isAnalyzing={analysisState.isAnalyzing}
+                analysisStage={analysisState.currentStage}
               />
             </div>
           </SheetContent>
