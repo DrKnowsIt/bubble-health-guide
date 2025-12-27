@@ -12,7 +12,19 @@ interface HealthDesktopTabProps {
 }
 
 export const HealthDesktopTab: React.FC<HealthDesktopTabProps> = ({ selectedUser }) => {
-  const { conversations } = useConversationsQuery(selectedUser?.id);
+  // Pass the full selectedUser object, not just the id
+  const { conversations } = useConversationsQuery(selectedUser);
+  
+  // Early return if no user selected
+  if (!selectedUser) {
+    return (
+      <div className="h-full overflow-y-auto p-6">
+        <div className="text-center text-muted-foreground">
+          Please select a user to view health information.
+        </div>
+      </div>
+    );
+  }
   
   // Get the latest conversation context from messages
   const [conversationContext, setConversationContext] = useState('');

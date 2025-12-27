@@ -80,8 +80,7 @@ export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileE
   };
 
   return (
-    <SubscriptionGate requiredTier="basic" feature="Overview Dashboard" description="View your health analytics, quick actions, and settings with a Basic or Pro subscription.">
-      <div className="h-full overflow-y-auto p-4 space-y-6">
+    <div className="h-full overflow-y-auto p-4 space-y-6">
         {/* Subscription Status */}
         <Card className={cn(
           "border-2 transition-all",
@@ -313,6 +312,5 @@ export const MobileEnhancedOverviewTab = ({ onTabChange, selectedUser }: MobileE
         {/* Feature Discovery */}
         <FeatureDiscovery />
       </div>
-    </SubscriptionGate>
   );
 };

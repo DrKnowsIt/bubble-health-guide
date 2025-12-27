@@ -1013,20 +1013,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         <div className="border-t border-border bg-background">
           <div className="max-w-4xl mx-auto p-4">
             
-            {/* Medical Image Prompt */}
-            {currentPrompt && currentPrompt.isVisible && (
-              <div className="mb-4">
-                <MedicalImagePrompt
-                  searchTerm={currentPrompt.searchTerm}
-                  images={currentPrompt.images}
-                  aiSuggestion={currentPrompt.aiSuggestion}
-                  onImageFeedback={(imageId, matches) => {
-                    handleImageFeedback(imageId, matches, currentPrompt.searchTerm, currentConversation, selectedUser?.id);
-                  }}
-                  onClose={closeImagePrompt}
-                />
-              </div>
-            )}
+            {/* Medical Image Prompt - using modal only to avoid double display */}
             
             {pendingAttachment && (
               <div className="mb-3 flex items-center gap-3 border border-border rounded-xl p-2 bg-muted/30">
@@ -1109,10 +1096,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           {/* Enhanced Health Insights (Diagnoses) */}
           <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser && healthTopics ? healthTopics.map(d => ({
-              diagnosis: d.health_topic,
-              confidence: d.confidence,
+              diagnosis: d.diagnosis || d.health_topic || d.topic || 'Unknown topic',
+              confidence: d.confidence ?? d.relevance_score ?? 0,
               reasoning: d.reasoning || '',
-              updated_at: d.updated_at || new Date().toISOString()
+              updated_at: d.updated_at || d.created_at || new Date().toISOString()
             })) : []}
             patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
             patientId={selectedUser?.id || ''}
