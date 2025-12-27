@@ -8,6 +8,7 @@ import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUnifiedAnalysis } from '@/hooks/useUnifiedAnalysis';
 import EnhancedHealthInsightsPanel from '../health/EnhancedHealthInsightsPanel';
 import { ConversationHistory } from './ConversationHistory';
 import { UserDropdown } from '../UserDropdown';
@@ -56,11 +57,20 @@ export const TabletChatInterface = ({
   const [showHistory, setShowHistory] = useState(false);
   const [showAssessment, setShowAssessment] = useState(false);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [diagnoses, setDiagnoses] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Stale reply guard
   const requestSeqRef = useRef(0);
   const convAtRef = useRef<string | null>(currentConversation);
+
+  // Unified analysis system
+  const { 
+    analysisState
+  } = useUnifiedAnalysis({
+    conversationId: currentConversation,
+    patientId: selectedUser?.id || null
+  });
 
   const {
     isRecording,
@@ -107,6 +117,62 @@ export const TabletChatInterface = ({
     requestSeqRef.current += 1;
     setIsTyping(false);
   }, [currentConversation]);
+
+  // Load diagnoses when conversation or patient changes
+  useEffect(() => {
+    if (currentConversation && selectedUser?.id) {
+      loadDiagnosesForConversation();
+    } else {
+      setDiagnoses([]);
+    }
+  }, [currentConversation, selectedUser?.id]);
+
+  // Real-time subscription for diagnosis updates
+  useEffect(() => {
+    if (!currentConversation || !selectedUser?.id) return;
+
+    const diagnosisChannel = supabase
+      .channel(`tablet-diagnosis-realtime-${currentConversation}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_diagnoses',
+          filter: `conversation_id=eq.${currentConversation}`
+        },
+        () => {
+          loadDiagnosesForConversation();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(diagnosisChannel);
+    };
+  }, [currentConversation, selectedUser?.id]);
+
+  const loadDiagnosesForConversation = async () => {
+    if (!currentConversation || !selectedUser?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('conversation_diagnoses')
+        .select('*')
+        .eq('conversation_id', currentConversation)
+        .eq('patient_id', selectedUser.id)
+        .order('confidence', { ascending: false });
+
+      if (error) {
+        console.error('Error loading diagnoses:', error);
+        return;
+      }
+
+      setDiagnoses(data || []);
+    } catch (error) {
+      console.error('Error loading diagnoses:', error);
+    }
+  };
 
   const handleSendMessage = async () => {
     if ((!inputValue.trim() && !pendingImageUrl) || !selectedUser) return;
@@ -555,12 +621,19 @@ export const TabletChatInterface = ({
                 Health Assessment
               </SheetTitle>
             </SheetHeader>
-            <div className="h-full overflow-hidden pt-6">
+            <div className="h-full overflow-auto pt-6">
               <EnhancedHealthInsightsPanel 
-                diagnoses={[]}
+                diagnoses={diagnoses.map(d => ({
+                  diagnosis: d.diagnosis,
+                  confidence: d.confidence || 0,
+                  reasoning: d.reasoning || '',
+                  updated_at: d.updated_at || new Date().toISOString()
+                }))}
                 patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
                 patientId={selectedUser?.id || ''}
                 conversationId={currentConversation}
+                isAnalyzing={analysisState.isAnalyzing}
+                analysisStage={analysisState.currentStage}
               />
             </div>
           </SheetContent>

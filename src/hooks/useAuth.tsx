@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback,
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { logger } from '@/utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = session.expires_at;
       const refreshToken = session.refresh_token;
       
-      console.log('🔍 Session Monitor:', {
+      logger.debug('Session Monitor', {
         userId: session.user.id,
         expiresAt: new Date(expiresAt * 1000).toISOString(),
         timeUntilExpiry: Math.round((expiresAt - now) / 60) + ' minutes',
@@ -44,17 +45,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Check if session expires in the next 5 minutes
       if (expiresAt - now < 300) {
-        console.warn('⚠️ Session expiring soon, attempting refresh...');
+        logger.warn('Session expiring soon, attempting refresh...');
         supabase.auth.refreshSession().then(({ data, error }) => {
           if (error) {
-            console.error('❌ Session refresh failed:', error);
+            logger.error('Session refresh failed', error);
             toast({
               variant: "destructive",
               title: "Session Expired", 
               description: "Please sign in again to continue.",
             });
           } else {
-            console.log('✅ Session refreshed successfully');
+            logger.debug('Session refreshed successfully');
           }
         });
       }
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (expiresAt - now < 600) {
           supabase.auth.refreshSession().then(({ error }) => {
             if (!error) {
-              console.log('✅ Session extended due to user activity');
+              logger.debug('Session extended due to user activity');
             }
           });
         }
@@ -99,8 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Enhanced auth state logging
     const logAuthEvent = (event: string, session: Session | null) => {
-      const timestamp = new Date().toISOString();
-      console.log(`🔐 [${timestamp}] Auth Event: ${event}`, {
+      logger.info(`Auth Event: ${event}`, {
         userId: session?.user?.id || 'null',
         email: session?.user?.email || 'null',
         hasSession: !!session,
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Check if this was an unexpected logout (not intentional)
           const currentSession = JSON.parse(localStorage.getItem('sb-lwqfurkfjkilsnjtmemj-auth-token') || 'null');
           if (!isIntentionalSignOutRef.current && !currentSession) {
-            console.warn('⚠️ Unexpected logout detected - session lost from storage');
+            logger.warn('Unexpected logout detected - session lost from storage');
             toast({
               variant: "destructive",
               title: "Session Lost",
@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               created_at: Date.now()
             }));
           } catch (e) {
-            console.error('❌ Failed to backup session:', e);
+            logger.error('Failed to backup session', e);
           }
         } else {
           localStorage.removeItem('sb-session-backup');
@@ -162,27 +162,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session with enhanced error handling
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('📋 Initial session check:', { 
+      logger.info('Initial session check', { 
         userId: session?.user?.id || 'null',
         hasSession: !!session,
         error: error?.message || 'none'
       });
       
       if (error) {
-        console.error('❌ Session retrieval error:', error);
+        logger.error('Session retrieval error', error);
         // Try to recover from backup if available
         try {
           const backup = localStorage.getItem('sb-session-backup');
           if (backup) {
-            const backupData = JSON.parse(backup);
-            console.log('🔄 Attempting session recovery from backup...');
+            logger.info('Attempting session recovery from backup...');
             toast({
               title: "Session Recovery",
               description: "Attempting to restore your session...",
             });
           }
         } catch (e) {
-          console.error('❌ Session recovery failed:', e);
+          logger.error('Session recovery failed', e);
         }
       }
       
@@ -190,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     }).catch((error) => {
-      console.error('❌ Critical session error:', error);
+      logger.error('Critical session error', error);
       setLoading(false);
       toast({
         variant: "destructive",
@@ -212,21 +211,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (error) {
-        console.error('Error checking legal agreement status:', error);
+        logger.error('Error checking legal agreement status', error);
         return;
       }
 
       const hasAccepted = data?.medical_disclaimer_accepted || false;
       
       if (!hasAccepted) {
-        console.log('User has not accepted legal agreement, showing modal');
+        logger.debug('User has not accepted legal agreement, showing modal');
         setShowLegalModal(true);
       } else {
-        console.log('User has accepted legal agreement');
+        logger.debug('User has accepted legal agreement');
         setShowLegalModal(false);
       }
     } catch (error) {
-      console.error('Error checking legal agreement status:', error);
+      logger.error('Error checking legal agreement status', error);
     }
   }, []);
 

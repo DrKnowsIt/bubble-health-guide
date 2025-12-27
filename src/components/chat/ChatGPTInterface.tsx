@@ -14,6 +14,7 @@ import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
@@ -105,7 +106,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   // Token timeout handling
   const { isInTimeout, timeUntilReset, handleTokenLimitError, clearTimeout } = useSimpleTokenTimeout();
   
-  console.log('🔍 [ChatGPTInterface] Timeout state:', { isInTimeout, timeUntilReset });
+  logger.debug('[ChatGPTInterface] Timeout state', { isInTimeout, timeUntilReset });
 
   // Medical image prompts
   const { 
@@ -155,10 +156,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
   useEffect(() => {
     if (!currentConversation || !selectedUser?.id) return;
 
-    console.log('[ChatInterface] Setting up real-time subscription for diagnoses:', currentConversation);
+    logger.debug('[ChatInterface] Setting up real-time subscription for diagnoses', currentConversation);
 
     const diagnosisChannel = supabase
-      .channel('diagnosis-realtime')
+      .channel(`diagnosis-realtime-${currentConversation}`)
       .on(
         'postgres_changes',
         {
@@ -168,17 +169,15 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           filter: `conversation_id=eq.${currentConversation}`
         },
         (payload) => {
-          console.log('[ChatInterface] Real-time diagnosis update:', payload);
+          logger.debug('[ChatInterface] Real-time diagnosis update', payload);
           // Reload health topics when there's a database change
-          setTimeout(() => {
-            loadHealthTopicsForConversation();
-          }, 1000);
+          loadHealthTopicsForConversation();
         }
       )
       .subscribe();
 
     return () => {
-      console.log('[ChatInterface] Cleaning up diagnosis real-time subscription');
+      logger.debug('[ChatInterface] Cleaning up diagnosis real-time subscription');
       supabase.removeChannel(diagnosisChannel);
     };
   }, [currentConversation, selectedUser?.id]);
@@ -187,15 +186,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (!currentConversation || !selectedUser?.id) return;
 
     try {
+      // Fetch from conversation_diagnoses table (where analyze-conversation-diagnosis saves data)
       const { data, error } = await supabase
-        .from('health_topics_for_discussion')
+        .from('conversation_diagnoses')
         .select('*')
         .eq('conversation_id', currentConversation)
         .eq('patient_id', selectedUser.id)
-        .order('updated_at', { ascending: false });
+        .order('confidence', { ascending: false });
 
       if (error) {
-        console.error('Error loading health topics:', error);
+        console.error('Error loading diagnoses:', error);
         return;
       }
 
@@ -205,11 +205,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         conversation_id: item.conversation_id,
         patient_id: item.patient_id,
         user_id: item.user_id,
-        topic: item.health_topic,
-        health_topic: item.health_topic,
-        diagnosis: item.health_topic, // For backwards compatibility
-        relevance_score: item.relevance_score || 0,
-        confidence: item.relevance_score || 0, // For backwards compatibility
+        topic: item.diagnosis,
+        health_topic: item.diagnosis,
+        diagnosis: item.diagnosis,
+        relevance_score: item.confidence || 0,
+        confidence: item.confidence || 0,
         reasoning: item.reasoning || '',
         category: item.category || 'general',
         created_at: item.created_at,
@@ -218,7 +218,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       setHealthTopics(mappedTopics);
     } catch (error) {
-      console.error('Error loading health topics:', error);
+      console.error('Error loading diagnoses:', error);
     }
   };
 
@@ -427,10 +427,10 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     }
     
     // Unified timeout and rate limit check
-    console.log('🔍 [ChatGPTInterface] Pre-send checks:', { isInTimeout, timeUntilReset });
+    logger.debug('[ChatGPTInterface] Pre-send checks', { isInTimeout, timeUntilReset });
     
     if (isInTimeout) {
-      console.log('❌ [ChatGPTInterface] Message blocked due to token timeout');
+      logger.debug('[ChatGPTInterface] Message blocked due to token timeout');
       toast({ 
         title: "Chat temporarily unavailable", 
         description: "Token limit reached. Please wait for tokens to recharge.", 
@@ -439,8 +439,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       return;
     }
     
-    console.log('✅ [ChatGPTInterface] All pre-send checks passed, proceeding with message');
-    console.log('🔍 [ChatGPTInterface] Current conversation state:', { currentConversation, selectedUserId: selectedUser.id });
+    logger.debug('[ChatGPTInterface] All pre-send checks passed, proceeding with message');
+    logger.debug('[ChatGPTInterface] Current conversation state', { currentConversation, selectedUserId: selectedUser.id });
   
     // Handle image attachment similar to mobile/tablet
     let imageUrl = explicitImageUrl;
@@ -460,7 +460,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         }
         imageUrl = pendingAttachment.signedUrl;
       } catch (err) {
-        console.error('Error saving health record:', err);
+        logger.error('Error saving health record', err);
       }
     }
 
@@ -479,7 +479,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
     // Ensure conversation exists with debouncing protection
     let conversationId = currentConversation;
-    console.log('🔍 [ChatGPTInterface] Before conversation creation:', { 
+    logger.debug('[ChatGPTInterface] Before conversation creation', { 
       conversationId, 
       currentConversation,
       isCreating: isCreatingConversationRef.current,
@@ -489,11 +489,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (!conversationId) {
       // Check if conversation creation is already in progress
       if (isCreatingConversationRef.current && pendingConversationCreationRef.current) {
-        console.log('⏳ [ChatGPTInterface] Conversation creation already in progress, waiting...');
+        logger.debug('[ChatGPTInterface] Conversation creation already in progress, waiting...');
         conversationId = await pendingConversationCreationRef.current;
-        console.log('✅ [ChatGPTInterface] Used existing conversation creation result:', conversationId);
+        logger.debug('[ChatGPTInterface] Used existing conversation creation result', conversationId);
       } else {
-        console.log('🚀 [ChatGPTInterface] Starting new conversation creation');
+        logger.debug('[ChatGPTInterface] Starting new conversation creation');
         isCreatingConversationRef.current = true;
         
         const title = textToSend.length > 50 ? textToSend.slice(0, 50) + '...' : textToSend;
@@ -502,7 +502,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         
         try {
           conversationId = await creationPromise;
-          console.log('🔍 [ChatGPTInterface] Created new conversation:', conversationId);
+          logger.debug('[ChatGPTInterface] Created new conversation', conversationId);
         } finally {
           isCreatingConversationRef.current = false;
           pendingConversationCreationRef.current = null;
@@ -518,7 +518,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       convAtRef.current = conversationId;
     }
     
-    console.log('🔍 [ChatGPTInterface] Final conversation ID for request:', conversationId);
+    logger.debug('[ChatGPTInterface] Final conversation ID for request', conversationId);
 
     // Save user message
     if (user) {
@@ -567,7 +567,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       // Guard against stale responses - be more lenient with new conversations
       const currentConvoRef = convAtRef.current;
-      console.log('🔍 [ChatGPTInterface] Stale guard check:', { 
+      logger.debug('[ChatGPTInterface] Stale guard check', { 
         reqId, 
         currentReqId: requestSeqRef.current, 
         convoAtSend, 
@@ -575,17 +575,17 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       });
       
       if (reqId !== requestSeqRef.current) {
-        console.log('❌ [ChatGPTInterface] Request stale due to sequence mismatch');
+        logger.debug('[ChatGPTInterface] Request stale due to sequence mismatch');
         return;
       }
       
       // Allow response if conversation matches OR if we just created a new conversation
       if (currentConvoRef !== convoAtSend && currentConvoRef !== null && convoAtSend !== null) {
-        console.log('❌ [ChatGPTInterface] Request stale due to conversation mismatch');
+        logger.debug('[ChatGPTInterface] Request stale due to conversation mismatch');
         return;
       }
       
-      console.log('✅ [ChatGPTInterface] Response allowed, adding AI message');
+      logger.debug('[ChatGPTInterface] Response allowed, adding AI message');
 
       const aiMessage: Message = {
         id: `msg-${Date.now()}-${Math.random()}`,
@@ -594,12 +594,12 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         timestamp: new Date()
       };
 
-      console.log('✅ [ChatGPTInterface] Creating AI message:', aiMessage);
-      console.log('✅ [ChatGPTInterface] Current messages before adding AI response:', messages.length);
+      logger.debug('[ChatGPTInterface] Creating AI message', aiMessage);
+      logger.debug('[ChatGPTInterface] Current messages before adding AI response', messages.length);
 
       setMessages(prev => {
         const newMessages = [...prev, aiMessage];
-        console.log('✅ [ChatGPTInterface] Updated messages array:', newMessages.length);
+        logger.debug('[ChatGPTInterface] Updated messages array', newMessages.length);
         return newMessages;
       });
 
@@ -612,7 +612,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
       // Token tracking is now fully server-side
 
       // Check for AI image suggestion or trigger based on user message
-      console.log('🖼️ ChatGPTInterface: About to trigger image prompt with message:', textToSend);
+      logger.debug('[ChatGPTInterface] About to trigger image prompt with message', textToSend);
       
       // Get recent conversation context (last 4 messages)
       const recentContext = messages.slice(-4).map(msg => 
@@ -1013,20 +1013,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         <div className="border-t border-border bg-background">
           <div className="max-w-4xl mx-auto p-4">
             
-            {/* Medical Image Prompt */}
-            {currentPrompt && currentPrompt.isVisible && (
-              <div className="mb-4">
-                <MedicalImagePrompt
-                  searchTerm={currentPrompt.searchTerm}
-                  images={currentPrompt.images}
-                  aiSuggestion={currentPrompt.aiSuggestion}
-                  onImageFeedback={(imageId, matches) => {
-                    handleImageFeedback(imageId, matches, currentPrompt.searchTerm, currentConversation, selectedUser?.id);
-                  }}
-                  onClose={closeImagePrompt}
-                />
-              </div>
-            )}
+            {/* Medical Image Prompt - using modal only to avoid double display */}
             
             {pendingAttachment && (
               <div className="mb-3 flex items-center gap-3 border border-border rounded-xl p-2 bg-muted/30">
@@ -1109,15 +1096,17 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
           {/* Enhanced Health Insights (Diagnoses) */}
           <EnhancedHealthInsightsPanel 
             diagnoses={selectedUser && healthTopics ? healthTopics.map(d => ({
-              diagnosis: d.health_topic,
-              confidence: d.confidence,
+              diagnosis: d.diagnosis || d.health_topic || d.topic || 'Unknown topic',
+              confidence: d.confidence ?? d.relevance_score ?? 0,
               reasoning: d.reasoning || '',
-              updated_at: d.updated_at || new Date().toISOString()
+              updated_at: d.updated_at || d.created_at || new Date().toISOString()
             })) : []}
             patientName={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'You'}
             patientId={selectedUser?.id || ''}
             conversationId={currentConversation}
             showDemoTopics={!user}
+            isAnalyzing={analysisState.isAnalyzing}
+            analysisStage={analysisState.currentStage}
           />
         </div>
       </div>

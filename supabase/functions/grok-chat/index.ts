@@ -25,10 +25,10 @@ serve(async (req) => {
       );
     }
 
-    const grokApiKey = Deno.env.get('GROK_API_KEY');
-    if (!grokApiKey) {
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
       return new Response(
-        JSON.stringify({ error: 'Grok API key not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -631,7 +631,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       })()
     ];
 
-    console.log('Sending request to Grok API with', messages.length, 'messages');
+    console.log('Sending request to OpenAI with', messages.length, 'messages');
 
     // Define tool for Amazon product search
     const tools = [{
@@ -656,14 +656,14 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       }
     }];
 
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${grokApiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-4',
+        model: 'gpt-4o-mini',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -675,19 +675,19 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Grok API error:', response.status, errorText);
+      console.error('OpenAI error:', response.status, errorText);
       
       // Enhanced error handling with specific error messages
       let userFriendlyMessage = 'I encountered an error while processing your request. You can try asking your question again.';
       
-      if (response.status === 401) {
+      if (response.status === 401 || response.status === 403) {
         userFriendlyMessage = 'Authentication error with AI service. Please contact support.';
-        console.error('Grok API authentication failed - check API key');
+        console.error('OpenAI authentication failed - check API key');
       } else if (response.status === 429) {
         userFriendlyMessage = 'AI service is busy. Please wait a moment and try again.';
       } else if (response.status === 400) {
         userFriendlyMessage = 'I had trouble understanding your request. Could you rephrase your question?';
-        console.error('Grok API bad request:', errorText);
+        console.error('OpenAI bad request:', errorText);
       } else if (response.status >= 500) {
         userFriendlyMessage = 'AI service is temporarily unavailable. Please try again in a few minutes.';
       }
@@ -702,7 +702,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
     }
 
     const data = await response.json();
-    console.log('Grok API response received');
+    console.log('OpenAI response received');
 
     // Process the AI response and handle tool calls
     const responseMessage = data.choices[0]?.message;
@@ -755,7 +755,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       .replace(/\[IMAGE_SUGGESTION:.*?\]/g, '')
       .trim();
 
-    console.log('Grok response generated successfully');
+    console.log('AI response generated successfully');
     
     // Token tracking disabled for analysis functions - calculate tokens for analytics only
     const inputTokens = data.usage?.prompt_tokens || message.length / 4; // Estimate if not provided
@@ -775,7 +775,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
           user_id: user_id,
           patient_id: patient_id || null,
           function_name: 'grok-chat',
-          model_used: 'grok-beta',
+          model_used: 'gpt-4o-mini',
           input_tokens: inputTokens,
           output_tokens: outputTokens,
           total_tokens: inputTokens + outputTokens,
