@@ -75,7 +75,7 @@ serve(async (req) => {
     if (subscriptions.data.length === 0) {
       // Customer has no subscriptions, redirect to pricing page
       logStep("Customer has no subscriptions, redirecting to pricing");
-      const origin = req.headers.get("origin") || "http://localhost:3000";
+      const origin = req.headers.get("origin") || "https://drknowsit.com";
       return new Response(JSON.stringify({ 
         url: `${origin}/pricing`,
         message: "Please subscribe to a plan first to manage your subscription"
@@ -85,7 +85,7 @@ serve(async (req) => {
       });
     }
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin = req.headers.get("origin") || "https://drknowsit.com";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/dashboard`,

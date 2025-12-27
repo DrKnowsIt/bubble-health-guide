@@ -266,7 +266,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, accessCode?: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      // Use production URL for redirects to ensure emails work correctly
+      const productionUrl = 'https://drknowsit.com';
+      const isLocalhost = window.location.origin.includes('localhost');
+      const baseUrl = isLocalhost ? productionUrl : window.location.origin;
+      const redirectUrl = `${baseUrl}/`;
       
       // Validate access code against server-side secret
       let isValidTesterCode = false;
@@ -326,7 +330,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const resetPassword = async (email: string) => {
     try {
       setAuthLoading(true);
-      const redirectUrl = `${window.location.origin}/auth?mode=reset`;
+      
+      // Use production URL for password reset to ensure emails work correctly
+      const productionUrl = 'https://drknowsit.com';
+      const isLocalhost = window.location.origin.includes('localhost');
+      const baseUrl = isLocalhost ? productionUrl : window.location.origin;
+      const redirectUrl = `${baseUrl}/auth?mode=reset`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
