@@ -54,7 +54,7 @@ serve(async (req) => {
       logStep("No customer found, will create during checkout");
     }
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin = req.headers.get("origin") || "https://drknowsit.com";
     
     // Get the request body to determine which plan to create
     const body = await req.json();
