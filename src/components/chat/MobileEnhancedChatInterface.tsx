@@ -524,6 +524,8 @@ export const MobileEnhancedChatInterface = ({
                     patientName={selectedUser?.first_name || 'You'}
                     patientId={selectedUser?.id || ''}
                     conversationId={currentConversation}
+                    isAnalyzing={analysisState.isAnalyzing}
+                    analysisStage={analysisState.currentStage}
                   />
                 </div>
               </SheetContent>
