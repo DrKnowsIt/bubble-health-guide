@@ -159,7 +159,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     logger.debug('[ChatInterface] Setting up real-time subscription for diagnoses', currentConversation);
 
     const diagnosisChannel = supabase
-      .channel('diagnosis-realtime')
+      .channel(`diagnosis-realtime-${currentConversation}`)
       .on(
         'postgres_changes',
         {
@@ -171,9 +171,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         (payload) => {
           logger.debug('[ChatInterface] Real-time diagnosis update', payload);
           // Reload health topics when there's a database change
-          setTimeout(() => {
-            loadHealthTopicsForConversation();
-          }, 1000);
+          loadHealthTopicsForConversation();
         }
       )
       .subscribe();
@@ -188,15 +186,16 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     if (!currentConversation || !selectedUser?.id) return;
 
     try {
+      // Fetch from conversation_diagnoses table (where analyze-conversation-diagnosis saves data)
       const { data, error } = await supabase
-        .from('health_topics_for_discussion')
+        .from('conversation_diagnoses')
         .select('*')
         .eq('conversation_id', currentConversation)
         .eq('patient_id', selectedUser.id)
-        .order('updated_at', { ascending: false });
+        .order('confidence', { ascending: false });
 
       if (error) {
-        console.error('Error loading health topics:', error);
+        console.error('Error loading diagnoses:', error);
         return;
       }
 
@@ -206,11 +205,11 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         conversation_id: item.conversation_id,
         patient_id: item.patient_id,
         user_id: item.user_id,
-        topic: item.health_topic,
-        health_topic: item.health_topic,
-        diagnosis: item.health_topic, // For backwards compatibility
-        relevance_score: item.relevance_score || 0,
-        confidence: item.relevance_score || 0, // For backwards compatibility
+        topic: item.diagnosis,
+        health_topic: item.diagnosis,
+        diagnosis: item.diagnosis,
+        relevance_score: item.confidence || 0,
+        confidence: item.confidence || 0,
         reasoning: item.reasoning || '',
         category: item.category || 'general',
         created_at: item.created_at,
@@ -219,7 +218,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
       setHealthTopics(mappedTopics);
     } catch (error) {
-      console.error('Error loading health topics:', error);
+      console.error('Error loading diagnoses:', error);
     }
   };
 

@@ -157,6 +157,31 @@ export const MobileEnhancedChatInterface = ({
     }
   }, [currentConversation, selectedUser?.id]);
 
+  // Real-time subscription for diagnosis updates
+  useEffect(() => {
+    if (!currentConversation || !selectedUser?.id) return;
+
+    const diagnosisChannel = supabase
+      .channel(`mobile-diagnosis-realtime-${currentConversation}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_diagnoses',
+          filter: `conversation_id=eq.${currentConversation}`
+        },
+        () => {
+          loadDiagnosesForConversation();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(diagnosisChannel);
+    };
+  }, [currentConversation, selectedUser?.id]);
+
   const loadDiagnosesForConversation = async () => {
     if (!currentConversation || !selectedUser?.id) return;
 
