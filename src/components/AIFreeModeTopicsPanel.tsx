@@ -88,9 +88,9 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
       console.log('Conversation context:', conversationContext.substring(0, 200) + '...');
 
-      // Get current user as fallback for patient_id
+      // Get current user as fallback for patient_id - never pass empty string
       const { data: { user } } = await supabase.auth.getUser();
-      const effectivePatientId = patientId || user?.id || '';
+      const effectivePatientId = patientId || user?.id || 'ai_free_mode_user';
       
       console.log('Calling analyze-health-topics with:', {
         contextLength: conversationContext.length,
@@ -211,8 +211,8 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
               </TabsList>
 
               <TabsContent value="topics" className="flex-1 mt-3 mx-2 mb-3 min-h-0">
-                <ScrollArea className="h-[calc(100vh-320px)] w-full rounded-md border border-border bg-background/50">
-                  <div className="p-4 space-y-3 pb-8 min-h-[600px]">
+                <ScrollArea className="h-[400px] min-h-[300px] max-h-[calc(100vh-320px)] w-full rounded-md border border-border bg-background/50">
+                  <div className="p-4 space-y-3 pb-8">
                     {loading && conversationPath.length > 0 && (
                       <div className="text-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
