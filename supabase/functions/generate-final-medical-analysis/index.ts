@@ -21,7 +21,7 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    const { patient_id, user_id } = await req.json();
+    const { patient_id, user_id, conversation_id } = await req.json();
 
     if (!patient_id || !user_id) {
       return new Response(
@@ -29,6 +29,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Deep analysis requested for patient:', patient_id, 'conversation:', conversation_id);
 
     // Initialize Supabase client with service key for comprehensive data access
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -240,6 +242,95 @@ Provide your comprehensive final analysis focusing on clinical accuracy and acti
     }
 
     console.log('Final analysis saved successfully');
+
+    // If conversation_id is provided, update the UI tables for real-time updates
+    if (conversation_id) {
+      console.log('Updating UI tables with deep analysis findings for conversation:', conversation_id);
+      
+      // Extract key findings and insert as conversation diagnoses
+      const keyFindings = analysisData.key_findings || [];
+      if (keyFindings.length > 0) {
+        // Delete existing diagnoses for this conversation to replace with deep analysis findings
+        await supabase
+          .from('conversation_diagnoses')
+          .delete()
+          .eq('conversation_id', conversation_id)
+          .eq('patient_id', patient_id);
+
+        const diagnosesToInsert = keyFindings.map((finding: any) => ({
+          conversation_id,
+          patient_id,
+          user_id,
+          diagnosis: finding.finding || finding.diagnosis || 'Health Finding',
+          confidence: finding.confidence || 0.7,
+          reasoning: `${finding.evidence || ''} ${finding.significance || ''}`.trim() || 'From comprehensive deep analysis',
+          category: 'deep_analysis'
+        }));
+
+        const { error: diagInsertError } = await supabase
+          .from('conversation_diagnoses')
+          .insert(diagnosesToInsert);
+
+        if (diagInsertError) {
+          console.error('Failed to insert diagnoses from deep analysis:', diagInsertError);
+        } else {
+          console.log(`Inserted ${diagnosesToInsert.length} diagnoses from deep analysis`);
+        }
+      }
+
+      // Extract follow-up recommendations and clinical insights as solutions
+      const followUpRecs = analysisData.follow_up_recommendations || [];
+      const testRecs = analysisData.doctor_test_recommendations || [];
+      
+      if (followUpRecs.length > 0 || testRecs.length > 0) {
+        // Delete existing solutions for this conversation
+        await supabase
+          .from('conversation_solutions')
+          .delete()
+          .eq('conversation_id', conversation_id)
+          .eq('patient_id', patient_id);
+
+        const solutionsToInsert: any[] = [];
+        
+        // Add follow-up recommendations as solutions
+        followUpRecs.forEach((rec: string, index: number) => {
+          solutionsToInsert.push({
+            conversation_id,
+            patient_id,
+            user_id,
+            solution: rec,
+            category: 'lifestyle',
+            confidence: 0.75,
+            reasoning: 'Derived from comprehensive deep analysis of all patient data'
+          });
+        });
+
+        // Add test recommendations as medical solutions
+        testRecs.forEach((test: any) => {
+          solutionsToInsert.push({
+            conversation_id,
+            patient_id,
+            user_id,
+            solution: `${test.test_name}: ${test.reason || 'Recommended diagnostic test'}`,
+            category: 'lifestyle', // Using lifestyle as it's a valid category
+            confidence: test.confidence || 0.7,
+            reasoning: `Category: ${test.category || 'Diagnostic'}, Urgency: ${test.urgency || 'Routine'}`
+          });
+        });
+
+        if (solutionsToInsert.length > 0) {
+          const { error: solInsertError } = await supabase
+            .from('conversation_solutions')
+            .insert(solutionsToInsert);
+
+          if (solInsertError) {
+            console.error('Failed to insert solutions from deep analysis:', solInsertError);
+          } else {
+            console.log(`Inserted ${solutionsToInsert.length} solutions from deep analysis`);
+          }
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
