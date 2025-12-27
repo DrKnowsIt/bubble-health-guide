@@ -226,8 +226,8 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
       return;
     }
     
-    // Count only AI responses (messages with role 'assistant')
-    const aiMessageCount = messages.filter((msg: any) => msg.role === 'assistant').length;
+    // Count only AI responses - support both formats: 'type: ai' from UI and 'role: assistant' from API
+    const aiMessageCount = messages.filter((msg: any) => msg.type === 'ai' || msg.role === 'assistant').length;
     console.log('🔍 UnifiedAnalysis: Checking scheduled analysis', { aiMessageCount, totalMessages: messages.length, conversationId });
     
     // Cancel any pending analyses for conversation when new messages come in
