@@ -511,12 +511,21 @@ export const useConversationsQuery = (selectedUser?: any) => {
   }, [updateTitleMutation.isSuccess, updateTitleMutation.error, queryClient]);
 
   // Sync messages state with fetched messages from React Query
+  // Use a ref to prevent repeated clearing when conversation is already null
+  const prevConversationRef = useRef<string | null>(currentConversation);
+  
   useEffect(() => {
+    const prevConversation = prevConversationRef.current;
+    prevConversationRef.current = currentConversation;
+    
     if (currentConversation === null) {
-      console.log('🧹 [useConversationsQuery] Clearing messages - no current conversation');
-      setMessages([]);
+      // Only log and clear if we're actually transitioning from a conversation to null
+      if (prevConversation !== null) {
+        logger.info('🧹 [useConversationsQuery] Clearing messages - conversation closed');
+        setMessages([]);
+      }
     } else if (fetchedMessages && fetchedMessages.length >= 0) {
-      console.log('🔄 [useConversationsQuery] Syncing messages state with query data:', fetchedMessages.length, 'messages');
+      logger.info(`🔄 [useConversationsQuery] Syncing messages state: ${fetchedMessages.length} messages`);
       setMessages(fetchedMessages);
     }
   }, [currentConversation, fetchedMessages]);
