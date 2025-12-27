@@ -11,11 +11,12 @@ import { Link } from 'react-router-dom';
 import { signInSchema, signUpSchema, validateForm } from '@/lib/validation';
 
 export default function Auth() {
-  const { user, session, loading: authLoading, signIn, signUp } = useAuth();
+  const { user, session, loading: authLoading, signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [isSignUp, setIsSignUp] = useState(location.state?.mode === 'signup' || false);
+  const [isResetMode, setIsResetMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -58,6 +59,19 @@ export default function Auth() {
     e.preventDefault();
     setValidationErrors({});
     
+    // Handle reset password mode
+    if (isResetMode) {
+      const emailValidation = validateForm(signInSchema.pick({ email: true }), { email: formData.email });
+      if (!emailValidation.success && emailValidation.errors) {
+        setValidationErrors(emailValidation.errors);
+        return;
+      }
+      setLoading(true);
+      await resetPassword(formData.email);
+      setLoading(false);
+      return;
+    }
+    
     // Validate form data
     const schema = isSignUp ? signUpSchema : signInSchema;
     const validation = validateForm(schema, isSignUp ? formData : { email: formData.email, password: formData.password });
@@ -98,7 +112,19 @@ export default function Auth() {
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
+    setIsResetMode(false);
     resetForm();
+    setValidationErrors({});
+  };
+
+  const enterResetMode = () => {
+    setIsResetMode(true);
+    setIsSignUp(false);
+    setValidationErrors({});
+  };
+
+  const exitResetMode = () => {
+    setIsResetMode(false);
     setValidationErrors({});
   };
 
@@ -123,18 +149,20 @@ export default function Auth() {
             </Link>
           </div>
           <CardTitle className="text-2xl text-center">
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {isResetMode ? 'Reset Password' : isSignUp ? 'Create Account' : 'Sign In'}
           </CardTitle>
           <CardDescription className="text-center">
-            {isSignUp 
-              ? 'Create your account to access DrKnowItAll'
-              : 'Sign in to your account to continue'
+            {isResetMode 
+              ? 'Enter your email to receive a password reset link'
+              : isSignUp 
+                ? 'Create your account to access DrKnowItAll'
+                : 'Sign in to your account to continue'
             }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
+            {isSignUp && !isResetMode && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -174,36 +202,51 @@ export default function Auth() {
               {renderFieldError('email')}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={validationErrors.password ? 'border-destructive' : ''}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </Button>
+            {!isResetMode && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  {!isSignUp && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={enterResetMode}
+                      className="text-xs text-primary p-0 h-auto"
+                    >
+                      Forgot password?
+                    </Button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className={validationErrors.password ? 'border-destructive' : ''}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </Button>
+                </div>
+                {renderFieldError('password')}
+                {isSignUp && (
+                  <p className="text-xs text-muted-foreground">
+                    Password must be 8+ characters with uppercase, lowercase, and number
+                  </p>
+                )}
               </div>
-              {renderFieldError('password')}
-              {isSignUp && (
-                <p className="text-xs text-muted-foreground">
-                  Password must be 8+ characters with uppercase, lowercase, and number
-                </p>
-              )}
-            </div>
+            )}
 
-            {isSignUp && (
+            {isSignUp && !isResetMode && (
               <div className="flex flex-col items-center space-y-2">
                 {!showAccessCode ? (
                   <Button
@@ -245,19 +288,28 @@ export default function Auth() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+              {loading ? 'Please wait...' : (isResetMode ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign In')}
             </Button>
           </form>
 
+          {isResetMode && (
+            <div className="text-center">
+              <Button variant="link" onClick={exitResetMode} className="text-sm">
+                Back to Sign In
+              </Button>
+            </div>
+          )}
 
-          <div className="text-center">
-            <Button variant="link" onClick={toggleMode} className="text-sm">
-              {isSignUp 
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"
-              }
-            </Button>
-          </div>
+          {!isResetMode && (
+            <div className="text-center">
+              <Button variant="link" onClick={toggleMode} className="text-sm">
+                {isSignUp 
+                  ? 'Already have an account? Sign in'
+                  : "Don't have an account? Sign up"
+                }
+              </Button>
+            </div>
+          )}
 
           <div className="text-center text-xs text-muted-foreground">
             By continuing, you agree to our Terms of Service and Privacy Policy.
