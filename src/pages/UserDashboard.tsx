@@ -58,7 +58,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function UserDashboard() {
-  console.log('UserDashboard: Component rendering started');
+  logger.debug('UserDashboard: Component rendering started');
   
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, createCheckoutSession } = useSubscription();
@@ -71,7 +71,7 @@ export default function UserDashboard() {
   const [showMobileReportConfirm, setShowMobileReportConfirm] = useState(false);
   const isInitialLoad = useRef(true);
   
-  console.log('UserDashboard: State initialized', {
+  logger.debug('UserDashboard: State initialized', {
     user: !!user,
     subscribed,
     subscription_tier,
@@ -88,10 +88,10 @@ export default function UserDashboard() {
     const tabParam = urlParams.get('tab');
     
     if (tabParam && ['chat', 'health', 'overview', 'easy-chat'].includes(tabParam)) {
-      console.log('UserDashboard: Tab from URL:', tabParam);
+      logger.debug('UserDashboard: Tab from URL:', tabParam);
       setActiveTab(tabParam);
     } else if (isInitialLoad.current) {
-      console.log('UserDashboard: Setting default tab to easy-chat');
+      logger.debug('UserDashboard: Setting default tab to easy-chat');
       setActiveTab("easy-chat");
     }
     isInitialLoad.current = false;

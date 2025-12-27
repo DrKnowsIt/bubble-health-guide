@@ -57,7 +57,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     const currentUserId = selectedUser?.id || null;
     const previousUserId = lastValidUserRef.current;
     
-    console.log('🔄 [useConversationsQuery] User change detected:', {
+    logger.debug('[useConversationsQuery] User change detected', {
       previousUserId,
       currentUserId,
       currentConversation,
@@ -66,7 +66,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     
     // Only clear state if we're actually switching to a different user (not initial load or same user)
     if (!isInitialLoadRef.current && previousUserId !== currentUserId) {
-      console.log('👤 [useConversationsQuery] User actually changed, clearing conversation state');
+      logger.debug('[useConversationsQuery] User actually changed, clearing conversation state');
       
       // Clear any pending timeout
       if (conversationClearTimeoutRef.current) {
@@ -86,7 +86,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
         queryKey: [MESSAGES_QUERY_KEY] 
       });
     } else {
-      console.log('🔍 [useConversationsQuery] User change was initial load or same user, preserving state');
+      logger.debug('[useConversationsQuery] User change was initial load or same user, preserving state');
     }
     
     // Update refs
@@ -103,11 +103,11 @@ export const useConversationsQuery = (selectedUser?: any) => {
     queryKey: [CONVERSATIONS_QUERY_KEY, user?.id, selectedUser?.id],
     queryFn: async (): Promise<Conversation[]> => {
       if (!user) {
-        console.log('🚫 No user available for conversations query');
+        logger.debug('No user available for conversations query');
         return [];
       }
       
-      console.log('🔍 Fetching conversations for user:', user.id, 'patient:', selectedUser?.id);
+      logger.debug(`Fetching conversations for user: ${user.id}, patient: ${selectedUser?.id}`);
       
       let query = supabase
         .from('conversations')
@@ -122,11 +122,11 @@ export const useConversationsQuery = (selectedUser?: any) => {
       
       const { data, error } = await query.order('updated_at', { ascending: false });
       if (error) {
-        console.error('❌ Error fetching conversations:', error);
+        logger.error('Error fetching conversations', error);
         throw error;
       }
       
-      console.log('✅ Fetched conversations:', data?.length || 0, 'conversations for user:', selectedUser?.id);
+      logger.debug(`Fetched ${data?.length || 0} conversations for user: ${selectedUser?.id}`);
       return data || [];
     },
     enabled: !!user,
@@ -160,10 +160,10 @@ export const useConversationsQuery = (selectedUser?: any) => {
         products: msg.products && Array.isArray(msg.products) ? msg.products as any[] : undefined
       }));
       
-      console.log('✅ [useConversationsQuery] Loaded', formattedMessages.length, 'messages for conversation:', currentConversation);
+      logger.debug(`[useConversationsQuery] Loaded ${formattedMessages.length} messages for conversation: ${currentConversation}`);
       
       // Update local messages state when data changes
-      console.log('📝 [useConversationsQuery] Setting messages from query:', formattedMessages.length, 'messages');
+      logger.debug(`[useConversationsQuery] Setting messages from query: ${formattedMessages.length} messages`);
       setMessages(formattedMessages);
       return formattedMessages;
     },
@@ -177,7 +177,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     mutationFn: async ({ title, patientId }: { title: string; patientId?: string | null }) => {
       if (!user) throw new Error('No user found');
 
-      console.log('🚀 [createConversationMutation] Starting conversation creation');
+      logger.debug('[createConversationMutation] Starting conversation creation');
       isCreatingConversationRef.current = true;
 
       const { data, error } = await supabase
@@ -194,12 +194,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
       
       // Track newly created conversation to prevent it from being cleared
       recentlyCreatedConversationsRef.current.add(data.id);
-      console.log('✅ [createConversationMutation] Created conversation:', data.id);
+      logger.debug('[createConversationMutation] Created conversation', data.id);
       
       return data;
     },
     onSettled: () => {
-      console.log('🏁 [createConversationMutation] Conversation creation settled');
+      logger.debug('[createConversationMutation] Conversation creation settled');
       isCreatingConversationRef.current = false;
     }
   });
@@ -219,7 +219,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       imageUrl?: string;
       products?: any[];
     }) => {
-      console.log('💬 [saveMessageMutation] Starting message save for conversation:', conversationId);
+      logger.debug(`[saveMessageMutation] Starting message save for conversation: ${conversationId}`);
       isSavingMessageRef.current = true;
 
     const { error } = await supabase
@@ -240,10 +240,10 @@ export const useConversationsQuery = (selectedUser?: any) => {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
         
-      console.log('✅ [saveMessageMutation] Message saved successfully');
+      logger.debug('[saveMessageMutation] Message saved successfully');
     },
     onSettled: () => {
-      console.log('🏁 [saveMessageMutation] Message save settled');
+      logger.debug('[saveMessageMutation] Message save settled');
       isSavingMessageRef.current = false;
     }
   });
@@ -279,7 +279,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       await queryClient.cancelQueries({ queryKey: [MESSAGES_QUERY_KEY] });
       
       // Cancel all analyses for this conversation immediately
-      console.log('🛑 [useConversationsQuery] Cancelling analyses for conversation:', conversationId);
+      logger.debug(`[useConversationsQuery] Cancelling analyses for conversation: ${conversationId}`);
       cancelAnalysesForConversation(conversationId);
       
       // Snapshot the previous values
@@ -296,7 +296,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
       
       // Clear current conversation and messages immediately if it matches the deleted one
       if (currentConversation === conversationId) {
-        console.log('🗑️ [useConversationsQuery] Clearing current conversation and messages for deletion');
+        logger.debug('[useConversationsQuery] Clearing current conversation and messages for deletion');
         setCurrentConversation(null);
         setMessages([]);
       }
