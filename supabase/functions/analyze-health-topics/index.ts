@@ -226,8 +226,11 @@ ENHANCED CONFIDENCE CALIBRATION:
       }
     }
 
-    if (user_tier !== 'free') {
-      // De-identify patient data before AI analysis
+    // Skip de-identification for AI Free Mode (placeholder patient_id) or free tier users
+    const isPlaceholderPatient = patient_id === 'ai_free_mode_user' || patient_id === 'default' || !patient_id;
+    
+    if (user_tier !== 'free' && !isEasyChatSession && !isPlaceholderPatient) {
+      // De-identify patient data before AI analysis (only for real patients)
       const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
       const deIdentifyResponse = await fetch(`${supabaseServiceUrl}/functions/v1/de-identify-data`, {
         method: 'POST',
@@ -298,7 +301,7 @@ ${patient.is_pet ? `Species: ${patient.species || 'Not specified'}` : ''}`;
         }
       }
     } else {
-      // Basic context for Free mode
+      // Basic context for Free mode or AI Free Mode sessions
       patientContext = `Free Mode User - Limited Context Available
 Selected Anatomy: ${selected_anatomy.join(', ') || 'None specified'}`;
     }
