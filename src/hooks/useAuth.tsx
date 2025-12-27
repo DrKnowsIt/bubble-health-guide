@@ -13,6 +13,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string, accessCode?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -267,8 +268,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      // Check if access code is the alpha tester code
-      const isValidTesterCode = accessCode === 'DRKNOWSIT_ALPHA_2024';
+      // Validate access code against server-side secret
+      let isValidTesterCode = false;
+      if (accessCode) {
+        try {
+          const { data } = await supabase.functions.invoke('validate-alpha-code', {
+            body: { code: accessCode }
+          });
+          isValidTesterCode = data?.valid === true;
+        } catch {
+          isValidTesterCode = false;
+        }
+      }
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -312,6 +323,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      setAuthLoading(true);
+      const redirectUrl = `${window.location.origin}/auth?mode=reset`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Reset Failed",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Check Your Email",
+          description: "We've sent you a password reset link.",
+        });
+      }
+      
+      return { error };
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Reset Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+      return { error };
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const signOut = async () => {
     try {
@@ -353,6 +398,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signIn,
     signUp,
     signOut,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

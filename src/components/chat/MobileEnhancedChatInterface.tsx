@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, UserIcon, Loader2, MessageCircle, History, ChevronDown, ChevronUp, Users, X, ImagePlus, Brain } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsersQuery, User } from '@/hooks/optimized/useUsersQuery';
 import { useConversationsQuery, Message } from '@/hooks/optimized/useConversationsQuery';
@@ -411,84 +411,98 @@ export const MobileEnhancedChatInterface = ({
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex flex-col bg-background">
-        {/* Collapsible Patient Selector */}
-        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20">
-          <div className="p-3">
-            <button
-              onClick={() => setPatientSelectorCollapsed(!patientSelectorCollapsed)}
-              className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg transition-all hover:bg-muted/70"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium text-sm">
-                    {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedUser ? 'Currently chatting with' : 'Choose who to chat with'}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sheet open={showHistory} onOpenChange={setShowHistory}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <History className="h-4 w-4" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-80">
-                    <SheetHeader>
-                      <SheetTitle>Conversation History</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-4 h-full overflow-hidden">
-                      <ConversationHistory
-                        selectedPatientId={selectedUser?.id}
-                        onConversationSelect={handleConversationSelect}
-                        onNewConversation={handleNewConversation}
-                        activeConversationId={currentConversation}
-                      />
+        {/* Stacked Patient Header */}
+        <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-20">
+          {/* Row 1: Patient Selector */}
+          <div className="p-3 border-b border-border/50">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full h-auto p-3 hover:bg-muted/50 justify-start">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
                     </div>
-                  </SheetContent>
-                </Sheet>
-                
-                {patientSelectorCollapsed ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                )}
-              </div>
-            </button>
-            
-            {!patientSelectorCollapsed && (
-              <div className="mt-3 space-y-3 animate-in slide-in-from-top-2">
-                <UserDropdown
-                  users={users}
-                  selectedUser={selectedUser}
-                  onUserSelect={handleUserSelect}
-                  open={false}
-                  onOpenChange={() => {}}
-                />
-                
-                {/* Topics to Discuss - Always visible */}
-                <div className="w-full">
-                  <div className="p-3 bg-background border rounded-lg">
-                    <EnhancedHealthInsightsPanel 
-                      diagnoses={diagnoses.map(d => ({
-                        diagnosis: d.diagnosis,
-                        confidence: d.confidence || 0,
-                        reasoning: d.reasoning || '',
-                        updated_at: d.updated_at || new Date().toISOString()
-                      }))}
-                      patientName={selectedUser?.first_name || 'You'}
-                      patientId={selectedUser?.id || ''}
-                      conversationId={currentConversation}
-                    />
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="font-medium text-base truncate">
+                        {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Tap to change patient
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[40vh]">
+                <SheetHeader>
+                  <SheetTitle>Select Patient</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <UserDropdown
+                    users={users}
+                    selectedUser={selectedUser}
+                    onUserSelect={handleUserSelect}
+                    open={false}
+                    onOpenChange={() => {}}
+                  />
                 </div>
-              </div>
-            )}
+              </SheetContent>
+            </Sheet>
+          </div>
+          
+          {/* Row 2: Action Buttons */}
+          <div className="p-2 flex items-center gap-2">
+            {/* History Button */}
+            <Sheet open={showHistory} onOpenChange={setShowHistory}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="flex-1 h-10 gap-2">
+                  <History className="h-4 w-4" />
+                  <span className="text-sm">History</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full sm:w-80">
+                <SheetHeader>
+                  <SheetTitle>Conversation History</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 h-full overflow-hidden">
+                  <ConversationHistory
+                    selectedPatientId={selectedUser?.id}
+                    onConversationSelect={handleConversationSelect}
+                    onNewConversation={handleNewConversation}
+                    activeConversationId={currentConversation}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+            
+            {/* Health Topics Button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="flex-1 h-10 gap-2">
+                  <Brain className="h-4 w-4" />
+                  <span className="text-sm">Topics</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[60vh]">
+                <SheetHeader>
+                  <SheetTitle>Health Topics</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 overflow-auto h-[calc(60vh-80px)]">
+                  <EnhancedHealthInsightsPanel 
+                    diagnoses={diagnoses.map(d => ({
+                      diagnosis: d.diagnosis,
+                      confidence: d.confidence || 0,
+                      reasoning: d.reasoning || '',
+                      updated_at: d.updated_at || new Date().toISOString()
+                    }))}
+                    patientName={selectedUser?.first_name || 'You'}
+                    patientId={selectedUser?.id || ''}
+                    conversationId={currentConversation}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
@@ -505,8 +519,8 @@ export const MobileEnhancedChatInterface = ({
             </div>
           ) : (
             <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Messages - Improved spacing */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {/* Token Timeout Notification - Show prominently in chat */}
                 <SimpleTokenTimeoutNotification />
                 
@@ -551,19 +565,18 @@ export const MobileEnhancedChatInterface = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Enhanced Input Area */}
-              <div className="border-t bg-background/95 backdrop-blur p-4 space-y-3">
-
+              {/* Stacked Input Area */}
+              <div className="border-t bg-background p-4 space-y-3">
+                {/* Pending Image Preview */}
                 {pendingImageUrl && (
-                  <div className="mb-3 p-2 border rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ImagePlus className="h-4 w-4" />
-                      <span className="text-sm font-medium">Image attached</span>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Image attached</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPendingImageUrl(null)}
-                        className="h-6 w-6 p-0 ml-auto"
+                        className="h-6 w-6 p-0"
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -576,49 +589,68 @@ export const MobileEnhancedChatInterface = ({
                   </div>
                 )}
                 
-                <div className="relative">
-                  <Textarea
-                    placeholder={
-                      !selectedUser 
-                        ? "Select a patient to start chatting..." 
-                        : isInTimeout 
-                          ? "🤖 DrKnowsIt is taking a 30-minute break..." 
-                          : "Describe your symptoms or ask a health question..."
-                    }
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="min-h-[3rem] max-h-32 resize-none border-2 focus:border-primary/50 transition-colors pr-32"
-                    disabled={!selectedUser || isInTimeout}
-                  />
+                {/* Textarea - Full Width */}
+                <Textarea
+                  placeholder={
+                    !selectedUser 
+                      ? "Select a patient to start chatting..." 
+                      : isInTimeout 
+                        ? "🤖 DrKnowsIt is taking a 30-minute break..." 
+                        : "Describe your symptoms or ask a health question..."
+                  }
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="min-h-[4rem] max-h-32 resize-none text-base border-2 focus:border-primary/50 transition-colors"
+                  style={{ fontSize: '16px' }}
+                  disabled={!selectedUser || isInTimeout}
+                />
+                
+                {/* Action Buttons Row */}
+                <div className="flex items-center gap-2">
+                  {/* Image Upload Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    disabled={!selectedUser || isUploading || isInTimeout}
+                    className="h-11 w-11 p-0"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5" />
+                    )}
+                  </Button>
                   
-                  {/* Buttons positioned inside the textarea */}
-                  <div className="absolute right-2 bottom-2 flex gap-1">
-                    {/* Image upload temporarily disabled */}
-                    <Button
-                      variant={isRecording ? "destructive" : "ghost"}
-                      size="sm"
-                      onClick={toggleRecording}
-                      disabled={!selectedUser || isProcessing || isInTimeout}
-                      className="h-8 w-8 p-0 hover:bg-muted"
-                    >
-                      {isRecording ? (
-                        <MicOff className="h-4 w-4" />
-                      ) : (
-                        <Mic className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {/* Microphone Button */}
+                  <Button
+                    variant={isRecording ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleRecording}
+                    disabled={!selectedUser || isProcessing || isInTimeout}
+                    className="h-11 w-11 p-0"
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-5 w-5" />
+                    ) : (
+                      <Mic className="h-5 w-5" />
+                    )}
+                  </Button>
+                  
+                  {/* Send Button - Primary and Larger */}
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={(!inputValue.trim() && !pendingImageUrl) || isTyping || !selectedUser || isInTimeout}
+                    size="default"
+                    className="flex-1 h-11 gap-2"
+                  >
+                    <Send className="h-5 w-5" />
+                    <span className="font-medium">Send</span>
+                  </Button>
                 </div>
-                  
+                
+                {/* Processing Indicator */}
                 {isProcessing && (
                   <div className="flex items-center justify-center text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />

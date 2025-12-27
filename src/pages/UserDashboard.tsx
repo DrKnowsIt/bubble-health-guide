@@ -403,26 +403,26 @@ export default function UserDashboard() {
         }} className="h-full flex flex-col min-h-0">
           {/* Tab Navigation */}
           {isMobile ? (
-            // Mobile: Dynamic tab bottom navigation
-            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 mt-auto">
-               <TabsList className={cn("w-full grid h-16 bg-muted/50", 
+            // Mobile: Optimized bottom navigation with larger touch targets
+            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 mt-auto">
+               <TabsList className={cn("w-full grid h-14 bg-muted/50",
                  subscribed && subscription_tier 
                    ? (selectedUser && hasAccess('basic') ? "grid-cols-4" : "grid-cols-3")
                    : (selectedUser && hasAccess('basic') ? "grid-cols-5" : "grid-cols-4")
                )}>
                   {(!subscribed || !subscription_tier) && (
-                    <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-1 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <MessageSquare className="h-5 w-5 text-teal-500" fill="currentColor" />
-                      <span className="text-xs font-medium">Easy</span>
+                    <TabsTrigger value="easy-chat" className="flex flex-col items-center justify-center gap-0.5 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <MessageSquare className="h-6 w-6 text-teal-500" fill="currentColor" />
+                      <span className="text-[11px] font-medium">Easy</span>
                     </TabsTrigger>
                   )}
-                  <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <MessageSquare className="h-5 w-5 text-teal-500" fill="currentColor" />
-                    <span className="text-xs font-medium">Chat</span>
+                  <TabsTrigger value="chat" className="flex flex-col items-center justify-center gap-0.5 py-2 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <MessageSquare className="h-6 w-6 text-teal-500" fill="currentColor" />
+                    <span className="text-[11px] font-medium">Chat</span>
                   </TabsTrigger>
-                  <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <Heart className="h-5 w-5 text-teal-500" fill="currentColor" />
-                    <span className="text-xs font-medium">Health</span>
+                  <TabsTrigger value="health" className="flex flex-col items-center justify-center gap-0.5 py-2 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <Heart className="h-6 w-6 text-teal-500" fill="currentColor" />
+                    <span className="text-[11px] font-medium">Health</span>
                   </TabsTrigger>
                   <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
                     <Activity className="h-5 w-5 text-teal-500" fill="currentColor" />

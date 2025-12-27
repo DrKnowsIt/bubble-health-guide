@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Users } from "lucide-react";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
@@ -47,51 +48,64 @@ const Index = () => {
   return <div className="min-h-screen bg-background">
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
-        {isMobile ?
-      // Mobile: Clean, simple chat interface with better spacing
-      <section className="h-[calc(100vh-4rem)]">
-            <div className="h-full flex flex-col">
-              {/* Mobile Header - Properly spaced */}
-              <div className="shrink-0 text-center p-4 bg-card border-b border-border space-y-3">
-                <div className="mb-2">
-                  <h2 className="mobile-text-base font-semibold text-primary mb-1">
-                    Try DrKnowsIt Demo
-                  </h2>
-                  <p className="mobile-text-xs text-muted-foreground">
-                    See what a health conversation looks like
-                  </p>
-                </div>
-                
-                <h1 className="mobile-text-lg sm:text-xl font-bold text-foreground leading-tight">
-                  Healthcare & pet care feeling rushed?
+      {isMobile ?
+      // Mobile: Beautiful, professional landing page optimized for small screens
+      <section className="h-[100dvh] flex flex-col" style={{ height: '100dvh' }}>
+            {/* Mobile Hero Section - Scrollable */}
+            <div className="shrink-0 overflow-y-auto bg-gradient-to-b from-card to-background">
+              {/* Hero Image - Smaller on mobile */}
+              <div className="relative w-full aspect-[16/9] overflow-hidden">
+                <img 
+                  src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
+                  alt="Blue holographic cartoon doctor with family and pet"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
+              </div>
+
+              {/* Hero Text - Compact */}
+              <div className="px-4 pt-3 pb-4 text-center space-y-2">
+                <h1 className="text-2xl font-bold text-foreground leading-tight">
+                  Get prepared for
+                  <span className="block text-primary">healthcare visits</span>
                 </h1>
-                <p className="mobile-text-sm text-muted-foreground leading-relaxed">
-                  Come prepared with{" "}
-                  <span className="text-primary font-semibold">DrKnowsIt</span> - for you and your pets
-                </p>
-                <p className="mobile-text-xs text-muted-foreground/70">
-                  Powered by Grok • Medical images via ISIC Archive
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  AI health assistant for humans & pets. Available 24/7.
                 </p>
                 
-                {/* Compact Disclaimer - Better mobile formatting */}
-                <div className="rounded-md bg-warning/10 border border-warning/20 p-3 mx-2">
-                  <p className="mobile-text-xs text-warning font-medium leading-relaxed">
-                    ⚠️ General information only. Consult healthcare professionals for medical decisions.
-                  </p>
+                {/* Social Proof - Compact */}
+                <div className="pt-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-full border border-primary/20 text-xs font-medium text-primary">
+                    <Users className="h-3 w-3" />
+                    <UserCountBadge variant="cta" className="text-xs" />
+                  </div>
+                </div>
+
+                {/* Disclaimer - Ultra compact */}
+                <div className="flex items-center justify-center gap-1.5 pt-1 text-xs text-warning">
+                  <span>⚠️</span>
+                  <span className="font-medium">Information only · Consult professionals</span>
                 </div>
               </div>
 
-              {/* Mobile Chat - Properly contained with spacing */}
-              <div className="flex-1 min-h-0 overflow-hidden">
-                {showHistory && user ? <div className="h-full flex">
-                    <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                    <div className="flex-1 min-h-0 overflow-hidden">
-                      <ChatGPTInterface />
-                    </div>
-                  </div> : <div className="h-full overflow-hidden">
-                    <ChatGPTInterface />
-                  </div>}
+              {/* "Try It Now" Section Header - Compact */}
+              <div className="px-4 py-2 border-t border-border bg-card/50 text-center">
+                <h2 className="text-base font-bold text-foreground">
+                  Try DrKnowsIt Now
+                </h2>
               </div>
+            </div>
+
+            {/* Mobile Chat Interface - Takes remaining space */}
+            <div className="flex-1 min-h-0 bg-background">
+              {showHistory && user ? <div className="h-full flex">
+                  <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
+                  <div className="flex-1 min-h-0">
+                    <ChatGPTInterface />
+                  </div>
+                </div> : <div className="h-full">
+                  <ChatGPTInterface />
+                </div>}
             </div>
           </section> :
       // Desktop: Full layout with sidebar
@@ -165,11 +179,11 @@ const Index = () => {
             </div>
           </section>}
 
-        {/* Info Sections - Hidden on mobile to keep it simple */}
-        {!isMobile && <div className="mt-12">
-            <HowItWorks />
-            <Features />
-          </div>}
+        {/* Info Sections - Now shown on mobile too */}
+        <div className={isMobile ? "mt-4 px-4 pb-20" : "mt-12"}>
+          <HowItWorks />
+          <Features />
+        </div>
       </main>
       <Footer onSignUp={() => openAuth('signup')} />
     </div>;

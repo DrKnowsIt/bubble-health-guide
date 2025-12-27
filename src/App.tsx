@@ -7,6 +7,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LegalAgreementModal } from "./components/modals/LegalAgreementModal";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 import { useAuth } from "./hooks/useAuth";
+import { CookieConsent } from "./components/CookieConsent";
+import { AgeVerificationCheck } from "./components/AgeVerificationCheck";
 
 // Import pages directly
 import Index from "./pages/Index";
@@ -51,6 +53,8 @@ const App = () => {
         onClose={() => setShowLegalModal(false)}
       />
       <SessionExtensionPrompt />
+      <CookieConsent />
+      <AgeVerificationCheck />
     </TooltipProvider>
   );
 };

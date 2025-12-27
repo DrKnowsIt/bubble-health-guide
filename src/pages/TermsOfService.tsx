@@ -22,7 +22,7 @@ const TermsOfService = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Terms of Service</h1>
-              <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+              <p className="text-muted-foreground">Last updated: December 26, 2024</p>
             </div>
           </div>
         </div>
@@ -230,6 +230,56 @@ const TermsOfService = () => {
                 <li>Data export options available for 30 days after termination</li>
                 <li>Certain provisions survive termination (privacy, liability, etc.)</li>
               </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="medical-card border-primary/20">
+            <CardHeader>
+              <CardTitle>Dispute Resolution & Arbitration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-primary/5 p-4 rounded-lg mb-4">
+                <p className="text-sm text-primary font-medium">
+                  ⚖️ IMPORTANT: Please read this section carefully. It affects your legal rights.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Binding Arbitration</h3>
+                  <p className="text-muted-foreground text-sm">
+                    You agree that any dispute, claim, or controversy arising out of or relating to these Terms 
+                    or the Service shall be resolved through binding arbitration, rather than in court, except 
+                    that you may assert claims in small claims court if your claims qualify.
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Class Action Waiver</h3>
+                  <p className="text-muted-foreground text-sm">
+                    You agree that any arbitration or proceeding shall be conducted only on an individual basis 
+                    and not in a class, consolidated, or representative action. You waive any right to participate 
+                    in class action lawsuits or class-wide arbitration against DrKnowsIt.
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Arbitration Process</h3>
+                  <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
+                    <li>Arbitration will be conducted by a neutral arbitrator</li>
+                    <li>The arbitration will be conducted in English</li>
+                    <li>The arbitrator's decision will be final and binding</li>
+                    <li>Judgment may be entered in any court of competent jurisdiction</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Opt-Out</h3>
+                  <p className="text-muted-foreground text-sm">
+                    You may opt out of this arbitration agreement within 30 days of first accepting these Terms 
+                    by sending written notice to legal@drknowit.com with the subject line "Arbitration Opt-Out."
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
