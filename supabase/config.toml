@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.validate-alpha-code]
 verify_jwt = false
+
+[functions.fetch-health-alerts]
+verify_jwt = true
