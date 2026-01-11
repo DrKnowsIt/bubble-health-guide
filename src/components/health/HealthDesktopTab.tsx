@@ -3,6 +3,7 @@ import { HealthForms } from './HealthForms';
 import { DNAUpload } from '../DNAUpload';
 import { SubscriptionGate } from '../SubscriptionGate';
 import { EnhancedHealthTopicsPanel } from '../EnhancedHealthTopicsPanel';
+import { LocationHealthAlerts } from './LocationHealthAlerts';
 import { useEnhancedHealthTopics } from '@/hooks/useEnhancedHealthTopics';
 import { useConversationsQuery } from '@/hooks/optimized/useConversationsQuery';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,6 +76,15 @@ export const HealthDesktopTab: React.FC<HealthDesktopTabProps> = ({ selectedUser
     <div className="h-full overflow-y-auto">
       <div className="space-y-6">
         <HealthForms selectedPatient={selectedUser} />
+        
+        {/* Location-Based Health Alerts - Available for Basic and Pro */}
+        <SubscriptionGate 
+          requiredTier="basic" 
+          feature="Location Health Alerts" 
+          description="Get location-based health alerts and travel health advisories tailored to your area. Available with Basic or Pro subscription."
+        >
+          <LocationHealthAlerts patientId={selectedUser?.id} />
+        </SubscriptionGate>
         
         {/* Enhanced Health Topics & Solutions - Available for Basic and Pro */}
         <SubscriptionGate 
