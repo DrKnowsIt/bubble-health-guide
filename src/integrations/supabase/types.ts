@@ -727,6 +727,36 @@ export type Database = {
         }
         Relationships: []
       }
+      health_alert_cache: {
+        Row: {
+          alerts: Json
+          cached_at: string
+          country: string
+          created_at: string
+          expires_at: string
+          id: string
+          region: string | null
+        }
+        Insert: {
+          alerts?: Json
+          cached_at?: string
+          country: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          region?: string | null
+        }
+        Update: {
+          alerts?: Json
+          cached_at?: string
+          country?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          region?: string | null
+        }
+        Relationships: []
+      }
       health_data_priorities: {
         Row: {
           created_at: string
@@ -1096,7 +1126,11 @@ export type Database = {
           is_pet: boolean
           is_primary: boolean | null
           last_name: string
+          location_country: string | null
+          location_region: string | null
+          location_updated_at: string | null
           probable_diagnoses: Json | null
+          recent_travel_locations: Json | null
           relationship: string
           sex: string | null
           species: string | null
@@ -1113,7 +1147,11 @@ export type Database = {
           is_pet?: boolean
           is_primary?: boolean | null
           last_name: string
+          location_country?: string | null
+          location_region?: string | null
+          location_updated_at?: string | null
           probable_diagnoses?: Json | null
+          recent_travel_locations?: Json | null
           relationship?: string
           sex?: string | null
           species?: string | null
@@ -1130,7 +1168,11 @@ export type Database = {
           is_pet?: boolean
           is_primary?: boolean | null
           last_name?: string
+          location_country?: string | null
+          location_region?: string | null
+          location_updated_at?: string | null
           probable_diagnoses?: Json | null
+          recent_travel_locations?: Json | null
           relationship?: string
           sex?: string | null
           species?: string | null
