@@ -63,14 +63,13 @@ serve(async (req: Request) => {
     console.log('Fetching health alerts for:', { region, country, include_travel_locations, patient_id });
 
     // Check cache first
-    const cacheKey = `${region || 'global'}_${country || 'all'}`;
     const { data: cachedAlerts } = await supabase
       .from('health_alert_cache')
       .select('*')
-      .eq('region', region || 'global')
+      .eq('region', region || '')
       .eq('country', country || 'global')
       .gt('expires_at', new Date().toISOString())
-      .single();
+      .maybeSingle();
 
     if (cachedAlerts) {
       console.log('Returning cached alerts');
@@ -188,20 +187,30 @@ Make alerts relevant, actionable, and based on realistic health concerns. Includ
       alerts = generateFallbackAlerts(country || 'global', region);
     }
 
-    // Cache the alerts (expires in 24 hours)
+    // Cache the alerts using service role to bypass RLS (expires in 24 hours)
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     
-    await supabase
-      .from('health_alert_cache')
-      .upsert({
-        region: region || 'global',
-        country: country || 'global',
-        alerts: alerts,
-        cached_at: new Date().toISOString(),
-        expires_at: expiresAt
-      }, {
-        onConflict: 'region,country'
-      });
+    if (supabaseServiceKey) {
+      const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+      
+      // Delete existing cache for this location, then insert new one
+      await serviceClient
+        .from('health_alert_cache')
+        .delete()
+        .eq('country', country || 'global')
+        .eq('region', region || '');
+      
+      await serviceClient
+        .from('health_alert_cache')
+        .insert({
+          region: region || '',
+          country: country || 'global',
+          alerts: alerts,
+          cached_at: new Date().toISOString(),
+          expires_at: expiresAt
+        });
+    }
 
     return new Response(
       JSON.stringify({ 
