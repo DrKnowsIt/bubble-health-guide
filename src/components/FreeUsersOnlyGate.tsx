@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Crown, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AIFreeModeInterface } from './AIFreeModeInterface';
+
 
 interface FreeUsersOnlyGateProps {
   children: ReactNode;
@@ -57,6 +57,6 @@ export const FreeUsersOnlyGate = ({ children }: FreeUsersOnlyGateProps) => {
     );
   }
 
-  // Free users get the AI Free Mode interface
-  return <AIFreeModeInterface patientId={undefined} />;
+  // Free users get the children (which wraps AIFreeModeInterface with correct patientId)
+  return <>{children}</>;
 };
