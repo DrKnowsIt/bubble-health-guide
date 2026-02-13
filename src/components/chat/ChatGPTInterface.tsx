@@ -910,7 +910,7 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                             : "bg-muted text-foreground rounded-bl-md"
                         )}
                       >
-                        {message.content}
+                        <span className="whitespace-pre-wrap">{message.content}</span>
                       </div>
 
                       {message.type === 'user' && (

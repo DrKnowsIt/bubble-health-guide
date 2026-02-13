@@ -68,7 +68,7 @@ export const MobileEnhancedChatInterface = ({
     saveMessage,
     updateConversationTitleIfPlaceholder,
     startNewConversation 
-  } = useConversationsQuery();
+  } = useConversationsQuery(selectedUser);
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
