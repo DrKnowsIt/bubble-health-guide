@@ -19,7 +19,7 @@ import { useMedicalImagePrompts } from '@/hooks/useMedicalImagePrompts';
 import { MedicalImageConfirmationModal } from '../modals/MedicalImageConfirmationModal';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useTokenTimeout } from '@/hooks/useTokenTimeout';
+import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { SimpleTokenTimeoutNotification } from './SimpleTokenTimeoutNotification';
 
 interface TabletChatInterfaceProps {
@@ -34,7 +34,7 @@ export const TabletChatInterface = ({
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
   const { users, selectedUser: hookSelectedUser, setSelectedUser, loading: usersLoading } = useUsersQuery();
-  const { isInTimeout, handleTokenLimitError } = useTokenTimeout();
+  const { isInTimeout, handleTokenLimitError } = useSimpleTokenTimeout();
   
   // Use prop user if provided, otherwise use hook user
   const selectedUser = propSelectedUser !== undefined ? propSelectedUser : hookSelectedUser;
@@ -50,7 +50,7 @@ export const TabletChatInterface = ({
     saveMessage,
     updateConversationTitleIfPlaceholder,
     startNewConversation 
-  } = useConversationsQuery();
+  } = useConversationsQuery(selectedUser);
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);

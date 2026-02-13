@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 
 // Mobile Health Topics Tab Component
 const MobileHealthTopicsTab = ({ selectedUser }: { selectedUser: any }) => {
-  const { conversations } = useConversationsQuery(selectedUser?.id);
+  const { conversations } = useConversationsQuery(selectedUser);
   
   // Get conversation context from messages
   const [conversationContext, setConversationContext] = useState('');

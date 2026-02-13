@@ -88,13 +88,9 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* "Try It Now" Section Header - Compact */}
-              <div className="px-4 py-2 border-t border-border bg-card/50 text-center">
-                <h2 className="text-base font-bold text-foreground">
-                  Try DrKnowsIt Now
-                </h2>
-              </div>
+
             </div>
+
 
             {/* Mobile Chat Interface - Takes remaining space */}
             <div className="flex-1 min-h-0 bg-background">
