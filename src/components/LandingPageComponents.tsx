@@ -201,7 +201,7 @@ export const Features = () => {
                 Join our early users who are helping us build the future of AI-powered healthcare and veterinary communication.
               </p>
               <UserCountBadge variant="cta" className="justify-center mb-6" />
-              <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
                   Early access available

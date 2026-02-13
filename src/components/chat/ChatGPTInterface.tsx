@@ -1090,8 +1090,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         </div>
       </div>
 
-      {/* Health Insights Sidebar */}
-      <div className="w-80 border-l border-border bg-background overflow-y-auto">
+      {/* Health Insights Sidebar - hidden on mobile */}
+      <div className="hidden md:block w-80 border-l border-border bg-background overflow-y-auto">
         <div className="p-4 space-y-4">
           {/* Enhanced Health Insights (Diagnoses) */}
           <EnhancedHealthInsightsPanel 
@@ -1141,14 +1141,16 @@ export const ChatGPTInterface = ({ onSendMessage, selectedUser: propSelectedUser
 
   return (
     <div className="flex h-full w-full min-h-0 overflow-hidden">
-      <ConversationSidebar 
-        conversations={conv.conversations}
-        currentConversation={conv.currentConversation}
-        onSelectConversation={conv.selectConversation}
-        onStartNewConversation={handleStartNewConversation}
-        onDeleteConversation={(conversationId: string, confirmed: boolean) => conv.deleteConversation(conversationId, confirmed)}
-        isAuthenticated={!!user}
-      />
+      <div className="hidden md:flex">
+        <ConversationSidebar 
+          conversations={conv.conversations}
+          currentConversation={conv.currentConversation}
+          onSelectConversation={conv.selectConversation}
+          onStartNewConversation={handleStartNewConversation}
+          onDeleteConversation={(conversationId: string, confirmed: boolean) => conv.deleteConversation(conversationId, confirmed)}
+          isAuthenticated={!!user}
+        />
+      </div>
       <main className="flex-1 h-full min-h-0 overflow-hidden">
         <ChatInterface 
           onSendMessage={onSendMessage}
