@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +13,7 @@ import { AgeVerificationCheck } from "./components/AgeVerificationCheck";
 
 // Import pages directly
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+const Auth = lazy(() => import("./pages/Auth"));
 import UserDashboard from "./pages/UserDashboard";
 import Settings from "./pages/Settings";
 import MedicalDisclaimer from "./pages/MedicalDisclaimer";
@@ -37,7 +38,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>}><Auth /></Suspense>} />
         <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/medical-disclaimer" element={<MedicalDisclaimer />} />
