@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { signInSchema, signUpSchema, validateForm } from '@/lib/validation';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
+
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -317,11 +317,16 @@ export default function Auth() {
                 variant="outline"
                 className="w-full flex items-center justify-center gap-2"
                 onClick={async () => {
-                  const result = await lovable.auth.signInWithOAuth('google', {
-                    redirect_uri: window.location.origin,
-                  });
-                  if (result.error) {
-                    toast.error('Google sign-in failed. Please try again.');
+                  try {
+                    const { lovable } = await import('@/integrations/lovable/index');
+                    const result = await lovable.auth.signInWithOAuth('google', {
+                      redirect_uri: window.location.origin,
+                    });
+                    if (result.error) {
+                      toast.error('Google sign-in failed. Please try again.');
+                    }
+                  } catch (e) {
+                    toast.error('Google sign-in is temporarily unavailable. Please try again.');
                   }
                 }}
               >
