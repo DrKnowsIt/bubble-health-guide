@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Cookie, X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
 const COOKIE_CONSENT_KEY = 'drknowsit_cookie_consent';
