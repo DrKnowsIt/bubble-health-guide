@@ -131,7 +131,10 @@ Based on this conversation history, what should the next logical question be? Ge
 
     let questionData;
     try {
-      questionData = JSON.parse(content);
+      // Strip markdown code blocks if present
+      let cleaned = content.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+      questionData = JSON.parse(cleaned);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', content);
       throw new Error('Invalid response format from AI');
