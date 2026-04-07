@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users } from "lucide-react";
+import { Users, Construction } from "lucide-react";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
@@ -46,6 +46,13 @@ const Index = () => {
     });
   };
   return <div className="min-h-screen bg-background">
+      {/* Development Banner */}
+      <div className="bg-primary/10 border-b border-primary/20">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-sm font-medium text-primary">
+          <Construction className="h-4 w-4" />
+          <span>We're actively building DrKnowsIt — some features may be incomplete or change.</span>
+        </div>
+      </div>
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
       {isMobile ?
