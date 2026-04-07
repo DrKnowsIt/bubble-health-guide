@@ -158,8 +158,14 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
 
     logger.debug('[ChatInterface] Setting up real-time subscription for diagnoses', currentConversation);
 
+    const channelName = `diagnosis-realtime-${currentConversation}-${selectedUser?.id}`;
+    
+    // Remove existing channel before re-subscribing to prevent duplicate callbacks
+    const existingChannel = supabase.channel(channelName);
+    supabase.removeChannel(existingChannel);
+
     const diagnosisChannel = supabase
-      .channel(`diagnosis-realtime-${currentConversation}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

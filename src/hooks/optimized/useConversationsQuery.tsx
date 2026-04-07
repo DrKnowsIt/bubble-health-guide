@@ -597,7 +597,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
   useEffect(() => {
     if (!user?.id) {
-      console.warn('⚠️ No user ID available for conversations query - user may need to authenticate');
+      console.debug('No user ID available for conversations query - user may need to authenticate');
       return;
     }
 
