@@ -116,11 +116,11 @@ export const useStrategicReferencing = (patientId?: string | null) => {
     }
 
     // Transform the data to flat structure
-    const summariesData = data?.map(record => ({
-      id: record.health_record_summaries[0]?.id || '',
+    const summariesData = (data as any[])?.map((record: any) => ({
+      id: record.health_record_summaries?.[0]?.id || '',
       health_record_id: record.id,
-      summary_text: record.health_record_summaries[0]?.summary_text || '',
-      priority_level: (record.health_record_summaries[0]?.priority_level || 'normal') as 'always' | 'conditional' | 'normal',
+      summary_text: record.health_record_summaries?.[0]?.summary_text || '',
+      priority_level: (record.health_record_summaries?.[0]?.priority_level || 'normal') as 'always' | 'conditional' | 'normal',
       health_record: {
         title: record.title,
         record_type: record.record_type,
