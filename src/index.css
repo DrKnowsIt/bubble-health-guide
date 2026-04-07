@@ -85,80 +85,81 @@
   }
 
   .dark {
-    /* Dark Theme - Current styling preserved */
-    --background: 220 15% 8%;
-    --foreground: 0 0% 98%;
+    /* Dark Theme - Modern Hospital with Teal & White Accents */
+    --background: 210 20% 7%;
+    --foreground: 210 20% 96%;
 
-    /* Cards & Surfaces */
-    --card: 220 15% 11%;
-    --card-foreground: 0 0% 98%;
+    /* Cards & Surfaces - Slightly lifted dark */
+    --card: 210 18% 10%;
+    --card-foreground: 210 20% 96%;
 
-    /* Primary - Bright Teal */
-    --primary: 180 84% 36%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 180 84% 40%;
-    --primary-light: 180 84% 64%;
+    /* Primary - Vibrant Teal */
+    --primary: 174 72% 46%;
+    --primary-foreground: 210 20% 7%;
+    --primary-hover: 174 72% 52%;
+    --primary-light: 174 60% 65%;
 
-    /* Secondary - Clean Grey */
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --secondary-light: 220 15% 22%;
+    /* Secondary - Cool Slate */
+    --secondary: 210 18% 14%;
+    --secondary-foreground: 210 20% 92%;
+    --secondary-light: 210 18% 18%;
 
-    /* Accent - Vibrant Orange */
-    --accent: 20 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 20 100% 85%;
+    /* Accent - Warm White/Teal */
+    --accent: 174 50% 55%;
+    --accent-foreground: 210 20% 7%;
+    --accent-light: 174 50% 80%;
 
-    /* Muted Tones */
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 70%;
-    --muted-dark: 220 15% 18%;
+    /* Muted Tones - Blue-grey */
+    --muted: 210 16% 13%;
+    --muted-foreground: 210 12% 58%;
+    --muted-dark: 210 16% 17%;
 
     /* Interface Elements */
-    --border: 220 15% 24%;
-    --input: 220 15% 13%;
-    --ring: 180 84% 36%;
+    --border: 210 14% 18%;
+    --input: 210 18% 12%;
+    --ring: 174 72% 46%;
 
     /* Chat Interface */
-    --chat-bg: 220 15% 9%;
-    --chat-user: 180 84% 36%;
-    --chat-ai: 220 15% 13%;
-    --chat-bubble-shadow: 220 15% 5%;
+    --chat-bg: 210 20% 8%;
+    --chat-user: 174 72% 46%;
+    --chat-ai: 210 18% 13%;
+    --chat-bubble-shadow: 210 20% 4%;
 
     /* Status Colors */
-    --success: 142 75% 50%;
-    --warning: 20 100% 60%;
-    --destructive: 0 60% 55%;
-    --destructive-soft: 0 40% 50%;
-    --info: 180 84% 36%;
+    --success: 152 60% 48%;
+    --warning: 38 92% 55%;
+    --destructive: 0 62% 52%;
+    --destructive-soft: 0 45% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 174 72% 46%;
 
-    /* Solid Backgrounds - No Gradients */
-    --solid-primary: 180 84% 36%;
-    --solid-accent: 20 100% 60%;
-    --solid-hero: 220 15% 10%;
+    /* Solid Backgrounds */
+    --solid-primary: 174 72% 46%;
+    --solid-accent: 174 50% 55%;
+    --solid-hero: 210 20% 9%;
 
-    /* Shadows */
-    --shadow-bubble: 0 4px 16px -2px hsl(180 84% 36% / 0.3);
-    --shadow-card: 0 2px 8px -1px hsl(220 15% 5% / 0.4);
-    --shadow-elevated: 0 8px 24px -4px hsl(220 15% 5% / 0.5);
+    /* Shadows - Deep, dramatic */
+    --shadow-bubble: 0 4px 20px -2px hsl(174 72% 46% / 0.25);
+    --shadow-card: 0 2px 12px -1px hsl(210 20% 4% / 0.5);
+    --shadow-elevated: 0 8px 30px -4px hsl(210 20% 4% / 0.6);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     /* Sidebar */
-    --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 180 84% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 180 84% 36%;
+    --sidebar-background: 210 18% 9%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 174 72% 46%;
+    --sidebar-primary-foreground: 210 20% 7%;
+    --sidebar-accent: 210 18% 15%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 210 14% 16%;
+    --sidebar-ring: 174 72% 46%;
 
     /* Popovers */
-    --popover: 220 15% 13%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 210 18% 11%;
+    --popover-foreground: 210 20% 96%;
   }
 }
 
