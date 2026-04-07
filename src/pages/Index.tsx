@@ -176,7 +176,7 @@ const Index = () => {
           </section>}
 
         {/* Info Sections - Now shown on mobile too */}
-        <div className={isMobile ? "mt-4 px-4 pb-20" : "mt-12"}>
+        <div className={isMobile ? "relative z-10 mt-4 px-4 pb-20 bg-background" : "mt-12"}>
           <HowItWorks />
           <Features />
         </div>

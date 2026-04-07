@@ -811,28 +811,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!user || !selectedUser?.id) {
-      toast({
-        title: "Select a patient",
-        description: "Please select a patient before uploading an image.",
-        variant: "destructive",
-      });
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-    const result = await uploadImageToHealthRecords(file);
-    if (result?.path && result?.signedUrl) {
-      const aiDesc = await describeImageWithAI(result.signedUrl);
-      setPendingAttachment({ path: result.path, signedUrl: result.signedUrl, desc: aiDesc });
-      toast({ title: "Image ready to send", description: aiDesc });
-    }
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
-  console.log('🎯 [ChatGPTInterface] Component state - messages.length:', messages.length, 'user:', !!user, 'currentConversation:', currentConversation);
+  if (import.meta.env.DEV) console.log('🎯 [ChatGPTInterface] Component state - messages.length:', messages.length, 'user:', !!user, 'currentConversation:', currentConversation);
 
   return (
     <div className="flex h-full">
@@ -887,7 +867,6 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 )}
 
                 {messages.map((message) => {
-                  console.log('🔄 [ChatGPTInterface] Rendering message:', message.id, message.type, message.content.substring(0, 50));
                   return (
                     <div key={message.id}>
                       <div
@@ -910,7 +889,13 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                             : "bg-muted text-foreground rounded-bl-md"
                         )}
                       >
-                        <span className="whitespace-pre-wrap">{message.content}</span>
+                        <div className="whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1" dangerouslySetInnerHTML={{ __html: message.type === 'ai' ? message.content
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                          .replace(/^- (.*)/gm, '<li>$1</li>')
+                          .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                          .replace(/^\d+\. (.*)/gm, '<li>$1</li>')
+                          : message.content }} />
                       </div>
 
                       {message.type === 'user' && (
