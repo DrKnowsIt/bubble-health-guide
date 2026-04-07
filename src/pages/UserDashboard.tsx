@@ -301,12 +301,20 @@ export default function UserDashboard() {
     <div className="h-screen bg-background overflow-hidden flex flex-col">
       {/* Subscription Alert */}
       {!subscribed && (
-        <div className="bg-primary/10 border-b border-primary/20 p-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto px-4">
+        <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-4 py-2">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center gap-2">
               <Crown className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Choose a plan to unlock features</span>
+              <span className="text-sm font-medium text-foreground">Unlock AI Chat, health insights & more</span>
             </div>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 px-3 text-xs rounded-full"
+              onClick={() => navigate('/pricing')}
+            >
+              View Plans
+            </Button>
           </div>
         </div>
       )}
