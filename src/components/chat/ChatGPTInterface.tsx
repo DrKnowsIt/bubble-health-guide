@@ -1056,7 +1056,22 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                 />
               </div>
 
-{/* Image upload temporarily disabled */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-xl px-4"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!subscribed || isUploading || isInTimeout}
+              >
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              </Button>
 
               <Button 
                 onClick={() => handleSendMessage()}
