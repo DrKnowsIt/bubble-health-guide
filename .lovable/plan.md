@@ -1,62 +1,66 @@
 
-## Landing Page Modernization
 
-### Problems
-- Oversized headings (text-5xl) with loose line-height feel juvenile
-- Excessive rounded corners (rounded-2xl everywhere) look bubbly
-- Cartoon hero/doctor images undermine credibility
-- Large icon containers (h-14 w-14) with gradient backgrounds feel like a kids app
-- Loose padding (p-8) and spacing makes cards feel inflated
-- "gradient-bubble" solid teal blocks look flat and dated
-- Development banner is too prominent
-- Feature card benefits with CheckCircle icons are visually noisy
-- CTA card with inline badges feels cluttered
-- "How It Works" step numbers with overlapping badges look toy-like
+# Site Health Audit & Fix Plan
 
-### Changes
+## Issues Found
 
-#### 1. Typography refinement (Index.tsx + LandingPageComponents.tsx)
-- Hero: `text-5xl` → `text-4xl lg:text-5xl` with `tracking-tight` and `font-extrabold`
-- Section headings: Remove `gradient-text`, add `tracking-tight`
-- Body text: tighten `leading-relaxed` to `leading-normal` where excessive
-- Add letter-spacing `-0.025em` on display text
+### 1. Missing Foreign Key: `health_record_summaries` → `health_records` (CRITICAL)
+The `health_record_summaries` table has a `health_record_id` column but NO foreign key constraint to `health_records`. This causes the repeated console error:
+```
+"Could not find a relationship between 'health_records' and 'health_record_summaries' in the schema cache"
+```
+This breaks `useStrategicReferencing.tsx` (uses `!inner` join) and `ComprehensivePDFExport.tsx` (uses nested select `health_records(...)`).
 
-#### 2. Reduce border-radius globally
-- Cards: `rounded-2xl` → `rounded-xl`
-- Icon containers: `rounded-2xl` → `rounded-xl`
-- Hero image: keep `rounded-2xl` but add subtle border
+**Fix:** Add a foreign key constraint via migration:
+```sql
+ALTER TABLE public.health_record_summaries
+  ADD CONSTRAINT health_record_summaries_health_record_id_fkey
+  FOREIGN KEY (health_record_id) REFERENCES public.health_records(id) ON DELETE CASCADE;
+```
 
-#### 3. Modernize hero section (Index.tsx)
-- Replace the cartoon doctor image reference with a more professional presentation
-- Add `border border-border/50` to image container for polish
-- Tighten grid gap from `gap-16` → `gap-12`
-- Reduce description paragraph length
+### 2. `useStrategicReferencing.tsx` — Silent failure on missing FK
+Even after adding the FK, this hook silently swallows errors. The `!inner` join is correct once the FK exists, but needs a graceful fallback if the table is empty.
 
-#### 4. Slim down feature cards (LandingPageComponents.tsx)
-- Icon containers: `h-14 w-14` → `h-11 w-11`, icons `h-7 w-7` → `h-5 w-5`
-- Card padding: `p-8` → `p-6`
-- Remove hover-scale class, use subtle `hover:border-primary/30` instead
-- Simplify benefits: remove CheckCircle icons, use `·` separator inline
+**Fix:** No code change needed — the FK migration resolves this.
 
-#### 5. Modernize How It Works steps
-- Remove cartoon doctor image or replace with abstract visual
-- Step numbers: simplify to text-only numbered badges
-- Tighten step card padding
-- Remove `group-hover:scale-[1.02]`
+### 3. `ComprehensivePDFExport.tsx` — Reverse nested select also needs FK
+Line 169 does `health_records(...)` from `health_record_summaries`. This is the reverse direction and also requires the FK to exist.
 
-#### 6. Refine CTA section
-- Reduce padding, tighten copy
-- Single prominent button, remove badge clutter below
+**Fix:** Same migration resolves this.
 
-#### 7. Development banner
-- Make slimmer, reduce font weight
+### 4. Realtime channel cleanup pattern
+The current code correctly removes existing channels before re-subscribing. However, `ChatGPTInterface.tsx` line 161 creates a `diagnosis-realtime-${currentConversation}` channel without the cleanup pattern used elsewhere.
 
-#### 8. Technical accuracy card
-- Reduce padding, make more compact
+**Fix:** Add the `removeChannel` before subscribe pattern to the diagnosis realtime subscription in `ChatGPTInterface.tsx`.
 
-### Files Modified
-- `src/pages/Index.tsx` — hero section, spacing, development banner
-- `src/components/LandingPageComponents.tsx` — features, HowItWorks, CTA, footer
-- `src/index.css` — minor utility refinements
+### 5. `analyze-health-topics` edge function — May still 500
+The current code has robust JSON parsing with retry. However, checking the logs shows no recent logs, meaning either it hasn't been called or the deployment didn't take. Need to verify deployment and test.
 
-### No structural/routing/backend changes needed
+**Fix:** Re-deploy `analyze-health-topics` and test with curl to confirm it works.
+
+### 6. Landing page chat for unauthenticated users
+Unauthenticated users see a `DemoConversation` (static messages) which is fine. The chat input shows "Subscribe to start chatting..." and is disabled. This is correct behavior.
+
+No fix needed.
+
+### 7. Console warning: "No user ID available for conversations query"
+This fires on the landing page before auth redirect happens. It's harmless but noisy — the hook has an early return for no user.
+
+**Fix:** Downgrade from `console.warn` to `console.debug` or remove, since it fires on every unauthenticated page load.
+
+---
+
+## Implementation Steps
+
+1. **Database migration** — Add FK from `health_record_summaries.health_record_id` to `health_records.id`
+2. **Fix diagnosis realtime channel** in `ChatGPTInterface.tsx` — add `removeChannel` cleanup pattern
+3. **Reduce console noise** in `useConversationsQuery.tsx` — downgrade the "no user" warning
+4. **Re-deploy & test** `analyze-health-topics` edge function
+5. **Quick smoke test** — verify the dashboard loads without errors
+
+## Technical Details
+
+- The FK migration is safe because both tables exist and `health_record_id` already references health records by design — just missing the formal constraint
+- The realtime fix follows the same pattern already applied to conversations and messages channels
+- Edge function re-deployment ensures the latest JSON parsing hardening is live
+
