@@ -21,7 +21,7 @@ serve(async (req) => {
       throw new Error('Missing required parameters: conversation_id and patient_id');
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured');
     }
@@ -185,14 +185,14 @@ Return JSON array with this structure:
   }
 ]`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this conversation for holistic solutions: ${conversationText}` }

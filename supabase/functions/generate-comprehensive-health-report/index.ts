@@ -138,7 +138,7 @@ serve(async (req) => {
     });
 
     // Generate AI analysis using OpenAI
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openAIApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not found');
       return new Response(JSON.stringify({ error: 'AI service unavailable' }), {
@@ -232,14 +232,14 @@ Please analyze this health information comprehensively and provide the requested
 
     console.log('Sending request to OpenAI for comprehensive health analysis');
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }

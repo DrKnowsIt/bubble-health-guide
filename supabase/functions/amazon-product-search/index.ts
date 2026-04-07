@@ -23,7 +23,7 @@ interface ProductSearchRequest {
 
 // LLM-powered Amazon product search using OpenAI
 async function searchAmazonProducts(category: string, keywords: string[], maxResults = 3): Promise<ProductResult[]> {
-  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+  const openAIApiKey = Deno.env.get('LOVABLE_API_KEY');
   if (!openAIApiKey) {
     console.error('OpenAI API key not found');
     return [];
@@ -47,14 +47,14 @@ async function searchAmazonProducts(category: string, keywords: string[], maxRes
 }
 
 async function generateProductSearchQuery(solutionText: string, category: string, apiKey: string): Promise<string> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4.1-mini-2025-04-14',
+      model: 'google/gemini-2.5-flash',
       messages: [
         {
           role: 'system',
@@ -91,14 +91,14 @@ Return ONLY the search query, nothing else.`
 }
 
 async function searchProductsWithLLM(searchQuery: string, category: string, maxResults: number, apiKey: string): Promise<ProductResult[]> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4.1-2025-04-14',
+      model: 'google/gemini-2.5-pro',
       messages: [
         {
           role: 'system',
