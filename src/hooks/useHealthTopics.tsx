@@ -59,7 +59,7 @@ export const useHealthTopics = ({
   const [lastAnalyzedHash, setLastAnalyzedHash] = useState<string>('');
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   
-  const analysisTimeoutRef = useRef<NodeJS.Timeout>();
+  const analysisTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastAnalysisRef = useRef<Date>(new Date(0));
 
   // Smart caching - generate content hash

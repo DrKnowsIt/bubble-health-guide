@@ -58,7 +58,7 @@ export const useEnhancedHealthTopics = (options: UseEnhancedHealthTopicsOptions)
     solutions: SolutionFeedback;
   }>({ topics: {}, solutions: {} });
 
-  const analysisTimeoutRef = useRef<NodeJS.Timeout>();
+  const analysisTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastAnalysisRef = useRef<string>('');
   const lastAnalysisTimeRef = useRef<number>(0);
 

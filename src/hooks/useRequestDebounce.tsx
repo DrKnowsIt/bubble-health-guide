@@ -32,7 +32,7 @@ export const useRequestDebounce = ({
   const FAILURE_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
   const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
-  const cooldownTimeoutRef = useRef<NodeJS.Timeout>();
+  const cooldownTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const canMakeRequest = useCallback((): { allowed: boolean; reason?: string; waitTime?: number } => {
     const now = Date.now();
