@@ -611,6 +611,11 @@ export const useConversationsQuery = (selectedUser?: any) => {
     }
     
     const channelName = `conversations_changes_${user.id}_${selectedUser?.id || 'none'}`;
+    
+    // Remove any existing channel with the same name first (handles React Strict Mode double-mount)
+    const existingChannel = supabase.channel(channelName);
+    supabase.removeChannel(existingChannel);
+    
     const channel = supabase
       .channel(channelName)
       .on(
@@ -624,7 +629,6 @@ export const useConversationsQuery = (selectedUser?: any) => {
         (payload) => {
           console.log('📡 Conversation change for user/patient:', { user: user.id, patient: selectedUser?.id }, payload);
           
-          // Only invalidate queries for the current user/patient combination
           queryClient.invalidateQueries({ 
             queryKey: [CONVERSATIONS_QUERY_KEY, user.id, selectedUser?.id] 
           });
