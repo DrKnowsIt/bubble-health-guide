@@ -554,7 +554,16 @@ export const TabletChatInterface = ({
                           )}
                         </Button>
 
-{/* Image upload temporarily disabled */}
+                        <input type="file" accept="image/*" className="hidden" id="tablet-image-upload" onChange={handleImageUpload} />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById('tablet-image-upload')?.click()}
+                          disabled={isTyping || !selectedUser || isUploading}
+                          className="h-12 w-12 p-0 rounded-full transition-all duration-200 touch-manipulation"
+                        >
+                          <ImagePlus className="h-5 w-5" />
+                        </Button>
                       </div>
 
                       {/* Send Button */}
