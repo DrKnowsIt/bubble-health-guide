@@ -29,6 +29,118 @@ interface AnalysisRequest {
   analysis_type?: string;
 }
 
+function detectTruncation(response: string): boolean {
+  const text = response.trim();
+  const openBraces = (text.match(/{/g) || []).length;
+  const closeBraces = (text.match(/}/g) || []).length;
+  const openBrackets = (text.match(/\[/g) || []).length;
+  const closeBrackets = (text.match(/\]/g) || []).length;
+
+  if (openBraces !== closeBraces || openBrackets !== closeBrackets) {
+    return true;
+  }
+
+  return [/\.\.\.$/, /…$/, /\[truncated\]/i, /\[continued\]/i].some((pattern) => pattern.test(text));
+}
+
+function repairAndParseJson(jsonText: string): any {
+  let repaired = jsonText
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '');
+
+  let braceBalance = 0;
+  let bracketBalance = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (const char of repaired) {
+    if (isEscaped) {
+      isEscaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      isEscaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === '{') braceBalance++;
+    else if (char === '}') braceBalance = Math.max(0, braceBalance - 1);
+    else if (char === '[') bracketBalance++;
+    else if (char === ']') bracketBalance = Math.max(0, bracketBalance - 1);
+  }
+
+  if (inString) {
+    repaired += '"';
+  }
+
+  while (bracketBalance > 0) {
+    repaired += ']';
+    bracketBalance--;
+  }
+
+  while (braceBalance > 0) {
+    repaired += '}';
+    braceBalance--;
+  }
+
+  return JSON.parse(repaired);
+}
+
+function extractJsonFromResponse(response: string): any {
+  const directText = response.trim();
+
+  try {
+    return JSON.parse(directText);
+  } catch {
+    // Continue to cleanup strategies.
+  }
+
+  const cleaned = directText
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Continue to extraction strategies.
+  }
+
+  const codeBlockMatch = directText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeBlockMatch?.[1]) {
+    const codeBlockJson = codeBlockMatch[1].trim();
+    try {
+      return JSON.parse(codeBlockJson);
+    } catch {
+      return repairAndParseJson(codeBlockJson);
+    }
+  }
+
+  const jsonStart = cleaned.search(/[\{\[]/);
+  const jsonEnd = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+
+  if (jsonStart === -1) {
+    throw new Error('No JSON object found in response');
+  }
+
+  const extracted = cleaned.substring(jsonStart, jsonEnd === -1 ? cleaned.length : jsonEnd + 1);
+
+  try {
+    return JSON.parse(extracted);
+  } catch {
+    return repairAndParseJson(extracted);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -459,7 +571,7 @@ TESTING RECOMMENDATIONS:
 
     systemPrompt += `
 
-Return JSON with this exact structure:
+Return ONLY valid raw JSON with this exact structure. Do not wrap the JSON in markdown code fences and do not include any text before or after the JSON:
 ${responseStructure}
 
 Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics and ${include_solutions ? (isEnhancedMode ? '6-8 solutions' : (isComprehensiveAnalysis ? '6-8 solutions' : '3-5 solutions')) : 'no solutions'}${include_testing_recommendations && (isComprehensiveAnalysis || isEnhancedMode) ? ' and 4-6 testing recommendations' : ''}.`;
@@ -531,32 +643,38 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
       );
     }
 
-    let analysisData;
-    try {
-      // Strip markdown code blocks if present
-      let cleaned = aiResponse.trim();
-      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-      
-      // Try to find JSON boundaries if still not parseable
+    let analysisData: any = null;
+    let parseError: Error | null = null;
+    let responseToParse = aiResponse;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        analysisData = JSON.parse(cleaned);
-      } catch {
-        const jsonStart = cleaned.search(/[\{\[]/);
-        const jsonEnd = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-          let extracted = cleaned.substring(jsonStart, jsonEnd + 1);
-          // Fix trailing commas and control chars
-          extracted = extracted.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']').replace(/[\x00-\x1F\x7F]/g, '');
-          analysisData = JSON.parse(extracted);
-        } else {
-          throw new Error('No JSON found in response');
+        analysisData = extractJsonFromResponse(responseToParse);
+        parseError = null;
+        break;
+      } catch (error) {
+        parseError = error instanceof Error ? error : new Error('Unknown parse error');
+        console.error(`Failed to parse OpenAI JSON response (attempt ${attempt + 1}):`, parseError);
+        console.error('Raw response:', responseToParse);
+
+        if (attempt === 0) {
+          console.log(`Retrying AI analysis after parse failure. Truncated=${detectTruncation(responseToParse)}`);
+          const retryData = await makeOpenAICall();
+          const retryResponse = retryData.choices?.[0]?.message?.content;
+          responseToParse = typeof retryResponse === 'string' ? retryResponse.trim() : '';
+
+          if (responseToParse) {
+            continue;
+          }
         }
+
+        break;
       }
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI JSON response:', parseError);
-      console.error('Raw response:', aiResponse);
+    }
+
+    if (!analysisData || typeof analysisData !== 'object') {
       return new Response(
-        JSON.stringify({ error: 'Invalid response format from AI' }),
+        JSON.stringify({ error: 'Invalid response format from AI', details: parseError?.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
