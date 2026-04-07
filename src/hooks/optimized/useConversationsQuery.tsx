@@ -648,8 +648,12 @@ export const useConversationsQuery = (selectedUser?: any) => {
 
     logger.debug('Setting up real-time subscription for messages:', currentConversation);
 
+    const msgChannelName = `messages-realtime-${currentConversation}`;
+    const existingMsgChannel = supabase.channel(msgChannelName);
+    supabase.removeChannel(existingMsgChannel);
+    
     const channel = supabase
-      .channel(`messages-realtime-${currentConversation}`)
+      .channel(msgChannelName)
       .on(
         'postgres_changes',
         {
