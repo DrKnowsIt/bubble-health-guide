@@ -218,7 +218,7 @@ export const useComprehensiveHealthReport = (selectedUser?: User | null) => {
   }, [report, checkIfReportNeedsRegeneration]);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     
     // Debounce the fetch to prevent rapid re-fetches
     timeoutId = setTimeout(() => {

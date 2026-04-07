@@ -44,13 +44,13 @@ export const useConversationsQuery = (selectedUser?: any) => {
   const lastValidConversationRef = useRef<string | null>(null);
   const lastValidUserRef = useRef<string | null>(null);
   const isInitialLoadRef = useRef(true);
-  const conversationClearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const conversationClearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Mutation protection refs
   const isCreatingConversationRef = useRef(false);
   const isSavingMessageRef = useRef(false);
   const recentlyCreatedConversationsRef = useRef<Set<string>>(new Set());
-  const mutationProtectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mutationProtectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clear conversation state when user changes to prevent cross-contamination
   useEffect(() => {

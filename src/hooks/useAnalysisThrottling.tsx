@@ -23,7 +23,7 @@ export const useAnalysisThrottling = () => {
     analysisAttempts: new Map()
   });
 
-  const processingTimeoutRef = useRef<NodeJS.Timeout>();
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
   // Configuration - Optimized for natural conversation flow
   const MAX_CONCURRENT_ANALYSES = 5;

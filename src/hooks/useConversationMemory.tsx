@@ -27,7 +27,7 @@ export const useConversationMemory = (patientId?: string) => {
   const [loading, setLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const previousPatientIdRef = useRef<string | undefined>();
-  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
+  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const fetchMemories = useCallback(async () => {
     // Early return if no user

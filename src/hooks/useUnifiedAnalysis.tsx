@@ -56,7 +56,7 @@ export const useUnifiedAnalysis = ({ conversationId, patientId, onAnalysisComple
     messagesUntilDeepAnalysis: DEEP_INTERVAL
   });
 
-  const stageTimeoutRef = useRef<NodeJS.Timeout>();
+  const stageTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Update AI message count and calculate remaining messages until analysis
   const updateMessageCount = useCallback((aiMessageCount: number) => {

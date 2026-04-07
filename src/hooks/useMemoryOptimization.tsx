@@ -23,7 +23,7 @@ export const useMemoryOptimization = (options: MemoryCleanupOptions = {
   const { user } = useAuth();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [stats, setStats] = useState<MemoryStats | null>(null);
-  const cleanupTimeoutRef = useRef<NodeJS.Timeout>();
+  const cleanupTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const getMemoryStats = useCallback(async (): Promise<MemoryStats | null> => {
     if (!user?.id) return null;
