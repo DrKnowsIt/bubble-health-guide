@@ -66,7 +66,7 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="h-6 bg-muted rounded w-32"></div>
+        <div className="h-5 bg-muted rounded w-28"></div>
       </div>
     );
   }
@@ -81,8 +81,8 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
   if (userCount === 0) {
     if (variant === 'hero') {
       return (
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-full border border-primary/20 text-sm font-medium text-primary ${className}`}>
-          <Zap className="h-4 w-4" />
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-primary/8 rounded-full border border-primary/15 text-xs font-medium text-primary ${className}`}>
+          <Zap className="h-3.5 w-3.5" />
           <span>Now available — be among the first to try DrKnowsIt</span>
         </div>
       );
@@ -92,8 +92,8 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
 
   if (variant === 'hero') {
     return (
-      <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-full border border-primary/20 text-sm font-medium text-primary ${className}`}>
-        <Users className="h-4 w-4" />
+      <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-primary/8 rounded-full border border-primary/15 text-xs font-medium text-primary ${className}`}>
+        <Users className="h-3.5 w-3.5" />
         <span>Join {formatCount(userCount)} families using DrKnowsIt</span>
       </div>
     );
@@ -101,9 +101,9 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
 
   return (
     <div className={`inline-flex items-center gap-2 text-sm font-medium text-muted-foreground ${className}`}>
-      <Users className="h-4 w-4 text-primary" />
+      <Users className="h-3.5 w-3.5 text-primary" />
       <span>
-        Trusted by <span className="text-primary font-semibold">{formatCount(userCount)} families</span> and their pets
+        Trusted by <span className="text-primary font-semibold">{formatCount(userCount)} families</span>
       </span>
     </div>
   );
@@ -112,26 +112,26 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
 // ============= Features Component =============
 const features = [{
   icon: MessageCircle,
-  title: "AI-Powered Health Analysis",
-  description: "Analyzes your symptoms using the latest medical knowledge, providing personalized insights for humans and pets.",
+  title: "AI Health Analysis",
+  description: "Analyzes symptoms using the latest medical knowledge with personalized insights for humans and pets.",
   highlight: "Basic+",
   benefits: ["Smart symptom analysis", "Evidence-based insights", "Personalized recommendations"]
 }, {
   icon: Mic,
-  title: "Multi-Modal Intelligence",
+  title: "Multi-Modal Input",
   description: "Speak or type your concerns naturally — DrKnowsIt understands both and provides tailored analysis.",
-  highlight: "Pro Only",
+  highlight: "Pro",
   benefits: ["Advanced voice recognition", "Natural speech processing", "Text & voice input"]
 }, {
   icon: FileText,
   title: "Smart Health Profiles",
   description: "Builds health histories for your family and pets, tracking patterns and medications over time.",
-  highlight: "Pro Only",
+  highlight: "Pro",
   benefits: ["Pattern recognition", "Medication tracking", "Family & pet profiles"]
 }, {
   icon: Users,
   title: "Appointment Optimizer",
-  description: "Generates organized summaries and targeted questions so you make the most of every appointment.",
+  description: "Generates organized summaries and targeted questions so you make the most of every visit.",
   highlight: "Basic+",
   benefits: ["Professional summaries", "Targeted questions", "Visit preparation"]
 }, {
@@ -144,91 +144,73 @@ const features = [{
   icon: Zap,
   title: "Contextual Memory",
   description: "Remembers your health journey and connects past conversations for increasingly relevant insights.",
-  highlight: "Pro Only",
+  highlight: "Pro",
   benefits: ["Conversation memory", "Connected insights", "Evolving understanding"]
 }];
 
 export const Features = () => {
   return (
-    <section id="features" className="py-20 bg-gradient-to-b from-background to-muted/30">
+    <section id="features" className="py-20 bg-gradient-to-b from-background to-muted/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl font-bold text-foreground sm:text-5xl mb-6 gradient-text">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4 tracking-tight">
             Why Choose DrKnowsIt?
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Our AI-powered platform combines advanced technology with healthcare and veterinary expertise to provide 
-            you with personalized guidance and seamless communication with doctors and veterinarians.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto leading-normal">
+            Advanced AI combined with healthcare and veterinary expertise for personalized guidance and seamless provider communication.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feature, index) => (
-            <Card key={index} className="group hover-scale animate-fade-in bg-card/95 backdrop-blur shadow-card hover:shadow-elevated transition-all duration-300" style={{
+            <Card key={index} className="group bg-card/80 backdrop-blur border border-border hover:border-primary/25 shadow-sm hover:shadow-card transition-all duration-300" style={{
               animationDelay: `${index * 0.1}s`
             }}>
-              <CardContent className="p-8">
+              <CardContent className="p-6">
                 {/* Icon and Badge */}
-                <div className="flex items-start justify-between mb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl gradient-bubble text-primary-foreground group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="h-7 w-7" />
+                <div className="flex items-start justify-between mb-4">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <feature.icon className="h-5 w-5" />
                   </div>
-                  <Badge variant="secondary" className="text-xs font-medium">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-md">
                     {feature.highlight}
-                  </Badge>
+                  </span>
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                <h3 className="text-base font-bold text-foreground mb-2 group-hover:text-primary transition-colors tracking-tight">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed mb-6">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {feature.description}
                 </p>
 
-                {/* Benefits */}
-                <div className="space-y-2">
-                  {feature.benefits.map((benefit, benefitIndex) => (
-                    <div key={benefitIndex} className="flex items-center text-sm text-muted-foreground">
-                      <CheckCircle className="h-4 w-4 text-accent mr-2 flex-shrink-0" />
-                      {benefit}
-                    </div>
-                  ))}
-                </div>
+                {/* Benefits — inline dots */}
+                <p className="text-xs text-muted-foreground/70">
+                  {feature.benefits.join(' · ')}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Call to Action */}
-        <div className="mt-20 text-center animate-fade-in">
-          <Card className="inline-block p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+        <div className="mt-16 text-center">
+          <Card className="inline-block max-w-2xl w-full p-6 bg-card border-primary/15">
             <CardContent className="p-0">
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Ready to Transform Your Healthcare & Pet Care Experience?
+              <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                Ready to Transform Your Healthcare Experience?
               </h3>
-              <p className="text-muted-foreground mb-6 max-w-2xl">
+              <p className="text-sm text-muted-foreground mb-5">
                 Join our early users building the future of AI-powered healthcare communication.
               </p>
-              <Button size="lg" className="mb-6" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                Get Started Free <ArrowRight className="h-4 w-4 ml-1" />
+              <Button size="lg" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                Get Started Free <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
-              <UserCountBadge variant="cta" className="justify-center mb-4" />
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:space-x-6 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  Early access available
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  AI-powered insights
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  Secure & private
-                </div>
+              <div className="mt-4">
+                <UserCountBadge variant="cta" className="justify-center" />
               </div>
             </CardContent>
           </Card>
@@ -243,25 +225,25 @@ const steps = [
   {
     icon: Brain,
     title: "Multi-Layer Processing",
-    description: "Your health or pet care question is processed through our proprietary chain-of-thought architecture, breaking complex queries into structured medical and veterinary reasoning steps.",
+    description: "Your query is processed through chain-of-thought architecture, breaking complex questions into structured medical reasoning steps.",
     step: "01"
   },
   {
     icon: Filter,
     title: "Hallucination Filtering",
-    description: "Our advanced validation system cross-references responses against verified medical and veterinary databases and flags any uncertain information before delivery.",
+    description: "Advanced validation cross-references responses against verified medical databases and flags uncertain information.",
     step: "02"
   },
   {
     icon: CheckCircle,
     title: "Confidence Scoring",
-    description: "Every suggestion includes confidence indicators to help you understand which possibilities to discuss with your doctor or veterinarian first.",
+    description: "Every suggestion includes confidence indicators to help prioritize which possibilities to discuss with your provider.",
     step: "03"
   },
   {
     icon: ArrowRight,
     title: "Contextual Refinement",
-    description: "The AI maintains conversation context and health profiles for your family and pets to provide increasingly personalized and accurate guidance over time.",
+    description: "The AI maintains context and health profiles to provide increasingly personalized guidance over time.",
     step: "04"
   }
 ];
@@ -270,32 +252,31 @@ export const HowItWorks = () => {
   return (
     <section id="how-it-works" className="py-20 bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-3 tracking-tight">
             How DrKnowsIt Works
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Our unique architecture processes health and pet care information through multiple validation layers, 
-            helping you organize symptoms and prepare thoughtful questions for doctors and veterinarians.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto leading-normal">
+            Multiple validation layers process health information, helping you organize symptoms and prepare thoughtful questions for your providers.
           </p>
         </div>
 
         {/* Main Content with Image and Steps */}
-        <div className="grid lg:grid-cols-2 gap-8 items-center mb-16">
+        <div className="grid lg:grid-cols-2 gap-10 items-center mb-14">
           {/* Left side - Doctor Image */}
           <div className="flex justify-center">
-            <div className="relative max-w-sm w-full">
+            <div className="relative max-w-xs w-full">
               <img 
                 src="/lovable-uploads/82b7c835-d673-4823-a50b-9f9acb76779f.png"
                 alt="Friendly blue holographic cartoon doctor with medical head mirror, lab coat, and thumbs up gesture, surrounded by medical icons on teal background"
-                className="w-full h-auto rounded-2xl shadow-2xl"
+                className="w-full h-auto rounded-xl shadow-lg border border-border/50"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/15 to-transparent rounded-xl"></div>
             </div>
           </div>
 
-          {/* Right side - Steps arranged vertically */}
-          <div className="space-y-4">
+          {/* Right side - Steps */}
+          <div className="space-y-3">
             {steps.map((step, index) => (
               <div
                 key={index}
@@ -303,28 +284,24 @@ export const HowItWorks = () => {
               >
                 {/* Vertical Connection Line */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-16 left-6 w-px h-8 bg-border z-0">
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
+                  <div className="hidden md:block absolute top-14 left-5 w-px h-6 bg-border z-0"></div>
                 )}
                 
-                <div className="flex items-start gap-4 medical-card p-4 group-hover:scale-[1.02] transition-all duration-300 relative z-10">
-                  <div className="shrink-0">
-                    <div className="relative">
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                        {step.step}
-                      </div>
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg gradient-bubble text-primary-foreground group-hover:shadow-elevated transition-shadow">
-                        <step.icon className="h-6 w-6" />
-                      </div>
+                <div className="flex items-start gap-4 bg-card border border-border rounded-xl p-4 hover:border-primary/20 transition-all duration-200 relative z-10">
+                  <div className="shrink-0 relative">
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-[10px] font-bold">
+                      {step.step}
+                    </div>
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <step.icon className="h-5 w-5" />
                     </div>
                   </div>
                   
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-foreground mb-1 tracking-tight">
                       {step.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {step.description}
                     </p>
                   </div>
@@ -335,24 +312,24 @@ export const HowItWorks = () => {
         </div>
 
         {/* Technical Details */}
-        <div className="medical-card p-8 text-center">
-          <h3 className="text-2xl font-bold text-foreground mb-4">
+        <div className="bg-card border border-border rounded-xl p-6 text-center max-w-3xl mx-auto">
+          <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight">
             Built for Medical & Veterinary Accuracy
           </h3>
-          <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-6">
-            Every suggestion is validated against medical knowledge bases and scored for likelihood, helping you prepare informed questions before consulting professionals.
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto leading-normal mb-4">
+            Every suggestion is validated against medical knowledge bases and scored for likelihood, helping you prepare informed questions.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
+          <div className="flex flex-wrap justify-center gap-5 text-xs">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Shield className="h-3.5 w-3.5 text-primary" />
               <span>Multi-layer validation</span>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Brain className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Brain className="h-3.5 w-3.5 text-primary" />
               <span>Confidence scoring</span>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Stethoscope className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Stethoscope className="h-3.5 w-3.5 text-primary" />
               <span>Human & veterinary focus</span>
             </div>
           </div>
@@ -367,31 +344,31 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
   const isMobile = useIsMobile();
   
   return (
-    <footer className="bg-muted/50 border-t border-border">
+    <footer className="bg-muted/30 border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="py-12">
+        <div className="py-10">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="md:col-span-1">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-bubble">
-                  <Stethoscope className="h-6 w-6 text-primary-foreground" />
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <Stethoscope className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground">DrKnowsIt</div>
-                  <div className="text-xs text-muted-foreground">AI Medical Guidance</div>
+                  <div className="text-sm font-bold text-foreground">DrKnowsIt</div>
+                  <div className="text-[10px] text-muted-foreground">AI Medical Guidance</div>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Empowering individuals with AI-powered medical guidance to make informed health decisions 
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                AI-powered medical guidance to make informed health decisions 
                 and improve communication with healthcare providers.
               </p>
             </div>
 
             {/* Product */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-4">Product</h3>
-               <ul className="space-y-3 text-sm">
+              <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">Product</h3>
+               <ul className="space-y-2.5 text-xs">
                   <li>
                     {isMobile ? (
                       <Dialog>
@@ -466,8 +443,8 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
 
             {/* Support */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-4">Support</h3>
-               <ul className="space-y-3 text-sm">
+              <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">Support</h3>
+               <ul className="space-y-2.5 text-xs">
                  <li>
                    <Link to="/faq" className="text-muted-foreground hover:text-primary transition-smooth">
                      Help Center
@@ -493,16 +470,16 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
 
             {/* Contact */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-4">Contact</h3>
-               <ul className="space-y-3 text-sm">
+              <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">Contact</h3>
+               <ul className="space-y-2.5 text-xs">
                  <li className="flex items-center space-x-2">
-                   <Mail className="h-4 w-4 text-muted-foreground" />
+                   <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                    <a href="mailto:support@drknowit.com" className="text-muted-foreground hover:text-primary transition-smooth">
                      support@drknowit.com
                    </a>
                  </li>
                  <li className="flex items-center space-x-2 text-muted-foreground">
-                   <Shield className="h-4 w-4" />
+                   <Shield className="h-3.5 w-3.5" />
                    <span>Enterprise Security</span>
                  </li>
                </ul>
@@ -510,17 +487,17 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
           </div>
         </div>
 
-        {/* Bottom Section - Mobile optimized */}
-        <div className="border-t border-border py-6 lg:py-8">
-          <div className="flex flex-col lg:flex-row justify-between items-center space-y-3 lg:space-y-0 gap-4">
-            <div className="mobile-text-sm text-muted-foreground text-center lg:text-left">
+        {/* Bottom Section */}
+        <div className="border-t border-border py-5">
+          <div className="flex flex-col lg:flex-row justify-between items-center space-y-2 lg:space-y-0 gap-3">
+            <div className="text-xs text-muted-foreground/70 text-center lg:text-left">
               © 2026 DrKnowsIt. All rights reserved.
             </div>
             
-            {/* Important Medical Disclaimer - Mobile responsive */}
-            <div className="flex items-center gap-2 rounded-lg bg-warning/10 border border-warning/20 px-3 py-2 max-w-full">
-              <Heart className="h-4 w-4 text-warning flex-shrink-0" />
-              <span className="mobile-text-xs font-medium text-warning text-center lg:text-left break-words">
+            {/* Important Medical Disclaimer */}
+            <div className="flex items-center gap-1.5 rounded-md bg-warning/5 border border-warning/15 px-2.5 py-1.5">
+              <Heart className="h-3 w-3 text-warning/70 flex-shrink-0" />
+              <span className="text-[10px] text-warning/70">
                 Not a substitute for professional medical advice
               </span>
             </div>
