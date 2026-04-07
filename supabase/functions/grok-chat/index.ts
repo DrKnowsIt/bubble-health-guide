@@ -679,12 +679,17 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       
       // Enhanced error handling with specific error messages
       let userFriendlyMessage = 'I encountered an error while processing your request. You can try asking your question again.';
+      let statusCode = 500;
       
       if (response.status === 401 || response.status === 403) {
         userFriendlyMessage = 'Authentication error with AI service. Please contact support.';
         console.error('OpenAI authentication failed - check API key');
       } else if (response.status === 429) {
         userFriendlyMessage = 'AI service is busy. Please wait a moment and try again.';
+        statusCode = 429;
+      } else if (response.status === 402) {
+        userFriendlyMessage = 'AI service credits exhausted. Please try again later.';
+        statusCode = 402;
       } else if (response.status === 400) {
         userFriendlyMessage = 'I had trouble understanding your request. Could you rephrase your question?';
         console.error('OpenAI bad request:', errorText);
@@ -697,7 +702,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
           error: userFriendlyMessage,
           technical_details: errorText 
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -748,10 +753,8 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       }
     }
     
-    // Clean the response text and remove any image suggestions
+    // Clean only internal markers from response, preserve markdown formatting
     const cleanedResponse = responseText
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
       .replace(/\[IMAGE_SUGGESTION:.*?\]/g, '')
       .trim();
 

@@ -699,14 +699,21 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
         handleTokenLimitError(error);
         // Don't add an error message for token limits - the UI will show the timeout notification
         return;
-      } else if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
-        errorContent = 'AI Chat is a Pro feature. Upgrade to continue.';
+      } else if (error?.status === 402) {
+        errorContent = 'AI service credits have been exhausted. Please try again later.';
         toast({
-          title: 'Pro plan required',
-          description: 'AI Chat requires a Pro subscription.',
+          title: 'Credits exhausted',
+          description: 'The AI service has run out of credits. Please try again later.',
+          variant: 'destructive',
+        });
+      } else if (error?.status === 403 || /pro/i.test(error?.message || '') || /subscription/i.test(error?.message || '')) {
+        errorContent = 'AI Chat requires a subscription. Upgrade to continue.';
+        toast({
+          title: 'Subscription required',
+          description: 'AI Chat requires an active subscription.',
           action: (
             <ToastAction altText="Upgrade" onClick={() => createCheckoutSession('pro')}>
-              Upgrade to Pro
+              View Plans
             </ToastAction>
           ),
         });

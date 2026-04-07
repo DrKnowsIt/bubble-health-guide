@@ -1,4 +1,5 @@
 import { Bot, UserIcon } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Message } from '@/hooks/optimized/useConversationsQuery';
 import { ProductCard } from '@/components/ui/product-card';
 
@@ -7,21 +8,23 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = ({ message }: ChatMessageProps) => {
+  const isUser = message.type === 'user';
+
   return (
-    <div className={`flex ${message.type === 'user' ? "justify-end" : "justify-start"} mb-4`}>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
       <div
         className={`flex max-w-[80%] gap-3 ${
-          message.type === 'user' ? "flex-row-reverse" : "flex-row"
+          isUser ? "flex-row-reverse" : "flex-row"
         }`}
       >
         <div
           className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
-            message.type === 'user' 
+            isUser
               ? "bg-primary text-primary-foreground" 
               : "bg-muted text-muted-foreground"
           }`}
         >
-          {message.type === 'user' ? (
+          {isUser ? (
             <UserIcon className="h-4 w-4" />
           ) : (
             <Bot className="h-4 w-4" />
@@ -29,7 +32,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
         </div>
         <div
           className={`px-4 py-3 rounded-2xl max-w-full overflow-hidden shadow-sm ${
-            message.type === 'user'
+            isUser
               ? "bg-primary text-primary-foreground" 
               : "bg-muted text-foreground"
           }`}
@@ -43,9 +46,22 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
               />
             </div>
           )}
-          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-            {message.content}
-          </p>
+
+          {isUser ? (
+            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+              {message.content}
+            </p>
+          ) : (
+            <div className="text-sm leading-relaxed prose prose-sm prose-invert max-w-none
+              prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
+              prose-headings:my-2 prose-headings:text-foreground
+              prose-strong:text-foreground prose-em:text-foreground/90
+              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+              prose-code:text-primary prose-code:bg-background/50 prose-code:px-1 prose-code:rounded
+              prose-pre:bg-background/50 prose-pre:rounded-lg">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          )}
           
           {/* Product recommendations */}
           {message.products && message.products.length > 0 && (
