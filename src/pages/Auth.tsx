@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { signInSchema, signUpSchema, validateForm } from '@/lib/validation';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
+
 import { toast } from 'sonner';
 
 export default function Auth() {
