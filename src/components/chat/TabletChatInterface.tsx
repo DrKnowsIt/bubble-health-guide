@@ -317,9 +317,14 @@ export const TabletChatInterface = ({
         // Don't show an error toast - the UI will show the timeout notification
         return;
       }
+      
+      if (error?.status === 402) {
+        toast({ title: 'Credits exhausted', description: 'AI service credits have been exhausted. Please try again later.', variant: 'destructive' });
+        return;
+      }
 
       const msg = typeof error?.message === 'string' && /subscription|upgrade/i.test(error.message)
-        ? 'This feature requires a Pro subscription. Please upgrade to continue.'
+        ? 'This feature requires a subscription. Please upgrade to continue.'
         : 'Failed to send message. Please try again.';
       toast({ title: 'Error', description: msg, variant: 'destructive' });
     } finally {
