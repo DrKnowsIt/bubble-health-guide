@@ -33,7 +33,7 @@ import { useQueryClient } from '@tanstack/react-query';
 console.log('🔍 [DEBUG] ChatInterfaceWithPatients loaded');
 
 // Debug controls for development
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).debugTimeout = {
     trigger: () => {
       const event = new CustomEvent('debugTimeout');
@@ -118,7 +118,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
 
   // Debug function to test token timeout (only in development)
   const testTokenTimeout = () => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.log('🧪 [DEBUG] Simulating token timeout');
       handleTokenLimitError({
         status: 429,
@@ -547,7 +547,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
           </div>
 
           {/* Debug controls in development */}
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.DEV && (
             <div className="p-3 bg-muted/50 rounded-lg space-y-2">
               <h4 className="font-medium text-sm">Debug Controls</h4>
               <div className="space-y-1">
@@ -643,7 +643,7 @@ export const ChatInterfaceWithUsers = ({ onSendMessage, isMobile = false, select
             <SimpleTokenTimeoutNotification />
 
             {/* Debug controls for development */}
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <div className="border-t p-2 bg-muted/50">
                 <div className="flex gap-2">
                   <Button 

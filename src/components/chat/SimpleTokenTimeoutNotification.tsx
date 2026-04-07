@@ -50,7 +50,7 @@ export const SimpleTokenTimeoutNotification = () => {
       </div>
       
       {/* Debug controls in development */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <div className="flex gap-2 pt-2 border-t border-amber-200 dark:border-amber-800">
           <Button 
             size="sm" 
