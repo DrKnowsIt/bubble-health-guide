@@ -25,7 +25,7 @@ serve(async (req) => {
       );
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({ error: 'OpenAI API key not configured' }),
@@ -656,14 +656,14 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       }
     }];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -775,7 +775,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
           user_id: user_id,
           patient_id: patient_id || null,
           function_name: 'grok-chat',
-          model_used: 'gpt-4o-mini',
+          model_used: 'google/gemini-2.5-flash',
           input_tokens: inputTokens,
           output_tokens: outputTokens,
           total_tokens: inputTokens + outputTokens,

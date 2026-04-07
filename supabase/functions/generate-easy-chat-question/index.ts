@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openAIApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
@@ -77,14 +77,14 @@ Based on this conversation history, what should the next logical question be? Ge
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second timeout
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // More reliable model for question generation
+        model: 'google/gemini-2.5-flash', // More reliable model for question generation
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }

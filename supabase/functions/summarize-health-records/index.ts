@@ -88,7 +88,7 @@ Created: ${healthRecord.created_at}
     `.trim();
 
     // Generate summary using OpenAI
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openAIApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
@@ -108,14 +108,14 @@ Health Record:
 ${recordContent}
     `.trim();
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'openai/gpt-5-mini',
         messages: [
           { 
             role: 'system', 

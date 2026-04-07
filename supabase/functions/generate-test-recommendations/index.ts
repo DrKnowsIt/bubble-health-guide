@@ -25,7 +25,7 @@ serve(async (req) => {
     }
 
     // Get OpenAI API key
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openaiApiKey) {
       return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
         status: 500,
@@ -154,14 +154,14 @@ Respond only with valid JSON.`;
 
     // Call OpenAI API
     console.log('Calling OpenAI for test recommendations...');
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openaiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'openai/gpt-5',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Please analyze this ${isPatientPet ? 'pet' : 'patient'} and recommend appropriate diagnostic tests.` }

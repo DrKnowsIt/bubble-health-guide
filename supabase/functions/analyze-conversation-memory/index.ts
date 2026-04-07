@@ -23,7 +23,7 @@ serve(async (req) => {
       throw new Error('Missing required parameters: conversation_id and patient_id');
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured');
     }
@@ -224,14 +224,14 @@ Extract memory updates as a JSON object. Include health record insights and high
 Only return the JSON object. If no new memory-worthy information is found, return an empty object: {}`;
 
     // Call OpenAI for memory analysis
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openaiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'openai/gpt-5-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze this conversation and extract memory updates according to the rules.' }
