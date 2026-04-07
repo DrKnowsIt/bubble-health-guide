@@ -124,12 +124,9 @@ const Index = () => {
                   </div>
                   
                   {/* Powered by note */}
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <p className="text-sm text-muted-foreground/80">
                       Powered by GPT-5, Grok & more • Available 24/7
-                    </p>
-                    <p className="text-xs text-muted-foreground/70 mt-2">
-                      Dermatological image examples powered by ISIC Archive
                     </p>
                   </div>
                 </div>
@@ -142,18 +139,15 @@ const Index = () => {
                       alt="Blue holographic cartoon doctor handing clipboard to real doctor with stethoscope, alongside smiling family with their dog on teal background"
                       className="w-full h-auto rounded-2xl shadow-2xl"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent rounded-2xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-2xl"></div>
                   </div>
                 </div>
               </div>
 
               {/* Desktop Chat Interface with Sidebar */}
-              <div className="mb-6 text-center">
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  See DrKnowsIt in Action
-                </h3>
-                <p className="text-muted-foreground">
-                  This is what a conversation with our AI health assistant looks like
+              <div className="mb-4 text-center">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Try it now — ask anything about your health
                 </p>
               </div>
               

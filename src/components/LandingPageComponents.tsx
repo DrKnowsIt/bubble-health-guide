@@ -78,6 +78,18 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
     return `${count}+`;
   };
 
+  if (userCount === 0) {
+    if (variant === 'hero') {
+      return (
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-full border border-primary/20 text-sm font-medium text-primary ${className}`}>
+          <Zap className="h-4 w-4" />
+          <span>Now available — be among the first to try DrKnowsIt</span>
+        </div>
+      );
+    }
+    return null;
+  }
+
   if (variant === 'hero') {
     return (
       <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/20 rounded-full border border-primary/20 text-sm font-medium text-primary ${className}`}>
@@ -101,37 +113,37 @@ export const UserCountBadge = ({ variant = 'cta', className = '' }: UserCountBad
 const features = [{
   icon: MessageCircle,
   title: "AI-Powered Health Analysis",
-  description: "Advanced AI analyzes your symptoms and health concerns using the latest medical knowledge, providing personalized insights for both human and pet health to help you communicate more effectively with healthcare providers.",
+  description: "Analyzes your symptoms using the latest medical knowledge, providing personalized insights for humans and pets.",
   highlight: "Basic+",
   benefits: ["Smart symptom analysis", "Evidence-based insights", "Personalized recommendations"]
 }, {
   icon: Mic,
   title: "Multi-Modal Intelligence",
-  description: "Communicate through text or voice. Speak your concerns naturally or type detailed descriptions - DrKnowsIt understands both and provides comprehensive analysis tailored to your communication style.",
+  description: "Speak or type your concerns naturally — DrKnowsIt understands both and provides tailored analysis.",
   highlight: "Pro Only",
   benefits: ["Advanced voice recognition", "Natural speech processing", "Text & voice input"]
 }, {
   icon: FileText,
   title: "Smart Health Profiles",
-  description: "Automatically builds detailed health histories for your entire family and pets, tracking patterns, medications, and symptoms over time to provide better context for healthcare visits.",
+  description: "Builds health histories for your family and pets, tracking patterns and medications over time.",
   highlight: "Pro Only",
   benefits: ["Pattern recognition", "Medication tracking", "Family & pet profiles"]
 }, {
   icon: Users,
   title: "Appointment Optimizer",
-  description: "Generates professional, organized summaries and targeted questions for your healthcare visits. Ensures you maximize your limited appointment time and don't forget crucial details.",
+  description: "Generates organized summaries and targeted questions so you make the most of every appointment.",
   highlight: "Basic+",
   benefits: ["Professional summaries", "Targeted questions", "Visit preparation"]
 }, {
   icon: Shield,
   title: "Enterprise Security",
-  description: "Bank-level encryption protects your health data. Your conversations remain private with zero data sharing. All processing happens securely within our protected infrastructure.",
+  description: "Bank-level encryption keeps your health data private. Zero data sharing, fully secured.",
   highlight: "Basic+",
   benefits: ["Bank-level encryption", "Private conversations", "Secure infrastructure"]
 }, {
   icon: Zap,
   title: "Contextual Memory",
-  description: "DrKnowsIt remembers your health journey, connecting past conversations to provide more relevant insights. No need to repeat your medical history - it builds on previous discussions.",
+  description: "Remembers your health journey and connects past conversations for increasingly relevant insights.",
   highlight: "Pro Only",
   benefits: ["Conversation memory", "Connected insights", "Evolving understanding"]
 }];
@@ -197,10 +209,13 @@ export const Features = () => {
               <h3 className="text-2xl font-bold text-foreground mb-4">
                 Ready to Transform Your Healthcare & Pet Care Experience?
               </h3>
-              <p className="text-muted-foreground mb-4 max-w-2xl">
-                Join our early users who are helping us build the future of AI-powered healthcare and veterinary communication.
+              <p className="text-muted-foreground mb-6 max-w-2xl">
+                Join our early users building the future of AI-powered healthcare communication.
               </p>
-              <UserCountBadge variant="cta" className="justify-center mb-6" />
+              <Button size="lg" className="mb-6" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                Get Started Free <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+              <UserCountBadge variant="cta" className="justify-center mb-4" />
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
@@ -293,7 +308,7 @@ export const HowItWorks = () => {
                   </div>
                 )}
                 
-                <div className="flex items-start gap-4 medical-card p-4 group-hover:scale-105 transition-all duration-300 relative z-10">
+                <div className="flex items-start gap-4 medical-card p-4 group-hover:scale-[1.02] transition-all duration-300 relative z-10">
                   <div className="shrink-0">
                     <div className="relative">
                       <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
@@ -324,12 +339,23 @@ export const HowItWorks = () => {
           <h3 className="text-2xl font-bold text-foreground mb-4">
             Built for Medical & Veterinary Accuracy
           </h3>
-          <p className="text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Our proprietary chain-of-thought processing architecture breaks down complex symptom descriptions for both humans and pets into 
-            structured possibilities. Each suggestion is validated against medical and veterinary knowledge bases and scored for 
-            likelihood. This helps you prepare informed questions and organize your thoughts before consulting with 
-            healthcare professionals and veterinarians for proper diagnosis and treatment.
+          <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-6">
+            Every suggestion is validated against medical knowledge bases and scored for likelihood, helping you prepare informed questions before consulting professionals.
           </p>
+          <div className="flex flex-wrap justify-center gap-6 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Multi-layer validation</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Brain className="h-4 w-4 text-primary" />
+              <span>Confidence scoring</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Stethoscope className="h-4 w-4 text-primary" />
+              <span>Human & veterinary focus</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -488,7 +514,7 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
         <div className="border-t border-border py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row justify-between items-center space-y-3 lg:space-y-0 gap-4">
             <div className="mobile-text-sm text-muted-foreground text-center lg:text-left">
-              © 2025 DrKnowsIt. All rights reserved.
+              © 2026 DrKnowsIt. All rights reserved.
             </div>
             
             {/* Important Medical Disclaimer - Mobile responsive */}
