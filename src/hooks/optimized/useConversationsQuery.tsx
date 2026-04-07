@@ -610,8 +610,9 @@ export const useConversationsQuery = (selectedUser?: any) => {
       filter += `&patient_id=is.null`;
     }
     
+    const channelName = `conversations_changes_${user.id}_${selectedUser?.id || 'none'}`;
     const channel = supabase
-      .channel('conversations_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -644,7 +645,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     logger.debug('Setting up real-time subscription for messages:', currentConversation);
 
     const channel = supabase
-      .channel('messages-realtime')
+      .channel(`messages-realtime-${currentConversation}`)
       .on(
         'postgres_changes',
         {
