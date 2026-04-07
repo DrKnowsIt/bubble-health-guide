@@ -533,9 +533,28 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
 
     let analysisData;
     try {
-      analysisData = JSON.parse(aiResponse);
+      // Strip markdown code blocks if present
+      let cleaned = aiResponse.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+      
+      // Try to find JSON boundaries if still not parseable
+      try {
+        analysisData = JSON.parse(cleaned);
+      } catch {
+        const jsonStart = cleaned.search(/[\{\[]/);
+        const jsonEnd = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+          let extracted = cleaned.substring(jsonStart, jsonEnd + 1);
+          // Fix trailing commas and control chars
+          extracted = extracted.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']').replace(/[\x00-\x1F\x7F]/g, '');
+          analysisData = JSON.parse(extracted);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      }
     } catch (parseError) {
       console.error('Failed to parse OpenAI JSON response:', parseError);
+      console.error('Raw response:', aiResponse);
       return new Response(
         JSON.stringify({ error: 'Invalid response format from AI' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
