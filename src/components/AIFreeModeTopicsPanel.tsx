@@ -40,36 +40,31 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
   // Update topics when healthTopics prop changes (from real-time generation)
   useEffect(() => {
     if (healthTopics && healthTopics.length > 0) {
-      console.log('Received real-time health topics:', healthTopics);
       setTopics(healthTopics);
       setLastAnalyzedCount(conversationPath.length);
     }
   }, [healthTopics, conversationPath.length]);
 
-  // Generate topics more frequently for better responsiveness
+  // Fallback topic generation — only if parent hasn't provided any topics
   useEffect(() => {
-    // Skip if we already have topics from props and they're sufficient
-    if (healthTopics && healthTopics.length >= 4) return;
+    // Skip if parent already provided topics (primary source)
+    if (healthTopics && healthTopics.length > 0) return;
+    // Skip if we already have local topics
+    if (topics.length > 0) return;
     
     const shouldAnalyze = conversationPath.length > 0 && 
                          conversationPath.length !== lastAnalyzedCount && 
-                         conversationPath.length >= 1; // Analyze after 1+ responses for better responsiveness
+                         conversationPath.length >= 2;
 
-    console.log('📊 Topic generation check (fallback):', { 
-      pathLength: conversationPath.length, 
-      lastAnalyzed: lastAnalyzedCount, 
-      shouldAnalyze, 
-      sessionId,
-      hasProvidedTopics: healthTopics && healthTopics.length >= 4,
-      currentTopicsCount: topics.length,
-      highConfidenceTopics: topics.filter(t => t.confidence >= 0.7).length
-    });
+    if (!shouldAnalyze || !sessionId) return;
 
-    if (shouldAnalyze && sessionId) {
-      console.log('🚀 Triggering topic generation...');
+    // Debounce fallback to avoid racing with parent's call
+    const timeout = setTimeout(() => {
       generateTopics();
-    }
-  }, [conversationPath.length, sessionId, lastAnalyzedCount, healthTopics]);
+    }, 8000);
+
+    return () => clearTimeout(timeout);
+  }, [conversationPath.length, sessionId, lastAnalyzedCount, healthTopics, topics.length]);
 
   const generateTopics = async () => {
     if (!user || conversationPath.length === 0) return;
