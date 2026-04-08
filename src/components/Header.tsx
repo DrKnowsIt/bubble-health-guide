@@ -145,6 +145,7 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden rounded-lg p-2 text-muted-foreground hover:text-primary transition-smooth"
+            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>

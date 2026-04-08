@@ -53,10 +53,10 @@ export const CookieConsent = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="ghost" size="xs" onClick={handleDecline}>
+            <Button variant="ghost" size="xs" onClick={handleDecline} aria-label="Decline cookies">
               Decline
             </Button>
-            <Button size="xs" onClick={handleAccept}>
+            <Button size="xs" onClick={handleAccept} aria-label="Accept cookies">
               Accept
             </Button>
           </div>
