@@ -87,39 +87,10 @@ export const useConversationStateGuard = () => {
     }
   }, [user?.id]);
 
-  // Monitor auth state changes and handle redirects
+  // Restore conversation state when user lands on dashboard
   useEffect(() => {
-    // Skip during initial loading
     if (loading) return;
 
-    // User lost authentication while on protected route
-    if (!user && location.pathname === '/dashboard') {
-      console.warn('⚠️ User lost authentication on dashboard, redirecting to auth');
-      
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please sign in to access your conversations.",
-      });
-      
-      navigate('/auth', { 
-        state: { 
-          from: location,
-          message: "Your session expired. Please sign in to continue." 
-        },
-        replace: true 
-      });
-      return;
-    }
-
-    // User authenticated and on homepage, redirect to dashboard
-    if (user && location.pathname === '/') {
-      console.log('✅ User authenticated, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
-      return;
-    }
-
-    // User authenticated, try to restore conversation state
     if (user && location.pathname === '/dashboard') {
       const restoredState = restoreConversationState();
       if (restoredState) {
@@ -129,7 +100,7 @@ export const useConversationStateGuard = () => {
         });
       }
     }
-  }, [user, loading, location.pathname, navigate, toast, restoreConversationState]);
+  }, [user, loading, location.pathname, toast, restoreConversationState]);
 
   // Handle conversation state errors
   const handleConversationError = useCallback((error: string, details?: any) => {

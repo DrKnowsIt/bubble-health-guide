@@ -11,15 +11,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, session, loading } = useAuth();
   const location = useLocation();
 
-  logger.debug('ProtectedRoute check:', {
-    currentPath: location.pathname,
-    userId: user?.id || 'null',
-    hasSession: !!session,
-    loading
-  });
-
   if (loading) {
-    logger.debug('ProtectedRoute - Showing loading state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -31,13 +23,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user || !session) {
-    logger.debug('ProtectedRoute - Redirecting to auth, missing:', {
-      user: !user,
-      session: !session
-    });
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  logger.debug('ProtectedRoute - Access granted for:', location.pathname);
   return <>{children}</>;
 };

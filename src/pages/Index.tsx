@@ -140,11 +140,12 @@ const Index = () => {
                 {/* Right side - AI Doctor Hologram Image */}
                 <div className="flex justify-center lg:justify-end">
                   <div className="relative w-full max-w-md">
-                    <img 
-                      src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
-                      alt="Blue holographic cartoon doctor handing clipboard to real doctor with stethoscope, alongside smiling family with their dog on teal background"
-                      className="w-full h-auto rounded-xl shadow-lg border border-border/50"
-                    />
+                <img 
+                  src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
+                  alt="Blue holographic cartoon doctor handing clipboard to real doctor with stethoscope, alongside smiling family with their dog on teal background"
+                  className="w-full h-auto rounded-xl shadow-lg border border-border/50"
+                  fetchPriority="high"
+                />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-xl"></div>
                   </div>
                 </div>
