@@ -593,7 +593,7 @@ Ensure exactly ${isEnhancedMode || isComprehensiveAnalysis ? '5-6' : '4'} topics
               { role: 'system', content: systemPrompt },
               { role: 'user', content: `Analyze: ${conversation_context}` }
             ],
-            max_completion_tokens: include_testing_recommendations ? 2000 : (include_solutions ? 1500 : 800),
+            max_completion_tokens: include_testing_recommendations ? 4000 : (include_solutions ? 3000 : 2000),
             response_format: { type: "json_object" }
           }),
         });
