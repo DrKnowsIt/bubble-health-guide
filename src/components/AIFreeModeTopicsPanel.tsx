@@ -60,8 +60,6 @@ export const AIFreeModeTopicsPanel: React.FC<AIFreeModeTopicsPanelProps> = ({
 
     // Debounce fallback to avoid racing with parent's call
     const timeout = setTimeout(() => {
-      // Re-check: skip if topics arrived while waiting
-      if (topics.length > 0 || (healthTopics && healthTopics.length > 0)) return;
       generateTopics();
     }, 8000);
 
