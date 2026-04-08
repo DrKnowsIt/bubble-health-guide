@@ -53,6 +53,7 @@ function repairAndParseJson(jsonText: string): any {
   let bracketBalance = 0;
   let inString = false;
   let isEscaped = false;
+  let lastNonWhitespaceChar = '';
 
   for (const char of repaired) {
     if (isEscaped) {
@@ -67,10 +68,13 @@ function repairAndParseJson(jsonText: string): any {
 
     if (char === '"') {
       inString = !inString;
+      if (!inString) lastNonWhitespaceChar = '"';
       continue;
     }
 
     if (inString) continue;
+
+    if (char.trim()) lastNonWhitespaceChar = char;
 
     if (char === '{') braceBalance++;
     else if (char === '}') braceBalance = Math.max(0, braceBalance - 1);
@@ -78,9 +82,17 @@ function repairAndParseJson(jsonText: string): any {
     else if (char === ']') bracketBalance = Math.max(0, bracketBalance - 1);
   }
 
+  // Close unclosed string
   if (inString) {
     repaired += '"';
   }
+
+  // If we ended mid-value inside an object/array, we may need a trailing null or to trim
+  // Remove trailing incomplete key-value pairs like `"key": "trunc` or `"key":`
+  repaired = repaired.replace(/,\s*"[^"]*"\s*:\s*"[^"]*$/g, '');
+  repaired = repaired.replace(/,\s*"[^"]*"\s*:\s*$/g, '');
+  // Clean trailing commas again after trimming
+  repaired = repaired.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
   while (bracketBalance > 0) {
     repaired += ']';
