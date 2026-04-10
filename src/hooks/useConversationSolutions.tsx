@@ -25,14 +25,14 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
 
   const fetchSolutions = async () => {
     if (!conversationId || !user) {
-      console.log('[useConversationSolutions] No conversationId or user, clearing solutions');
+      // No conversation or user - clear solutions silently
       setSolutions([]);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('[useConversationSolutions] Fetching solutions for conversation:', conversationId);
+      // Fetching solutions for conversation
       const { data, error } = await supabase
         .from('conversation_solutions')
         .select('*')
@@ -40,7 +40,7 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
         .order('confidence', { ascending: false });
 
       if (error) throw error;
-      console.log('[useConversationSolutions] Found', data?.length || 0, 'solutions for conversation:', conversationId);
+      // Solutions loaded
       setSolutions(data || []);
     } catch (error) {
       console.error('Error fetching solutions:', error);
@@ -106,7 +106,7 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
   useEffect(() => {
     if (!conversationId || !user) return;
 
-    console.log('[useConversationSolutions] Setting up real-time subscription for solutions:', conversationId);
+    // Setting up real-time subscription for solutions
 
     const channel = supabase
       .channel('conversation-solutions-updates')
@@ -119,7 +119,7 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          console.log('[useConversationSolutions] Real-time solution added:', payload.new);
+          // Real-time solution added
           // Refetch solutions to get the latest data
           fetchSolutions();
         }
@@ -127,7 +127,7 @@ export const useConversationSolutions = (conversationId?: string, patientId?: st
       .subscribe();
 
     return () => {
-      console.log('[useConversationSolutions] Cleaning up real-time subscription');
+      // Cleaning up real-time subscription
       supabase.removeChannel(channel);
     };
   }, [conversationId, user]);
