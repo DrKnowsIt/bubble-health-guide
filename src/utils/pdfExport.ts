@@ -64,6 +64,14 @@ export const exportComprehensivePDFForUser = async (
   finalAnalysis?: FinalMedicalAnalysis | null
 ) => {
   try {
+    // Get authenticated user ID for user_id queries (RLS requires auth.uid() = user_id)
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      toastFn({ variant: "destructive", title: "Authentication Error", description: "Please sign in to export reports." });
+      return;
+    }
+    const userId = authUser.id;
+
     // Batch all database queries for better performance
     const [
       { data: memoryData },
@@ -97,7 +105,7 @@ export const exportComprehensivePDFForUser = async (
       supabase
         .from('health_record_summaries')
         .select('*')
-        .eq('user_id', selectedUser.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false }),
       
       supabase
@@ -111,7 +119,7 @@ export const exportComprehensivePDFForUser = async (
       supabase
         .from('comprehensive_health_reports')
         .select('*')
-        .eq('user_id', selectedUser.id)
+        .eq('user_id', userId)
         .eq('patient_id', selectedUser.id)
         .order('updated_at', { ascending: false })
         .limit(1)
@@ -637,10 +645,16 @@ export const exportComprehensivePDFForUser = async (
     doc.text(analysisText, 25, currentY);
     currentY += analysisText.length * 7 + SPACING.MEDIUM;
 
-    // Enhanced Solutions Section - temporarily disabled
-    // const { data: enhancedSolutions } = await supabase
-    // Note: Enhanced solutions functionality will be restored when database schema is available
-    const enhancedSolutions: any[] = [];
+    // Enhanced Solutions Section - use conversation_solutions data already fetched
+    const enhancedSolutions = solutionsData && solutionsData.length > 0
+      ? deduplicateSolutions(solutionsData).map(s => ({
+          category: s.category || 'General',
+          title: s.solution,
+          description: s.reasoning || '',
+          confidence_score: s.confidence,
+          amazon_products: Array.isArray(s.products) ? s.products : [],
+        }))
+      : [];
 
     if (enhancedSolutions?.length) {
       if (currentY > 250) {

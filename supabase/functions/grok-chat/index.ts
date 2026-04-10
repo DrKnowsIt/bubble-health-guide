@@ -353,23 +353,38 @@ PATIENT PROFILE:
 
       patientContext += healthRecordsText;
 
-      // Build health forms context - OPTIMIZED for token usage
+      // Build health forms context - balanced for clinical accuracy
       const healthForms = filteredHealthRecords || [];
       
       if (healthForms.length > 0) {
         healthFormsContext = `\n\nHEALTH DATA SUMMARY: ${healthForms.length} forms available`;
-        // Only include very brief summaries to save massive tokens
-        healthForms.slice(0, 5).forEach(form => {
+        
+        // Priority form types get more context
+        const priorityTypes = ['medical_history', 'medications', 'allergies', 'vital_signs', 'conditions', 'family_history'];
+        const priorityForms = healthForms.filter(f => priorityTypes.some(t => f.title?.toLowerCase().includes(t) || f.record_type?.toLowerCase().includes(t)));
+        const otherForms = healthForms.filter(f => !priorityForms.includes(f));
+        
+        // Include priority forms with more detail (up to 500 chars each)
+        priorityForms.slice(0, 6).forEach(form => {
           healthFormsContext += `\n- ${form.title}`;
-          // Extremely limited data to prevent token explosion
           if (form.data && typeof form.data === 'object') {
             const dataStr = JSON.stringify(form.data);
-            healthFormsContext += dataStr.length > 100 ? ` (${dataStr.substring(0, 100)}...)` : ` (${dataStr})`;
+            healthFormsContext += dataStr.length > 500 ? ` (${dataStr.substring(0, 500)}...)` : ` (${dataStr})`;
           }
         });
         
-        if (healthForms.length > 5) {
-          healthFormsContext += `\n[${healthForms.length - 5} more forms available]`;
+        // Include other forms with brief summaries (up to 150 chars each)
+        otherForms.slice(0, 4).forEach(form => {
+          healthFormsContext += `\n- ${form.title}`;
+          if (form.data && typeof form.data === 'object') {
+            const dataStr = JSON.stringify(form.data);
+            healthFormsContext += dataStr.length > 150 ? ` (${dataStr.substring(0, 150)}...)` : ` (${dataStr})`;
+          }
+        });
+        
+        const remaining = healthForms.length - priorityForms.slice(0, 6).length - otherForms.slice(0, 4).length;
+        if (remaining > 0) {
+          healthFormsContext += `\n[${remaining} more forms available]`;
         }
       }
     }

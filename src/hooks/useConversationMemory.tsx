@@ -32,7 +32,7 @@ export const useConversationMemory = (patientId?: string) => {
   const fetchMemories = useCallback(async () => {
     // Early return if no user
     if (!user) {
-      console.log('🔍 ConversationMemory: No user', { user: !!user });
+      // No user available
       setMemories([]);
       setInsights([]);
       setIsInitialLoad(false);
@@ -41,7 +41,7 @@ export const useConversationMemory = (patientId?: string) => {
 
     // Early return if no patientId
     if (!patientId) {
-      console.log('🔍 ConversationMemory: No patientId', { patientId });
+      // No patient selected
       setMemories([]);
       setInsights([]);
       setIsInitialLoad(false);
@@ -50,11 +50,11 @@ export const useConversationMemory = (patientId?: string) => {
 
     // Skip fetch if same patient (prevents unnecessary re-fetches)
     if (previousPatientIdRef.current === patientId && !isInitialLoad) {
-      console.log('🔍 ConversationMemory: Same patient, skipping fetch', { patientId });
+      // Same patient, skipping fetch
       return;
     }
 
-    console.log('🔍 ConversationMemory: Fetching memories for', { userId: user.id, patientId });
+    // Fetching memories
     setLoading(true);
     
     try {
@@ -68,7 +68,7 @@ export const useConversationMemory = (patientId?: string) => {
       if (error) throw error;
 
       const memoryData = data || [];
-      console.log('🔍 ConversationMemory: Found memories', { count: memoryData.length, memories: memoryData });
+      // Memories loaded
       setMemories(memoryData);
 
       // Extract insights from memory objects
