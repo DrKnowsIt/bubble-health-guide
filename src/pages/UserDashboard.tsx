@@ -69,7 +69,16 @@ export default function UserDashboard() {
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [showMobileReportConfirm, setShowMobileReportConfirm] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('drknowsit_sub_banner_dismissed') === '1';
+  });
   const isInitialLoad = useRef(true);
+
+  const dismissBanner = () => {
+    sessionStorage.setItem('drknowsit_sub_banner_dismissed', '1');
+    setBannerDismissed(true);
+  };
   
   logger.debug('UserDashboard: State initialized', {
     user: !!user,
@@ -300,21 +309,32 @@ export default function UserDashboard() {
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col">
       {/* Subscription Alert */}
-      {!subscribed && (
-        <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-4 py-2">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">Unlock AI Chat, health insights & more</span>
+      {!subscribed && !bannerDismissed && (
+        <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <div className="flex items-center justify-between max-w-7xl mx-auto gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Crown className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-foreground truncate">Unlock AI Chat, health insights & more</span>
             </div>
-            <Button
-              size="sm"
-              variant="default"
-              className="h-7 px-3 text-xs rounded-full"
-              onClick={() => navigate('/pricing')}
-            >
-              View Plans
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                size="sm"
+                variant="default"
+                className="h-7 px-3 text-xs rounded-full"
+                onClick={() => navigate('/pricing')}
+              >
+                View Plans
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-full"
+                onClick={dismissBanner}
+                aria-label="Dismiss banner"
+              >
+                <span aria-hidden="true" className="text-base leading-none">×</span>
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -412,7 +432,7 @@ export default function UserDashboard() {
           {/* Tab Navigation */}
           {isMobile ? (
             // Mobile: Optimized bottom navigation with larger touch targets
-            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 mt-auto">
+            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 mt-auto pb-[max(0.5rem,env(safe-area-inset-bottom))]">
                <TabsList className={cn("w-full grid h-14 bg-muted/50",
                  subscribed && subscription_tier 
                    ? (selectedUser && hasAccess('basic') ? "grid-cols-4" : "grid-cols-3")
