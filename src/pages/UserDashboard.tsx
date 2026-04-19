@@ -139,7 +139,7 @@ export default function UserDashboard() {
         if (error) throw error;
         setCurrentConversationDiagnoses(data || []);
       } catch (error) {
-        console.error('Error fetching conversation diagnoses:', error);
+        logger.error('Error fetching conversation diagnoses:', error);
         setCurrentConversationDiagnoses([]);
       }
     };
@@ -164,7 +164,7 @@ export default function UserDashboard() {
     try {
       await createCheckoutSession('pro');
     } catch (error) {
-      console.error('Error upgrading subscription:', error);
+      logger.error('Error upgrading subscription:', error);
     }
   };
 
@@ -200,7 +200,7 @@ export default function UserDashboard() {
       await exportComprehensivePDFForUser(selectedUser, toast, finalAnalysis);
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Error generating PDF:', error);
       toast({
         variant: "destructive",
         title: "Error", 
@@ -282,11 +282,11 @@ export default function UserDashboard() {
     return false;
   };
 
-  console.log('UserDashboard: About to render main component');
+  logger.debug('UserDashboard: About to render main component');
 
   // Emergency fallback for debugging
   if (loading) {
-    console.log('UserDashboard: Still loading, showing loading state');
+    logger.debug('UserDashboard: Still loading, showing loading state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -404,7 +404,7 @@ export default function UserDashboard() {
       {/* Main Content */}
       <div className="flex-1 min-h-0">
         <Tabs value={activeTab} onValueChange={(newTab) => {
-          console.log('UserDashboard: Manual tab change:', newTab);
+          logger.debug('UserDashboard: Manual tab change:', newTab);
           setActiveTab(newTab);
           // Update URL without navigation to preserve state
           window.history.replaceState(null, '', `/dashboard?tab=${newTab}`);
