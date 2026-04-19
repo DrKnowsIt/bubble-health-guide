@@ -581,8 +581,12 @@ export default function UserDashboard() {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : healthStats.totalRecords}</div>
-                            <p className="text-xs text-muted-foreground">Total records uploaded</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-16 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{healthStats.totalRecords}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Total records uploaded</p>
                           </CardContent>
                         </Card>
 
@@ -592,8 +596,12 @@ export default function UserDashboard() {
                             <MessageSquare className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : healthStats.totalConversations}</div>
-                            <p className="text-xs text-muted-foreground">Total conversations</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-16 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{healthStats.totalConversations}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Total conversations</p>
                           </CardContent>
                         </Card>
 
@@ -603,8 +611,12 @@ export default function UserDashboard() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : formatLastActivity(healthStats.lastActivityTime)}</div>
-                            <p className="text-xs text-muted-foreground">Ago</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-20 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{formatLastActivity(healthStats.lastActivityTime)}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Ago</p>
                           </CardContent>
                         </Card>
                       </div>
