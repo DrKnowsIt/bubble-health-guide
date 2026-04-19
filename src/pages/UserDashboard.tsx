@@ -69,7 +69,16 @@ export default function UserDashboard() {
   const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [showMobileReportConfirm, setShowMobileReportConfirm] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('drknowsit_sub_banner_dismissed') === '1';
+  });
   const isInitialLoad = useRef(true);
+
+  const dismissBanner = () => {
+    sessionStorage.setItem('drknowsit_sub_banner_dismissed', '1');
+    setBannerDismissed(true);
+  };
   
   logger.debug('UserDashboard: State initialized', {
     user: !!user,
@@ -139,7 +148,7 @@ export default function UserDashboard() {
         if (error) throw error;
         setCurrentConversationDiagnoses(data || []);
       } catch (error) {
-        console.error('Error fetching conversation diagnoses:', error);
+        logger.error('Error fetching conversation diagnoses:', error);
         setCurrentConversationDiagnoses([]);
       }
     };
@@ -164,7 +173,7 @@ export default function UserDashboard() {
     try {
       await createCheckoutSession('pro');
     } catch (error) {
-      console.error('Error upgrading subscription:', error);
+      logger.error('Error upgrading subscription:', error);
     }
   };
 
@@ -200,7 +209,7 @@ export default function UserDashboard() {
       await exportComprehensivePDFForUser(selectedUser, toast, finalAnalysis);
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Error generating PDF:', error);
       toast({
         variant: "destructive",
         title: "Error", 
@@ -282,11 +291,11 @@ export default function UserDashboard() {
     return false;
   };
 
-  console.log('UserDashboard: About to render main component');
+  logger.debug('UserDashboard: About to render main component');
 
   // Emergency fallback for debugging
   if (loading) {
-    console.log('UserDashboard: Still loading, showing loading state');
+    logger.debug('UserDashboard: Still loading, showing loading state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -300,21 +309,32 @@ export default function UserDashboard() {
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col">
       {/* Subscription Alert */}
-      {!subscribed && (
-        <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-4 py-2">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">Unlock AI Chat, health insights & more</span>
+      {!subscribed && !bannerDismissed && (
+        <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <div className="flex items-center justify-between max-w-7xl mx-auto gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Crown className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-foreground truncate">Unlock AI Chat, health insights & more</span>
             </div>
-            <Button
-              size="sm"
-              variant="default"
-              className="h-7 px-3 text-xs rounded-full"
-              onClick={() => navigate('/pricing')}
-            >
-              View Plans
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                size="sm"
+                variant="default"
+                className="h-7 px-3 text-xs rounded-full"
+                onClick={() => navigate('/pricing')}
+              >
+                View Plans
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-full"
+                onClick={dismissBanner}
+                aria-label="Dismiss banner"
+              >
+                <span aria-hidden="true" className="text-base leading-none">×</span>
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -404,7 +424,7 @@ export default function UserDashboard() {
       {/* Main Content */}
       <div className="flex-1 min-h-0">
         <Tabs value={activeTab} onValueChange={(newTab) => {
-          console.log('UserDashboard: Manual tab change:', newTab);
+          logger.debug('UserDashboard: Manual tab change:', newTab);
           setActiveTab(newTab);
           // Update URL without navigation to preserve state
           window.history.replaceState(null, '', `/dashboard?tab=${newTab}`);
@@ -412,7 +432,7 @@ export default function UserDashboard() {
           {/* Tab Navigation */}
           {isMobile ? (
             // Mobile: Optimized bottom navigation with larger touch targets
-            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 mt-auto">
+            <div className="order-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 mt-auto pb-[max(0.5rem,env(safe-area-inset-bottom))]">
                <TabsList className={cn("w-full grid h-14 bg-muted/50",
                  subscribed && subscription_tier 
                    ? (selectedUser && hasAccess('basic') ? "grid-cols-4" : "grid-cols-3")
@@ -561,8 +581,12 @@ export default function UserDashboard() {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : healthStats.totalRecords}</div>
-                            <p className="text-xs text-muted-foreground">Total records uploaded</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-16 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{healthStats.totalRecords}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Total records uploaded</p>
                           </CardContent>
                         </Card>
 
@@ -572,8 +596,12 @@ export default function UserDashboard() {
                             <MessageSquare className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : healthStats.totalConversations}</div>
-                            <p className="text-xs text-muted-foreground">Total conversations</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-16 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{healthStats.totalConversations}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Total conversations</p>
                           </CardContent>
                         </Card>
 
@@ -583,8 +611,12 @@ export default function UserDashboard() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                           </CardHeader>
                           <CardContent>
-                            <div className="text-2xl font-bold">{healthStats.loading ? "..." : formatLastActivity(healthStats.lastActivityTime)}</div>
-                            <p className="text-xs text-muted-foreground">Ago</p>
+                            {healthStats.loading ? (
+                              <div className="h-8 w-20 rounded-md bg-muted animate-pulse" />
+                            ) : (
+                              <div className="text-2xl font-bold">{formatLastActivity(healthStats.lastActivityTime)}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">Ago</p>
                           </CardContent>
                         </Card>
                       </div>
