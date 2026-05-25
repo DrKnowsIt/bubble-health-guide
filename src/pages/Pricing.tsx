@@ -164,12 +164,12 @@ const Pricing = () => {
         </Link>
       </div>
       {/* Header */}
-      <div className="py-20 text-center gradient-hero" style={{ scrollMarginTop: '64px' }}>
+      <div className="py-10 sm:py-20 text-center gradient-hero" style={{ scrollMarginTop: '64px' }}>
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-foreground sm:text-5xl mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
             Choose Your Health Journey
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Start with our Basic plan for essential health questions, or upgrade to Pro 
             for comprehensive health tracking and advanced AI guidance.
           </p>
@@ -177,8 +177,8 @@ const Pricing = () => {
       </div>
 
       {/* Pricing Cards */}
-      <div className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 max-w-4xl mx-auto">
           {plans.map((plan, index) => (
             <Card 
               key={plan.name} 
