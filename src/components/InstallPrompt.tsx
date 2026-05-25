@@ -36,6 +36,10 @@ export const InstallPrompt = () => {
       window.navigator.standalone === true;
     if (isStandalone) return;
 
+    // Wait for cookie consent to be handled first (avoids stacking banners)
+    const cookieConsent = localStorage.getItem('drknowsit_cookie_consent');
+    if (!cookieConsent) return;
+
     // Recently dismissed?
     const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || 0);
     if (dismissedAt && Date.now() - dismissedAt < DISMISS_DURATION_MS) return;
@@ -88,7 +92,7 @@ export const InstallPrompt = () => {
 
   return (
     <div
-      className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-4 shadow-elevated backdrop-blur-md md:left-auto md:right-4"
+      className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-4 shadow-elevated backdrop-blur-md md:left-auto md:right-4 mb-[env(safe-area-inset-bottom)]"
       role="dialog"
       aria-label="Install app"
     >

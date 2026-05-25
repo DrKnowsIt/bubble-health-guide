@@ -40,7 +40,7 @@ export const CookieConsent = () => {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 duration-500">
+    <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 duration-500 pb-[env(safe-area-inset-bottom)]">
       <div className="bg-card/95 backdrop-blur-sm border-t border-border shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">

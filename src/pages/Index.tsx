@@ -55,51 +55,51 @@ const Index = () => {
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
       <main>
       {isMobile ?
-      // Mobile: Beautiful, professional landing page optimized for small screens
-      <section className="h-[100dvh] flex flex-col" style={{ height: '100dvh' }}>
-            {/* Mobile Hero Section - Scrollable */}
-            <div className="shrink-0 overflow-y-auto bg-gradient-to-b from-card to-background">
-              {/* Hero Image - Smaller on mobile */}
-              <div className="relative w-full aspect-[16/9] overflow-hidden">
+      // Mobile: natural-flow landing with hero, CTA, then embedded demo chat
+      <section className="flex flex-col bg-background">
+            {/* Mobile Hero */}
+            <div className="bg-gradient-to-b from-card to-background">
+              <div className="relative w-full aspect-[16/10] overflow-hidden">
                 <img 
                   src="/lovable-uploads/4c436108-60c9-4699-a655-0db431da0371.png" 
                   alt="Blue holographic cartoon doctor with family and pet"
                   className="w-full h-full object-cover"
+                  fetchPriority="high"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
               </div>
 
-              {/* Hero Text - Compact */}
-              <div className="px-4 pt-3 pb-4 text-center space-y-2">
+              <div className="px-4 pt-3 pb-4 text-center space-y-3">
                 <h1 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">
                   Get prepared for
                   <span className="block text-primary">healthcare visits</span>
                 </h1>
                 <p className="text-sm text-muted-foreground leading-normal">
-                  AI health assistant for humans & pets. Available 24/7.
+                  AI health assistant for humans &amp; pets. Available 24/7.
                 </p>
-                
-                {/* Social Proof - Compact */}
-                <div className="pt-1">
+
+                <div className="pt-1 flex flex-col items-center gap-2">
+                  <button
+                    onClick={() => openAuth('signup')}
+                    className="w-full h-12 rounded-full bg-primary text-primary-foreground font-semibold text-base shadow-lg active:scale-[0.98] transition-transform"
+                  >
+                    Get started free
+                  </button>
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-full border border-primary/20 text-xs font-medium text-primary">
                     <Users className="h-3 w-3" />
                     <UserCountBadge variant="cta" className="text-xs" />
                   </div>
                 </div>
 
-                {/* Disclaimer - Ultra compact */}
                 <div className="flex items-center justify-center gap-1.5 pt-1 text-xs text-warning">
-                  <span>⚠️</span>
+                  <span aria-hidden>⚠️</span>
                   <span className="font-medium">Information only · Consult professionals</span>
                 </div>
               </div>
-
-
             </div>
 
-
-            {/* Mobile Chat Interface - Takes remaining space */}
-            <div className="flex-1 min-h-0 bg-background">
+            {/* Embedded demo chat */}
+            <div className="bg-background border-t border-border" style={{ height: '70vh' }}>
               {showHistory && user ? <div className="h-full flex">
                   <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
                   <div className="flex-1 min-h-0">
@@ -177,7 +177,7 @@ const Index = () => {
           </section>}
 
         {/* Info Sections - Now shown on mobile too */}
-        <div className={isMobile ? "relative z-10 mt-4 px-4 pb-20 bg-background" : "mt-16"}>
+        <div className={isMobile ? "relative z-10 mt-2 px-4 pb-24 bg-background" : "mt-16"}>
           <HowItWorks />
           <Features />
         </div>
