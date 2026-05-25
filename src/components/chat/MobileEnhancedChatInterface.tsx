@@ -441,23 +441,20 @@ export const MobileEnhancedChatInterface = ({
   return (
     <SubscriptionGate requiredTier="basic" feature="AI Chat" description="Start unlimited conversations with our advanced AI health assistant. Get personalized insights, symptom analysis, and health recommendations with a Basic or Pro subscription.">
       <div className="h-full flex flex-col bg-background">
-        {/* Stacked Patient Header */}
+        {/* Compact single-row header */}
         <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-20">
-          {/* Row 1: Patient Selector */}
-          <div className="p-3 border-b border-border/50">
+          <div className="p-2 flex items-center gap-2">
+            {/* Patient pill */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full h-auto p-3 hover:bg-muted/50 justify-start">
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
+                <Button variant="ghost" className="flex-1 h-11 px-2 hover:bg-muted/50 justify-start min-w-0">
+                  <div className="flex items-center gap-2 w-full min-w-0">
+                    <div className="h-8 w-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                      <div className="font-medium text-base truncate">
+                      <div className="font-medium text-sm truncate">
                         {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Select Patient'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Tap to change patient
                       </div>
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -479,16 +476,12 @@ export const MobileEnhancedChatInterface = ({
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-          
-          {/* Row 2: Action Buttons */}
-          <div className="p-2 flex items-center gap-2">
-            {/* History Button */}
+
+            {/* History icon button */}
             <Sheet open={showHistory} onOpenChange={setShowHistory}>
               <SheetTrigger asChild>
-                <Button variant="outline" className="flex-1 h-10 gap-2">
-                  <History className="h-4 w-4" />
-                  <span className="text-sm">History</span>
+                <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="History">
+                  <History className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-full sm:w-80">
@@ -505,13 +498,12 @@ export const MobileEnhancedChatInterface = ({
                 </div>
               </SheetContent>
             </Sheet>
-            
-            {/* Health Topics Button */}
+
+            {/* Topics icon button */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="flex-1 h-10 gap-2">
-                  <Brain className="h-4 w-4" />
-                  <span className="text-sm">Topics</span>
+                <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Health topics">
+                  <Brain className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="h-[60vh]">
@@ -537,6 +529,7 @@ export const MobileEnhancedChatInterface = ({
             </Sheet>
           </div>
         </div>
+
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col min-h-0">
@@ -598,7 +591,7 @@ export const MobileEnhancedChatInterface = ({
               </div>
 
               {/* Stacked Input Area */}
-              <div className="border-t bg-background p-4 space-y-3">
+              <div className="border-t bg-background p-4 space-y-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {/* Pending Image Preview */}
                 {pendingImageUrl && (
                   <div className="relative">

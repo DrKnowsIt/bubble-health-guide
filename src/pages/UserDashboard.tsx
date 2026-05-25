@@ -452,16 +452,16 @@ export default function UserDashboard() {
                     <Heart className="h-6 w-6 text-teal-500" fill="currentColor" />
                     <span className="text-[11px] font-medium">Health</span>
                   </TabsTrigger>
-                  <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-1 py-3 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <Activity className="h-5 w-5 text-teal-500" fill="currentColor" />
-                    <span className="text-xs font-medium">Overview</span>
+                   <TabsTrigger value="overview" className="flex flex-col items-center justify-center gap-0.5 py-2 relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <Activity className="h-6 w-6 text-teal-500" fill="currentColor" />
+                    <span className="text-[11px] font-medium">Overview</span>
                   </TabsTrigger>
                   {selectedUser && hasAccess('basic') && (
                     <Button
                       onClick={handleMobileReportClick}
                       variant="ghost"
                       className={cn(
-                        "flex flex-col items-center justify-center gap-1 py-3 h-auto rounded-md transition-all duration-300",
+                        "flex flex-col items-center justify-center gap-0.5 py-2 h-auto rounded-md transition-all duration-300",
                         analysisLoading || !hasHealthData 
                           ? "opacity-50 cursor-not-allowed" 
                           : (currentConversationDiagnoses.some(d => d.confidence >= 0.7) && 
@@ -473,11 +473,11 @@ export default function UserDashboard() {
                       disabled={analysisLoading || !hasHealthData}
                     >
                       {analysisLoading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Loader2 className="h-6 w-6 animate-spin" />
                        ) : (
-                         <FileText className="h-5 w-5 text-teal-500" fill="currentColor" />
+                         <FileText className="h-6 w-6 text-teal-500" fill="currentColor" />
                        )}
-                      <span className="text-xs font-medium">Report</span>
+                      <span className="text-[11px] font-medium">Report</span>
                     </Button>
                   )}
               </TabsList>
