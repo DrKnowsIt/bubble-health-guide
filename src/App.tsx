@@ -6,6 +6,8 @@ import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { LegalAgreementModal } from "./components/modals/LegalAgreementModal";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useLocation } from "react-router-dom";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 import { useAuth } from "./hooks/useAuth";
 import { CookieConsent } from "./components/CookieConsent";
