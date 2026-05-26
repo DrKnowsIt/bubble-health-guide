@@ -6,6 +6,8 @@ import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { LegalAgreementModal } from "./components/modals/LegalAgreementModal";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useLocation } from "react-router-dom";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
 import { useAuth } from "./hooks/useAuth";
 import { CookieConsent } from "./components/CookieConsent";
@@ -30,25 +32,28 @@ const App = () => {
   // Global auth redirect logic
   useAuthRedirect();
   const { showLegalModal, setShowLegalModal } = useAuth();
+  const location = useLocation();
 
   return (
     <TooltipProvider>
       <Sonner />
       <Toaster />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/auth" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>}><Auth /></Suspense>} />
-        <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/medical-disclaimer" element={<MedicalDisclaimer />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/user-agreement" element={<UserAgreement />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <ErrorBoundary scope="route" resetKey={location.pathname}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/auth" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>}><Auth /></Suspense>} />
+          <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/medical-disclaimer" element={<MedicalDisclaimer />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/user-agreement" element={<UserAgreement />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ErrorBoundary>
       <LegalAgreementModal
         isOpen={showLegalModal}
         onClose={() => setShowLegalModal(false)}

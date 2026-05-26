@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useConversationsQuery } from "@/hooks/optimized/useConversationsQuery";
@@ -100,14 +101,16 @@ const Index = () => {
 
             {/* Embedded demo chat */}
             <div className="bg-background border-t border-border" style={{ height: '70vh' }}>
-              {showHistory && user ? <div className="h-full flex">
-                  <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                  <div className="flex-1 min-h-0">
+              <ErrorBoundary scope="landing-chat">
+                {showHistory && user ? <div className="h-full flex">
+                    <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
+                    <div className="flex-1 min-h-0">
+                      <ChatGPTInterface />
+                    </div>
+                  </div> : <div className="h-full">
                     <ChatGPTInterface />
-                  </div>
-                </div> : <div className="h-full">
-                  <ChatGPTInterface />
-                </div>}
+                  </div>}
+              </ErrorBoundary>
             </div>
           </section> :
       // Desktop: Full layout with sidebar
@@ -161,8 +164,10 @@ const Index = () => {
               <div className="flex bg-card rounded-xl border border-border shadow-card overflow-hidden" style={{
             height: '65vh'
           }}>
-                <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                <ChatGPTInterface />
+                <ErrorBoundary scope="landing-chat-desktop">
+                  <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
+                  <ChatGPTInterface />
+                </ErrorBoundary>
               </div>
               
               {/* Legal Disclaimer */}
