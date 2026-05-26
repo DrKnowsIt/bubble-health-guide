@@ -25,7 +25,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    logger.error(`[ErrorBoundary${this.props.scope ? `:${this.props.scope}` : ""}]`, error, info.componentStack);
+    logger.error(`[ErrorBoundary${this.props.scope ? `:${this.props.scope}` : ""}]`, error);
+    logger.error("component stack", info.componentStack);
   }
 
   componentDidUpdate(prevProps: Props) {
