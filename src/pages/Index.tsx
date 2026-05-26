@@ -164,8 +164,10 @@ const Index = () => {
               <div className="flex bg-card rounded-xl border border-border shadow-card overflow-hidden" style={{
             height: '65vh'
           }}>
-                <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
-                <ChatGPTInterface />
+                <ErrorBoundary scope="landing-chat-desktop">
+                  <ConversationSidebar conversations={conversations} currentConversation={currentConversation} onSelectConversation={selectConversation} onStartNewConversation={startNewConversation} onDeleteConversation={deleteConversation} isAuthenticated={!!user} />
+                  <ChatGPTInterface />
+                </ErrorBoundary>
               </div>
               
               {/* Legal Disclaimer */}
