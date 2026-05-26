@@ -22,8 +22,19 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
 
     console.log('[AnalysisNotifications] Setting up real-time subscriptions for:', { conversationId, patientId });
 
+    const diagnosisName = `diagnosis-updates-${conversationId}`;
+    const solutionsName = `solutions-updates-${conversationId}`;
+    const memoryName = `memory-updates-${conversationId}`;
+
+    // Remove pre-existing channels with the same name to prevent
+    // "cannot add postgres_changes callbacks after subscribe()" errors
+    // when multiple chat surfaces mount the hook on the same page.
+    supabase.removeChannel(supabase.channel(diagnosisName));
+    supabase.removeChannel(supabase.channel(solutionsName));
+    supabase.removeChannel(supabase.channel(memoryName));
+
     const diagnosisChannel = supabase
-      .channel('diagnosis-updates')
+      .channel(diagnosisName)
       .on(
         'postgres_changes',
         {
@@ -45,7 +56,7 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
       .subscribe();
 
     const solutionsChannel = supabase
-      .channel('solutions-updates')
+      .channel(solutionsName)
       .on(
         'postgres_changes',
         {
@@ -66,7 +77,7 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
       .subscribe();
 
     const memoryChannel = supabase
-      .channel('memory-updates')
+      .channel(memoryName)
       .on(
         'postgres_changes',
         {
