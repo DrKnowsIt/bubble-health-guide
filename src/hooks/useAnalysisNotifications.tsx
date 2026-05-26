@@ -77,7 +77,7 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
       .subscribe();
 
     const memoryChannel = supabase
-      .channel('memory-updates')
+      .channel(memoryName)
       .on(
         'postgres_changes',
         {
