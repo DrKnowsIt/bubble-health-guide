@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useConversationsQuery } from "@/hooks/optimized/useConversationsQuery";
