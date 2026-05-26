@@ -56,7 +56,7 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
       .subscribe();
 
     const solutionsChannel = supabase
-      .channel('solutions-updates')
+      .channel(solutionsName)
       .on(
         'postgres_changes',
         {
