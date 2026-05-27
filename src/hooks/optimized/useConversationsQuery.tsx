@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { removeChannelsByName } from '@/utils/realtime';
 import { useAnalysisThrottling } from '../useAnalysisThrottling';
 
 export interface Message {
