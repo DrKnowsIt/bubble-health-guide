@@ -162,8 +162,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     const channelName = `diagnosis-realtime-${currentConversation}-${selectedUser?.id}`;
     
     // Remove existing channel before re-subscribing to prevent duplicate callbacks
-    const existingChannel = supabase.channel(channelName);
-    supabase.removeChannel(existingChannel);
+    removeChannelsByName(channelName);
+
 
     const diagnosisChannel = supabase
       .channel(channelName)
