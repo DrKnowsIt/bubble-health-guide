@@ -14,7 +14,7 @@ import { logger } from "@/utils/logger";
 import { ChatInterfaceWithUsers } from "@/components/chat/ChatInterfaceWithPatients";
 import { ChatGPTInterface } from "@/components/chat/ChatGPTInterface";
 
-import heroCgiImage from "@/assets/hero-friendly-healthcare.jpg";
+
 
 const Index = () => {
   const {
