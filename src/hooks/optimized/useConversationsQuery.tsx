@@ -613,8 +613,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     const channelName = `conversations_changes_${user.id}_${selectedUser?.id || 'none'}`;
     
     // Remove any existing channel with the same name first (handles React Strict Mode double-mount)
-    const existingChannel = supabase.channel(channelName);
-    supabase.removeChannel(existingChannel);
+    removeChannelsByName(channelName);
     
     const channel = supabase
       .channel(channelName)
