@@ -15,6 +15,7 @@ import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { removeChannelsByName } from "@/utils/realtime";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
