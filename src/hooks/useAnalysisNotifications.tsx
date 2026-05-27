@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { removeChannelsByName } from '@/utils/realtime';
 import { AnalysisResult } from '@/components/ChatAnalysisNotification';
 
 export interface AnalysisCallbacks {
