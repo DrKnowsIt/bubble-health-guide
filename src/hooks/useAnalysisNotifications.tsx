@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { removeChannelsByName } from '@/utils/realtime';
 import { AnalysisResult } from '@/components/ChatAnalysisNotification';
 
 export interface AnalysisCallbacks {
@@ -29,9 +30,9 @@ export const useAnalysisNotifications = (conversationId: string | null, patientI
     // Remove pre-existing channels with the same name to prevent
     // "cannot add postgres_changes callbacks after subscribe()" errors
     // when multiple chat surfaces mount the hook on the same page.
-    supabase.removeChannel(supabase.channel(diagnosisName));
-    supabase.removeChannel(supabase.channel(solutionsName));
-    supabase.removeChannel(supabase.channel(memoryName));
+    removeChannelsByName(diagnosisName);
+    removeChannelsByName(solutionsName);
+    removeChannelsByName(memoryName);
 
     const diagnosisChannel = supabase
       .channel(diagnosisName)

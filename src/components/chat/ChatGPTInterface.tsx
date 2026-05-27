@@ -15,6 +15,7 @@ import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { removeChannelsByName } from "@/utils/realtime";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatAnalysisNotification, AnalysisResult } from "@/components/ChatAnalysisNotification";
@@ -161,8 +162,8 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
     const channelName = `diagnosis-realtime-${currentConversation}-${selectedUser?.id}`;
     
     // Remove existing channel before re-subscribing to prevent duplicate callbacks
-    const existingChannel = supabase.channel(channelName);
-    supabase.removeChannel(existingChannel);
+    removeChannelsByName(channelName);
+
 
     const diagnosisChannel = supabase
       .channel(channelName)

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../useAuth';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { removeChannelsByName } from '@/utils/realtime';
 import { useAnalysisThrottling } from '../useAnalysisThrottling';
 
 export interface Message {
@@ -613,8 +614,7 @@ export const useConversationsQuery = (selectedUser?: any) => {
     const channelName = `conversations_changes_${user.id}_${selectedUser?.id || 'none'}`;
     
     // Remove any existing channel with the same name first (handles React Strict Mode double-mount)
-    const existingChannel = supabase.channel(channelName);
-    supabase.removeChannel(existingChannel);
+    removeChannelsByName(channelName);
     
     const channel = supabase
       .channel(channelName)
@@ -649,8 +649,8 @@ export const useConversationsQuery = (selectedUser?: any) => {
     logger.debug('Setting up real-time subscription for messages:', currentConversation);
 
     const msgChannelName = `messages-realtime-${currentConversation}`;
-    const existingMsgChannel = supabase.channel(msgChannelName);
-    supabase.removeChannel(existingMsgChannel);
+    removeChannelsByName(msgChannelName);
+
     
     const channel = supabase
       .channel(msgChannelName)
