@@ -16,6 +16,22 @@ serve(async (req) => {
   }
 
   try {
+  // === Auth required ===
+  const __authHeader = req.headers.get('Authorization');
+  if (!__authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  let __authUserId: string | null = null;
+  {
+    const { createClient: __cc } = await import('https://esm.sh/@supabase/supabase-js@2.52.0');
+    const __sb = __cc(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_ANON_KEY') ?? '');
+    const { data: __ud, error: __ue } = await __sb.auth.getUser(__authHeader.replace('Bearer ', ''));
+    if (__ue || !__ud?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    __authUserId = __ud.user.id;
+  }
+  // === End auth ===
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
