@@ -109,9 +109,21 @@ serve(async (req) => {
       }
     }
 
-    // Prepare context for AI analysis
+    // Look up opaque patient token — never send real name to the AI
+    let patientToken = 'Patient';
+    if (patient_id) {
+      const { data: tokenRow } = await supabaseClient
+        .from('patient_tokens')
+        .select('token_id')
+        .eq('user_id', user.id)
+        .eq('patient_id', patient_id)
+        .maybeSingle();
+      if (tokenRow?.token_id) patientToken = tokenRow.token_id;
+    }
+
+    // Prepare context for AI analysis (token, not name)
     const patientContext = {
-      name: patientData ? `${patientData.first_name} ${patientData.last_name}` : 'Patient',
+      name: patientToken,
       age: age,
       gender: patientData?.gender || 'Not specified',
       totalRecords: healthRecords.length
