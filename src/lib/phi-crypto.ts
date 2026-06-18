@@ -58,7 +58,7 @@ async function deriveWrappingKey(
 ): Promise<CryptoKey> {
   const baseKey = await importPasswordKey(secret);
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt as BufferSource, iterations, hash: "SHA-256" },
     baseKey,
     { name: "AES-GCM", length: KEY_LEN_BITS },
     false,
