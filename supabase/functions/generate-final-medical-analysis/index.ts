@@ -21,11 +21,33 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    const { patient_id, user_id, conversation_id } = await req.json();
-
-    if (!patient_id || !user_id) {
+    // Require authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: 'Missing patient_id or user_id' }), 
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const authClient = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const user_id = userData.user.id;
+
+    const { patient_id, conversation_id } = await req.json();
+
+    if (!patient_id) {
+      return new Response(
+        JSON.stringify({ error: 'Missing patient_id' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -34,6 +56,21 @@ serve(async (req) => {
 
     // Initialize Supabase client with service key for comprehensive data access
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the patient belongs to the authenticated user
+    const { data: patientOwnership, error: ownershipErr } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('id', patient_id)
+      .eq('user_id', user_id)
+      .maybeSingle();
+
+    if (ownershipErr || !patientOwnership) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log('Starting comprehensive data fetch for final analysis');
 
