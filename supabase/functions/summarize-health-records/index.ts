@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { scrubText } from "../_shared/phi-scrubber.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -93,6 +94,18 @@ Created: ${healthRecord.created_at}
       throw new Error('OpenAI API key not configured');
     }
 
+    // Scrub PHI (names, dates, contact info) before sending to AI
+    const serviceSupabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const scrubbedContent = await scrubText(recordContent, {
+      userId: healthRecord.user_id,
+      patientId: healthRecord.patient_id ?? null,
+      supabase: serviceSupabase,
+      useNER: false,
+    });
+
     const summaryPrompt = `
 You are a medical AI assistant specializing in health record analysis. Please create a concise, medically accurate summary of the following health record. 
 
@@ -105,7 +118,7 @@ Focus on:
 Keep the summary under 150 words but ensure all critical information is preserved.
 
 Health Record:
-${recordContent}
+${scrubbedContent}
     `.trim();
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
