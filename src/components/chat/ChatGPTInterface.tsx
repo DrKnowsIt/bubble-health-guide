@@ -14,6 +14,7 @@ import { useMedicalImagePrompts } from "@/hooks/useMedicalImagePrompts";
 import { useUnifiedAnalysis } from "@/hooks/useUnifiedAnalysis";
 import { useSimpleTokenTimeout } from '@/hooks/useSimpleTokenTimeout';
 import { supabase } from "@/integrations/supabase/client";
+import DOMPurify from "dompurify";
 import { logger } from "@/utils/logger";
 import { removeChannelsByName } from "@/utils/realtime";
 import EnhancedHealthInsightsPanel from "@/components/health/EnhancedHealthInsightsPanel";
@@ -903,13 +904,21 @@ function ChatInterface({ onSendMessage, conversation, selectedUser }: ChatGPTInt
                             : "bg-muted text-foreground rounded-bl-md"
                         )}
                       >
-                        <div className="whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1" dangerouslySetInnerHTML={{ __html: message.type === 'ai' ? message.content
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                          .replace(/^- (.*)/gm, '<li>$1</li>')
-                          .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-                          .replace(/^\d+\. (.*)/gm, '<li>$1</li>')
-                          : message.content }} />
+                        <div className="whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1" dangerouslySetInnerHTML={{ __html: message.type === 'ai'
+                          ? DOMPurify.sanitize(
+                              message.content
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/&lt;(\/?)(strong|em|ul|ol|li|p|br)&gt;/g, '<$1$2>')
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                .replace(/^- (.*)/gm, '<li>$1</li>')
+                                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                                .replace(/^\d+\. (.*)/gm, '<li>$1</li>'),
+                              { ALLOWED_TAGS: ['strong', 'em', 'ul', 'ol', 'li', 'p', 'br'], ALLOWED_ATTR: [] }
+                            )
+                          : DOMPurify.sanitize(message.content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) }} />
                       </div>
 
                       {message.type === 'user' && (
