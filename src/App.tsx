@@ -24,6 +24,7 @@ import TermsOfService from "./pages/TermsOfService";
 import UserAgreement from "./pages/UserAgreement";
 import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 import { SessionExtensionPrompt } from "./components/SessionExtensionPrompt";
