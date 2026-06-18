@@ -196,6 +196,48 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          email_error: string | null
+          email_sent: boolean
+          id: string
+          message: string
+          name: string
+          source_page: string | null
+          subject: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_error?: string | null
+          email_sent?: boolean
+          id?: string
+          message: string
+          name: string
+          source_page?: string | null
+          subject: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_error?: string | null
+          email_sent?: boolean
+          id?: string
+          message?: string
+          name?: string
+          source_page?: string | null
+          subject?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversation_diagnoses: {
         Row: {
           category: string
