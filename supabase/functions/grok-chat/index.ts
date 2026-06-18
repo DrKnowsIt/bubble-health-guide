@@ -699,7 +699,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: messages,
+        messages: scrubbedMessages,
         temperature: 0.7,
         max_tokens: 1000,
         stream: false,
