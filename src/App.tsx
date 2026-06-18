@@ -52,6 +52,7 @@ const App = () => {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/user-agreement" element={<UserAgreement />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ErrorBoundary>
