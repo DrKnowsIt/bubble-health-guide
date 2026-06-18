@@ -938,6 +938,7 @@ export type Database = {
           category: string | null
           created_at: string
           data: Json | null
+          file_encryption_meta: Json | null
           file_url: string | null
           id: string
           metadata: Json | null
@@ -952,6 +953,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           data?: Json | null
+          file_encryption_meta?: Json | null
           file_url?: string | null
           id?: string
           metadata?: Json | null
@@ -966,6 +968,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           data?: Json | null
+          file_encryption_meta?: Json | null
           file_url?: string | null
           id?: string
           metadata?: Json | null
@@ -1020,6 +1023,9 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          content_ciphertext: string | null
+          content_iv: string | null
+          content_key_version: number | null
           conversation_id: string
           created_at: string
           id: string
@@ -1029,6 +1035,9 @@ export type Database = {
         }
         Insert: {
           content: string
+          content_ciphertext?: string | null
+          content_iv?: string | null
+          content_key_version?: number | null
           conversation_id: string
           created_at?: string
           id?: string
@@ -1038,6 +1047,9 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_ciphertext?: string | null
+          content_iv?: string | null
+          content_key_version?: number | null
           conversation_id?: string
           created_at?: string
           id?: string
@@ -1084,12 +1096,17 @@ export type Database = {
       }
       patients: {
         Row: {
+          age_range: string | null
           breed: string | null
           created_at: string
           date_of_birth: string | null
+          encrypted_at: string | null
           first_name: string
           gender: string | null
           id: string
+          identifiers_ciphertext: string | null
+          identifiers_iv: string | null
+          identifiers_key_version: number | null
           is_pet: boolean
           is_primary: boolean | null
           last_name: string
@@ -1100,17 +1117,23 @@ export type Database = {
           recent_travel_locations: Json | null
           relationship: string
           sex: string | null
+          sex_coarse: string | null
           species: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          age_range?: string | null
           breed?: string | null
           created_at?: string
           date_of_birth?: string | null
+          encrypted_at?: string | null
           first_name: string
           gender?: string | null
           id?: string
+          identifiers_ciphertext?: string | null
+          identifiers_iv?: string | null
+          identifiers_key_version?: number | null
           is_pet?: boolean
           is_primary?: boolean | null
           last_name: string
@@ -1121,17 +1144,23 @@ export type Database = {
           recent_travel_locations?: Json | null
           relationship?: string
           sex?: string | null
+          sex_coarse?: string | null
           species?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          age_range?: string | null
           breed?: string | null
           created_at?: string
           date_of_birth?: string | null
+          encrypted_at?: string | null
           first_name?: string
           gender?: string | null
           id?: string
+          identifiers_ciphertext?: string | null
+          identifiers_iv?: string | null
+          identifiers_key_version?: number | null
           is_pet?: boolean
           is_primary?: boolean | null
           last_name?: string
@@ -1142,6 +1171,7 @@ export type Database = {
           recent_travel_locations?: Json | null
           relationship?: string
           sex?: string | null
+          sex_coarse?: string | null
           species?: string | null
           updated_at?: string
           user_id?: string
@@ -1151,9 +1181,13 @@ export type Database = {
       profiles: {
         Row: {
           alpha_tester: boolean
+          contact_ciphertext: string | null
+          contact_iv: string | null
+          contact_key_version: number | null
           created_at: string
           date_of_birth: string | null
           email: string | null
+          encrypted_at: string | null
           first_name: string | null
           id: string
           last_name: string | null
@@ -1165,9 +1199,13 @@ export type Database = {
         }
         Insert: {
           alpha_tester?: boolean
+          contact_ciphertext?: string | null
+          contact_iv?: string | null
+          contact_key_version?: number | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          encrypted_at?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
@@ -1179,9 +1217,13 @@ export type Database = {
         }
         Update: {
           alpha_tester?: boolean
+          contact_ciphertext?: string | null
+          contact_iv?: string | null
+          contact_key_version?: number | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          encrypted_at?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
@@ -1256,6 +1298,54 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_encryption_keys: {
+        Row: {
+          algorithm: string
+          created_at: string
+          key_version: number
+          password_kdf_iters: number
+          password_salt: string
+          recovery_kdf_iters: number
+          recovery_salt: string
+          recovery_wrapped_iv: string
+          recovery_wrapped_key: string
+          updated_at: string
+          user_id: string
+          wrapped_data_key: string
+          wrapped_data_key_iv: string
+        }
+        Insert: {
+          algorithm?: string
+          created_at?: string
+          key_version?: number
+          password_kdf_iters?: number
+          password_salt: string
+          recovery_kdf_iters?: number
+          recovery_salt: string
+          recovery_wrapped_iv: string
+          recovery_wrapped_key: string
+          updated_at?: string
+          user_id: string
+          wrapped_data_key: string
+          wrapped_data_key_iv: string
+        }
+        Update: {
+          algorithm?: string
+          created_at?: string
+          key_version?: number
+          password_kdf_iters?: number
+          password_salt?: string
+          recovery_kdf_iters?: number
+          recovery_salt?: string
+          recovery_wrapped_iv?: string
+          recovery_wrapped_key?: string
+          updated_at?: string
+          user_id?: string
+          wrapped_data_key?: string
+          wrapped_data_key_iv?: string
         }
         Relationships: []
       }
