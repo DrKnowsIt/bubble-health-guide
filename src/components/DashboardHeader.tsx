@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem, Clock } from "lucide-react";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem, Clock, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
@@ -83,6 +83,18 @@ export const DashboardHeader = ({
           <TierStatus showUpgradeButton={true} className="hidden md:flex" />
 
           {/* Navigation handled by page-specific back buttons */}
+
+          {/* Feedback */}
+          <a
+            href="https://discord.gg/DPxjBESWZZ"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+            title="Join our Discord for feedback and support"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Feedback
+          </a>
 
           {/* Notifications */}
           {/* User Menu */}

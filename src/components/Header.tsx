@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Menu, X, User, LogIn, LogOut } from "lucide-react";
+import { Stethoscope, Menu, X, User, LogIn, LogOut, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -88,6 +88,15 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             >
               FAQ
             </Link>
+            <a
+              href="https://discord.gg/DPxjBESWZZ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth flex items-center gap-1"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Feedback
+            </a>
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -187,6 +196,16 @@ export const Header = ({ onSignIn, onSignUp }: HeaderProps) => {
             >
               FAQ
             </Link>
+            <a
+              href="https://discord.gg/DPxjBESWZZ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth flex items-center gap-1.5"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Feedback
+            </a>
             <div className="border-t border-border pt-4 space-y-2">
               {user ? (
                 <div className="space-y-2">
