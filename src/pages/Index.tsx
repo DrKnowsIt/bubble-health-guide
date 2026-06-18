@@ -51,6 +51,15 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-center gap-2 text-xs text-primary/80">
           <Construction className="h-3.5 w-3.5" />
           <span>We're actively building DrKnowsIt — some features may be incomplete or change.</span>
+          <a
+            href="https://discord.gg/DPxjBESWZZ"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 font-medium text-primary underline underline-offset-2 hover:text-primary/70 transition-smooth"
+          >
+            <MessageCircle className="h-3 w-3" />
+            Discord
+          </a>
         </div>
       </div>
       {user ? <DashboardHeader /> : <Header onSignIn={() => openAuth('signin')} onSignUp={() => openAuth('signup')} />}
