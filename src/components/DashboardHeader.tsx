@@ -84,6 +84,18 @@ export const DashboardHeader = ({
 
           {/* Navigation handled by page-specific back buttons */}
 
+          {/* Feedback */}
+          <a
+            href="https://discord.gg/DPxjBESWZZ"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-smooth"
+            title="Join our Discord for feedback and support"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Feedback
+          </a>
+
           {/* Notifications */}
           {/* User Menu */}
           <DropdownMenu>
