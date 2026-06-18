@@ -451,6 +451,11 @@ export const Footer = ({ onSignUp }: { onSignUp?: () => void }) => {
                    </Link>
                  </li>
                  <li>
+                   <Link to="/contact" className="text-muted-foreground hover:text-primary transition-smooth">
+                     Contact Us
+                   </Link>
+                 </li>
+                 <li>
                    <Link to="/medical-disclaimer" className="text-muted-foreground hover:text-primary transition-smooth">
                      Medical Disclaimers
                    </Link>
