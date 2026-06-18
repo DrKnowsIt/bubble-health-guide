@@ -87,7 +87,7 @@ export async function wrapDataKey(
   secret: string,
 ): Promise<WrappedKeyBlob> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN_BYTES));
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES)) as Uint8Array & BufferSource;
   const wrappingKey = await deriveWrappingKey(secret, salt);
   const wrapped = await crypto.subtle.wrapKey("raw", dataKey, wrappingKey, {
     name: "AES-GCM",
@@ -112,9 +112,9 @@ export async function unwrapDataKey(
   );
   return crypto.subtle.unwrapKey(
     "raw",
-    b64.decode(blob.wrapped),
+    b64.decode(blob.wrapped) as BufferSource,
     wrappingKey,
-    { name: "AES-GCM", iv: b64.decode(blob.iv) },
+    { name: "AES-GCM", iv: b64.decode(blob.iv) as BufferSource },
     { name: "AES-GCM", length: KEY_LEN_BITS },
     true,
     ["encrypt", "decrypt"],
@@ -128,7 +128,7 @@ export interface Ciphertext {
 }
 
 export async function encryptJson<T>(value: T, dataKey: CryptoKey): Promise<Ciphertext> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES)) as Uint8Array & BufferSource;
   const plaintext = new TextEncoder().encode(JSON.stringify(value));
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, dataKey, plaintext);
   return { ciphertext: b64.encode(ct), iv: b64.encode(iv) };
@@ -136,7 +136,7 @@ export async function encryptJson<T>(value: T, dataKey: CryptoKey): Promise<Ciph
 
 export async function decryptJson<T>(blob: Ciphertext, dataKey: CryptoKey): Promise<T> {
   const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: b64.decode(blob.iv) },
+    { name: "AES-GCM", iv: b64.decode(blob.iv) as BufferSource },
     dataKey,
     b64.decode(blob.ciphertext),
   );
@@ -144,7 +144,7 @@ export async function decryptJson<T>(blob: Ciphertext, dataKey: CryptoKey): Prom
 }
 
 export async function encryptText(value: string, dataKey: CryptoKey): Promise<Ciphertext> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES)) as Uint8Array & BufferSource;
   const ct = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     dataKey,
@@ -155,7 +155,7 @@ export async function encryptText(value: string, dataKey: CryptoKey): Promise<Ci
 
 export async function decryptText(blob: Ciphertext, dataKey: CryptoKey): Promise<string> {
   const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: b64.decode(blob.iv) },
+    { name: "AES-GCM", iv: b64.decode(blob.iv) as BufferSource },
     dataKey,
     b64.decode(blob.ciphertext),
   );
@@ -167,7 +167,7 @@ export async function encryptBytes(bytes: ArrayBuffer, dataKey: CryptoKey): Prom
   ciphertext: ArrayBuffer;
   iv: string;
 }> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN_BYTES)) as Uint8Array & BufferSource;
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, dataKey, bytes);
   return { ciphertext: ct, iv: b64.encode(iv) };
 }
@@ -178,7 +178,7 @@ export async function decryptBytes(
   dataKey: CryptoKey,
 ): Promise<ArrayBuffer> {
   return crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: b64.decode(iv) },
+    { name: "AES-GCM", iv: b64.decode(iv) as BufferSource },
     dataKey,
     ciphertext,
   );
