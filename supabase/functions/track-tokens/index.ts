@@ -39,6 +39,9 @@ serve(async (req) => {
 
     const { user_id, tokens_to_add } = await req.json();
     
+    if (!user_id || user_id !== __authUserId) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     console.log(`Tracking ${tokens_to_add} tokens for user ${user_id}`);
 
     // Get current user token status

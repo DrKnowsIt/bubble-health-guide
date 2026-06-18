@@ -32,6 +32,9 @@ serve(async (req) => {
   // === End auth ===
     const { user_id, from_tier, to_tier } = await req.json();
 
+    if (!user_id || user_id !== __authUserId) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     if (!user_id || !from_tier || !to_tier) {
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),

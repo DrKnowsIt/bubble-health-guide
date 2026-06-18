@@ -38,6 +38,9 @@ serve(async (req) => {
 
     const { p_user_id, p_date, p_messages, p_tokens, p_cost } = await req.json();
     
+    if (!p_user_id || p_user_id !== __authUserId) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     console.log('Incrementing daily usage:', { p_user_id, p_date, p_messages, p_tokens, p_cost });
 
     // Try to get existing record
