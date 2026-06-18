@@ -1,70 +1,83 @@
-# Mobile UI Audit & Polish
+# PHI Protection & HIPAA-Aligned Architecture
 
-## What I checked
+Goal: make personal health data unreadable to us (the operators) and never sent to Gemini in identifiable form — while keeping every existing chat, memory, analysis, and report feature working identically for the end user.
 
-Loaded the preview at iPhone-size (390×844) and walked through the landing page, age-gate, cookie banner, demo chat, and reviewed the responsive code paths for the dashboard, chat, pricing, and auth screens.
+## The core idea: three layers
 
-## What's already good
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 1 — IDENTIFIERS (name, DOB, email, phone, address)    │
+│   Encrypted client-side with a user-derived key.            │
+│   Server stores ciphertext only. We cannot read it.         │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 2 — CLINICAL DATA (symptoms, conditions, meds, labs)  │
+│   Stored in plaintext under RLS so the AI + analysis        │
+│   functions can use it. No names attached — linked only by  │
+│   opaque patient_token (Patient_017).                       │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 3 — AI BOUNDARY                                       │
+│   Every payload to Gemini passes through a server-side      │
+│   PHI scrubber: token-swap names, generalize dates → age    │
+│   range, redact free-text PII with regex + NER pass.        │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- Header has a working hamburger + slide-down menu (`Header.tsx`).
-- Dashboard already swaps to bottom-tab nav with safe-area padding (`UserDashboard.tsx` lines 433-484), uses dedicated `MobileEnhancedChatInterface`, `MobileEnhancedHealthTab`, `MobileEnhancedOverviewTab`.
-- Landing page renders a phone-specific hero + inline demo chat (`Index.tsx` mobile branch).
-- PWA manifest, install prompt, and safe-area insets are wired.
+Result: a database leak exposes "Patient_017, female, 40-49, asthma" — never "Jane Doe, born 1981-04-02, 5 Main St". Gemini sees the same de-identified view. The user's own browser is the only place the mapping `Patient_017 → Jane Doe` can be reconstructed.
 
-## Issues found
+## How conversations stay unchanged
 
-1. **Landing demo chat is cramped on mobile.** `Index.tsx` uses `h-[100dvh] flex flex-col` with a `shrink-0` scrollable hero and a `flex-1` chat region — but the hero is taller than the screen on small phones, so the chat area collapses to near-zero before scroll. Result: input bar can be hidden by the `Deep analysis ready` badge / install prompt.
-2. **Cookie banner + install prompt + chat input can stack** at the bottom on mobile, overlapping the chat input.
-3. **Landing hero CTA is missing on mobile.** Desktop has the inline chat affordance; mobile lacks any explicit "Sign up / Try it" button above the fold, so the value prop has no action.
-4. **Dashboard mobile bottom-tabs** size `Report` tab differently from the other tabs (`py-2`/`gap-0.5` for siblings vs `py-3`/`gap-1`) → uneven heights.
-5. **`MobileEnhancedChatInterface` patient-selector + history bar uses two stacked rows**, eating ~120px of vertical space before the first message. Can be collapsed into one row.
-6. **Tap target sizes** on landing hero (the small "Trusted by" pill, "Information only" warning) are decorative but inside scroll area — fine; however the `Deep analysis ready` floating badge has no dismiss and overlays content.
-7. **Pricing page** uses `grid-cols-1 md:grid-cols-2` — fine, but plan cards have wide internal padding (`p-8`) that pushes CTA below the fold on iPhone SE.
-8. **Auth page** (`Auth.tsx`, 507 lines) — needs a quick check that the form, password reset, and Google button stack cleanly on 360px.
-9. **Horizontal overflow risk** in `ChatMessage` for long URLs/code blocks on phones (need `break-words`/`overflow-x-auto` for code).
-10. **iOS input zoom**: text inputs without `font-size: 16px` will trigger zoom on focus. Need to audit chat `<Textarea>` and auth inputs.
+The user still sees "Hi Jane, how's your asthma today?" because re-identification happens in the browser after the AI responds:
 
-## Changes
+```text
+User types  ──► browser encrypts identifiers, sends clinical text + patient_token
+                                     │
+                                     ▼
+                          edge fn: scrub → Gemini
+                                     │
+                                     ▼
+            AI reply with "Patient_017" ──► browser swaps token back to "Jane"
+```
 
-### Landing (`src/pages/Index.tsx`)
-- Replace fixed `h-[100dvh]` split with natural document flow on mobile so the hero scrolls normally and the demo chat sits as its own full-height section below.
-- Add a prominent "Get Started Free" CTA button in the mobile hero just under the disclaimer.
-- Lower hero image aspect to `4/3` → `16/10` so more text+CTA is visible above the fold.
+Memory works the same way: `conversation_memory` rows are stored against `patient_token`, never the real name. When the AI recalls "last week Patient_017 mentioned chest pain", the browser rewrites it to "Jane" before render.
 
-### Header (`src/components/Header.tsx`)
-- Add `safe-area-inset-top` padding so the sticky header isn't clipped under iOS notch.
-- Close mobile menu on route change (currently relies on click handler on each link — works, but add an effect for safety).
+## What changes vs. what stays
 
-### Dashboard bottom-tabs (`src/pages/UserDashboard.tsx`)
-- Normalize all `TabsTrigger` and the Report `Button` to the same height (`h-14`, `gap-0.5`, `py-2`, icon `h-5 w-5`).
-- Ensure the `Report` button sits inside `TabsList` grid so it doesn't break alignment.
+| Area | Today | After |
+|---|---|---|
+| Patient name / DOB / contact in `patients` | Plaintext | Encrypted blob + age_range + sex (plain) |
+| `messages.content` | Plaintext, may contain names | Stored with names already token-swapped client-side |
+| `conversation_memory`, `conversation_diagnoses`, `health_insights` | Plaintext, references patient by id | Same, but free-text fields scrubbed before insert |
+| Edge fn → Gemini payload | Partial de-id (existing `de-identify-data`) | Mandatory scrubber on every AI call, deny-by-default |
+| Chat UX, analysis UI, PDF export | — | Identical (re-identified in browser) |
+| Admin/operator view of DB | Can read names + health | Can read clinical data only; identifiers are ciphertext |
 
-### Mobile chat (`src/components/chat/MobileEnhancedChatInterface.tsx`)
-- Collapse the two header rows (patient + actions) into one compact row: patient pill on the left, history + new chat icons on the right. Saves ~60px.
-- Add `text-base` (16px) to the input `Textarea` to prevent iOS zoom-on-focus.
-- Add `pb-[env(safe-area-inset-bottom)]` to the input footer.
+## Cryptography (technical details)
 
-### Chat message (`src/components/chat/ChatMessage.tsx`)
-- Add `break-words` and `max-w-full` on the bubble; wrap `<pre>`/`<code>` in `overflow-x-auto`.
+- **Key derivation**: on login, derive a 256-bit data key via `PBKDF2(password, salt=user_id, 600k iters)` → AES-GCM key held only in memory (and IndexedDB wrapped by a session key). Never sent to server.
+- **Recovery**: at signup, wrap the data key with a 24-word recovery phrase shown once. Without password or phrase, identifiers are unrecoverable — this is the compliance feature, not a bug. Surface this clearly in onboarding.
+- **Password reset**: re-wrap data key using recovery phrase. If user loses both, identifiers are lost but clinical history remains usable under the opaque token.
+- **Encrypted columns**: `patients.identifiers_ciphertext`, `profiles.contact_ciphertext`, plus `iv` and `wrapped_key_version`. Helper `src/lib/phi-crypto.ts` wraps Web Crypto API.
 
-### Install / cookie banners
-- `InstallPrompt.tsx` and `CookieConsent.tsx`: ensure only one is visible at a time on mobile (cookie first, install after dismissed) and both honor safe-area-inset-bottom.
+## PHI scrubber (server-side, mandatory)
 
-### Pricing (`src/pages/Pricing.tsx`)
-- Reduce card padding on mobile (`p-5 sm:p-8`), tighten feature list spacing, ensure CTA is always above the fold on a 375px screen.
+New shared module `supabase/functions/_shared/phi-scrubber.ts`:
 
-### Auth (`src/pages/Auth.tsx`)
-- Set all inputs to `text-base` to stop iOS zoom; ensure form max-width is `w-full max-w-sm mx-auto` with vertical padding to avoid keyboard overlap.
+1. Replace known patient name(s) for the active `user_id` with `Patient_xxx` token (from existing `patient_tokens` table).
+2. Generalize any ISO date within ±2y of patient DOB → age bucket.
+3. Regex sweep: emails, phone numbers, SSNs, street addresses, ZIP+4.
+4. Lightweight NER pass via Gemini Flash Lite ("extract any remaining person names, return JSON") — used only for free-text fields > 200 chars; result fed back into the regex pass.
+5. Wrap the existing `fetch` to `ai.gateway.lovable.dev` in every edge function so it cannot be bypassed; any AI call that hasn't been scrubbed throws.
 
-### Misc
-- Remove or auto-hide the persistent "Deep analysis ready · Ready" footer on the public landing page (it belongs to the chat component but should not float over the demo input on small screens — make it inline above the input instead).
+## Migration & rollout
 
-## Out of scope
+1. New tables/columns + GRANTs + RLS (migration).
+2. Ship `phi-crypto.ts` and a one-time migration banner: "Encrypting your records — enter password to continue." Encrypts existing `patients` rows in-browser, writes ciphertext back, nulls plaintext columns.
+3. Add scrubber to `grok-chat`, `analyze-conversation-*`, `analyze-health-topics`, `analyze-health-insights`, `generate-final-medical-analysis`, `generate-comprehensive-health-report`, `summarize-health-records`.
+4. Update read paths (`useProfile`, `usePatients`, chat render, PDF export) to decrypt + re-identify in the browser.
+5. Add Settings → Privacy panel: show recovery phrase, re-encrypt, view what's stored encrypted.
 
-- No backend / RLS / edge function changes.
-- No new features; layout + spacing + iOS polish only.
-- Desktop and tablet layouts untouched except where shared components are edited (changes are mobile-conditional via Tailwind breakpoints).
+## Open questions before I build
 
-## Verification
-
-After edits, re-screenshot at 360×640, 390×844, and 414×896, then walk through: landing → demo chat → sign-up CTA → pricing → auth → (with test account) dashboard → mobile chat → bottom tabs → report button.
+1. **Recovery model** — accept the "lose password + phrase = identifiers gone forever" trade-off (true zero-knowledge), or keep a server-held escrow key so support can recover (weaker, but no lockouts)?
+2. **Scope of v1** — encrypt only `patients` + `profiles` identifier fields first, or include `health_records` file metadata + `messages` history in the same pass?
+3. **NER pass cost** — OK to spend an extra Gemini Flash Lite call per long message for the name-sweep, or keep v1 regex-only and add NER later?
