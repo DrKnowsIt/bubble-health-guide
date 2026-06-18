@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem, Clock } from "lucide-react";
+import { Stethoscope, Bell, Settings, LogOut, User, ChevronDown, Crown, Zap, AlertCircle, Gem, Clock, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useLocation } from "react-router-dom";
