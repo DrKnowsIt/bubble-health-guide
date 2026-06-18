@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
+import { scrubMessages } from '../_shared/phi-scrubber.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -657,6 +658,16 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Sending request to OpenAI with', messages.length, 'messages');
 
+    // PHI scrubber: tokenize names, generalize dates, redact PII regex.
+    // Deny-by-default safety net — even if client mis-sends PHI, the
+    // outbound payload to Gemini has identifiers stripped.
+    const scrubbedMessages = await scrubMessages(messages, {
+      userId: user_id,
+      supabase: supabaseAdmin,
+      patientId: patient_id ?? null,
+      useNER: true,
+    });
+
     // Define tool for Amazon product search
     const tools = [{
       type: "function",
@@ -688,7 +699,7 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: messages,
+        messages: scrubbedMessages,
         temperature: 0.7,
         max_tokens: 1000,
         stream: false,
