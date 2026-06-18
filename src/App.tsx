@@ -24,6 +24,7 @@ import TermsOfService from "./pages/TermsOfService";
 import UserAgreement from "./pages/UserAgreement";
 import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 import { SessionExtensionPrompt } from "./components/SessionExtensionPrompt";
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/user-agreement" element={<UserAgreement />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ErrorBoundary>
