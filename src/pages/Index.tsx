@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Construction } from "lucide-react";
+import { Users, Construction, MessageCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { HowItWorks, Features, Footer, UserCountBadge } from "@/components/LandingPageComponents";
