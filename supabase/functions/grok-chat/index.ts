@@ -658,6 +658,16 @@ ${image_url ? `\n\nThe user has also shared an image: ${image_url}` : ''}`;
 
     console.log('Sending request to OpenAI with', messages.length, 'messages');
 
+    // PHI scrubber: tokenize names, generalize dates, redact PII regex.
+    // Deny-by-default safety net — even if client mis-sends PHI, the
+    // outbound payload to Gemini has identifiers stripped.
+    const scrubbedMessages = await scrubMessages(messages, {
+      userId: user_id,
+      supabase: supabaseAdmin,
+      patientId: patient_id ?? null,
+      useNER: true,
+    });
+
     // Define tool for Amazon product search
     const tools = [{
       type: "function",
