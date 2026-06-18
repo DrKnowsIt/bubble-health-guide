@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { scrubText } from "../_shared/phi-scrubber.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -108,9 +109,21 @@ serve(async (req) => {
       }
     }
 
-    // Prepare context for AI analysis
+    // Look up opaque patient token — never send real name to the AI
+    let patientToken = 'Patient';
+    if (patient_id) {
+      const { data: tokenRow } = await supabaseClient
+        .from('patient_tokens')
+        .select('token_id')
+        .eq('user_id', user.id)
+        .eq('patient_id', patient_id)
+        .maybeSingle();
+      if (tokenRow?.token_id) patientToken = tokenRow.token_id;
+    }
+
+    // Prepare context for AI analysis (token, not name)
     const patientContext = {
-      name: patientData ? `${patientData.first_name} ${patientData.last_name}` : 'Patient',
+      name: patientToken,
       age: age,
       gender: patientData?.gender || 'Not specified',
       totalRecords: healthRecords.length
@@ -220,13 +233,25 @@ ${isPet ?
 - Lifestyle factors affecting health outcomes
 - Preventive care gaps based on age and risk factors`}`;
 
+    // Scrub PHI (stray names, emails, phones, addresses; dates → age bucket)
+    // from the record data before it reaches Gemini.
+    const scrubbedHealthSummary = await scrubText(
+      JSON.stringify(healthSummary, null, 2),
+      {
+        userId: user.id,
+        patientId: patient_id || null,
+        supabase: supabaseClient,
+        useNER: false,
+      },
+    );
+
     const userPrompt = `Patient: ${patientContext.name}
 Age: ${age || 'Unknown'}
 Gender: ${patientContext.gender}
 Total Health Records: ${patientContext.totalRecords}
 
 Health Data Summary:
-${JSON.stringify(healthSummary, null, 2)}
+${scrubbedHealthSummary}
 
 Please analyze this health information comprehensively and provide the requested JSON report with test recommendations based on the findings and patient demographics.`;
 
