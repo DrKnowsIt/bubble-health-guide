@@ -225,7 +225,8 @@ const Contact = () => {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        defaultMode={authMode}
+        mode={authMode}
+        onToggleMode={() => setAuthMode((m) => (m === "signin" ? "signup" : "signin"))}
       />
     </div>
   );
