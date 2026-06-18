@@ -233,13 +233,25 @@ ${isPet ?
 - Lifestyle factors affecting health outcomes
 - Preventive care gaps based on age and risk factors`}`;
 
+    // Scrub PHI (stray names, emails, phones, addresses; dates → age bucket)
+    // from the record data before it reaches Gemini.
+    const scrubbedHealthSummary = await scrubText(
+      JSON.stringify(healthSummary, null, 2),
+      {
+        userId: user.id,
+        patientId: patient_id || null,
+        supabase: supabaseClient,
+        useNER: false,
+      },
+    );
+
     const userPrompt = `Patient: ${patientContext.name}
 Age: ${age || 'Unknown'}
 Gender: ${patientContext.gender}
 Total Health Records: ${patientContext.totalRecords}
 
 Health Data Summary:
-${JSON.stringify(healthSummary, null, 2)}
+${scrubbedHealthSummary}
 
 Please analyze this health information comprehensively and provide the requested JSON report with test recommendations based on the findings and patient demographics.`;
 
